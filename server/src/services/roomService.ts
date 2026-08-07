@@ -5,9 +5,14 @@ import type { AiService } from './aiService.js'
 interface RoomServiceDependencies {
   repositories: RepositoryBundle
   ai: AiService
+  logError?: (message: string, error: unknown) => void
 }
 
-export function createRoomService({ repositories, ai }: RoomServiceDependencies) {
+export function createRoomService({
+  repositories,
+  ai,
+  logError = (message, error) => console.error(message, error)
+}: RoomServiceDependencies) {
   async function assertMember(roomId: string, userId: string) {
     if (!(await repositories.rooms.isMember(roomId, userId))) throw new Error('room_forbidden')
   }
@@ -49,7 +54,8 @@ export function createRoomService({ repositories, ai }: RoomServiceDependencies)
       let text: string
       try {
         text = await ai.reply({ messages, memories, pet })
-      } catch {
+      } catch (error) {
+        logError('Pet AI reply failed', error)
         text = '汪呜，小多利刚才打了个盹，稍后再叫我一次吧。'
       }
       return repositories.messages.create({

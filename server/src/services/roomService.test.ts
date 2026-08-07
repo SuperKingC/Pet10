@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createRoomService } from './roomService.js'
@@ -35,5 +35,27 @@ describe('room service', () => {
     })
 
     await expect(service.listMessages('missing-room', outsider.id)).rejects.toThrow('room_forbidden')
+  })
+
+  it('logs the AI failure before returning the fallback reply', async () => {
+    const repositories = createMemoryRepositories()
+    const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const second = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const friendship = createFriendshipService(repositories)
+    const relationship = await friendship.sendRequest(first.id, second.username)
+    await friendship.acceptRequest(second.id, relationship.id)
+    const room = await repositories.rooms.findByRelationshipId(relationship.id)
+    if (!room) throw new Error('room missing')
+    const logError = vi.fn()
+    const service = createRoomService({
+      repositories,
+      ai: { reply: async () => { throw new Error('ai_request_failed:401') } },
+      logError
+    })
+
+    const reply = await service.requestPetReply(room.id, first.id)
+
+    expect(reply.text).toContain('打了个盹')
+    expect(logError).toHaveBeenCalledWith('Pet AI reply failed', expect.any(Error))
   })
 })

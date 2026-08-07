@@ -1,5 +1,6 @@
 import { apiRequest } from './httpClient'
 import type { Message, PetMemory, PetState } from '../domain/types'
+import { mapServerMessage, type ServerMessage } from './messageMapper'
 
 export interface ServerUser {
   id: string
@@ -27,30 +28,6 @@ export interface ServerRoom {
   relationshipId: string
 }
 
-interface ServerMessage {
-  id: string
-  senderType: 'user' | 'pet'
-  kind: 'text' | 'image' | 'pet'
-  text: string
-  imageUrl?: string
-  createdAt: string
-}
-
-function mapMessage(message: ServerMessage): Message {
-  return {
-    id: message.id,
-    sender: message.senderType === 'pet' ? 'pet' : 'you',
-    kind: message.kind,
-    text: message.text,
-    imageUrl: message.imageUrl,
-    createdAt: new Intl.DateTimeFormat('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).format(new Date(message.createdAt))
-  }
-}
-
 export interface ServerSession {
   status: 'unbound' | 'pending_outgoing' | 'pending_incoming' | 'accepted'
   user: ServerUser
@@ -64,10 +41,10 @@ export interface ServerSession {
 
 export const sessionApi = {
   async getHome() {
-    const session = await apiRequest<ServerSession & { messages?: ServerMessage[] }>('/api/session')
+    const session = await apiRequest<Omit<ServerSession, 'messages'> & { messages?: ServerMessage[] }>('/api/session')
     return {
       ...session,
-      messages: session.messages?.map(mapMessage)
+      messages: session.messages?.map((message) => mapServerMessage(message, session.user.id))
     }
   },
   updateUsername(username: string) {

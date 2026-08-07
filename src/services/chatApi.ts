@@ -1,5 +1,6 @@
 import type { Message, PetState } from '../domain/types'
 import { apiRequest } from './httpClient'
+import { mapServerMessage, type ServerMessage } from './messageMapper'
 import { runtimeConfig } from './runtimeConfig'
 
 export interface SendMessageInput {
@@ -76,38 +77,13 @@ const mockChatApi: ChatApi = {
   }
 }
 
-interface ServerMessage {
-  id: string
-  senderType: 'user' | 'pet'
-  senderId?: string
-  kind: 'text' | 'image' | 'pet'
-  text: string
-  imageUrl?: string
-  createdAt: string
-}
-
-function mapServerMessage(message: ServerMessage): Message {
-  return {
-    id: message.id,
-    sender: message.senderType === 'pet' ? 'pet' : 'you',
-    kind: message.kind,
-    text: message.text,
-    imageUrl: message.imageUrl,
-    createdAt: new Intl.DateTimeFormat('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).format(new Date(message.createdAt))
-  }
-}
-
 const realChatApi: ChatApi = {
   async sendMessage(input) {
     const message = await apiRequest<ServerMessage>(`/api/rooms/${input.roomId}/messages`, {
       method: 'POST',
       body: JSON.stringify({ text: input.text, imageUrl: input.imageUrl })
     })
-    return mapServerMessage(message)
+    return mapServerMessage(message, message.senderId)
   },
   async requestPetReply(roomId) {
     const message = await apiRequest<ServerMessage>(`/api/rooms/${roomId}/pet-replies`, {

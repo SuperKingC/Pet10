@@ -44,7 +44,10 @@ export function createAiService(config: ServerConfig['ai']): AiService {
           ]
         })
       })
-      if (!response.ok) throw new Error(`ai_request_failed:${response.status}`)
+      if (!response.ok) {
+        const errorBody = (await response.text()).replace(/\s+/g, ' ').trim().slice(0, 500)
+        throw new Error(`ai_request_failed:${response.status}${errorBody ? `:${errorBody}` : ''}`)
+      }
       const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> }
       return data.choices?.[0]?.message?.content?.trim() || '汪？小多利刚刚走神了，再叫我一次吧。'
     }

@@ -7,6 +7,7 @@ import { createMemoryService } from '../services/memoryService'
 import { runtimeConfig } from '../services/runtimeConfig'
 import type { ServerSession } from '../services/sessionApi'
 import { connectRealtime } from '../services/realtimeClient'
+import { mapServerMessage, type ServerMessage } from '../services/messageMapper'
 import { uploadImageToOss } from '../services/uploadApi'
 import { createChatMessageInput } from './chatMessageInput'
 import { MemoryPanel } from './MemoryPanel'
@@ -98,7 +99,7 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
   useEffect(() => {
     const socket = connectRealtime(roomId, {
       onMessage: (incoming) => {
-        const message = incoming as Message
+        const message = mapServerMessage(incoming as ServerMessage, session?.user.id)
         setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message])
       },
       onPetUpdated: (incoming) => setPet(incoming as typeof pet),
@@ -107,7 +108,7 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
     return () => {
       socket?.disconnect()
     }
-  }, [roomId])
+  }, [roomId, session?.user.id])
 
   return (
     <main className="app-shell">
