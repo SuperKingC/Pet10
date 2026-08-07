@@ -8,6 +8,7 @@ import { runtimeConfig } from '../services/runtimeConfig'
 import type { ServerSession } from '../services/sessionApi'
 import { connectRealtime } from '../services/realtimeClient'
 import { uploadImageToOss } from '../services/uploadApi'
+import { createChatMessageInput } from './chatMessageInput'
 import { MemoryPanel } from './MemoryPanel'
 import { MessageBubble } from './MessageBubble'
 import { PetActionBar } from './PetActionBar'
@@ -26,6 +27,8 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
   const [draft, setDraft] = useState('')
   const [pendingImage, setPendingImage] = useState<string>()
   const [petThinking, setPetThinking] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
   const [memoryOpen, setMemoryOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const realMemoryService = useMemo(() => createMemoryService(roomId), [roomId])
@@ -47,20 +50,28 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
 
   async function sendMessage(forcePetReply = false) {
     const text = draft.trim()
-    if (!text && !pendingImage) return
+    if ((!text && !pendingImage) || sending) return
 
-    const sent = await chatApi.sendMessage({
-      roomId: initialSnapshot.room.id,
-      text: text || '分享了一张照片',
-      imageUrl: pendingImage
-    })
-    const nextMessages = [...messages, sent]
-    setMessages(nextMessages)
-    setDraft('')
-    setPendingImage(undefined)
+    setSending(true)
+    setSendError('')
+    try {
+      const sent = await chatApi.sendMessage(createChatMessageInput(
+        roomId,
+        text || '分享了一张照片',
+        pendingImage
+      ))
+      const nextMessages = [...messages, sent]
+      setMessages(nextMessages)
+      setDraft('')
+      setPendingImage(undefined)
 
-    if (forcePetReply || text.includes('@小多利') || Boolean(sent.imageUrl)) {
-      await triggerPetReply(nextMessages)
+      if (forcePetReply || text.includes('@小多利') || Boolean(sent.imageUrl)) {
+        await triggerPetReply(nextMessages)
+      }
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : '消息发送失败')
+    } finally {
+      setSending(false)
     }
   }
 
@@ -132,6 +143,7 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
       </div>
 
       <footer className="composer">
+        {sendError && <div className="composer-error">消息发送失败，请重试（{sendError}）</div>}
         {pendingImage && (
           <div className="pending-image">
             <img src={pendingImage} alt="待发送图片" />
@@ -155,7 +167,9 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
             }}
             placeholder="和好友、小多利说点什么…"
           />
-          <button className="send-button" onClick={() => void sendMessage()}>发送</button>
+          <button className="send-button" disabled={sending} onClick={() => void sendMessage()}>
+            {sending ? '发送中…' : '发送'}
+          </button>
           <input
             ref={fileInputRef}
             className="visually-hidden"

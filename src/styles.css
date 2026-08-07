@@ -34,6 +34,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .form-error { margin-top: 13px; padding: 10px 12px; border-radius: 12px; background: #fff0ee; color: #bd6252; font-size: 12px; line-height: 1.5; }
 .form-hint { margin-top: 13px; padding: 10px 12px; border-radius: 12px; background: #fff7df; color: #8b6236; font-size: 13px; line-height: 1.5; text-align: center; }
 .account-identity { margin: 8px 0 16px !important; color: #8b6236 !important; font-size: 13px; }
+.composer-error { margin: 0 14px 8px; padding: 8px 10px; border-radius: 10px; background: #fff0ee; color: #bd6252; font-size: 12px; text-align: center; }
 .friend-setup-card h1 { font-size: clamp(28px, 8vw, 40px); }
 
 .app-shell {
