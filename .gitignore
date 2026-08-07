@@ -9,5 +9,6 @@ dist/
 server/.env
 .env.production
 .superpowers/
+.qoder/
 .DS_Store
 Thumbs.db

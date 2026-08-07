@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { authApi } from '../services/authApi'
+import { InstallHint } from './InstallHint'
 
 interface LoginScreenProps {
   onLoggedIn: () => void
@@ -74,6 +75,7 @@ export function LoginScreen({ onLoggedIn }: LoginScreenProps) {
           setCode('')
         }}>更换邮箱或邀请码</button>}
       </div>
+      <InstallHint />
     </main>
   )
 }

@@ -4,6 +4,7 @@ import { ChatScreen } from './components/ChatScreen'
 import { FriendSetupScreen } from './components/FriendSetupScreen'
 import { LoginScreen } from './components/LoginScreen'
 import { getAccessToken } from './services/httpClient'
+import { clearAppBadge } from './services/appBadge'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
 import './styles.css'
@@ -42,6 +43,9 @@ function App() {
 }
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+
+document.getElementById('app-splash')?.remove()
+clearAppBadge()
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {

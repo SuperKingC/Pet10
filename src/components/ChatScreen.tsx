@@ -9,6 +9,7 @@ import type { ServerSession } from '../services/sessionApi'
 import { connectRealtime } from '../services/realtimeClient'
 import { mapServerMessage, type ServerMessage } from '../services/messageMapper'
 import { appendUniqueMessage } from '../services/messageCollection'
+import { clearAppBadge, setAppBadge } from '../services/appBadge'
 import { uploadImageToOss } from '../services/uploadApi'
 import { createChatMessageInput } from './chatMessageInput'
 import { MemoryPanel } from './MemoryPanel'
@@ -33,6 +34,7 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
   const [sendError, setSendError] = useState('')
   const [memoryOpen, setMemoryOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const unreadCountRef = useRef(0)
   const realMemoryService = useMemo(() => createMemoryService(roomId), [roomId])
 
   const subtitle = useMemo(
@@ -98,10 +100,27 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
   }
 
   useEffect(() => {
+    unreadCountRef.current = 0
+    clearAppBadge()
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        unreadCountRef.current = 0
+        clearAppBadge()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [])
+
+  useEffect(() => {
     const socket = connectRealtime(roomId, {
       onMessage: (incoming) => {
         const message = mapServerMessage(incoming as ServerMessage, session?.user.id)
         setMessages((current) => appendUniqueMessage(current, message))
+        if (document.hidden && message.sender !== 'you') {
+          unreadCountRef.current += 1
+          setAppBadge(unreadCountRef.current)
+        }
       },
       onPetUpdated: (incoming) => setPet(incoming as typeof pet),
       onMemoryDeleted: ({ id }) => setMemories((current) => current.filter((memory) => memory.id !== id))
