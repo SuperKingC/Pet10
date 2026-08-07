@@ -36,6 +36,12 @@ export function createMemoryRepositories(): RepositoryBundle {
       const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), createdAt: now() }
       users.set(user.id, user)
       return user
+    },
+    async updateUsername(id: string, username: string) {
+      const user = users.get(id)
+      if (!user) throw new Error('user_not_found')
+      user.username = username
+      return user
     }
   }
 
@@ -76,6 +82,11 @@ export function createMemoryRepositories(): RepositoryBundle {
       if (!item) throw new Error('relationship_not_found')
       item.status = 'accepted'
       return item
+    },
+    async listPendingForUser(userId: string) {
+      return [...relationships.values()].filter((item) =>
+        item.status === 'pending' && (item.requesterId === userId || item.addresseeId === userId)
+      )
     }
   }
 

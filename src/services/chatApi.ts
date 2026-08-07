@@ -11,6 +11,7 @@ export interface SendMessageInput {
 export interface ChatApi {
   sendMessage(input: SendMessageInput): Promise<Message>
   requestPetReply(roomId: string, messages: Message[], pet: PetState): Promise<Message>
+  applyPetAction(roomId: string, action: 'feed' | 'play' | 'clean' | 'sleep'): Promise<PetState>
   uploadImage(file: File): Promise<string>
 }
 
@@ -63,6 +64,12 @@ const mockChatApi: ChatApi = {
     }
   },
 
+  async applyPetAction(_roomId, action) {
+    const { applyPetAction } = await import('../domain/petRules')
+    const { initialSnapshot } = await import('../state/mockStore')
+    return applyPetAction(initialSnapshot.pet, action)
+  },
+
   async uploadImage(file) {
     await new Promise((resolve) => window.setTimeout(resolve, 250))
     return URL.createObjectURL(file)
@@ -108,6 +115,12 @@ const realChatApi: ChatApi = {
       body: '{}'
     })
     return mapServerMessage(message)
+  },
+  applyPetAction(roomId, action) {
+    return apiRequest<PetState>(`/api/rooms/${roomId}/pet-actions`, {
+      method: 'POST',
+      body: JSON.stringify({ action })
+    })
   },
   async uploadImage(file) {
     // OSS direct-upload signing will replace this local preview in the next deployment step.

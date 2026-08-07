@@ -12,7 +12,12 @@ const environmentSchema = z.object({
   MAIL_MODE: z.enum(['console', 'smtp']).default('console'),
   AI_API_KEY: z.string().optional(),
   AI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
-  AI_MODEL: z.string().default('gpt-4.1-mini')
+  AI_MODEL: z.string().default('gpt-4.1-mini'),
+  OSS_REGION: z.string().optional(),
+  OSS_BUCKET: z.string().optional(),
+  OSS_ACCESS_KEY_ID: z.string().optional(),
+  OSS_ACCESS_KEY_SECRET: z.string().optional(),
+  OSS_PUBLIC_BASE_URL: z.string().url().optional()
 })
 
 export interface ServerConfig {
@@ -32,6 +37,14 @@ export interface ServerConfig {
     apiKey?: string
     baseUrl: string
     model: string
+  }
+  oss: {
+    enabled: boolean
+    region?: string
+    bucket?: string
+    accessKeyId?: string
+    accessKeySecret?: string
+    publicBaseUrl?: string
   }
 }
 
@@ -58,6 +71,14 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       apiKey: parsed.AI_API_KEY,
       baseUrl: parsed.AI_BASE_URL.replace(/\/$/, ''),
       model: parsed.AI_MODEL
+    },
+    oss: {
+      enabled: Boolean(parsed.OSS_REGION && parsed.OSS_BUCKET && parsed.OSS_ACCESS_KEY_ID && parsed.OSS_ACCESS_KEY_SECRET),
+      region: parsed.OSS_REGION,
+      bucket: parsed.OSS_BUCKET,
+      accessKeyId: parsed.OSS_ACCESS_KEY_ID,
+      accessKeySecret: parsed.OSS_ACCESS_KEY_SECRET,
+      publicBaseUrl: parsed.OSS_PUBLIC_BASE_URL?.replace(/\/$/, '')
     }
   }
 }

@@ -1,23 +1,34 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { applyPetAction, type PetAction } from '../domain/petRules'
 import type { Message } from '../domain/types'
 import { initialSnapshot } from '../state/mockStore'
 import { chatApi } from '../services/chatApi'
-import { memoryService } from '../services/memoryService'
+import { createMemoryService } from '../services/memoryService'
+import { runtimeConfig } from '../services/runtimeConfig'
+import type { ServerSession } from '../services/sessionApi'
+import { connectRealtime } from '../services/realtimeClient'
+import { uploadImageToOss } from '../services/uploadApi'
 import { MemoryPanel } from './MemoryPanel'
 import { MessageBubble } from './MessageBubble'
 import { PetActionBar } from './PetActionBar'
 import { PetStatusCard } from './PetStatusCard'
 
-export function ChatScreen() {
-  const [pet, setPet] = useState(initialSnapshot.pet)
-  const [messages, setMessages] = useState(initialSnapshot.messages)
-  const [memories, setMemories] = useState(initialSnapshot.memories)
+interface ChatScreenProps {
+  session?: ServerSession
+  onSessionChanged?: () => void
+}
+
+export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
+  const roomId = session?.room?.id ?? initialSnapshot.room.id
+  const [pet, setPet] = useState(session?.pet ?? initialSnapshot.pet)
+  const [messages, setMessages] = useState(session?.messages ?? initialSnapshot.messages)
+  const [memories, setMemories] = useState(session?.memories ?? initialSnapshot.memories)
   const [draft, setDraft] = useState('')
   const [pendingImage, setPendingImage] = useState<string>()
   const [petThinking, setPetThinking] = useState(false)
   const [memoryOpen, setMemoryOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const realMemoryService = useMemo(() => createMemoryService(roomId), [roomId])
 
   const subtitle = useMemo(
     () => `${initialSnapshot.friend.online ? '在线' : '离线'} · 你们和小多利的家`,
@@ -27,7 +38,7 @@ export function ChatScreen() {
   async function triggerPetReply(nextMessages: Message[]) {
     setPetThinking(true)
     try {
-      const reply = await chatApi.requestPetReply(initialSnapshot.room.id, nextMessages, pet)
+      const reply = await chatApi.requestPetReply(roomId, nextMessages, pet)
       setMessages((current) => [...current, reply])
     } finally {
       setPetThinking(false)
@@ -55,22 +66,42 @@ export function ChatScreen() {
 
   async function handleImage(file?: File) {
     if (!file) return
-    const imageUrl = await chatApi.uploadImage(file)
+    const imageUrl = runtimeConfig.useMockApi
+      ? await chatApi.uploadImage(file)
+      : await uploadImageToOss(roomId, file)
     setPendingImage(imageUrl)
   }
 
   function handlePetAction(action: PetAction) {
-    setPet((current) => applyPetAction(current, action))
+    if (runtimeConfig.useMockApi) {
+      setPet((current) => applyPetAction(current, action))
+      return
+    }
+    void chatApi.applyPetAction(roomId, action).then(setPet)
   }
 
   async function removeMemory(memoryId: string) {
-    setMemories(await memoryService.removeMemory(memories, memoryId))
+    setMemories(await realMemoryService.removeMemory(memories, memoryId))
   }
+
+  useEffect(() => {
+    const socket = connectRealtime(roomId, {
+      onMessage: (incoming) => {
+        const message = incoming as Message
+        setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message])
+      },
+      onPetUpdated: (incoming) => setPet(incoming as typeof pet),
+      onMemoryDeleted: ({ id }) => setMemories((current) => current.filter((memory) => memory.id !== id))
+    })
+    return () => {
+      socket?.disconnect()
+    }
+  }, [roomId])
 
   return (
     <main className="app-shell">
       <header className="room-header">
-        <button className="header-button" aria-label="返回">‹</button>
+          <button className="header-button" aria-label="返回" onClick={onSessionChanged}>‹</button>
         <div className="room-header__people">
           <div className="stacked-avatar stacked-avatar--you">你</div>
           <div className="stacked-avatar stacked-avatar--friend">友</div>

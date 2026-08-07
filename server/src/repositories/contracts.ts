@@ -14,6 +14,7 @@ export interface UserRepository {
   findByEmail(email: string): Promise<User | undefined>
   findByUsername(username: string): Promise<User | undefined>
   create(input: Pick<User, 'email' | 'username' | 'displayName'>): Promise<User>
+  updateUsername(id: string, username: string): Promise<User>
 }
 
 export interface InviteRepository {
@@ -33,6 +34,7 @@ export interface RelationshipRepository {
   findById(id: string): Promise<Relationship | undefined>
   create(requesterId: string, addresseeId: string): Promise<Relationship>
   accept(id: string): Promise<Relationship>
+  listPendingForUser(userId: string): Promise<Relationship[]>
 }
 
 export interface RoomRepository {

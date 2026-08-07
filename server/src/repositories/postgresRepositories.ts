@@ -29,7 +29,8 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       create: (input) => one(
         'INSERT INTO users(email,username,display_name) VALUES($1,$2,$3) RETURNING *',
         [input.email.toLowerCase(), input.username, input.displayName]
-      )
+      ),
+      updateUsername: (id, username) => one('UPDATE users SET username=$2 WHERE id=$1 RETURNING *', [id, username])
     },
     invites: {
       findByCode: (code) => one('SELECT * FROM invite_codes WHERE code=$1', [code.toUpperCase()]),
@@ -99,7 +100,12 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         } finally {
           client?.release()
         }
-      }
+      },
+      listPendingForUser: (userId) => many(
+        `SELECT * FROM relationships WHERE status='pending'
+         AND (requester_id=$1 OR addressee_id=$1) ORDER BY created_at DESC`,
+        [userId]
+      )
     },
     rooms: {
       createForRelationship: async (relationshipId) => {
