@@ -27,7 +27,7 @@ export function ChatScreen() {
   async function triggerPetReply(nextMessages: Message[]) {
     setPetThinking(true)
     try {
-      const reply = await chatApi.requestPetReply(nextMessages, pet)
+      const reply = await chatApi.requestPetReply(initialSnapshot.room.id, nextMessages, pet)
       setMessages((current) => [...current, reply])
     } finally {
       setPetThinking(false)

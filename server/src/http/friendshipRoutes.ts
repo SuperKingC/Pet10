@@ -1,0 +1,26 @@
+import { Router } from 'express'
+import { z } from 'zod'
+import type { AuthenticatedRequest } from './authMiddleware.js'
+
+function routeParam(value: string | string[]) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+export function createFriendshipRoutes(service: {
+  sendRequest(userId: string, username: string): Promise<unknown>
+  acceptRequest(userId: string, relationshipId: string): Promise<unknown>
+}) {
+  const router = Router()
+  router.post('/', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      const { username } = z.object({ username: z.string().min(1) }).parse(request.body)
+      response.status(201).json(await service.sendRequest(request.userId!, username))
+    } catch (error) { next(error) }
+  })
+  router.post('/:id/accept', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      response.json(await service.acceptRequest(request.userId!, routeParam(request.params.id)))
+    } catch (error) { next(error) }
+  })
+  return router
+}

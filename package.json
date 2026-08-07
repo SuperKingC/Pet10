@@ -3,11 +3,19 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "workspaces": [
+    "server"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "test": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server:dev": "npm run dev --workspace server",
+    "server:test": "npm run test --workspace server",
+    "server:build": "npm run build --workspace server",
+    "test:all": "npm test -- --run && npm run server:test",
+    "build:all": "npm run build && npm run server:build"
   },
   "dependencies": {
     "react": "^19.1.1",

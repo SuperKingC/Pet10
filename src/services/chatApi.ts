@@ -1,4 +1,6 @@
 import type { Message, PetState } from '../domain/types'
+import { apiRequest } from './httpClient'
+import { runtimeConfig } from './runtimeConfig'
 
 export interface SendMessageInput {
   roomId: string
@@ -8,7 +10,7 @@ export interface SendMessageInput {
 
 export interface ChatApi {
   sendMessage(input: SendMessageInput): Promise<Message>
-  requestPetReply(messages: Message[], pet: PetState): Promise<Message>
+  requestPetReply(roomId: string, messages: Message[], pet: PetState): Promise<Message>
   uploadImage(file: File): Promise<string>
 }
 
@@ -37,7 +39,7 @@ function choosePetReply(messages: Message[], pet: PetState): string {
   return '汪！我在认真听。你们两个一起说话的时候，我的心情会特别好。'
 }
 
-export const chatApi: ChatApi = {
+const mockChatApi: ChatApi = {
   async sendMessage(input) {
     await new Promise((resolve) => window.setTimeout(resolve, 120))
     return {
@@ -50,7 +52,7 @@ export const chatApi: ChatApi = {
     }
   },
 
-  async requestPetReply(messages, pet) {
+  async requestPetReply(_roomId, messages, pet) {
     await new Promise((resolve) => window.setTimeout(resolve, 850))
     return {
       id: createId('pet-message'),
@@ -66,3 +68,51 @@ export const chatApi: ChatApi = {
     return URL.createObjectURL(file)
   }
 }
+
+interface ServerMessage {
+  id: string
+  senderType: 'user' | 'pet'
+  senderId?: string
+  kind: 'text' | 'image' | 'pet'
+  text: string
+  imageUrl?: string
+  createdAt: string
+}
+
+function mapServerMessage(message: ServerMessage): Message {
+  return {
+    id: message.id,
+    sender: message.senderType === 'pet' ? 'pet' : 'you',
+    kind: message.kind,
+    text: message.text,
+    imageUrl: message.imageUrl,
+    createdAt: new Intl.DateTimeFormat('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(new Date(message.createdAt))
+  }
+}
+
+const realChatApi: ChatApi = {
+  async sendMessage(input) {
+    const message = await apiRequest<ServerMessage>(`/api/rooms/${input.roomId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ text: input.text, imageUrl: input.imageUrl })
+    })
+    return mapServerMessage(message)
+  },
+  async requestPetReply(roomId) {
+    const message = await apiRequest<ServerMessage>(`/api/rooms/${roomId}/pet-replies`, {
+      method: 'POST',
+      body: '{}'
+    })
+    return mapServerMessage(message)
+  },
+  async uploadImage(file) {
+    // OSS direct-upload signing will replace this local preview in the next deployment step.
+    return URL.createObjectURL(file)
+  }
+}
+
+export const chatApi: ChatApi = runtimeConfig.useMockApi ? mockChatApi : realChatApi
