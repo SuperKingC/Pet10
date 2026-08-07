@@ -17,7 +17,10 @@ const environmentSchema = z.object({
   OSS_BUCKET: z.string().optional(),
   OSS_ACCESS_KEY_ID: z.string().optional(),
   OSS_ACCESS_KEY_SECRET: z.string().optional(),
-  OSS_PUBLIC_BASE_URL: z.string().url().optional()
+  OSS_PUBLIC_BASE_URL: z.preprocess(
+    value => value === '' ? undefined : value,
+    z.string().url().optional()
+  )
 })
 
 export interface ServerConfig {

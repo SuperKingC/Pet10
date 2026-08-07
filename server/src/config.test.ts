@@ -40,4 +40,13 @@ describe('server config', () => {
     expect(config.oss.enabled).toBe(true)
     expect(config.oss.publicBaseUrl).toBe('https://cdn.example.com')
   })
+
+  it('treats an empty optional OSS URL as unset', () => {
+    const config = parseConfig({
+      OSS_PUBLIC_BASE_URL: ''
+    })
+
+    expect(config.oss.enabled).toBe(false)
+    expect(config.oss.publicBaseUrl).toBeUndefined()
+  })
 })
