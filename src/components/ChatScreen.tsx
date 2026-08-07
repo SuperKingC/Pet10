@@ -8,6 +8,7 @@ import { runtimeConfig } from '../services/runtimeConfig'
 import type { ServerSession } from '../services/sessionApi'
 import { connectRealtime } from '../services/realtimeClient'
 import { mapServerMessage, type ServerMessage } from '../services/messageMapper'
+import { appendUniqueMessage } from '../services/messageCollection'
 import { uploadImageToOss } from '../services/uploadApi'
 import { createChatMessageInput } from './chatMessageInput'
 import { MemoryPanel } from './MemoryPanel'
@@ -43,7 +44,7 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
     setPetThinking(true)
     try {
       const reply = await chatApi.requestPetReply(roomId, nextMessages, pet)
-      setMessages((current) => [...current, reply])
+      setMessages((current) => appendUniqueMessage(current, reply))
     } finally {
       setPetThinking(false)
     }
@@ -61,8 +62,8 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
         text || '分享了一张照片',
         pendingImage
       ))
-      const nextMessages = [...messages, sent]
-      setMessages(nextMessages)
+      const nextMessages = appendUniqueMessage(messages, sent)
+      setMessages((current) => appendUniqueMessage(current, sent))
       setDraft('')
       setPendingImage(undefined)
 
@@ -100,7 +101,7 @@ export function ChatScreen({ session, onSessionChanged }: ChatScreenProps) {
     const socket = connectRealtime(roomId, {
       onMessage: (incoming) => {
         const message = mapServerMessage(incoming as ServerMessage, session?.user.id)
-        setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message])
+        setMessages((current) => appendUniqueMessage(current, message))
       },
       onPetUpdated: (incoming) => setPet(incoming as typeof pet),
       onMemoryDeleted: ({ id }) => setMemories((current) => current.filter((memory) => memory.id !== id))
