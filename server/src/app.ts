@@ -44,13 +44,14 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     jwtExpiresIn: config.jwtExpiresIn,
     loginCodeTtlSeconds: config.loginCodeTtlSeconds,
     mailMode: config.mail.mode,
+    allowedEmails: config.allowedEmails,
     logCode: (email, code) => console.log(`[login-code] ${email}: ${code}`)
   })
   const friendshipService = createFriendshipService(repositories)
   const petService = createPetService(repositories)
   const roomService = createRoomService({ repositories, ai })
   const sessionService = createSessionService(repositories)
-  const authenticate = createAuthMiddleware(config.jwtSecret)
+  const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
 
   app.use('/api/auth', createAuthRoutes(authService))
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
@@ -70,7 +71,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     console.error(error)
     const message = error instanceof Error ? error.message : 'internal_server_error'
     const status = message.includes('not_found') ? 404 :
-      message.includes('forbidden') ? 403 :
+      message.includes('forbidden') || message.includes('not_allowed') ? 403 :
       message.includes('unauthorized') ? 401 :
       message.includes('invalid') || message.includes('limit') || message.includes('exists') ? 400 : 500
     response.status(status).json({ error: status === 500 ? 'internal_server_error' : message })

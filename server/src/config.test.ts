@@ -8,6 +8,7 @@ describe('server config', () => {
     expect(config.nodeEnv).toBe('development')
     expect(config.ai.enabled).toBe(false)
     expect(config.mail.mode).toBe('console')
+    expect(config.allowedEmails).toEqual([])
     expect(config.oss.enabled).toBe(false)
   })
 
@@ -48,5 +49,13 @@ describe('server config', () => {
 
     expect(config.oss.enabled).toBe(false)
     expect(config.oss.publicBaseUrl).toBeUndefined()
+  })
+
+  it('normalizes the login email allowlist', () => {
+    const config = parseConfig({
+      ALLOWED_EMAILS: ' First@Example.com,second@example.com, first@example.com '
+    })
+
+    expect(config.allowedEmails).toEqual(['first@example.com', 'second@example.com'])
   })
 })

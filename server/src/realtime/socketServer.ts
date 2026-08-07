@@ -2,12 +2,14 @@ import type { Server as HttpServer } from 'node:http'
 import jwt from 'jsonwebtoken'
 import { Server } from 'socket.io'
 
-export function createSocketServer(httpServer: HttpServer, appOrigin: string, jwtSecret: string) {
+export function createSocketServer(httpServer: HttpServer, appOrigin: string, jwtSecret: string, allowedEmails: string[] = []) {
   const io = new Server(httpServer, { cors: { origin: appOrigin, credentials: true } })
   io.use((socket, next) => {
     try {
       const payload = jwt.verify(String(socket.handshake.auth.token ?? ''), jwtSecret)
       if (typeof payload === 'string' || !payload.sub) throw new Error('invalid')
+      const email = typeof payload.email === 'string' ? payload.email.toLowerCase() : ''
+      if (allowedEmails.length > 0 && !allowedEmails.includes(email)) throw new Error('email_not_allowed')
       socket.data.userId = String(payload.sub)
       next()
     } catch {

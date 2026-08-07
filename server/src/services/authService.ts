@@ -8,6 +8,7 @@ interface AuthDependencies {
   jwtExpiresIn?: string
   loginCodeTtlSeconds: number
   mailMode: 'console' | 'smtp'
+  allowedEmails: string[]
   logCode: (email: string, code: string) => void
 }
 
@@ -19,6 +20,12 @@ function hashCode(code: string) {
   return createHash('sha256').update(code).digest('hex')
 }
 
+function assertAllowedEmail(email: string, allowedEmails: string[]) {
+  if (allowedEmails.length > 0 && !allowedEmails.includes(email)) {
+    throw new Error('email_not_allowed')
+  }
+}
+
 function makeUsername(email: string) {
   const base = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 18) || 'pet10user'
   return `${base}_${randomInt(1000, 9999)}`
@@ -28,6 +35,7 @@ export function createAuthService(dependencies: AuthDependencies) {
   return {
     async requestLoginCode(email: string, inviteCode: string) {
       const normalizedEmail = normalizeEmail(email)
+      assertAllowedEmail(normalizedEmail, dependencies.allowedEmails)
       const invite = await dependencies.repositories.invites.findByCode(inviteCode)
       if (!invite || !invite.active || invite.useCount >= invite.maxUses) {
         throw new Error('invalid_invite_code')
@@ -47,6 +55,7 @@ export function createAuthService(dependencies: AuthDependencies) {
 
     async verifyLoginCode(email: string, code: string) {
       const normalizedEmail = normalizeEmail(email)
+      assertAllowedEmail(normalizedEmail, dependencies.allowedEmails)
       const saved = await dependencies.repositories.loginCodes.findByEmail(normalizedEmail)
       if (!saved || saved.expiresAt.getTime() < Date.now() || saved.codeHash !== hashCode(code.trim())) {
         throw new Error('invalid_or_expired_code')

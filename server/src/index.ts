@@ -24,7 +24,7 @@ const app = createApp({
   emit: (roomId, event, payload) => emitToRoom(roomId, event, payload)
 })
 const server = createServer(app)
-const sockets = createSocketServer(server, config.appOrigin, config.jwtSecret)
+const sockets = createSocketServer(server, config.appOrigin, config.jwtSecret, config.allowedEmails)
 emitToRoom = sockets.emit
 
 server.listen(config.port, () => {

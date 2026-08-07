@@ -9,6 +9,7 @@ const environmentSchema = z.object({
   JWT_SECRET: z.string().optional(),
   JWT_EXPIRES_IN: z.string().default('30d'),
   LOGIN_CODE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
+  ALLOWED_EMAILS: z.string().default(''),
   MAIL_MODE: z.enum(['console', 'smtp']).default('console'),
   AI_API_KEY: z.string().optional(),
   AI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
@@ -32,6 +33,7 @@ export interface ServerConfig {
   jwtSecret: string
   jwtExpiresIn: string
   loginCodeTtlSeconds: number
+  allowedEmails: string[]
   mail: {
     mode: 'console' | 'smtp'
   }
@@ -53,8 +55,17 @@ export interface ServerConfig {
 
 export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, string | undefined>): ServerConfig {
   const parsed = environmentSchema.parse(environment)
+  const allowedEmails = [...new Set(
+    parsed.ALLOWED_EMAILS
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(Boolean)
+  )]
   if (parsed.NODE_ENV === 'production' && !parsed.JWT_SECRET) {
     throw new Error('JWT_SECRET is required in production')
+  }
+  if (parsed.NODE_ENV === 'production' && allowedEmails.length === 0) {
+    throw new Error('ALLOWED_EMAILS is required in production')
   }
 
   return {
@@ -66,6 +77,7 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
     jwtSecret: parsed.JWT_SECRET ?? 'development-only-change-me',
     jwtExpiresIn: parsed.JWT_EXPIRES_IN,
     loginCodeTtlSeconds: parsed.LOGIN_CODE_TTL_SECONDS,
+    allowedEmails,
     mail: {
       mode: parsed.MAIL_MODE
     },
