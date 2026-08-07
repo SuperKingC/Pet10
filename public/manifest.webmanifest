@@ -1,7 +1,9 @@
 {
   "name": "小多利",
   "short_name": "小多利",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#fffaf5",
   "theme_color": "#fff7ed",

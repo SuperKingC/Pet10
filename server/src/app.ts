@@ -43,6 +43,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     jwtSecret: config.jwtSecret,
     jwtExpiresIn: config.jwtExpiresIn,
     loginCodeTtlSeconds: config.loginCodeTtlSeconds,
+    mailMode: config.mail.mode,
     logCode: (email, code) => console.log(`[login-code] ${email}: ${code}`)
   })
   const friendshipService = createFriendshipService(repositories)

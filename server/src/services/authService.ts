@@ -7,6 +7,7 @@ interface AuthDependencies {
   jwtSecret: string
   jwtExpiresIn?: string
   loginCodeTtlSeconds: number
+  mailMode: 'console' | 'smtp'
   logCode: (email: string, code: string) => void
 }
 
@@ -38,7 +39,10 @@ export function createAuthService(dependencies: AuthDependencies) {
         expiresAt: new Date(Date.now() + dependencies.loginCodeTtlSeconds * 1000)
       })
       dependencies.logCode(normalizedEmail, code)
-      return { expiresInSeconds: dependencies.loginCodeTtlSeconds }
+      return {
+        expiresInSeconds: dependencies.loginCodeTtlSeconds,
+        ...(dependencies.mailMode === 'console' ? { developmentCode: code } : {})
+      }
     },
 
     async verifyLoginCode(email: string, code: string) {

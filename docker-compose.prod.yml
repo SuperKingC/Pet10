@@ -1,4 +1,20 @@
 services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - pet10_caddy_data:/data
+      - pet10_caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    mem_limit: 128m
+
   web:
     build:
       context: .
@@ -7,8 +23,8 @@ services:
         VITE_USE_MOCK_API: "false"
         VITE_API_BASE_URL: "/"
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       api:
         condition: service_healthy
@@ -83,4 +99,5 @@ services:
 volumes:
   pet10_postgres:
   pet10_redis:
-
+  pet10_caddy_data:
+  pet10_caddy_config:

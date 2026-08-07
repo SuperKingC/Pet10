@@ -10,6 +10,7 @@ export function LoginScreen({ onLoggedIn }: LoginScreenProps) {
   const [inviteCode, setInviteCode] = useState('PET10-DEMO')
   const [code, setCode] = useState('')
   const [requested, setRequested] = useState(false)
+  const [developmentCode, setDevelopmentCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -17,7 +18,9 @@ export function LoginScreen({ onLoggedIn }: LoginScreenProps) {
     setBusy(true)
     setError('')
     try {
-      await authApi.requestCode(email, inviteCode)
+      const result = await authApi.requestCode(email, inviteCode)
+      setDevelopmentCode(result.developmentCode ?? '')
+      if (result.developmentCode) setCode(result.developmentCode)
       setRequested(true)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '发送验证码失败')
@@ -57,14 +60,19 @@ export function LoginScreen({ onLoggedIn }: LoginScreenProps) {
         {requested && (
           <label>
             邮箱验证码
-            <input value={code} onChange={(event) => setCode(event.target.value)} inputMode="numeric" maxLength={6} placeholder="控制台中的 6 位验证码" />
+            <input value={code} onChange={(event) => setCode(event.target.value)} inputMode="numeric" maxLength={6} placeholder="输入 6 位验证码" />
           </label>
         )}
+        {developmentCode && <div className="form-hint">内部测试验证码：<strong>{developmentCode}</strong></div>}
         {error && <div className="form-error">{error}</div>}
         <button className="primary-action" disabled={busy || !email || !inviteCode} onClick={() => void (requested ? verifyCode() : requestCode())}>
           {busy ? '请稍候…' : requested ? '进入小多利的家' : '发送邮箱验证码'}
         </button>
-        {requested && <button className="text-action" onClick={() => setRequested(false)}>更换邮箱或邀请码</button>}
+        {requested && <button className="text-action" onClick={() => {
+          setRequested(false)
+          setDevelopmentCode('')
+          setCode('')
+        }}>更换邮箱或邀请码</button>}
       </div>
     </main>
   )

@@ -1,6 +1,7 @@
 # Pet10 腾讯云测试部署
 
-本方案用于没有域名时，通过 `http://43.156.174.77` 测试 Pet10。
+本方案使用 `sslip.io` 提供的免费解析地址，通过
+`https://43-156-174-77.sslip.io` 测试 Pet10，无需提前购买域名。
 
 ## 部署
 
@@ -22,15 +23,17 @@ docker compose --env-file .env.production -f docker-compose.prod.yml ps
 腾讯云防火墙只需放行：
 
 - TCP `22`：SSH
-- TCP `80`：Pet10 测试网页
+- TCP `80`：HTTPS 证书签发及 HTTP 跳转
+- TCP `443`：Pet10 HTTPS 网页
+- UDP `443`：HTTP/3，可选但建议放行
 
 不要向公网放行 PostgreSQL `5432`、Redis `6379` 或 API `8787`。
 
 ## 验证
 
 ```bash
-curl -i http://127.0.0.1/healthz
-curl -i http://127.0.0.1/api/session
+curl -i https://43-156-174-77.sslip.io/healthz
+curl -i https://43-156-174-77.sslip.io/api/session
 docker compose --env-file .env.production -f docker-compose.prod.yml ps
 docker compose --env-file .env.production -f docker-compose.prod.yml logs --tail=100
 ```
@@ -53,4 +56,3 @@ docker compose --env-file .env.production -f docker-compose.prod.yml down
 ```
 
 不要执行 `down -v`，否则会删除 PostgreSQL 和 Redis 数据卷。
-

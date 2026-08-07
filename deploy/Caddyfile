@@ -1,0 +1,5 @@
+43-156-174-77.sslip.io {
+    encode zstd gzip
+    reverse_proxy web:80
+}
+

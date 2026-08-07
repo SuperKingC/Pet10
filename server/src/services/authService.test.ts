@@ -9,6 +9,7 @@ describe('auth service', () => {
       repositories,
       jwtSecret: 'test-secret',
       loginCodeTtlSeconds: 600,
+      mailMode: 'console',
       logCode: () => undefined
     })
 
@@ -22,13 +23,30 @@ describe('auth service', () => {
       repositories,
       jwtSecret: 'test-secret',
       loginCodeTtlSeconds: 600,
+      mailMode: 'console',
       logCode: (_email, code) => { sentCode = code }
     })
 
-    await service.requestLoginCode('person@example.com', 'PET10-DEMO')
+    const request = await service.requestLoginCode('person@example.com', 'PET10-DEMO')
     const result = await service.verifyLoginCode('person@example.com', sentCode)
 
+    expect(request.developmentCode).toBe(sentCode)
     expect(result.user.email).toBe('person@example.com')
     expect(result.token.split('.')).toHaveLength(3)
+  })
+
+  it('does not expose the login code outside console mode', async () => {
+    const repositories = createMemoryRepositories()
+    const service = createAuthService({
+      repositories,
+      jwtSecret: 'test-secret',
+      loginCodeTtlSeconds: 600,
+      mailMode: 'smtp',
+      logCode: () => undefined
+    })
+
+    const result = await service.requestLoginCode('person@example.com', 'PET10-DEMO')
+
+    expect(result).toEqual({ expiresInSeconds: 600 })
   })
 })

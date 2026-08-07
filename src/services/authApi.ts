@@ -9,7 +9,7 @@ export interface AuthUser {
 
 export const authApi = {
   requestCode(email: string, inviteCode: string) {
-    return apiRequest<{ expiresInSeconds: number }>('/api/auth/request-code', {
+    return apiRequest<{ expiresInSeconds: number; developmentCode?: string }>('/api/auth/request-code', {
       method: 'POST',
       body: JSON.stringify({ email, inviteCode })
     })

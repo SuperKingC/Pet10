@@ -32,6 +32,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .primary-action:disabled { opacity: .48; box-shadow: none; }
 .text-action { display: block; margin: 14px auto 0; border: 0; background: transparent; color: #aa765b; font-size: 12px; }
 .form-error { margin-top: 13px; padding: 10px 12px; border-radius: 12px; background: #fff0ee; color: #bd6252; font-size: 12px; line-height: 1.5; }
+.form-hint { margin-top: 13px; padding: 10px 12px; border-radius: 12px; background: #fff7df; color: #8b6236; font-size: 13px; line-height: 1.5; text-align: center; }
 .friend-setup-card h1 { font-size: clamp(28px, 8vw, 40px); }
 
 .app-shell {
