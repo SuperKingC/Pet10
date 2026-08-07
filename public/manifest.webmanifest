@@ -10,12 +10,6 @@
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
       "src": "/icons/icon-180.png",
       "sizes": "180x180",
       "type": "image/png",

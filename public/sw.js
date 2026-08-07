@@ -1,9 +1,9 @@
-const CACHE_NAME = 'xiaoduoli-shell-v2'
+const CACHE_NAME = 'xiaoduoli-shell-v3'
 const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/icons/icon.svg',
+  '/pet/xiaoduoli.png',
   '/icons/icon-180.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
