@@ -2,10 +2,10 @@ import { apiRequest } from './httpClient'
 import type { ServerRelationship } from './sessionApi'
 
 export const friendshipApi = {
-  sendRequest(username: string) {
+  sendRequest(identifier: string) {
     return apiRequest<ServerRelationship>('/api/friendships', {
       method: 'POST',
-      body: JSON.stringify({ username })
+      body: JSON.stringify({ identifier })
     })
   },
   acceptRequest(relationshipId: string) {

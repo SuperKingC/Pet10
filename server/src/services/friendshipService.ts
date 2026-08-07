@@ -2,8 +2,11 @@ import type { RepositoryBundle } from '../repositories/contracts.js'
 
 export function createFriendshipService(repositories: RepositoryBundle) {
   return {
-    async sendRequest(requesterId: string, username: string) {
-      const addressee = await repositories.users.findByUsername(username.trim())
+    async sendRequest(requesterId: string, identifier: string) {
+      const normalized = identifier.trim().toLowerCase()
+      const addressee = normalized.includes('@')
+        ? await repositories.users.findByEmail(normalized)
+        : await repositories.users.findByUsername(normalized)
       if (!addressee) throw new Error('user_not_found')
       if (addressee.id === requesterId) throw new Error('cannot_add_self')
       if (await repositories.relationships.findActiveForUser(requesterId)) {

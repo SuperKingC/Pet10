@@ -37,4 +37,26 @@ describe('friendship service', () => {
     await service.sendRequest(first.id, 'b')
     await expect(service.sendRequest(first.id, 'c')).rejects.toThrow('friend_limit_reached')
   })
+
+  it('finds a friend by email address', async () => {
+    const repositories = createMemoryRepositories()
+    const first = await repositories.users.create({ email: 'first@example.com', username: 'first_1234', displayName: 'First' })
+    const second = await repositories.users.create({ email: 'second@example.com', username: 'second_5678', displayName: 'Second' })
+    const service = createFriendshipService(repositories)
+
+    const relationship = await service.sendRequest(first.id, 'SECOND@example.com')
+
+    expect(relationship.addresseeId).toBe(second.id)
+  })
+
+  it('matches usernames without case sensitivity', async () => {
+    const repositories = createMemoryRepositories()
+    const first = await repositories.users.create({ email: 'first@example.com', username: 'first_1234', displayName: 'First' })
+    const second = await repositories.users.create({ email: 'second@example.com', username: 'second_5678', displayName: 'Second' })
+    const service = createFriendshipService(repositories)
+
+    const relationship = await service.sendRequest(first.id, 'SECOND_5678')
+
+    expect(relationship.addresseeId).toBe(second.id)
+  })
 })

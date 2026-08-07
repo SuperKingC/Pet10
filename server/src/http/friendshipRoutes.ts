@@ -7,14 +7,14 @@ function routeParam(value: string | string[]) {
 }
 
 export function createFriendshipRoutes(service: {
-  sendRequest(userId: string, username: string): Promise<unknown>
+  sendRequest(userId: string, identifier: string): Promise<unknown>
   acceptRequest(userId: string, relationshipId: string): Promise<unknown>
 }) {
   const router = Router()
   router.post('/', async (request: AuthenticatedRequest, response, next) => {
     try {
-      const { username } = z.object({ username: z.string().min(1) }).parse(request.body)
-      response.status(201).json(await service.sendRequest(request.userId!, username))
+      const { identifier } = z.object({ identifier: z.string().min(1) }).parse(request.body)
+      response.status(201).json(await service.sendRequest(request.userId!, identifier))
     } catch (error) { next(error) }
   })
   router.post('/:id/accept', async (request: AuthenticatedRequest, response, next) => {
