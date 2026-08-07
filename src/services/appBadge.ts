@@ -1,20 +1,20 @@
-interface BadgingNavigator extends Navigator {
-  setAppBadge?: (count?: number) => Promise<void>
-  clearAppBadge?: () => Promise<void>
-}
-
-function badgingNavigator(): BadgingNavigator {
-  return navigator as BadgingNavigator
+// Badging API：不直接引用 Navigator 上的方法类型，避免新旧 TypeScript DOM 库定义冲突。
+// 运行时按能力探测，不支持的浏览器静默跳过。
+function getBadgeApi() {
+  const nav = navigator as unknown as Record<string, unknown>
+  const setFn = nav.setAppBadge
+  const clearFn = nav.clearAppBadge
+  return {
+    setAppBadge:
+      typeof setFn === 'function' ? (setFn as (count?: number) => Promise<void>).bind(navigator) : undefined,
+    clearAppBadge: typeof clearFn === 'function' ? (clearFn as () => Promise<void>).bind(navigator) : undefined
+  }
 }
 
 export function setAppBadge(count: number) {
-  const nav = badgingNavigator()
-  if (typeof nav.setAppBadge !== 'function') return
-  nav.setAppBadge(count).catch(() => undefined)
+  getBadgeApi().setAppBadge?.(count)?.catch(() => undefined)
 }
 
 export function clearAppBadge() {
-  const nav = badgingNavigator()
-  if (typeof nav.clearAppBadge !== 'function') return
-  nav.clearAppBadge().catch(() => undefined)
+  getBadgeApi().clearAppBadge?.()?.catch(() => undefined)
 }
