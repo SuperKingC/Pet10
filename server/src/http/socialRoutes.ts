@@ -34,8 +34,12 @@ export function createSocialRoutes(dependencies: {
   router.get('/rooms/:roomId/moods', async (request: AuthenticatedRequest, response, next) => {
     try {
       const roomId = routeParam(request.params.roomId)
-      const from = routeParam(request.query.from ?? '') || new Date(new Date().getTime() - 31 * 86400000).toISOString().slice(0, 10)
-      const to = routeParam(request.query.to ?? '') || new Date().toISOString().slice(0, 10)
+      const from = typeof request.query.from === 'string' && request.query.from
+        ? request.query.from
+        : new Date(new Date().getTime() - 31 * 86400000).toISOString().slice(0, 10)
+      const to = typeof request.query.to === 'string' && request.query.to
+        ? request.query.to
+        : new Date().toISOString().slice(0, 10)
       response.json(await dependencies.social.listMoods(roomId, request.userId!, from, to))
     } catch (error) { next(error) }
   })
