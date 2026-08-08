@@ -18,16 +18,21 @@ This keeps daily information discoverable without permanently taking space away 
 
 The fortune belongs only to the signed-in user and is derived from the user's birthday, zodiac, and the current calendar day. The displayed sections are:
 
+- `今日主题`
 - `综合`
-- `感情`
-- `工作 / 学习`
+- `感情 - 单身`
+- `感情 - 有伴`
+- `学习`
+- `工作`
 - `财运`
 - `健康`
 - `幸运色`
 - `幸运数字`
-- `今日提示`
+- `今日好运句`
 
-Copy is concise, specific, and editorial. It avoids chatty phrasing, excessive mysticism, promises of guaranteed outcomes, and references to generation or analysis. It must not mention Xiaoduoli, pets, shared care, the friend, pair compatibility, mood records, or pet interactions.
+The dedicated detail page is a fully expanded editorial article rather than a collection of one-line summaries. The theme is a short headline. Overall is approximately 120-160 Chinese characters; single and partnered love are each 90-120; study and work are each 80-120; wealth and health are each 70-100. Total body copy is approximately 700-900 Chinese characters and normally occupies two to three mobile screens. Both relationship-status paragraphs are always visible, so the user does not need to provide relationship status.
+
+Copy is specific, measured, and editorial. It avoids chatty phrasing, excessive mysticism, promises of guaranteed outcomes, invasive behavioral claims, and references to generation or analysis. It must not mention Xiaoduoli, pets, shared care, the friend, pair compatibility, mood records, or pet interactions.
 
 The existing profile field label changes from `生日（用于星座运势）` to `生日`.
 
@@ -39,7 +44,9 @@ The detail view follows the supplied editorial horoscope reference without copyi
 
 - A normal mobile title bar with a back button and `今日运势` title.
 - Date and zodiac near the top, with the overall rating as the strongest information signal.
-- Category sections separated by fine rules, using compact headings and readable paragraph text.
+- A bordered or ruled `今日主题` headline introduces the article before the overall paragraph.
+- Category sections remain fully expanded and are separated by fine rules, using compact headings, bold lead-ins, and readable paragraph text. There are no accordions or second disclosure step.
+- The relationship section contains `单身` and `有伴` as visible subheadings with separate paragraphs.
 - Lucky color is represented by a color swatch plus its text name; lucky number remains textual.
 - The layout scrolls vertically and respects the top and bottom safe areas.
 
@@ -51,21 +58,30 @@ Replace the shared fortune content with a personal structure:
 
 ```ts
 interface FortuneContent {
+  schemaVersion: 2
   zodiac: string
-  overall: { rating: number; summary: string }
-  love: { rating: number; text: string }
-  workStudy: { rating: number; text: string }
+  theme: string
+  overall: { rating: number; summary: string; text: string }
+  love: {
+    rating: number
+    single: string
+    partnered: string
+  }
+  study: { rating: number; text: string }
+  work: { rating: number; text: string }
   wealth: { rating: number; text: string }
   health: { rating: number; text: string }
   luckyColor: { name: string; hex: string }
   luckyNumber: number
-  dailyTip: string
+  luckyPhrase: string
 }
 ```
 
 Ratings are integers from 1 through 5. The color hex value must come from a controlled palette so the client never renders arbitrary CSS.
 
-Fortune selection is deterministic and template-based. A stable seed from `userId + local day + zodiac` selects curated text fragments and ratings. The same user receives the same result throughout a day, while different users can receive different results. No AI provider call is made.
+Fortune selection is deterministic and template-based. A stable seed from `userId + Asia/Shanghai day + zodiac` selects curated editorial paragraphs and ratings. Each category uses multiple complete paragraph variants rather than repeating a short sentence to reach the target length. The same user receives the same result throughout a day, while different users can receive different results. No AI provider call is made.
+
+`schemaVersion: 2` distinguishes the detailed structure from previously cached short-form content. Stored records with an older/missing version, missing paragraphs, invalid ratings, or an unapproved lucky color fail validation and are deterministically regenerated in place.
 
 ## Data And API
 
@@ -95,16 +111,16 @@ Only the compact entry initiates fortune loading. The calendar and mood features
 
 - `birthday_required`: show the profile setup call to action.
 - Network or server error: retain the calendar, show a short unavailable message in the compact row, and provide retry.
-- Invalid stored/generated content: reject it at the server boundary and fall back to a valid deterministic template.
+- Invalid or legacy stored content: reject it at the server boundary and replace it with a valid deterministic version-2 template.
 - Day rollover while the app remains open: refetch when the app becomes active or the `日常` tab is revisited after the date changes.
 
 ## Verification
 
-- Unit tests verify zodiac boundary dates, deterministic same-day results, variation across users/days, rating ranges, and controlled lucky colors.
+- Unit tests verify zodiac boundary dates, deterministic same-day results, variation across users/days, rating ranges, controlled lucky colors, schema version, required paragraphs, and minimum useful paragraph lengths.
 - Repository and route tests verify authenticated user scoping and one record per user per day.
 - Service tests verify that fortune generation does not access rooms, moods, pets, or the AI provider.
 - Pet service tests verify that pet actions never receive a fortune-based bonus.
-- Component tests cover compact summary, detail opening and closing, birthday-required behavior, loading, retry, and the revised labels `日常`, `今日运势`, `一起玩`, and `生日`.
+- Component tests cover compact summary, fully expanded detail sections, both relationship-status paragraphs, detail opening and closing, birthday-required behavior, loading, retry, and the revised labels `日常`, `今日运势`, `一起玩`, and `生日`.
 - Production frontend/server builds and the complete existing test suites must pass.
 - Mobile visual verification checks that the compact entry does not displace the calendar excessively, the detail page respects safe areas, and no legacy pet/shared-care styling or copy remains.
 
