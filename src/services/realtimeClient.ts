@@ -17,6 +17,8 @@ export interface RealtimeHandlers {
   onNotification: (notification: AppNotification) => void
   onCodewordUpdated: (payload: { roomId: string; day: string; answeredCount: number }) => void
   onMemoryDeleted: (payload: { roomId?: string; id: string }) => void
+  onProfileUpdated?: (payload: { userId: string; user: Record<string, unknown> }) => void
+  onMapLit?: (payload: { roomId: string; spotId: number; litBy: string }) => void
   onGameEvent?: (event: string, payload: Record<string, unknown>) => void
 }
 
@@ -56,6 +58,8 @@ export function connectRealtime(handlers: RealtimeHandlers): RealtimeConnection 
   socket.on('notification.new', (payload) => handlers.onNotification(payload as AppNotification))
   socket.on('codeword.updated', (payload) => handlers.onCodewordUpdated(payload as { roomId: string; day: string; answeredCount: number }))
   socket.on('memory.deleted', (payload) => handlers.onMemoryDeleted(payload as { roomId?: string; id: string }))
+  socket.on('profile.updated', (payload) => handlers.onProfileUpdated?.(payload as { userId: string; user: Record<string, unknown> }))
+  socket.on('map.lit', (payload) => handlers.onMapLit?.(payload as { roomId: string; spotId: number; litBy: string }))
   for (const event of GAME_EVENTS) {
     socket.on(event, (payload) => handlers.onGameEvent?.(event, (payload ?? {}) as Record<string, unknown>))
   }

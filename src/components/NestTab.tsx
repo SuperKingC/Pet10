@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { CodewordState, Conversation, ContributionStat, PetState } from '../domain/types'
 import type { PetAction } from '../domain/petRules'
 import { socialApi } from '../services/socialApi'
+import { MAP_SPOT_COUNT } from '../games/map/chinaMap'
 import { PetActionBar } from './PetActionBar'
 import { PetStatusCard } from './PetStatusCard'
 
@@ -12,7 +13,7 @@ interface NestTabProps {
   friendNames: Record<string, string>
   onAction(action: PetAction): void
   onOpenMemories(): void
-  onOpenGame(game: 'tarot' | 'gobang'): void
+  onOpenGame(game: 'tarot' | 'gobang' | 'map'): void
 }
 
 function greeting(): string {
@@ -30,18 +31,21 @@ export function NestTab({ pairRoom, pet, luckyAction, friendNames, onAction, onO
   const [codeword, setCodeword] = useState<CodewordState>()
   const [codewordDraft, setCodewordDraft] = useState('')
   const [codewordBusy, setCodewordBusy] = useState(false)
+  const [litCount, setLitCount] = useState(0)
 
   const roomId = pairRoom?.roomId
 
   const refresh = useCallback(async () => {
     if (!roomId) return
     try {
-      const [stats, word] = await Promise.all([
+      const [stats, word, lights] = await Promise.all([
         socialApi.listContributions(roomId),
-        socialApi.getCodeword(roomId)
+        socialApi.getCodeword(roomId),
+        socialApi.listMapLights(roomId)
       ])
       setContributions(stats)
       setCodeword(word)
+      setLitCount(lights.length)
     } catch { /* 静默降级 */ }
   }, [roomId])
 
@@ -147,6 +151,11 @@ export function NestTab({ pairRoom, pet, luckyAction, friendNames, onAction, onO
             <span className="game-card__icon">⚫</span>
             <strong>五子棋</strong>
             <span>和好友实时对弈</span>
+          </button>
+          <button className="game-card game-card--map" onClick={() => onOpenGame('map')}>
+            <span className="game-card__icon">🐾</span>
+            <strong>足迹地图</strong>
+            <span>已点亮 {litCount}/{MAP_SPOT_COUNT}，一起去过的地方</span>
           </button>
         </div>
       </section>

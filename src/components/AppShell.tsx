@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { applyPetAction as applyMockPetAction, type PetAction } from '../domain/petRules'
-import type { Conversation, Fortune, Message, UserProfile } from '../domain/types'
+import { parseAvatarConfig, type AvatarConfig, type Conversation, type Fortune, type Message, type UserProfile } from '../domain/types'
 import { clearAppBadge, setAppBadge } from '../services/appBadge'
 import { chatApi } from '../services/chatApi'
 import { createMemoryService } from '../services/memoryService'
@@ -10,6 +10,7 @@ import { normalizePet, socialApi } from '../services/socialApi'
 import { uploadImageToOss } from '../services/uploadApi'
 import { initialSnapshot } from '../state/mockStore'
 import { useRoomRuntime } from '../state/useRoomRuntime'
+import { AvatarStudio } from './AvatarStudio'
 import { CalendarTab } from './CalendarTab'
 import { ChatView } from './ChatView'
 import { ConversationList } from './ConversationList'
@@ -22,6 +23,7 @@ import { NestTab } from './NestTab'
 import { NotificationCenter } from './NotificationCenter'
 import { TabBar, type TabKey } from './TabBar'
 import { GobangGame } from '../games/gobang/GobangGame'
+import { MapScreen } from '../games/map/MapScreen'
 import { TarotGame } from '../games/tarot/TarotGame'
 
 interface AppShellProps {
@@ -29,7 +31,7 @@ interface AppShellProps {
   onLogout(): void
 }
 
-type Overlay = 'feed' | 'notifications' | 'mbti' | 'memory' | 'tarot' | 'gobang' | null
+type Overlay = 'feed' | 'notifications' | 'mbti' | 'memory' | 'tarot' | 'gobang' | 'avatar' | 'map' | null
 
 const MOCK_PROFILE: UserProfile = {
   id: 'you',
@@ -42,12 +44,34 @@ function notifyEnabled() {
   return window.localStorage.getItem('pet10_notify_enabled') !== 'off'
 }
 
+function readUiState(): { tab?: TabKey; roomId?: string } {
+  try {
+    const raw = window.sessionStorage.getItem('pet10_ui_state')
+    return raw ? JSON.parse(raw) as { tab?: TabKey; roomId?: string } : {}
+  } catch { return {} }
+}
+
 function maybeBrowserNotification(title: string, body: string) {
   if (!notifyEnabled()) return
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   try {
     new Notification(title, { body, icon: '/pet/xiaoduoli-small.jpg' })
   } catch { /* 部分环境不支持构造 */ }
+}
+
+async function fileToAvatarDataUrl(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file)
+  const size = 160
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('canvas_unavailable')
+  const scale = Math.max(size / bitmap.width, size / bitmap.height)
+  const width = bitmap.width * scale
+  const height = bitmap.height * scale
+  context.drawImage(bitmap, (size - width) / 2, (size - height) / 2, width, height)
+  return canvas.toDataURL('image/jpeg', 0.85)
 }
 
 export function AppShell({ session, onLogout }: AppShellProps) {
@@ -57,24 +81,28 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         email: session.user.email,
         username: session.user.username,
         displayName: session.user.displayName,
+        publicCode: session.user.publicCode ?? null,
         avatarUrl: session.user.avatarUrl ?? null,
+        avatarConfig: session.user.avatarConfig ?? null,
         birthday: session.user.birthday ?? null,
         mbti: session.user.mbti ?? null
       }
     : MOCK_PROFILE)
-  const [activeTab, setActiveTab] = useState<TabKey>('messages')
+  const [activeTab, setActiveTab] = useState<TabKey>(() => readUiState().tab ?? 'messages')
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [currentRoomId, setCurrentRoomId] = useState<string>()
+  const [currentRoomId, setCurrentRoomId] = useState<string | undefined>(() => readUiState().roomId)
   const [unread, setUnread] = useState<Record<string, number>>({})
   const [notificationUnread, setNotificationUnread] = useState(0)
   const [overlay, setOverlay] = useState<Overlay>(null)
   const [fortune, setFortune] = useState<Fortune>()
+  const [mapVersion, setMapVersion] = useState(0)
 
   const currentRoomIdRef = useRef(currentRoomId)
   currentRoomIdRef.current = currentRoomId
   const activeTabRef = useRef(activeTab)
   activeTabRef.current = activeTab
   const typingThrottleRef = useRef<Record<string, number>>({})
+  const studioUploadRef = useRef<HTMLInputElement>(null)
 
   const pairRoom = useMemo(() => conversations.find((item) => item.type === 'pair'), [conversations])
   const petDmRoom = useMemo(() => conversations.find((item) => item.type === 'pet_dm'), [conversations])
@@ -108,6 +136,14 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     },
     onIncomingNotification() {
       setNotificationUnread((count) => count + 1)
+    },
+    onProfileUpdated() {
+      // 好友改昵称/头像/捏脸后重拉会话列表，标题/头像/名字全刷新
+      socialApi.listConversations().then(setConversations).catch(() => undefined)
+    },
+    onMapLit() {
+      // 好友点亮地图点位 → 地图页实时刷新
+      setMapVersion((version) => version + 1)
     }
   })
 
@@ -139,6 +175,11 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
+
+  // UI 状态持久化：iOS 杀后台重载后恢复聊天页/标签
+  useEffect(() => {
+    window.sessionStorage.setItem('pet10_ui_state', JSON.stringify({ tab: activeTab, roomId: currentRoomId }))
+  }, [activeTab, currentRoomId])
 
   function openConversation(roomId: string) {
     setCurrentRoomId(roomId)
@@ -207,6 +248,29 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     }
   }
 
+  async function handleAvatarSave(config: AvatarConfig) {
+    const serialized = JSON.stringify(config)
+    const updated = await socialApi.updateProfile({ avatarConfig: serialized })
+    setProfile((current) => ({ ...current, avatarConfig: updated.avatarConfig ?? serialized }))
+    setOverlay(null)
+  }
+
+  async function handleStudioPhoto(file?: File) {
+    if (!file) return
+    try {
+      const roomId = pairRoom?.roomId ?? petDmRoom?.roomId
+      let avatarUrl: string
+      if (!runtimeConfig.useMockApi && roomId) {
+        avatarUrl = await uploadImageToOss(roomId, file)
+      } else {
+        avatarUrl = await fileToAvatarDataUrl(file)
+      }
+      const updated = await socialApi.updateProfile({ avatarUrl })
+      setProfile((current) => ({ ...current, avatarUrl: updated.avatarUrl ?? avatarUrl }))
+      setOverlay(null)
+    } catch { /* 静默 */ }
+  }
+
   async function shareTarotToChat(text: string) {
     const target = pairRoom ?? conversations[0]
     if (!target) throw new Error('no_room')
@@ -215,6 +279,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
 
   function handleLogout() {
     window.localStorage.removeItem('pet10_access_token')
+    window.sessionStorage.removeItem('pet10_ui_state')
     onLogout()
   }
 
@@ -263,8 +328,8 @@ export function AppShell({ session, onLogout }: AppShellProps) {
       <section className={`tab-panel ${activeTab === 'me' ? 'tab-panel--active' : ''}`}>
         <MeTab
           user={profile}
-          uploadRoomId={pairRoom?.roomId ?? petDmRoom?.roomId}
           onProfileUpdated={setProfile}
+          onOpenAvatar={() => setOverlay('avatar')}
           onOpenMbti={() => setOverlay('mbti')}
           onLogout={handleLogout}
         />
@@ -298,6 +363,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           pairRoom={pairRoom}
           myUserId={profile.id}
           myName={profile.displayName}
+          myProfile={profile}
           friendName={pairRoom?.friend?.displayName ?? ''}
           onClose={() => setOverlay(null)}
         />
@@ -322,6 +388,27 @@ export function AppShell({ session, onLogout }: AppShellProps) {
       {overlay === 'tarot' && (
         <TarotGame onClose={() => setOverlay(null)} onShareToChat={shareTarotToChat} />
       )}
+      {overlay === 'avatar' && (
+        <>
+          <AvatarStudio
+            initialConfig={parseAvatarConfig(profile.avatarConfig)}
+            onSave={(config) => void handleAvatarSave(config)}
+            onUploadPhoto={() => studioUploadRef.current?.click()}
+            onClose={() => setOverlay(null)}
+          />
+          <input
+            ref={studioUploadRef}
+            className="visually-hidden"
+            type="file"
+            accept="image/*"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              event.target.value = ''
+              void handleStudioPhoto(file)
+            }}
+          />
+        </>
+      )}
       {overlay === 'gobang' && pairRoom && (
         <GobangGame
           roomId={pairRoom.roomId}
@@ -329,6 +416,15 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           friendName={pairRoom.friend?.displayName ?? '好友'}
           friendId={pairRoom.friend?.id}
           getRealtime={runtime.getRealtime}
+          onClose={() => setOverlay(null)}
+        />
+      )}
+      {overlay === 'map' && pairRoom && (
+        <MapScreen
+          roomId={pairRoom.roomId}
+          myUserId={profile.id}
+          friendNames={friendNames}
+          refreshKey={mapVersion}
           onClose={() => setOverlay(null)}
         />
       )}

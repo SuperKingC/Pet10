@@ -1,7 +1,15 @@
 import type { Pool, PoolClient, QueryResultRow } from 'pg'
+import { randomInt } from 'node:crypto'
 import type { RepositoryBundle } from './contracts.js'
 
 type Database = Pick<Pool, 'query'> | Pick<PoolClient, 'query'>
+
+const PUBLIC_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+export function makePublicCode(): string {
+  let code = ''
+  for (let index = 0; index < 8; index++) code += PUBLIC_CODE_ALPHABET[randomInt(PUBLIC_CODE_ALPHABET.length)]
+  return code
+}
 
 function camel<T extends QueryResultRow>(row: T): any {
   const result: Record<string, unknown> = {}
@@ -26,14 +34,38 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       findById: (id) => one('SELECT * FROM users WHERE id=$1', [id]),
       findByEmail: (email) => one('SELECT * FROM users WHERE email=$1', [email.toLowerCase()]),
       findByUsername: (username) => one('SELECT * FROM users WHERE username=$1', [username]),
-      create: (input) => one(
-        'INSERT INTO users(email,username,display_name) VALUES($1,$2,$3) RETURNING *',
-        [input.email.toLowerCase(), input.username, input.displayName]
-      ),
+      findByPublicCode: (code) => one('SELECT * FROM users WHERE public_code=$1', [code.toUpperCase()]),
+      create: async (input) => {
+        for (let attempt = 0; attempt < 5; attempt++) {
+          try {
+            return await one(
+              'INSERT INTO users(email,username,display_name,public_code) VALUES($1,$2,$3,$4) RETURNING *',
+              [input.email.toLowerCase(), input.username, input.displayName, makePublicCode()]
+            )
+          } catch (error) {
+            const constraint = (error as { constraint?: string }).constraint
+            if (constraint !== 'users_public_code_key' || attempt === 4) throw error
+          }
+        }
+        throw new Error('public_code_collision')
+      },
       updateUsername: (id, username) => one('UPDATE users SET username=$2 WHERE id=$1 RETURNING *', [id, username]),
       updateProfile: (id, patch) => one(
-        'UPDATE users SET avatar_url=COALESCE($2, avatar_url), birthday=COALESCE($3, birthday), mbti=COALESCE($4, mbti) WHERE id=$1 RETURNING *',
-        [id, patch.avatarUrl === undefined ? null : patch.avatarUrl, patch.birthday === undefined ? null : patch.birthday, patch.mbti === undefined ? null : patch.mbti]
+        `UPDATE users SET
+          avatar_url = CASE WHEN $2 THEN $3 ELSE avatar_url END,
+          birthday = CASE WHEN $4 THEN $5 ELSE birthday END,
+          mbti = CASE WHEN $6 THEN $7 ELSE mbti END,
+          display_name = CASE WHEN $8 THEN $9 ELSE display_name END,
+          avatar_config = CASE WHEN $10 THEN $11 ELSE avatar_config END
+        WHERE id=$1 RETURNING *`,
+        [
+          id,
+          patch.avatarUrl !== undefined, patch.avatarUrl,
+          patch.birthday !== undefined, patch.birthday,
+          patch.mbti !== undefined, patch.mbti,
+          patch.displayName !== undefined, patch.displayName,
+          patch.avatarConfig !== undefined, patch.avatarConfig
+        ]
       )
     },
     invites: {
@@ -166,6 +198,10 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
     },
     memories: {
       listByRoom: (roomId) => many('SELECT * FROM pet_memories WHERE room_id=$1 ORDER BY created_at DESC', [roomId]),
+      create: (input) => one(
+        'INSERT INTO pet_memories(room_id,text,source_message_id,can_mention) VALUES($1,$2,$3,$4) RETURNING *',
+        [input.roomId, input.text, input.sourceMessageId ?? null, input.canMention ?? true]
+      ),
       async deleteById(roomId, memoryId) {
         await database.query('DELETE FROM pet_memories WHERE room_id=$1 AND id=$2', [roomId, memoryId])
       }
@@ -255,6 +291,14 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       async deleteByEndpoint(userId, endpoint) {
         await database.query('DELETE FROM push_subscriptions WHERE user_id=$1 AND endpoint=$2', [userId, endpoint])
       }
+    },
+    map: {
+      listByRoom: (roomId) => many('SELECT spot_id,lit_by,created_at FROM map_lights WHERE room_id=$1 ORDER BY created_at', [roomId]),
+      light: (roomId, spotId, userId) => one(
+        `INSERT INTO map_lights(room_id,spot_id,lit_by) VALUES($1,$2,$3)
+         ON CONFLICT(room_id,spot_id) DO UPDATE SET lit_by=EXCLUDED.lit_by RETURNING *`,
+        [roomId, spotId, userId]
+      )
     }
   } as RepositoryBundle
 }

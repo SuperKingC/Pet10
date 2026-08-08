@@ -21,6 +21,8 @@ export interface AiFortuneInput {
 export interface AiService {
   reply(input: AiReplyInput): Promise<string>
   fortune(input: AiFortuneInput): Promise<FortuneContent | undefined>
+  /** 从近期聊天中提取一条值得记住的事实（无则 null） */
+  extractMemory(recentMessages: ChatMessage[], existingTexts: string[]): Promise<string | null>
 }
 
 export function createAiService(config: ServerConfig['ai']): AiService {
@@ -94,6 +96,29 @@ export function createAiService(config: ServerConfig['ai']): AiService {
         }
       } catch {
         return undefined
+      }
+    },
+
+    async extractMemory(recentMessages, existingTexts) {
+      if (!config.enabled || !config.apiKey) return null
+      const userMessages = recentMessages.filter((message) => message.senderType === 'user')
+      if (userMessages.length === 0) return null
+      const prompt = [
+        '你是记忆提取器。下面是一段宠物与主人的聊天记录。',
+        `已有记忆：${existingTexts.slice(0, 30).join('；') || '无'}`,
+        `近期聊天：${userMessages.slice(-12).map((message) => message.text).join('；')}`,
+        '判断主人是否透露了值得长期记住的个人事实（如职业/学校/城市/喜好/忌口/生日/计划/宠物昵称/重要的人）。',
+        '若有，用一句不超过30字的中文陈述句输出这条记忆（例：“主人小陈在学吉他”）；若没有值得记的内容，严格输出 NULL。',
+        '不要输出任何解释，只输出记忆句子或 NULL。已有记忆里的内容不要重复。'
+      ].join('\n')
+      try {
+        const raw = await chat([{ role: 'user', content: prompt }])
+        const text = raw.replace(/^["'“”]+|["'“”]+$/g, '').trim()
+        if (!text || /^null$/i.test(text) || text.length > 60) return null
+        if (existingTexts.includes(text)) return null
+        return text.slice(0, 30)
+      } catch {
+        return null
       }
     }
   }

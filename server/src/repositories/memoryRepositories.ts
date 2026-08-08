@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { randomUUID, randomInt } from 'node:crypto'
 import type {
   AppNotification,
   ChatMessage,
@@ -41,13 +41,22 @@ export function createMemoryRepositories(): RepositoryBundle {
   const codewords = new Map<string, CodewordAnswer>()
   const petEvents = new Map<string, { petId: string; userId: string; action: string }[]>()
   const pushSubscriptions = new Map<string, { userId: string; endpoint: string; p256dh: string; auth: string }>()
+  const mapLights = new Map<string, { roomId: string; spotId: number; litBy: string; createdAt: Date }>()
+
+  const PUBLIC_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+  function makePublicCode() {
+    let code = ''
+    for (let index = 0; index < 8; index++) code += PUBLIC_CODE_ALPHABET[randomInt(PUBLIC_CODE_ALPHABET.length)]
+    return code
+  }
 
   const userRepo = {
     async findById(id: string) { return users.get(id) },
     async findByEmail(email: string) { return [...users.values()].find((user) => user.email === email.toLowerCase()) },
     async findByUsername(username: string) { return [...users.values()].find((user) => user.username === username) },
+    async findByPublicCode(code: string) { return [...users.values()].find((user) => user.publicCode === code.toUpperCase()) },
     async create(input: Pick<User, 'email' | 'username' | 'displayName'>) {
-      const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), createdAt: now() }
+      const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), publicCode: makePublicCode(), createdAt: now() }
       users.set(user.id, user)
       return user
     },
@@ -57,10 +66,12 @@ export function createMemoryRepositories(): RepositoryBundle {
       user.username = username
       return user
     },
-    async updateProfile(id: string, patch: { avatarUrl?: string | null; birthday?: string | null; mbti?: string | null }) {
+    async updateProfile(id: string, patch: { avatarUrl?: string | null; avatarConfig?: string | null; displayName?: string | null; birthday?: string | null; mbti?: string | null }) {
       const user = users.get(id)
       if (!user) throw new Error('user_not_found')
       if (patch.avatarUrl !== undefined) user.avatarUrl = patch.avatarUrl
+      if (patch.avatarConfig !== undefined) user.avatarConfig = patch.avatarConfig
+      if (patch.displayName !== undefined && patch.displayName) user.displayName = patch.displayName
       if (patch.birthday !== undefined) user.birthday = patch.birthday
       if (patch.mbti !== undefined) user.mbti = patch.mbti
       return user
@@ -169,6 +180,11 @@ export function createMemoryRepositories(): RepositoryBundle {
 
   const memoryRepo = {
     async listByRoom(roomId: string) { return memories.get(roomId) ?? [] },
+    async create(input: { roomId: string; text: string; sourceMessageId?: string; canMention?: boolean }) {
+      const item: PetMemory = { id: randomUUID(), roomId: input.roomId, text: input.text, sourceMessageId: input.sourceMessageId, canMention: input.canMention ?? true, createdAt: now() }
+      memories.set(input.roomId, [item, ...(memories.get(input.roomId) ?? [])])
+      return item
+    },
     async deleteById(roomId: string, memoryId: string) {
       memories.set(roomId, (memories.get(roomId) ?? []).filter((memory) => memory.id !== memoryId))
     }
@@ -289,6 +305,19 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
+  const mapRepo = {
+    async listByRoom(roomId: string) {
+      return [...mapLights.values()]
+        .filter((item) => item.roomId === roomId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    },
+    async light(roomId: string, spotId: number, userId: string) {
+      const item = { roomId, spotId, litBy: userId, createdAt: now() }
+      mapLights.set(`${roomId}:${spotId}`, item)
+      return item
+    }
+  }
+
   return {
     users: userRepo,
     invites: inviteRepo,
@@ -304,6 +333,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     fortunes: fortuneRepo,
     codewords: codewordRepo,
     petEvents: petEventRepo,
-    pushSubscriptions: pushSubscriptionRepo
+    pushSubscriptions: pushSubscriptionRepo,
+    map: mapRepo
   }
 }

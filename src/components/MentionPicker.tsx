@@ -1,8 +1,12 @@
+import { AvatarView, type AvatarUserLike } from './AvatarView'
+
 interface MentionOption {
   key: string
   label: string
   avatar: string | null
   isPet?: boolean
+  /** 非宠物用户传完整资料，渲染捏脸头像 */
+  user?: AvatarUserLike
 }
 
 interface MentionPickerProps {
@@ -19,11 +23,13 @@ export function MentionPicker({ options, onPick, onClose }: MentionPickerProps) 
       <div className="mention-picker__panel">
         {options.map((option) => (
           <button key={option.key} className="mention-picker__item" onClick={() => onPick(option)}>
-            {option.avatar
-              ? option.avatar.startsWith('/') || option.avatar.startsWith('http')
-                ? <img src={option.avatar} alt="" />
-                : <span className="mention-picker__letter">{option.avatar}</span>
-              : <span className="mention-picker__letter">🐶</span>}
+            {option.user
+              ? <AvatarView user={option.user} size={32} style={{ width: 32, height: 32, borderRadius: 12 }} />
+              : option.avatar
+                ? option.avatar.startsWith('/') || option.avatar.startsWith('http')
+                  ? <img className={option.isPet ? 'img-multiply' : undefined} src={option.avatar} alt="" />
+                  : <span className="mention-picker__letter">{option.avatar}</span>
+                : <span className="mention-picker__letter">🐶</span>}
             <span>{option.label}</span>
           </button>
         ))}

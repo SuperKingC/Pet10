@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Conversation, Post } from '../domain/types'
+import type { Conversation, Post, UserProfile } from '../domain/types'
 import { socialApi } from '../services/socialApi'
+import { AvatarView } from './AvatarView'
 
 interface FeedScreenProps {
   pairRoom?: Conversation
   myUserId: string
   myName: string
+  myProfile?: UserProfile
   friendName: string
   onClose(): void
 }
@@ -22,7 +24,7 @@ function timeAgo(raw: string): string {
   return new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric' }).format(date)
 }
 
-export function FeedScreen({ pairRoom, myUserId, myName, friendName, onClose }: FeedScreenProps) {
+export function FeedScreen({ pairRoom, myUserId, myName, myProfile, friendName, onClose }: FeedScreenProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -86,8 +88,13 @@ export function FeedScreen({ pairRoom, myUserId, myName, friendName, onClose }: 
           <li key={post.id} className={`feed-item ${post.authorType === 'pet' ? 'feed-item--pet' : ''}`}>
             <span className="feed-item__avatar">
               {post.authorType === 'pet'
-                ? <img src="/pet/xiaoduoli-small.jpg" alt="" />
-                : <span>{authorName(post).slice(0, 1)}</span>}
+                ? <img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" />
+                : (() => {
+                    const author = post.authorId === myUserId ? myProfile : pairRoom?.friend
+                    return author
+                      ? <AvatarView user={author} size={38} style={{ width: '100%', height: '100%' }} />
+                      : <span>{authorName(post).slice(0, 1)}</span>
+                  })()}
             </span>
             <div className="feed-item__body">
               <span className="feed-item__meta">

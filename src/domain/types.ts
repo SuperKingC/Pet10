@@ -43,9 +43,61 @@ export interface UserProfile {
   email: string
   username: string
   displayName: string
+  /** 8 位公开 ID（加好友用，非真实 id） */
+  publicCode?: string | null
   avatarUrl?: string | null
+  /** 捏脸配置 JSON（AvatarConfig 序列化） */
+  avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
+}
+
+/** 捏脸配置：每项为选项 id，空/null 表示不佩戴 */
+export interface AvatarConfig {
+  skin: string
+  face: string
+  hair: string
+  hairColor: string
+  eyes: string
+  mouth: string
+  blush: boolean
+  glasses: string | null
+  beard: string | null
+  hat: string | null
+  neck: string | null
+  held: string | null
+  background: string
+}
+
+export function parseAvatarConfig(raw?: string | null): AvatarConfig | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as Partial<AvatarConfig>
+    if (!parsed.skin || !parsed.face) return null
+    return {
+      skin: parsed.skin,
+      face: parsed.face,
+      hair: parsed.hair ?? 'none',
+      hairColor: parsed.hairColor ?? '#6b4a2f',
+      eyes: parsed.eyes ?? 'round',
+      mouth: parsed.mouth ?? 'smile',
+      blush: parsed.blush ?? false,
+      glasses: parsed.glasses ?? null,
+      beard: parsed.beard ?? null,
+      hat: parsed.hat ?? null,
+      neck: parsed.neck ?? null,
+      held: parsed.held ?? null,
+      background: parsed.background ?? '#ffe9c7'
+    }
+  } catch {
+    return null
+  }
+}
+
+export interface MapLight {
+  spotId: number
+  litBy: string
+  createdAt: string
 }
 
 export interface Conversation {

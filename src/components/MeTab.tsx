@@ -1,55 +1,39 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { zodiacFromBirthday, type UserProfile } from '../domain/types'
-import { sessionApi } from '../services/sessionApi'
 import { socialApi } from '../services/socialApi'
-import { uploadImageToOss } from '../services/uploadApi'
-import { runtimeConfig } from '../services/runtimeConfig'
 import { disableWebPush, enableWebPush } from '../services/pushClient'
+import { AvatarView } from './AvatarView'
 
 interface MeTabProps {
   user: UserProfile
-  uploadRoomId?: string
   onProfileUpdated(user: UserProfile): void
+  onOpenAvatar(): void
   onOpenMbti(): void
   onLogout(): void
 }
 
-async function fileToAvatarDataUrl(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file)
-  const size = 160
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const context = canvas.getContext('2d')
-  if (!context) throw new Error('canvas_unavailable')
-  const scale = Math.max(size / bitmap.width, size / bitmap.height)
-  const width = bitmap.width * scale
-  const height = bitmap.height * scale
-  context.drawImage(bitmap, (size - width) / 2, (size - height) / 2, width, height)
-  return canvas.toDataURL('image/jpeg', 0.85)
-}
-
-export function MeTab({ user, uploadRoomId, onProfileUpdated, onOpenMbti, onLogout }: MeTabProps) {
+export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogout }: MeTabProps) {
   const [renameOpen, setRenameOpen] = useState(false)
   const [nameDraft, setNameDraft] = useState(user.displayName)
   const [birthdayDraft, setBirthdayDraft] = useState(user.birthday?.slice(0, 10) ?? '')
   const [busy, setBusy] = useState('')
   const [notice, setNotice] = useState('')
   const [notifyEnabled, setNotifyEnabled] = useState(() => window.localStorage.getItem('pet10_notify_enabled') !== 'off')
-  const avatarInputRef = useRef<HTMLInputElement>(null)
   const zodiac = zodiacFromBirthday(user.birthday)
+  const publicCode = user.publicCode ?? user.username
 
-  async function saveUsername() {
+  async function saveDisplayName() {
     const value = nameDraft.trim()
     if (!value || busy) return
     setBusy('rename')
     setNotice('')
     try {
-      const updated = await sessionApi.updateUsername(value)
-      onProfileUpdated({ ...user, displayName: updated.displayName, username: updated.username })
+      const updated = await socialApi.updateProfile({ displayName: value })
+      onProfileUpdated({ ...user, displayName: updated.displayName })
       setRenameOpen(false)
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '保存失败')
+      const message = error instanceof Error ? error.message : '保存失败'
+      setNotice(message === 'invalid_display_name' ? '昵称需 2-12 个字符' : message)
     } finally {
       setBusy('')
     }
@@ -63,26 +47,6 @@ export function MeTab({ user, uploadRoomId, onProfileUpdated, onOpenMbti, onLogo
       onProfileUpdated({ ...user, birthday: updated.birthday ?? null })
     } catch {
       setNotice('生日保存失败')
-    } finally {
-      setBusy('')
-    }
-  }
-
-  async function handleAvatarFile(file?: File) {
-    if (!file || busy) return
-    setBusy('avatar')
-    setNotice('')
-    try {
-      let avatarUrl: string
-      if (!runtimeConfig.useMockApi && uploadRoomId) {
-        avatarUrl = await uploadImageToOss(uploadRoomId, file)
-      } else {
-        avatarUrl = await fileToAvatarDataUrl(file)
-      }
-      const updated = await socialApi.updateProfile({ avatarUrl })
-      onProfileUpdated({ ...user, avatarUrl: updated.avatarUrl })
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : '头像上传失败')
     } finally {
       setBusy('')
     }
@@ -108,31 +72,18 @@ export function MeTab({ user, uploadRoomId, onProfileUpdated, onOpenMbti, onLogo
       <header className="me-tab__header"><h2>我的</h2></header>
 
       <section className="me-profile-card">
-        <button className="me-profile-card__avatar" onClick={() => avatarInputRef.current?.click()} aria-label="更换头像">
-          {user.avatarUrl
-            ? <img src={user.avatarUrl} alt={user.displayName} />
-            : <span>{user.displayName.slice(0, 1)}</span>}
-          <em>换头像</em>
+        <button className="me-profile-card__avatar" onClick={onOpenAvatar} aria-label="捏脸/换头像">
+          <AvatarView user={user} size={72} />
+          <em>换形象</em>
         </button>
-        <input
-          ref={avatarInputRef}
-          className="visually-hidden"
-          type="file"
-          accept="image/*"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            event.target.value = ''
-            void handleAvatarFile(file)
-          }}
-        />
         <div className="me-profile-card__info">
           <h3>
             {user.displayName}
             <button className="me-profile-card__edit" onClick={() => { setNameDraft(user.displayName); setRenameOpen(true) }}>✏️</button>
           </h3>
           <p className="me-profile-card__id">
-            ID：{user.username}
-            <button onClick={() => void navigator.clipboard?.writeText(user.username)}>复制</button>
+            ID：{publicCode}
+            <button onClick={() => void navigator.clipboard?.writeText(publicCode)}>复制</button>
           </p>
           <div className="me-profile-card__badges">
             {zodiac && <span>{zodiac.icon} {zodiac.name}</span>}
@@ -185,13 +136,13 @@ export function MeTab({ user, uploadRoomId, onProfileUpdated, onOpenMbti, onLogo
             <input
               value={nameDraft}
               onChange={(event) => setNameDraft(event.target.value)}
-              placeholder="3-24 位字母/数字/下划线"
-              onKeyDown={(event) => { if (event.key === 'Enter') void saveUsername() }}
+              placeholder="2-12 个任意字符"
+              onKeyDown={(event) => { if (event.key === 'Enter') void saveDisplayName() }}
             />
             {notice && <p className="sheet__error">{notice}</p>}
             <div className="sheet__actions">
               <button className="sheet__cancel" onClick={() => setRenameOpen(false)}>取消</button>
-              <button className="sheet__confirm" disabled={busy === 'rename'} onClick={() => void saveUsername()}>
+              <button className="sheet__confirm" disabled={busy === 'rename'} onClick={() => void saveDisplayName()}>
                 {busy === 'rename' ? '保存中…' : '保存'}
               </button>
             </div>

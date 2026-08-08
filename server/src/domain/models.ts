@@ -10,7 +10,9 @@ export interface User {
   email: string
   username: string
   displayName: string
+  publicCode: string
   avatarUrl?: string | null
+  avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
   createdAt: Date
@@ -138,4 +140,10 @@ export interface PetEventStat {
   userId: Id
   action: string
   count: number
+}
+
+export interface MapLight {
+  spotId: number
+  litBy: Id
+  createdAt: Date
 }

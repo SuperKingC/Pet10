@@ -5,6 +5,7 @@ import type {
   Fortune,
   InviteCode,
   LoginCode,
+  MapLight,
   MoodEntry,
   Pet,
   PetEventStat,
@@ -17,6 +18,8 @@ import type {
 
 export interface UserProfilePatch {
   avatarUrl?: string | null
+  avatarConfig?: string | null
+  displayName?: string | null
   birthday?: string | null
   mbti?: string | null
 }
@@ -25,6 +28,7 @@ export interface UserRepository {
   findById(id: string): Promise<User | undefined>
   findByEmail(email: string): Promise<User | undefined>
   findByUsername(username: string): Promise<User | undefined>
+  findByPublicCode(code: string): Promise<User | undefined>
   create(input: Pick<User, 'email' | 'username' | 'displayName'>): Promise<User>
   updateUsername(id: string, username: string): Promise<User>
   updateProfile(id: string, patch: UserProfilePatch): Promise<User>
@@ -73,6 +77,7 @@ export interface MessageRepository {
 
 export interface MemoryRepository {
   listByRoom(roomId: string): Promise<PetMemory[]>
+  create(input: { roomId: string; text: string; sourceMessageId?: string; canMention?: boolean }): Promise<PetMemory>
   deleteById(roomId: string, memoryId: string): Promise<void>
 }
 
@@ -126,6 +131,11 @@ export interface PushSubscriptionRepository {
   deleteByEndpoint(userId: string, endpoint: string): Promise<void>
 }
 
+export interface MapRepository {
+  listByRoom(roomId: string): Promise<MapLight[]>
+  light(roomId: string, spotId: number, userId: string): Promise<MapLight>
+}
+
 export interface RepositoryBundle {
   users: UserRepository
   invites: InviteRepository
@@ -142,4 +152,5 @@ export interface RepositoryBundle {
   codewords: CodewordRepository
   petEvents: PetEventRepository
   pushSubscriptions: PushSubscriptionRepository
+  map: MapRepository
 }

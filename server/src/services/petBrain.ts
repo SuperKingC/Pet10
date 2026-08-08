@@ -1,4 +1,4 @@
-import type { ChatMessage, PetAction, User } from '../domain/models.js'
+import type { ChatMessage, Pet, PetAction, User } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { PetActionOutcome } from './petService.js'
@@ -11,6 +11,8 @@ interface PetBrainDependencies {
 }
 
 const COOLDOWN_MS = 5 * 60 * 1000
+const MEMORY_COOLDOWN_MS = 10 * 60 * 1000
+const MEMORY_LIMIT = 60
 const PET_KEYWORDS = ['小多利', '狗狗', '小狗', '喂', '玩', '睡', '可爱', '骨头', '散步', '摸摸']
 const MOOD_CARE: Record<number, string> = {
   1: '汪呜…感觉到主人今天心情不太好，小多利把脑袋搁在你手心里，难过分我一半吧。',
@@ -23,8 +25,18 @@ function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)]
 }
 
+/** 私聊房没有宠物行，用默认状态继续对话（修复 pet_dm 不回复） */
+function defaultPet(roomId: string): Pet {
+  return {
+    id: `dm-${roomId}`, relationshipId: '', roomId, name: '小多利',
+    level: 1, experience: 0, experienceToNextLevel: 100,
+    hunger: 80, mood: 80, energy: 80, health: 100, intimacy: 10, updatedAt: new Date()
+  }
+}
+
 export function createPetBrain({ repositories, ai, emit, logError = (m, e) => console.error(m, e) }: PetBrainDependencies) {
   const lastProactiveAt = new Map<string, number>()
+  const lastMemoryExtractAt = new Map<string, number>()
 
   async function getOwners(roomId: string): Promise<User[]> {
     const room = await repositories.rooms.findById(roomId)
@@ -54,22 +66,55 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
   }
 
   async function speak(roomId: string, triggerMessages: ChatMessage[], roomType: 'pair' | 'pet_dm'): Promise<ChatMessage | undefined> {
-    const pet = await repositories.pets.findByRoomId(roomId)
-    if (!pet) return undefined
+    const pet = (await repositories.pets.findByRoomId(roomId)) ?? defaultPet(roomId)
     emit(roomId, 'pet.typing', { roomId, typing: true })
     try {
-      const owners = await getOwners(roomId)
+      let owners = await getOwners(roomId)
+      if (owners.length === 0 && roomType === 'pet_dm') {
+        // 私聊房从最近消息里找到聊天的主人，让 persona 知道在和谁说话
+        const senderId = [...triggerMessages].reverse().find((message) => message.senderType === 'user')?.senderId
+        if (senderId) {
+          const user = await repositories.users.findById(senderId)
+          if (user) owners = [user]
+        }
+      }
       const memories = await repositories.memories.listByRoom(roomId)
       const moodsText = await buildMoodsText(roomId, owners)
       const text = await ai.reply({ messages: triggerMessages, memories, pet, owners, moodsText, roomType })
       const message = await repositories.messages.create({ roomId, senderType: 'pet', kind: 'pet', text })
       emit(roomId, 'message.created', message)
+      void maybeExtractMemory(roomId)
       return message
     } catch (error) {
       logError('petBrain reply failed', error)
       return undefined
     } finally {
       emit(roomId, 'pet.typing', { roomId, typing: false })
+    }
+  }
+
+  /** 说完话后按冷却+概率提取一条真实记忆；每房上限 60 条，淘汰最旧 */
+  async function maybeExtractMemory(roomId: string) {
+    try {
+      const last = lastMemoryExtractAt.get(roomId) ?? 0
+      if (Date.now() - last < MEMORY_COOLDOWN_MS) return
+      if (Math.random() > 0.5) return
+      lastMemoryExtractAt.set(roomId, Date.now())
+      const [recent, memories] = await Promise.all([
+        repositories.messages.listRecent(roomId, 12),
+        repositories.memories.listByRoom(roomId)
+      ])
+      const text = await ai.extractMemory(recent, memories.map((memory) => memory.text))
+      if (!text) return
+      await repositories.memories.create({ roomId, text })
+      // listByRoom 按时间倒序，超出上限时删尾部（最旧）
+      if (memories.length + 1 > MEMORY_LIMIT) {
+        for (const oldest of memories.slice(MEMORY_LIMIT - 1)) {
+          await repositories.memories.deleteById(roomId, oldest.id)
+        }
+      }
+    } catch (error) {
+      logError('petBrain memory extraction failed', error)
     }
   }
 
@@ -172,25 +217,34 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
       return message
     },
 
-    /** 每日首开问候：当天房间里还没有宠物发言时，概率打招呼 */
+    /** 每日首开问候：当天房间里还没有宠物发言时，概率打招呼；私聊房也会主动碎碎念 */
     async dailyGreeting(roomId: string) {
       const room = await repositories.rooms.findById(roomId)
-      if (!room || room.type !== 'pair' || !room.proactiveEnabled) return
+      if (!room || !room.proactiveEnabled) return
       const hour = new Date().getHours()
       if (hour < 7 || hour > 22) return
+      const isPetDm = room.type === 'pet_dm'
       const day = new Date().toISOString().slice(0, 10)
       const messages = await repositories.messages.listRecent(roomId, 30)
       const petSpokeToday = messages.some((message) => message.senderType === 'pet' && message.createdAt instanceof Date && message.createdAt.toISOString().slice(0, 10) === day)
-      if (petSpokeToday) return
+      if (!isPetDm && petSpokeToday) return
       const last = lastProactiveAt.get(roomId) ?? 0
-      if (Date.now() - last < COOLDOWN_MS) return
-      if (Math.random() > 0.6) return
+      // 私聊房主动碎碎念冷却 10 分钟，pair 房保持 5 分钟
+      if (Date.now() - last < (isPetDm ? 2 * COOLDOWN_MS : COOLDOWN_MS)) return
+      if (Math.random() > (isPetDm ? (petSpokeToday ? 0.25 : 0.6) : 0.6)) return
       lastProactiveAt.set(roomId, Date.now())
-      const greeting = pick([
-        '汪！主人来啦！小多利等你们好久啦，今天谁先陪我玩？',
-        '汪呜～新的一天！小多利已经把尾巴准备好了，谁来摸摸？',
-        '汪汪！今天也要一起照顾我哦，肚子已经开始咕咕叫了…'
-      ])
+      const greeting = isPetDm
+        ? pick([
+            '呜汪…你怎么才来呀，才不是在等你呢！',
+            '主人主人！我今天发现了一个秘密，凑过来才告诉你～',
+            '贴贴！今天也要按时吃饭哦，不然我会生气的！',
+            '汪呜～无聊死了，快跟我说说你在干嘛！'
+          ])
+        : pick([
+            '汪！主人来啦！小多利等你们好久啦，今天谁先陪我玩？',
+            '汪呜～新的一天！小多利已经把尾巴准备好了，谁来摸摸？',
+            '汪汪！今天也要一起照顾我哦，肚子已经开始咕咕叫了…'
+          ])
       const message = await repositories.messages.create({ roomId, senderType: 'pet', kind: 'pet', text: greeting })
       emit(roomId, 'message.created', message)
     }

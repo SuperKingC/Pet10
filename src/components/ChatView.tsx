@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Conversation, Message } from '../domain/types'
 import type { RoomRuntime } from '../state/useRoomRuntime'
 import { FriendProfileCard } from './FriendProfileCard'
+import { AvatarView } from './AvatarView'
 import { MentionPicker, type MentionOption } from './MentionPicker'
 
 interface ChatViewProps {
@@ -40,7 +41,7 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
   const mentionOptions: MentionOption[] = useMemo(() => {
     const options: MentionOption[] = []
     if (conversation.friend) {
-      options.push({ key: 'friend', label: conversation.friend.displayName, avatar: conversation.friend.avatarUrl ?? null })
+      options.push({ key: 'friend', label: conversation.friend.displayName, avatar: conversation.friend.avatarUrl ?? null, user: conversation.friend })
     }
     options.push({ key: 'pet', label: '小多利', avatar: '/pet/xiaoduoli-small.jpg', isPet: true })
     return options
@@ -94,13 +95,13 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
           aria-label={isPet ? '小多利' : `${conversation.title}的头像`}
         >
           {isPet
-            ? <img src="/pet/xiaoduoli-small.jpg" alt="" />
-            : conversation.avatarUrl
-              ? <img src={conversation.avatarUrl} alt="" />
+            ? <img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" />
+            : conversation.friend
+              ? <AvatarView user={conversation.friend} size={36} style={{ width: '100%', height: '100%' }} />
               : <span>{conversation.title.slice(0, 1)}</span>}
         </button>
         <div className="chat-row__body">
-          <span className="chat-row__name">{isPet ? '小多利' : conversation.title}</span>
+          <span className="chat-row__name">{isPet ? '小多利' : conversation.friend?.displayName ?? conversation.title}</span>
           <div className={`chat-bubble ${isPet ? 'chat-bubble--pet' : 'chat-bubble--friend'}`}>
             {message.imageUrl && <img className="chat-bubble__image" src={message.imageUrl} alt="图片消息" />}
             {message.text && <p>{message.text}</p>}
@@ -141,12 +142,10 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
         </button>
         {!isPetDm && conversation.friend && (
           <button className="chat-view__avatar" onClick={() => setProfileOpen(true)} aria-label="查看资料">
-            {conversation.avatarUrl
-              ? <img src={conversation.avatarUrl} alt="" />
-              : <span>{conversation.title.slice(0, 1)}</span>}
+            <AvatarView user={conversation.friend} size={38} style={{ width: '100%', height: '100%' }} />
           </button>
         )}
-        {isPetDm && <span className="chat-view__avatar"><img src="/pet/xiaoduoli-small.jpg" alt="" /></span>}
+        {isPetDm && <span className="chat-view__avatar"><img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" /></span>}
       </header>
 
       <div className="chat-view__scroll" ref={scrollRef}>
@@ -154,7 +153,7 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
         {rows}
         {runtime.petTyping && (
           <div className="chat-row">
-            <span className="chat-row__avatar"><img src="/pet/xiaoduoli-small.jpg" alt="" /></span>
+            <span className="chat-row__avatar"><img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" /></span>
             <div className="chat-bubble chat-bubble--pet chat-bubble--typing"><span /><span /><span /></div>
           </div>
         )}

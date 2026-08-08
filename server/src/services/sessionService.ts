@@ -1,5 +1,5 @@
 import type { Relationship, User } from '../domain/models.js'
-import type { RepositoryBundle } from '../repositories/contracts.js'
+import type { RepositoryBundle, UserProfilePatch } from '../repositories/contracts.js'
 
 export type HomeSession =
   | { status: 'unbound'; user: User }
@@ -16,7 +16,10 @@ export type HomeSession =
       memories: Awaited<ReturnType<RepositoryBundle['memories']['listByRoom']>>
     }
 
-export function createSessionService(repositories: RepositoryBundle) {
+export function createSessionService(repositories: RepositoryBundle, options?: {
+  emitUser?: (userId: string, event: string, payload: unknown) => void
+}) {
+  const emitUser = options?.emitUser ?? (() => undefined)
   return {
     async getHome(userId: string): Promise<HomeSession> {
       const user = await repositories.users.findById(userId)
@@ -56,14 +59,26 @@ export function createSessionService(repositories: RepositoryBundle) {
       if (existing && existing.id !== userId) throw new Error('username_already_exists')
       return repositories.users.updateUsername(userId, normalized)
     },
-    async updateProfile(userId: string, patch: { avatarUrl?: string; birthday?: string | null; mbti?: string | null }) {
+    async updateProfile(userId: string, patch: UserProfilePatch) {
       if (patch.birthday !== undefined && patch.birthday !== null && Number.isNaN(Date.parse(patch.birthday))) {
         throw new Error('invalid_birthday')
       }
       if (patch.mbti !== undefined && patch.mbti !== null && !/^[IE][SN][TF][JP]$/.test(patch.mbti)) {
         throw new Error('invalid_mbti')
       }
-      return repositories.users.updateProfile(userId, patch)
+      if (patch.displayName !== undefined && patch.displayName !== null) {
+        const trimmed = patch.displayName.trim()
+        if (trimmed.length < 2 || trimmed.length > 12) throw new Error('invalid_display_name')
+        patch = { ...patch, displayName: trimmed }
+      }
+      const updated = await repositories.users.updateProfile(userId, patch)
+      // 昵称/头像变化后通知已接受的好友，保证双端即时同步
+      const relationship = await repositories.relationships.findActiveForUser(userId)
+      if (relationship && relationship.status === 'accepted') {
+        const friendId = relationship.requesterId === userId ? relationship.addresseeId : relationship.requesterId
+        emitUser(friendId, 'profile.updated', { userId, user: updated })
+      }
+      return updated
     }
   }
 }

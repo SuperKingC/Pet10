@@ -69,7 +69,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     onPetEvent: (roomId, userId, action, outcome) => void brain.onPetEvent(roomId, userId, action, outcome)
   })
   const roomService = createRoomService({ repositories, ai, brain })
-  const sessionService = createSessionService(repositories)
+  const sessionService = createSessionService(repositories, { emitUser })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
   pushService = createPushService(config.push, repositories)
 

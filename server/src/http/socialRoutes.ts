@@ -98,6 +98,18 @@ export function createSocialRoutes(dependencies: {
     try { response.json(await dependencies.pets.contributions(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }
   })
 
+  // 足迹地图
+  router.get('/rooms/:roomId/map', async (request: AuthenticatedRequest, response, next) => {
+    try { response.json(await dependencies.social.listMapLights(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }
+  })
+  router.post('/rooms/:roomId/map', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      const { spotId } = z.object({ spotId: z.number().int().min(1).max(16) }).parse(request.body)
+      const light = await dependencies.social.lightMapSpot(routeParam(request.params.roomId), request.userId!, spotId)
+      response.status(201).json(light)
+    } catch (error) { next(error) }
+  })
+
   // Web Push 订阅
   router.get('/push/vapid-public-key', (_request: AuthenticatedRequest, response) => {
     response.json({ enabled: Boolean(dependencies.push?.enabled), publicKey: dependencies.push?.publicKey ?? '' })

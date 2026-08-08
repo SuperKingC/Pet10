@@ -44,6 +44,11 @@ function App() {
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
 
+// 原生 App 手感：禁 iOS 捏合缩放/双击缩放（内部滚动容器不受影响）
+document.addEventListener('gesturestart', (event) => event.preventDefault())
+document.addEventListener('gesturechange', (event) => event.preventDefault())
+document.addEventListener('dblclick', (event) => event.preventDefault())
+
 document.getElementById('app-splash')?.remove()
 clearAppBadge()
 

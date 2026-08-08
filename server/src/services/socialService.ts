@@ -129,6 +129,15 @@ const PAIR_TEMPLATES = [
 ]
 const LUCKY_COLORS = ['奶油黄', '雾霾蓝', '蜜桃粉', '薄荷绿', '焦糖棕', '薰衣草紫', '云朵白', '落日橙']
 
+// 点亮足迹地图时小多利的庆祝碎碎念
+const MAP_CELEBRATIONS = [
+  '汪！地图上又多了一个亮晶晶的爪印，是我们一起走过的地方！',
+  '呜哇，这个点亮了！下次我们真的去那里玩好不好？',
+  '盖了个爪印！小多利的足迹地图又变大了一点点。',
+  '亮啦亮啦！我要把这里记在我的小本本上。',
+  '汪呜～这里也属于我们了，尾巴已经摇起来了！'
+]
+
 function fallbackFortune(names: [string, string], pet: Pet, day: string): FortuneContent {
   const seed = hashCode(`${names[0]}|${names[1]}|${pet.id}|${day}`)
   const actions: PetAction[] = ['feed', 'play', 'clean', 'sleep']
@@ -188,10 +197,11 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
         }
         const owners = await getOwners(room.id)
         const friend = owners.find((owner) => owner.id !== userId)
+        const me = owners.find((owner) => owner.id === userId)
         conversations.push({
           roomId: room.id,
           type: 'pair',
-          title: friend?.displayName ?? '好友',
+          title: me && friend ? `${me.displayName} × ${friend.displayName}` : friend?.displayName ?? '好友',
           avatarUrl: friend?.avatarUrl ?? null,
           proactiveEnabled: room.proactiveEnabled,
           friend,
@@ -321,6 +331,31 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
       const result = await this.getCodeword(roomId, userId)
       emit(roomId, 'codeword.updated', { roomId, day, answeredCount: result.answeredCount })
       return result
+    },
+
+    // ---------- 足迹地图 ----------
+    async listMapLights(roomId: string, userId: string) {
+      await assertMember(roomId, userId)
+      return repositories.map.listByRoom(roomId)
+    },
+
+    /** 点亮一个地图点位（一人点亮即全房生效） */
+    async lightMapSpot(roomId: string, userId: string, spotId: number) {
+      await assertMember(roomId, userId)
+      if (!Number.isInteger(spotId) || spotId < 1 || spotId > 16) throw new Error('invalid_spot')
+      const light = await repositories.map.light(roomId, spotId, userId)
+      emit(roomId, 'map.lit', { roomId, spotId, litBy: userId, createdAt: light.createdAt.toISOString() })
+      const owners = await getOwners(roomId)
+      for (const owner of owners) {
+        if (owner.id === userId) continue
+        void notify(owner.id, 'map_lit', { roomId, spotId, litBy: userId })
+      }
+      if (Math.random() < 0.6) {
+        const cheer = MAP_CELEBRATIONS[Math.floor(Math.random() * MAP_CELEBRATIONS.length)]
+        const message = await repositories.messages.create({ roomId, senderType: 'pet', kind: 'pet', text: cheer })
+        emit(roomId, 'message.created', message)
+      }
+      return light
     }
   }
 }

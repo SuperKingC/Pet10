@@ -2,7 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#fff9ee" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -17,7 +17,7 @@
       .app-splash { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: radial-gradient(circle at 50% 8%, #fff8e9 0, #f7ecdc 48%, #efdfd2 100%); overflow: hidden; transition: opacity .5s ease; }
       .app-splash--leaving { opacity: 0; }
       .app-splash__stage { position: relative; display: grid; place-items: center; }
-      .app-splash__pet { width: min(60vw, 300px); height: auto; border-radius: 28px; animation: splash-land .9s cubic-bezier(.34, 1.56, .64, 1) both; filter: drop-shadow(0 22px 30px rgba(150, 94, 48, .22)); }
+      .app-splash__pet { width: min(60vw, 300px); height: auto; border-radius: 28px; animation: splash-land .9s cubic-bezier(.34, 1.56, .64, 1) both; filter: drop-shadow(0 22px 30px rgba(150, 94, 48, .22)); mix-blend-mode: multiply; }
       .app-splash__paw { position: absolute; font-size: 22px; opacity: 0; animation: splash-paw 1.4s ease-out forwards; }
       .app-splash__paw:nth-child(2) { left: -14%; top: 12%; animation-delay: .55s; }
       .app-splash__paw:nth-child(3) { right: -12%; top: 30%; animation-delay: .75s; }

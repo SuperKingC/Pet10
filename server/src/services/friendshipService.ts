@@ -7,10 +7,18 @@ export function createFriendshipService(repositories: RepositoryBundle, options?
 
   return {
     async sendRequest(requesterId: string, identifier: string) {
-      const normalized = identifier.trim().toLowerCase()
-      const addressee = normalized.includes('@')
-        ? await repositories.users.findByEmail(normalized)
-        : await repositories.users.findByUsername(normalized)
+      const trimmed = identifier.trim()
+      const normalized = trimmed.toLowerCase()
+      let addressee: Awaited<ReturnType<RepositoryBundle['users']['findById']>>
+      if (/^[2-9A-HJ-NP-Z]{8}$/i.test(trimmed)) {
+        // 依次按 公开码 → username → email 解析
+        addressee = await repositories.users.findByPublicCode(trimmed)
+        if (!addressee) addressee = await repositories.users.findByUsername(normalized)
+      } else if (normalized.includes('@')) {
+        addressee = await repositories.users.findByEmail(normalized)
+      } else {
+        addressee = await repositories.users.findByUsername(normalized)
+      }
       if (!addressee) throw new Error('user_not_found')
       if (addressee.id === requesterId) throw new Error('cannot_add_self')
       if (await repositories.relationships.findBetweenUsers(requesterId, addressee.id)) {

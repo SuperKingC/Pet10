@@ -7,6 +7,7 @@ import type {
   Conversation,
   ContributionStat,
   Fortune,
+  MapLight,
   Message,
   MoodEntry,
   PetMemory,
@@ -40,7 +41,13 @@ export interface SocialApi {
   listConversations(): Promise<Conversation[]>
   bootstrapRoom(roomId: string, currentUserId: string): Promise<RoomBootstrap>
   setProactive(roomId: string, enabled: boolean): Promise<{ proactiveEnabled: boolean }>
-  updateProfile(patch: { avatarUrl?: string; birthday?: string | null; mbti?: string | null }): Promise<UserProfile>
+  updateProfile(patch: {
+    avatarUrl?: string | null
+    avatarConfig?: string | null
+    displayName?: string | null
+    birthday?: string | null
+    mbti?: string | null
+  }): Promise<UserProfile>
   // 心情
   listMoods(roomId: string, fromDay: string, toDay: string): Promise<MoodEntry[]>
   setMood(roomId: string, level: number): Promise<MoodEntry>
@@ -57,6 +64,9 @@ export interface SocialApi {
   answerCodeword(roomId: string, answer: string): Promise<CodewordState>
   // 贡献榜
   listContributions(roomId: string): Promise<ContributionStat[]>
+  // 足迹地图
+  listMapLights(roomId: string): Promise<MapLight[]>
+  lightMapSpot(roomId: string, spotId: number): Promise<MapLight>
 }
 
 function todayKey() {
@@ -128,6 +138,15 @@ const realSocialApi: SocialApi = {
   },
   listContributions(roomId) {
     return apiRequest<ContributionStat[]>(`/api/social/rooms/${roomId}/contributions`)
+  },
+  listMapLights(roomId) {
+    return apiRequest<MapLight[]>(`/api/social/rooms/${roomId}/map`)
+  },
+  lightMapSpot(roomId, spotId) {
+    return apiRequest<MapLight>(`/api/social/rooms/${roomId}/map`, {
+      method: 'POST',
+      body: JSON.stringify({ spotId })
+    })
   }
 }
 
@@ -176,8 +195,10 @@ const mockSocialApi: SocialApi = {
       id: 'you',
       email: 'you@pet10.local',
       username: 'you',
-      displayName: '我',
+      displayName: patch.displayName ?? '我',
+      publicCode: 'PET10DEMO',
       avatarUrl: patch.avatarUrl ?? null,
+      avatarConfig: patch.avatarConfig ?? null,
       birthday: patch.birthday ?? null,
       mbti: patch.mbti ?? null
     }
@@ -249,6 +270,12 @@ const mockSocialApi: SocialApi = {
       { userId: 'you', action: 'feed', count: 6 },
       { userId: 'friend', action: 'play', count: 4 }
     ]
+  },
+  async listMapLights() {
+    return [{ spotId: 2, litBy: 'you', createdAt: new Date().toISOString() }]
+  },
+  async lightMapSpot(_roomId, spotId) {
+    return { spotId, litBy: 'you', createdAt: new Date().toISOString() }
   }
 }
 

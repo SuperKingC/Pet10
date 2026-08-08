@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Conversation } from '../domain/types'
 import { friendshipApi } from '../services/friendshipApi'
+import { AvatarView } from './AvatarView'
 
 interface ConversationListProps {
   conversations: Conversation[]
@@ -67,9 +68,13 @@ export function ConversationList({ conversations, unread, onOpen, onOpenFeed, on
             <li key={conversation.roomId}>
               <button className="conversation-item" onClick={() => onOpen(conversation.roomId)}>
                 <span className="conversation-item__avatar">
-                  {conversation.avatarUrl
-                    ? <img src={conversation.avatarUrl} alt="" />
-                    : <span className="conversation-item__letter">{conversation.title.slice(0, 1)}</span>}
+                  {conversation.type === 'pet_dm'
+                    ? (conversation.avatarUrl
+                        ? <img className="img-multiply" src={conversation.avatarUrl} alt="" />
+                        : <span className="conversation-item__letter">{conversation.title.slice(0, 1)}</span>)
+                    : conversation.friend
+                      ? <AvatarView user={conversation.friend} size={48} style={{ width: '100%', height: '100%' }} />
+                      : <span className="conversation-item__letter">{conversation.title.slice(0, 1)}</span>}
                   {count > 0 && <em className="conversation-item__badge">{count > 99 ? '99+' : count}</em>}
                 </span>
                 <span className="conversation-item__body">
@@ -94,11 +99,11 @@ export function ConversationList({ conversations, unread, onOpen, onOpenFeed, on
         <div className="sheet-overlay" onClick={() => setAddOpen(false)}>
           <div className="sheet" onClick={(event) => event.stopPropagation()}>
             <h3>添加新朋友</h3>
-            <p className="sheet__hint">输入对方的用户名或邮箱，每对好友会共同拥有一只小多利。</p>
+            <p className="sheet__hint">输入对方的公开 ID、用户名或邮箱，每对好友会共同拥有一只小多利。</p>
             <input
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="用户名或邮箱"
+              placeholder="公开 ID / 用户名 / 邮箱"
               onKeyDown={(event) => { if (event.key === 'Enter') void submitAdd() }}
             />
             {addStatus === 'done' && <p className="sheet__success">请求已发出，等对方接受吧～</p>}

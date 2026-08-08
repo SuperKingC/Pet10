@@ -29,6 +29,8 @@ export interface RoomRuntimeOptions {
   onIncomingMessage?: (roomId: string, message: Message) => void
   onIncomingNotification?: () => void
   onGameEvent?: (event: string, payload: Record<string, unknown>) => void
+  onProfileUpdated?: (payload: { userId: string; user: Record<string, unknown> }) => void
+  onMapLit?: (payload: { roomId: string; spotId: number; litBy: string }) => void
 }
 
 const EMPTY_RUNTIME: RoomRuntime = { loaded: false, messages: [], pet: null, memories: [], petTyping: false, friendTyping: false }
@@ -123,6 +125,12 @@ export function useRoomRuntime(options: RoomRuntimeOptions) {
       },
       onGameEvent(event, payload) {
         optionsRef.current.onGameEvent?.(event, payload)
+      },
+      onProfileUpdated(payload) {
+        optionsRef.current.onProfileUpdated?.(payload)
+      },
+      onMapLit(payload) {
+        optionsRef.current.onMapLit?.(payload)
       }
     })
     realtimeRef.current = connection
