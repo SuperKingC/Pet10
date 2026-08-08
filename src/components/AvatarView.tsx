@@ -2,9 +2,30 @@ import type { CSSProperties } from 'react'
 import { parseAvatarConfig, type AvatarConfig } from '../domain/types'
 
 export interface AvatarUserLike {
+  id?: string
   displayName: string
   avatarUrl?: string | null
   avatarConfig?: string | null
+}
+
+const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
+  skin: 'cream',
+  face: 'round',
+  hair: 'short',
+  hairColor: '#6b4a2f',
+  eyes: 'happy',
+  mouth: 'smile',
+  blush: true,
+  glasses: null,
+  beard: null,
+  hat: null,
+  neck: null,
+  held: null,
+  background: '#d9ecff'
+}
+
+export function createFallbackAvatarConfig(_seed: string): AvatarConfig {
+  return { ...DEFAULT_AVATAR_CONFIG }
 }
 
 const SKIN_COLORS: Record<string, string> = {
@@ -34,24 +55,7 @@ export function AvatarView({ user, size = 44, className, style }: {
       />
     )
   }
-  const config = parseAvatarConfig(user.avatarConfig)
-  if (!config) {
-    const letter = (user.displayName || '?').trim().slice(0, 1).toUpperCase()
-    return (
-      <span
-        className={className}
-        aria-label={user.displayName}
-        style={{
-          width: size, height: size, borderRadius: '50%', display: 'inline-flex',
-          alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          background: '#ffd9a8', color: '#7a4c1f', fontWeight: 700,
-          fontSize: Math.round(size * 0.45), ...style
-        }}
-      >
-        {letter}
-      </span>
-    )
-  }
+  const config = parseAvatarConfig(user.avatarConfig) ?? createFallbackAvatarConfig(user.id ?? user.displayName)
   return (
     <svg
       viewBox="0 0 120 120"

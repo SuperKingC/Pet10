@@ -1,15 +1,10 @@
 import type { Pet, PetAction } from '../domain/models.js'
-import { applyPetAction, clamp } from '../domain/petRules.js'
+import { applyPetAction } from '../domain/petRules.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
-
-function todayKey() {
-  return new Date().toISOString().slice(0, 10)
-}
 
 export interface PetActionOutcome {
   pet: Pet
   leveledUp: boolean
-  luckyBonus: boolean
 }
 
 export function createPetService(repositories: RepositoryBundle, options?: {
@@ -30,20 +25,12 @@ export function createPetService(repositories: RepositoryBundle, options?: {
     },
     async applyAction(roomId: string, userId: string, action: PetAction): Promise<Pet> {
       const pet = await this.getForRoom(roomId, userId)
-      let next = applyPetAction(pet, action)
-
-      // 今日幸运互动 buff：执行运势指定的动作额外 +5 亲密度
-      let luckyBonus = false
-      const fortune = await repositories.fortunes.findByRoomAndDay(roomId, todayKey())
-      if (fortune && fortune.content.luckyAction === action) {
-        next = { ...next, intimacy: clamp(next.intimacy + 5) }
-        luckyBonus = true
-      }
+      const next = applyPetAction(pet, action)
 
       const leveledUp = next.level > pet.level
       const saved = await repositories.pets.update(next)
-      await repositories.petEvents.record(saved.id, userId, action, { luckyBonus })
-      const outcome: PetActionOutcome = { pet: saved, leveledUp, luckyBonus }
+      await repositories.petEvents.record(saved.id, userId, action)
+      const outcome: PetActionOutcome = { pet: saved, leveledUp }
       onPetEvent(roomId, userId, action, outcome)
       return saved
     },

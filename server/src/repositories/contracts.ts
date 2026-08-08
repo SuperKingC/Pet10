@@ -103,8 +103,8 @@ export interface NotificationRepository {
 }
 
 export interface FortuneRepository {
-  findByRoomAndDay(roomId: string, day: string): Promise<Fortune | undefined>
-  create(roomId: string, day: string, content: Fortune['content']): Promise<Fortune>
+  findByUserAndDay(userId: string, day: string): Promise<Fortune | undefined>
+  createForUser(userId: string, day: string, content: Fortune['content']): Promise<Fortune>
 }
 
 export interface CodewordRepository {

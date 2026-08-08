@@ -68,10 +68,10 @@ export function ConversationList({ conversations, unread, onOpen, onOpenFeed, on
           return (
             <li key={conversation.roomId}>
               <button className="conversation-item" onClick={() => onOpen(conversation.roomId)}>
-                <span className="conversation-item__avatar">
+                <span className={`conversation-item__avatar${conversation.type === 'pet_dm' ? ' conversation-item__avatar--pet' : ''}`}>
                   {conversation.type === 'pet_dm'
                     ? (conversation.avatarUrl
-                        ? <img className="img-multiply" src={conversation.avatarUrl} alt="" />
+                        ? <img className="pet-avatar-image" src={conversation.avatarUrl} alt="" />
                         : <span className="conversation-item__letter">{conversation.title.slice(0, 1)}</span>)
                     : conversation.friend
                       ? <AvatarView user={conversation.friend} size={48} style={{ width: '100%', height: '100%' }} />

@@ -3,6 +3,7 @@ import { createServer } from 'node:http'
 import { createApp } from './app.js'
 import { config } from './config.js'
 import { pool } from './db/pool.js'
+import { ensureRuntimeMigrations } from './db/migrations.js'
 import { createPostgresRepositories } from './repositories/postgresRepositories.js'
 import { createAiService } from './services/aiService.js'
 import { createSocketServer } from './realtime/socketServer.js'
@@ -64,6 +65,15 @@ emitToRoom = sockets.emit
 emitToUser = sockets.emitUser
 gobang = createGobangService({ repositories, emit: sockets.emit, emitUser: sockets.emitUser })
 
-server.listen(config.port, () => {
-  console.log(`Pet10 API listening on http://localhost:${config.port}`)
+async function start() {
+  await ensureRuntimeMigrations(pool)
+  server.listen(config.port, () => {
+    console.log(`Pet10 API listening on http://localhost:${config.port}`)
+  })
+}
+
+start().catch((error) => {
+  console.error('Pet10 API failed to start', error)
+  process.exitCode = 1
+  void pool.end()
 })

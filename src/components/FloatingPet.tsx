@@ -102,7 +102,7 @@ export function FloatingPet({ proactiveEnabled, onToggleProactive, onPoke }: Flo
       aria-label={`悬浮小多利（长按切换主动说话，当前${proactiveEnabled ? '开启' : '关闭'}）`}
     >
       {bubble && <span className="floating-pet__bubble">{bubble}</span>}
-      <img src="/pet/xiaoduoli-small.jpg" alt="小多利" draggable={false} />
+      <img src="/pet/xiaoduoli.png" alt="小多利" draggable={false} />
       <span className={`floating-pet__dot ${proactiveEnabled ? 'floating-pet__dot--on' : ''}`} />
     </button>
   )

@@ -100,7 +100,7 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
 
       <section className="me-list">
         <label className="me-list__item">
-          <span>🎂 生日（用于星座运势）</span>
+          <span>🎂 生日</span>
           <input
             type="date"
             value={birthdayDraft}

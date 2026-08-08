@@ -9,7 +9,6 @@ import { PetStatusCard } from './PetStatusCard'
 interface NestTabProps {
   pairRoom?: Conversation
   pet: PetState | null
-  luckyAction?: PetAction
   friendNames: Record<string, string>
   onAction(action: PetAction): void
   onOpenMemories(): void
@@ -26,7 +25,7 @@ function greeting(): string {
   return '该休息啦，小多利帮你暖好被窝'
 }
 
-export function NestTab({ pairRoom, pet, luckyAction, friendNames, onAction, onOpenMemories, onOpenGame }: NestTabProps) {
+export function NestTab({ pairRoom, pet, friendNames, onAction, onOpenMemories, onOpenGame }: NestTabProps) {
   const [contributions, setContributions] = useState<ContributionStat[]>([])
   const [codeword, setCodeword] = useState<CodewordState>()
   const [codewordDraft, setCodewordDraft] = useState('')
@@ -93,10 +92,6 @@ export function NestTab({ pairRoom, pet, luckyAction, friendNames, onAction, onO
         <p className="nest-tab__empty">小多利正在赶来…</p>
       )}
 
-      {luckyAction && (
-        <div className="lucky-hint">✨ 今日幸运互动：<strong>{{ feed: '喂食', play: '玩耍', clean: '清洁', sleep: '睡觉' }[luckyAction]}</strong>（亲密 +5）</div>
-      )}
-
       <PetActionBar onAction={onAction} />
 
       {leaderboard.length > 0 && (
@@ -140,7 +135,7 @@ export function NestTab({ pairRoom, pet, luckyAction, friendNames, onAction, onO
       )}
 
       <section className="game-wall">
-        <h3>游戏墙</h3>
+        <h3>一起玩</h3>
         <div className="game-wall__grid">
           <button className="game-card game-card--tarot" onClick={() => onOpenGame('tarot')}>
             <span className="game-card__icon">🔮</span>

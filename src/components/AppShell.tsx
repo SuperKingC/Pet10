@@ -3,6 +3,7 @@ import { applyPetAction as applyMockPetAction, type PetAction } from '../domain/
 import { parseAvatarConfig, type AvatarConfig, type Conversation, type Fortune, type Message, type UserProfile } from '../domain/types'
 import { clearAppBadge, setAppBadge } from '../services/appBadge'
 import { chatApi } from '../services/chatApi'
+import { sortConversationsByLatest } from '../services/conversationOrder'
 import { createMemoryService } from '../services/memoryService'
 import { runtimeConfig } from '../services/runtimeConfig'
 import type { ServerSession } from '../services/sessionApi'
@@ -25,6 +26,8 @@ import { TabBar, type TabKey } from './TabBar'
 import { GobangGame } from '../games/gobang/GobangGame'
 import { MapScreen } from '../games/map/MapScreen'
 import { TarotGame } from '../games/tarot/TarotGame'
+import { FortuneDetail } from './FortuneDetail'
+import { mountFortuneHistory } from '../services/fortuneHistory'
 
 interface AppShellProps {
   session?: ServerSession
@@ -55,7 +58,7 @@ function maybeBrowserNotification(title: string, body: string) {
   if (!notifyEnabled()) return
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   try {
-    new Notification(title, { body, icon: '/pet/xiaoduoli-small.jpg' })
+    new Notification(title, { body, icon: '/pet/xiaoduoli.png' })
   } catch { /* 部分环境不支持构造 */ }
 }
 
@@ -94,7 +97,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
   const [unread, setUnread] = useState<Record<string, number>>({})
   const [notificationUnread, setNotificationUnread] = useState(0)
   const [overlay, setOverlay] = useState<Overlay>(null)
-  const [fortune, setFortune] = useState<Fortune>()
+  const [fortuneDetail, setFortuneDetail] = useState<Fortune>()
   const [mapVersion, setMapVersion] = useState(0)
 
   const currentRoomIdRef = useRef(currentRoomId)
@@ -102,7 +105,14 @@ export function AppShell({ session, onLogout }: AppShellProps) {
   const activeTabRef = useRef(activeTab)
   activeTabRef.current = activeTab
   const typingThrottleRef = useRef<Record<string, number>>({})
+  const mockReplyTimersRef = useRef<Record<string, number>>({})
+  const mockMessageBatchesRef = useRef<Record<string, Message[]>>({})
   const studioUploadRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!fortuneDetail) return
+    return mountFortuneHistory(() => setFortuneDetail(undefined))
+  }, [fortuneDetail])
 
   const pairRoom = useMemo(() => conversations.find((item) => item.type === 'pair'), [conversations])
   const petDmRoom = useMemo(() => conversations.find((item) => item.type === 'pet_dm'), [conversations])
@@ -112,13 +122,14 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     onIncomingMessage(roomId, message) {
       if (message.sender === 'you') return
       // 会话列表最新一条消息同步
-      setConversations((current) => current.map((item) => item.roomId === roomId
+      const receivedAt = new Date().toISOString()
+      setConversations((current) => sortConversationsByLatest(current.map((item) => item.roomId === roomId
         ? {
             ...item,
-            latestMessage: { id: message.id, text: message.text, kind: message.kind, createdAt: new Date().toISOString() },
-            updatedAt: new Date().toISOString()
+            latestMessage: { id: message.id, text: message.text, kind: message.kind, createdAt: receivedAt },
+            updatedAt: receivedAt
           }
-        : item))
+        : item)))
       const isViewing = currentRoomIdRef.current === roomId && activeTabRef.current === 'messages'
       if (!isViewing || document.hidden) {
         setUnread((current) => {
@@ -161,12 +172,6 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 今日运势（幸运互动提示）
-  useEffect(() => {
-    if (!pairRoom) return
-    socialApi.getFortune(pairRoom.roomId).then(setFortune).catch(() => undefined)
-  }, [pairRoom?.roomId]) // eslint-disable-line react-hooks/exhaustive-deps
-
   // 回到前台且停留在消息页时清角标
   useEffect(() => {
     const handleVisibility = () => {
@@ -195,12 +200,35 @@ export function AppShell({ session, onLogout }: AppShellProps) {
   async function handleSend(roomId: string, text: string, imageUrl?: string) {
     const sent = await chatApi.sendMessage({ roomId, text, imageUrl })
     runtime.appendMessage(roomId, sent)
+    const sentAt = new Date().toISOString()
+    setConversations((current) => sortConversationsByLatest(current.map((item) => item.roomId === roomId
+      ? {
+          ...item,
+          latestMessage: { id: sent.id, text: sent.text, kind: sent.kind, createdAt: sentAt },
+          updatedAt: sentAt
+        }
+      : item)))
     if (runtimeConfig.useMockApi) {
-      // Mock 模式没有服务端 brain：本地模拟小多利回复
-      window.setTimeout(async () => {
-        const reply = await chatApi.requestPetReply(roomId, runtime.states[roomId]?.messages ?? [], initialSnapshot.pet)
+      const conversation = conversations.find((item) => item.roomId === roomId)
+      const batch = [...(mockMessageBatchesRef.current[roomId] ?? []), sent]
+      mockMessageBatchesRef.current[roomId] = batch
+      window.clearTimeout(mockReplyTimersRef.current[roomId])
+      const delay = conversation?.type === 'pet_dm' ? 250 : 1500
+      mockReplyTimersRef.current[roomId] = window.setTimeout(async () => {
+        const pending = mockMessageBatchesRef.current[roomId] ?? []
+        mockMessageBatchesRef.current[roomId] = []
+        const knownMessages = runtime.states[roomId]?.messages ?? []
+        const reply = await chatApi.requestPetReply(roomId, [...knownMessages, ...pending], initialSnapshot.pet)
         runtime.appendMessage(roomId, reply)
-      }, 800)
+        const repliedAt = new Date().toISOString()
+        setConversations((current) => sortConversationsByLatest(current.map((item) => item.roomId === roomId
+          ? {
+              ...item,
+              latestMessage: { id: reply.id, text: reply.text, kind: reply.kind, createdAt: repliedAt },
+              updatedAt: repliedAt
+            }
+          : item)))
+      }, delay)
     }
   }
 
@@ -307,7 +335,6 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         <NestTab
           pairRoom={pairRoom}
           pet={pairRoom ? runtime.states[pairRoom.roomId]?.pet ?? null : null}
-          luckyAction={fortune?.content.luckyAction}
           friendNames={friendNames}
           onAction={handlePetAction}
           onOpenMemories={() => setOverlay('memory')}
@@ -320,9 +347,12 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           messages={pairRoom ? runtime.states[pairRoom.roomId]?.messages ?? [] : []}
           myUserId={profile.id}
           friendId={pairRoom?.friend?.id}
-          myName={profile.displayName}
           friendName={pairRoom?.friend?.displayName ?? ''}
           onMoodSet={() => undefined}
+          onOpenFortune={setFortuneDetail}
+          onSetBirthday={() => setActiveTab('me')}
+          active={activeTab === 'calendar'}
+          birthday={profile.birthday}
         />
       </section>
       <section className={`tab-panel ${activeTab === 'me' ? 'tab-panel--active' : ''}`}>
@@ -339,6 +369,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
       {activeConversation && activeTab === 'messages' && (
         <ChatView
           conversation={activeConversation}
+          currentUser={profile}
           runtime={activeRuntime ?? { loaded: false, messages: [], pet: null, memories: [], petTyping: false, friendTyping: false }}
           onBack={() => setCurrentRoomId(undefined)}
           onSend={(text, imageUrl) => handleSend(activeConversation.roomId, text, imageUrl)}
@@ -368,6 +399,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           onClose={() => setOverlay(null)}
         />
       )}
+      {fortuneDetail && <FortuneDetail fortune={fortuneDetail} onClose={() => setFortuneDetail(undefined)} />}
       {overlay === 'notifications' && (
         <NotificationCenter onClose={() => setOverlay(null)} onUnreadChange={setNotificationUnread} />
       )}

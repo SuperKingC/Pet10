@@ -34,7 +34,7 @@ function App() {
   }, [])
 
   if (runtimeConfig.useMockApi) return <AppShell onLogout={() => undefined} />
-  if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli-small.jpg" alt="小多利" /></div><p>正在打开小多利的家…</p></main>
+  if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli.png" alt="小多利" /></div><p>正在打开小多利的家…</p></main>
   if (!getAccessToken()) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (error && !session) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (!session) return <LoginScreen onLoggedIn={() => void refreshSession()} />

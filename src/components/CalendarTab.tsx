@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Conversation, Fortune, Message, MoodEntry } from '../domain/types'
 import { socialApi } from '../services/socialApi'
-import type { PetAction } from '../domain/petRules'
 
 interface CalendarTabProps {
   pairRoom?: Conversation
   messages: Message[]
   myUserId: string
   friendId?: string
-  myName: string
   friendName: string
   onMoodSet(entry: MoodEntry): void
+  onOpenFortune(fortune: Fortune): void
+  onSetBirthday(): void
+  active?: boolean
+  birthday?: string | null
 }
 
 const MOOD_LEVELS = [
@@ -20,19 +22,47 @@ const MOOD_LEVELS = [
   { level: 4, emoji: '😄', label: '特别好', color: '#f2a15c' }
 ]
 
-const LUCKY_ACTION_LABEL: Record<PetAction, string> = { feed: '喂食', play: '玩耍', clean: '清洁', sleep: '睡觉' }
-
 function dayKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-export function CalendarTab({ pairRoom, messages, myUserId, friendId, myName, friendName, onMoodSet }: CalendarTabProps) {
+type FortuneEntryState = 'loading' | 'ready' | 'error' | 'birthday-required'
+
+interface FortuneEntryProps {
+  state: FortuneEntryState
+  fortune?: Fortune
+  onOpen(): void
+  onRetry(): void
+  onSetBirthday(): void
+}
+
+export function FortuneEntry({ state, fortune, onOpen, onRetry, onSetBirthday }: FortuneEntryProps) {
+  if (state === 'birthday-required') {
+    return <button type="button" className="fortune-entry fortune-entry--action" onClick={onSetBirthday}><span>今日运势</span><strong>设置生日，查看今日运势</strong><em>›</em></button>
+  }
+  if (state === 'error') {
+    return <button type="button" className="fortune-entry fortune-entry--action" onClick={onRetry}><span>今日运势</span><strong>暂时无法加载，点此重试</strong><em>↻</em></button>
+  }
+  if (state === 'loading' || !fortune) {
+    return <div className="fortune-entry fortune-entry--loading" aria-live="polite"><span>今日运势</span><strong>正在加载今日运势</strong><em aria-hidden="true" /></div>
+  }
+  return (
+    <button type="button" className="fortune-entry" onClick={onOpen}>
+      <span>今日运势 · {fortune.content.zodiac}</span>
+      <strong>{fortune.content.overall.summary}</strong>
+      <span className="fortune-entry__rating" aria-label={`综合 ${fortune.content.overall.rating} 星`}>{'★'.repeat(fortune.content.overall.rating)}{'☆'.repeat(5 - fortune.content.overall.rating)}</span>
+      <em>›</em>
+    </button>
+  )
+}
+
+export function CalendarTab({ pairRoom, messages, myUserId, friendId, friendName, onMoodSet, onOpenFortune, onSetBirthday, active = true, birthday }: CalendarTabProps) {
   const today = useMemo(() => new Date(), [])
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
   const [moods, setMoods] = useState<MoodEntry[]>([])
   const [fortune, setFortune] = useState<Fortune>()
-  const [fortuneLoading, setFortuneLoading] = useState(false)
+  const [fortuneState, setFortuneState] = useState<FortuneEntryState>('loading')
   const [moodPickerOpen, setMoodPickerOpen] = useState(false)
 
   const roomId = pairRoom?.roomId
@@ -50,14 +80,29 @@ export function CalendarTab({ pairRoom, messages, myUserId, friendId, myName, fr
     void refreshMoods()
   }, [refreshMoods])
 
+  const refreshFortune = useCallback(async () => {
+    setFortuneState('loading')
+    try {
+      const next = await socialApi.getFortune()
+      setFortune(next)
+      setFortuneState('ready')
+    } catch (error) {
+      setFortune(undefined)
+      setFortuneState(error instanceof Error && error.message === 'birthday_required' ? 'birthday-required' : 'error')
+    }
+  }, [])
+
   useEffect(() => {
-    if (!roomId) return
-    setFortuneLoading(true)
-    socialApi.getFortune(roomId)
-      .then(setFortune)
-      .catch(() => setFortune(undefined))
-      .finally(() => setFortuneLoading(false))
-  }, [roomId])
+    if (active) void refreshFortune()
+  }, [active, birthday, refreshFortune])
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden && fortune?.day.slice(0, 10) !== dayKey(new Date())) void refreshFortune()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [fortune?.day, refreshFortune])
 
   // 每天的消息活跃度（爪印）
   const activeDays = useMemo(() => {
@@ -116,28 +161,17 @@ export function CalendarTab({ pairRoom, messages, myUserId, friendId, myName, fr
   return (
     <section className="calendar-tab">
       <header className="calendar-tab__header">
-        <h2>日历</h2>
-        <p>你们一起走过的每一天</p>
+        <h2>日常</h2>
+        <p>记录每一天的心情与片刻</p>
       </header>
 
-      {roomId && (
-        <section className="fortune-card">
-          {fortuneLoading && <p className="fortune-card__loading">小多利正在翻星盘…</p>}
-          {fortune && (
-            <>
-              <h3>今日共养运势 <em>{fortune.day.slice(0, 10)}</em></h3>
-              <p className="fortune-card__line"><span className="fortune-card__tag fortune-card__tag--me">{myName}</span>{fortune.content.mine}</p>
-              <p className="fortune-card__line"><span className="fortune-card__tag fortune-card__tag--friend">{friendName || '好友'}</span>{fortune.content.friend}</p>
-              <p className="fortune-card__line fortune-card__pair">🐾 {fortune.content.pair}</p>
-              <div className="fortune-card__meta">
-                <span>幸运互动：{LUCKY_ACTION_LABEL[fortune.content.luckyAction]}</span>
-                <span>幸运色：{fortune.content.luckyColor}</span>
-                <span>幸运数字：{fortune.content.luckyNumber}</span>
-              </div>
-            </>
-          )}
-        </section>
-      )}
+      <FortuneEntry
+        state={fortuneState}
+        fortune={fortune}
+        onOpen={() => { if (fortune) onOpenFortune(fortune) }}
+        onRetry={() => void refreshFortune()}
+        onSetBirthday={onSetBirthday}
+      />
 
       <section className="month-calendar">
         <div className="month-calendar__nav">

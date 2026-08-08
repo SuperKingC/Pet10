@@ -10,7 +10,7 @@ interface TabBarProps {
 const TABS: Array<{ key: TabKey; label: string; icon: string }> = [
   { key: 'messages', label: '消息', icon: '💬' },
   { key: 'nest', label: '小窝', icon: '🏠' },
-  { key: 'calendar', label: '日历', icon: '📅' },
+  { key: 'calendar', label: '日常', icon: '📅' },
   { key: 'me', label: '我的', icon: '🐾' }
 ]
 

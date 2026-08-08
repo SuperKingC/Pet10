@@ -112,17 +112,23 @@ export interface AppNotification {
 }
 
 export interface FortuneContent {
-  mine: string
-  friend: string
-  pair: string
-  luckyAction: PetAction
-  luckyColor: string
+  schemaVersion: 2
+  zodiac: string
+  theme: string
+  overall: { rating: number; summary: string; text: string }
+  love: { rating: number; single: string; partnered: string }
+  study: { rating: number; text: string }
+  work: { rating: number; text: string }
+  wealth: { rating: number; text: string }
+  health: { rating: number; text: string }
+  luckyColor: { name: string; hex: string }
   luckyNumber: number
+  luckyPhrase: string
 }
 
 export interface Fortune {
   id: Id
-  roomId: Id
+  userId: Id
   day: string
   content: FortuneContent
   createdAt: Date

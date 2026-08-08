@@ -77,9 +77,9 @@ export function createSocialRoutes(dependencies: {
     try { response.json(await dependencies.social.markAllNotificationsRead(request.userId!)) } catch (error) { next(error) }
   })
 
-  // 今日共养运势
-  router.get('/rooms/:roomId/fortune', async (request: AuthenticatedRequest, response, next) => {
-    try { response.json(await dependencies.social.getTodayFortune(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }
+  // 今日个人运势
+  router.get('/fortune/today', async (request: AuthenticatedRequest, response, next) => {
+    try { response.json(await dependencies.social.getTodayFortune(request.userId!)) } catch (error) { next(error) }
   })
 
   // 每日暗号

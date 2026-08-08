@@ -255,10 +255,10 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       }
     },
     fortunes: {
-      findByRoomAndDay: (roomId, day) => one('SELECT * FROM fortunes WHERE room_id=$1 AND day=$2', [roomId, day]),
-      create: (roomId, day, content) => one(
-        'INSERT INTO fortunes(room_id,day,content) VALUES($1,$2,$3) ON CONFLICT(room_id,day) DO UPDATE SET content=EXCLUDED.content RETURNING *',
-        [roomId, day, JSON.stringify(content)]
+      findByUserAndDay: (userId, day) => one('SELECT * FROM personal_fortunes WHERE user_id=$1 AND day=$2', [userId, day]),
+      createForUser: (userId, day, content) => one(
+        'INSERT INTO personal_fortunes(user_id,day,content) VALUES($1,$2,$3) ON CONFLICT(user_id,day) DO UPDATE SET content=EXCLUDED.content RETURNING *',
+        [userId, day, JSON.stringify(content)]
       )
     },
     codewords: {

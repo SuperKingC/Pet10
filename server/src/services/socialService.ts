@@ -1,6 +1,8 @@
-import type { ChatMessage, FortuneContent, Pet, PetAction, User } from '../domain/models.js'
+import type { ChatMessage, User } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
+import { sortConversationsByLatest } from './conversationOrder.js'
+import { createDailyFortune, isValidDailyFortuneContent, zodiacFromBirthday } from './dailyFortune.js'
 
 export interface Conversation {
   roomId: string
@@ -23,10 +25,17 @@ interface SocialServiceDependencies {
   onNotify?: (userId: string) => void
 }
 
-const PET_AVATAR = '/pet/xiaoduoli-small.jpg'
+const PET_AVATAR = '/pet/xiaoduoli.png'
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10)
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date())
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${value.year}-${value.month}-${value.day}`
 }
 
 function hashCode(text: string): number {
@@ -35,38 +44,6 @@ function hashCode(text: string): number {
     hash = ((hash << 5) + hash + text.charCodeAt(i)) >>> 0
   }
   return hash
-}
-
-const ZODIACS: Array<{ name: string; from: [number, number]; to: [number, number] }> = [
-  { name: '摩羯座', from: [12, 22], to: [1, 19] },
-  { name: '水瓶座', from: [1, 20], to: [2, 18] },
-  { name: '双鱼座', from: [2, 19], to: [3, 20] },
-  { name: '白羊座', from: [3, 21], to: [4, 19] },
-  { name: '金牛座', from: [4, 20], to: [5, 20] },
-  { name: '双子座', from: [5, 21], to: [6, 21] },
-  { name: '巨蟹座', from: [6, 22], to: [7, 22] },
-  { name: '狮子座', from: [7, 23], to: [8, 22] },
-  { name: '处女座', from: [8, 23], to: [9, 22] },
-  { name: '天秤座', from: [9, 23], to: [10, 23] },
-  { name: '天蝎座', from: [10, 24], to: [11, 22] },
-  { name: '射手座', from: [11, 23], to: [12, 21] }
-]
-
-export function zodiacFromBirthday(birthday: string | null | undefined): string | null {
-  if (!birthday) return null
-  const date = new Date(birthday)
-  if (Number.isNaN(date.getTime())) return null
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  for (const zodiac of ZODIACS) {
-    const [fm, fd] = zodiac.from
-    const [tm, td] = zodiac.to
-    const inRange = fm === tm
-      ? month === fm && day >= fd && day <= td
-      : (month === fm && day >= fd) || (month === tm && day <= td)
-    if (inRange) return zodiac.name
-  }
-  return null
 }
 
 // 每日暗号题库：按 roomId+日期 哈希轮换，纯文字零资源
@@ -105,30 +82,6 @@ function pickCodewordQuestion(roomId: string, day: string) {
   return CODEWORD_QUESTIONS[hashCode(`${roomId}:${day}`) % CODEWORD_QUESTIONS.length]
 }
 
-// 运势兜底模板（AI 不可用时确定性生成，零 AI 腔）
-const MINE_TEMPLATES = [
-  '今天的直觉很准，想做的事就放手去试。',
-  '适合把拖了很久的小事收尾，成就感会悄悄涌上来。',
-  '今天贵人在身边，一句随口的聊天可能带来好消息。',
-  '节奏慢一点也没关系，今天是蓄力的一天。',
-  '表达运上扬，想说的话今天说最合适。'
-]
-const FRIEND_TEMPLATES = [
-  'TA 今天需要被肯定，夸 TA 一句会有奇效。',
-  'TA 的财运小有起色，适合一起规划小目标。',
-  'TA 今天有点感性，多给一点耐心。',
-  'TA 的行动力在线，拉着 TA 一起做点什么吧。',
-  'TA 今天桃花色是暖色系，心情会被阳光点亮。'
-]
-const PAIR_TEMPLATES = [
-  '你们俩今天的默契值拉满，一个眼神就能对上暗号。',
-  '今天适合一起做一件重复的小事，幸福感会翻倍。',
-  '小多利嗅到了好运的味道，今天你们做什么都顺一点点。',
-  '今天你们之间的玩笑话会格外好笑，记得留个纪念。',
-  '星象说：今天谁先说晚安，谁就输了。'
-]
-const LUCKY_COLORS = ['奶油黄', '雾霾蓝', '蜜桃粉', '薄荷绿', '焦糖棕', '薰衣草紫', '云朵白', '落日橙']
-
 // 点亮足迹地图时小多利的庆祝碎碎念
 const MAP_CELEBRATIONS = [
   '汪！地图上又多了一个亮晶晶的爪印，是我们一起走过的地方！',
@@ -137,19 +90,6 @@ const MAP_CELEBRATIONS = [
   '亮啦亮啦！我要把这里记在我的小本本上。',
   '汪呜～这里也属于我们了，尾巴已经摇起来了！'
 ]
-
-function fallbackFortune(names: [string, string], pet: Pet, day: string): FortuneContent {
-  const seed = hashCode(`${names[0]}|${names[1]}|${pet.id}|${day}`)
-  const actions: PetAction[] = ['feed', 'play', 'clean', 'sleep']
-  return {
-    mine: MINE_TEMPLATES[seed % MINE_TEMPLATES.length],
-    friend: FRIEND_TEMPLATES[(seed >> 3) % FRIEND_TEMPLATES.length],
-    pair: PAIR_TEMPLATES[(seed >> 5) % PAIR_TEMPLATES.length],
-    luckyAction: actions[(seed >> 7) % actions.length],
-    luckyColor: LUCKY_COLORS[(seed >> 9) % LUCKY_COLORS.length],
-    luckyNumber: (seed % 99) + 1
-  }
-}
 
 export function createSocialService({ repositories, ai, emit, emitUser = () => undefined, onMoodSet = () => undefined, onNotify = () => undefined }: SocialServiceDependencies) {
   async function assertMember(roomId: string, userId: string) {
@@ -176,7 +116,7 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
   }
 
   return {
-    /** 会话列表：小多利私聊置顶，pair 房间按最新消息排序 */
+    /** 会话列表：所有会话按最新消息时间排序 */
     async listConversations(userId: string): Promise<Conversation[]> {
       const petDm = await repositories.rooms.createPetDm(userId)
       const rooms = await repositories.rooms.listForUser(userId)
@@ -210,10 +150,7 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
         })
       }
       void petDm
-      return conversations.sort((a, b) => {
-        if (a.type !== b.type) return a.type === 'pet_dm' ? -1 : 1
-        return b.updatedAt.localeCompare(a.updatedAt)
-      })
+      return sortConversationsByLatest(conversations)
     },
 
     async setProactive(roomId: string, userId: string, enabled: boolean) {
@@ -281,27 +218,16 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
     notify,
 
     // ---------- 今日运势 ----------
-    async getTodayFortune(roomId: string, userId: string) {
-      await assertMember(roomId, userId)
+    async getTodayFortune(userId: string) {
       const day = todayKey()
-      const existing = await repositories.fortunes.findByRoomAndDay(roomId, day)
-      if (existing) return existing
-      const owners = await getOwners(roomId)
-      const pet = await repositories.pets.findByRoomId(roomId)
-      if (!pet) throw new Error('pet_not_found')
-      const names: [string, string] = [owners[0]?.displayName ?? '主人A', owners[1]?.displayName ?? '主人B']
-      const zodiacs: [string | null, string | null] = [
-        zodiacFromBirthday(owners[0]?.birthday),
-        zodiacFromBirthday(owners[1]?.birthday)
-      ]
-      const moods = await repositories.moods.listForRange(roomId, day, day)
-      const labels = ['低落', '一般', '好', '特别好']
-      const moodsText = moods.map((entry) => {
-        const owner = owners.find((candidate) => candidate.id === entry.userId)
-        return `${owner?.displayName ?? '主人'}心情${labels[entry.level - 1] ?? ''}`
-      }).join('；') || undefined
-      const content = (await ai.fortune({ ownerNames: names, zodiacs, moodsText, pet })) ?? fallbackFortune(names, pet, day)
-      return repositories.fortunes.create(roomId, day, content)
+      const existing = await repositories.fortunes.findByUserAndDay(userId, day)
+      const user = await repositories.users.findById(userId)
+      if (!user) throw new Error('user_not_found')
+      const zodiac = zodiacFromBirthday(user.birthday)
+      if (!zodiac) throw new Error('birthday_required')
+      if (existing && isValidDailyFortuneContent(existing.content) && existing.content.zodiac === zodiac) return existing
+      const content = createDailyFortune({ userId, birthday: user.birthday, day })
+      return repositories.fortunes.createForUser(userId, day, content)
     },
 
     // ---------- 每日暗号 ----------

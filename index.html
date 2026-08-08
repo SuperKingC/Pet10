@@ -11,13 +11,13 @@
     <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
-    <link rel="preload" as="image" href="/pet/xiaoduoli-large.jpg" />
+    <link rel="preload" as="image" href="/pet/xiaoduoli.png" />
     <title>小多利</title>
     <style>
       .app-splash { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; background: radial-gradient(circle at 50% 8%, #fff8e9 0, #f7ecdc 48%, #efdfd2 100%); overflow: hidden; transition: opacity .5s ease; }
       .app-splash--leaving { opacity: 0; }
       .app-splash__stage { position: relative; display: grid; place-items: center; }
-      .app-splash__pet { width: min(60vw, 300px); height: auto; border-radius: 28px; animation: splash-land .9s cubic-bezier(.34, 1.56, .64, 1) both; filter: drop-shadow(0 22px 30px rgba(150, 94, 48, .22)); mix-blend-mode: multiply; }
+      .app-splash__pet { width: min(60vw, 300px); height: auto; border-radius: 28px; animation: splash-land .9s cubic-bezier(.34, 1.56, .64, 1) both; filter: drop-shadow(0 22px 30px rgba(150, 94, 48, .22)); }
       .app-splash__paw { position: absolute; font-size: 22px; opacity: 0; animation: splash-paw 1.4s ease-out forwards; }
       .app-splash__paw:nth-child(2) { left: -14%; top: 12%; animation-delay: .55s; }
       .app-splash__paw:nth-child(3) { right: -12%; top: 30%; animation-delay: .75s; }
@@ -42,7 +42,7 @@
     <div class="app-splash" id="app-splash" aria-hidden="true">
       <div>
         <div class="app-splash__stage">
-          <img class="app-splash__pet" src="/pet/xiaoduoli-large.jpg" alt="小多利" />
+          <img class="app-splash__pet" src="/pet/xiaoduoli.png" alt="小多利" />
           <span class="app-splash__paw">🐾</span>
           <span class="app-splash__paw">✨</span>
           <span class="app-splash__paw">🐾</span>

@@ -13,7 +13,10 @@ interface PetBrainDependencies {
 const COOLDOWN_MS = 5 * 60 * 1000
 const MEMORY_COOLDOWN_MS = 10 * 60 * 1000
 const MEMORY_LIMIT = 60
-const PET_KEYWORDS = ['小多利', '狗狗', '小狗', '喂', '玩', '睡', '可爱', '骨头', '散步', '摸摸']
+const PAIR_REPLY_DEBOUNCE_MS = 1500
+const PAIR_CHATTER_MIN_MS = 10 * 60 * 1000
+const PAIR_CHATTER_MAX_MS = 20 * 60 * 1000
+const PAIR_ACTIVE_WINDOW_MS = 45 * 60 * 1000
 const MOOD_CARE: Record<number, string> = {
   1: '汪呜…感觉到主人今天心情不太好，小多利把脑袋搁在你手心里，难过分我一半吧。',
   2: '汪？主人今天好像平平淡淡的样子，要不要摸摸我充电一下？',
@@ -37,6 +40,11 @@ function defaultPet(roomId: string): Pet {
 export function createPetBrain({ repositories, ai, emit, logError = (m, e) => console.error(m, e) }: PetBrainDependencies) {
   const lastProactiveAt = new Map<string, number>()
   const lastMemoryExtractAt = new Map<string, number>()
+  const pairReplyTimers = new Map<string, ReturnType<typeof setTimeout>>()
+  const pairChatterTimers = new Map<string, ReturnType<typeof setTimeout>>()
+  const pairReplyInFlight = new Set<string>()
+  const pairReplyQueued = new Set<string>()
+  const lastPairActivityAt = new Map<string, number>()
 
   async function getOwners(roomId: string): Promise<User[]> {
     const room = await repositories.rooms.findById(roomId)
@@ -93,6 +101,73 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
     }
   }
 
+  function clearTimer(timers: Map<string, ReturnType<typeof setTimeout>>, roomId: string) {
+    const timer = timers.get(roomId)
+    if (timer) clearTimeout(timer)
+    timers.delete(roomId)
+  }
+
+  function schedulePairReply(roomId: string) {
+    clearTimer(pairReplyTimers, roomId)
+    if (pairReplyInFlight.has(roomId)) {
+      pairReplyQueued.add(roomId)
+      return
+    }
+    pairReplyTimers.set(roomId, setTimeout(() => {
+      pairReplyTimers.delete(roomId)
+      void flushPairReply(roomId)
+    }, PAIR_REPLY_DEBOUNCE_MS))
+  }
+
+  function schedulePairChatter(roomId: string) {
+    clearTimer(pairChatterTimers, roomId)
+    const delay = PAIR_CHATTER_MIN_MS + Math.floor(Math.random() * (PAIR_CHATTER_MAX_MS - PAIR_CHATTER_MIN_MS))
+    pairChatterTimers.set(roomId, setTimeout(() => {
+      pairChatterTimers.delete(roomId)
+      void runPairChatter(roomId)
+    }, delay))
+  }
+
+  async function finishPairSpeech(roomId: string) {
+    pairReplyInFlight.delete(roomId)
+    if (pairReplyQueued.delete(roomId)) {
+      schedulePairReply(roomId)
+      return
+    }
+    schedulePairChatter(roomId)
+  }
+
+  async function flushPairReply(roomId: string) {
+    const room = await repositories.rooms.findById(roomId)
+    if (!room || room.type !== 'pair' || !room.proactiveEnabled) {
+      pairReplyQueued.delete(roomId)
+      return
+    }
+    pairReplyInFlight.add(roomId)
+    try {
+      const messages = await repositories.messages.listRecent(roomId, 30)
+      await speak(roomId, messages, 'pair')
+    } finally {
+      await finishPairSpeech(roomId)
+    }
+  }
+
+  async function runPairChatter(roomId: string) {
+    const room = await repositories.rooms.findById(roomId)
+    const lastActivity = lastPairActivityAt.get(roomId)
+    if (!room || room.type !== 'pair' || !room.proactiveEnabled || !lastActivity) return
+    if (Date.now() - lastActivity > PAIR_ACTIVE_WINDOW_MS) return
+    if (pairReplyTimers.has(roomId) || pairReplyInFlight.has(roomId) || pairReplyQueued.has(roomId)) return
+
+    pairReplyInFlight.add(roomId)
+    try {
+      const messages = await repositories.messages.listRecent(roomId, 30)
+      await speak(roomId, messages, 'pair')
+    } finally {
+      await finishPairSpeech(roomId)
+    }
+  }
+
   /** 说完话后按冷却+概率提取一条真实记忆；每房上限 60 条，淘汰最旧 */
   async function maybeExtractMemory(roomId: string) {
     try {
@@ -124,28 +199,21 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
       const room = await repositories.rooms.findById(roomId)
       if (!room) return
       const roomType = room.type === 'pet_dm' ? 'pet_dm' as const : 'pair' as const
-      const messages = await repositories.messages.listRecent(roomId, 30)
 
       if (roomType === 'pet_dm') {
+        const messages = await repositories.messages.listRecent(roomId, 30)
         await speak(roomId, messages, roomType)
         return
       }
-      const mentioned = message.text.includes('@小多利')
-      if (mentioned) {
-        await speak(roomId, messages, roomType)
-        return
-      }
-      if (!room.proactiveEnabled) return
 
-      const isQuestion = /[?？]/.test(message.text)
-      const hasKeyword = PET_KEYWORDS.some((keyword) => message.text.includes(keyword))
-      const last = lastProactiveAt.get(roomId) ?? 0
-      const cooledDown = Date.now() - last > COOLDOWN_MS
-      const probability = isQuestion || hasKeyword ? 0.75 : 0.25
-      if (cooledDown && Math.random() < probability) {
-        lastProactiveAt.set(roomId, Date.now())
-        await speak(roomId, messages, roomType)
+      lastPairActivityAt.set(roomId, Date.now())
+      clearTimer(pairChatterTimers, roomId)
+      if (!room.proactiveEnabled) {
+        clearTimer(pairReplyTimers, roomId)
+        pairReplyQueued.delete(roomId)
+        return
       }
+      schedulePairReply(roomId)
     },
 
     /** 养成动作后：道谢/升级庆祝，并自动发动态 */

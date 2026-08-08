@@ -16,7 +16,7 @@ describe('room service', () => {
 
     const service = createRoomService({
       repositories,
-      ai: { reply: async () => '汪！我听到了。', fortune: async () => undefined, extractMemory: async () => null }
+      ai: { reply: async () => '汪！我听到了。', extractMemory: async () => null }
     })
     await service.sendMessage(room.id, first.id, { text: '@小多利 你好' })
     const petMessage = await service.requestPetReply(room.id, first.id)
@@ -31,7 +31,7 @@ describe('room service', () => {
     const outsider = await repositories.users.create({ email: 'o@example.com', username: 'o', displayName: 'O' })
     const service = createRoomService({
       repositories,
-      ai: { reply: async () => 'unused', fortune: async () => undefined, extractMemory: async () => null }
+      ai: { reply: async () => 'unused', extractMemory: async () => null }
     })
 
     await expect(service.listMessages('missing-room', outsider.id)).rejects.toThrow('room_forbidden')
@@ -49,7 +49,7 @@ describe('room service', () => {
     const logError = vi.fn()
     const service = createRoomService({
       repositories,
-      ai: { reply: async () => { throw new Error('ai_request_failed:401') }, fortune: async () => undefined, extractMemory: async () => null },
+      ai: { reply: async () => { throw new Error('ai_request_failed:401') }, extractMemory: async () => null },
       logError
     })
 

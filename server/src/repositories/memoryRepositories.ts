@@ -253,12 +253,12 @@ export function createMemoryRepositories(): RepositoryBundle {
   }
 
   const fortuneRepo = {
-    async findByRoomAndDay(roomId: string, day: string) {
-      return fortunes.get(`${roomId}:${day}`)
+    async findByUserAndDay(userId: string, day: string) {
+      return fortunes.get(`${userId}:${day}`)
     },
-    async create(roomId: string, day: string, content: Fortune['content']) {
-      const fortune: Fortune = { id: randomUUID(), roomId, day, content, createdAt: now() }
-      fortunes.set(`${roomId}:${day}`, fortune)
+    async createForUser(userId: string, day: string, content: Fortune['content']) {
+      const fortune: Fortune = { id: randomUUID(), userId, day, content, createdAt: now() }
+      fortunes.set(`${userId}:${day}`, fortune)
       return fortune
     }
   }

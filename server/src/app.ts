@@ -94,7 +94,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     const status = message.includes('not_found') ? 404 :
       message.includes('forbidden') || message.includes('not_allowed') ? 403 :
       message.includes('unauthorized') ? 401 :
-      message.includes('invalid') || message.includes('limit') || message.includes('exists') ? 400 : 500
+      message.includes('invalid') || message.includes('limit') || message.includes('exists') || message === 'birthday_required' ? 400 : 500
     response.status(status).json({ error: status === 500 ? 'internal_server_error' : message })
   }
   app.use(errorHandler)

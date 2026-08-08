@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { Conversation, Message } from '../domain/types'
+import type { Conversation, Message, UserProfile } from '../domain/types'
 import type { RoomRuntime } from '../state/useRoomRuntime'
 import { FriendProfileCard } from './FriendProfileCard'
 import { AvatarView } from './AvatarView'
@@ -7,6 +7,7 @@ import { MentionPicker, type MentionOption } from './MentionPicker'
 
 interface ChatViewProps {
   conversation: Conversation
+  currentUser: UserProfile
   runtime: RoomRuntime
   onBack(): void
   onSend(text: string, imageUrl?: string): Promise<void>
@@ -26,7 +27,7 @@ function dayLabel(raw?: string): string | undefined {
   return new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(date)
 }
 
-export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUploadImage }: ChatViewProps) {
+export function ChatView({ conversation, currentUser, runtime, onBack, onSend, onTyping, onUploadImage }: ChatViewProps) {
   const [draft, setDraft] = useState('')
   const [pendingImage, setPendingImage] = useState<string>()
   const [sending, setSending] = useState(false)
@@ -43,7 +44,7 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
     if (conversation.friend) {
       options.push({ key: 'friend', label: conversation.friend.displayName, avatar: conversation.friend.avatarUrl ?? null, user: conversation.friend })
     }
-    options.push({ key: 'pet', label: '小多利', avatar: '/pet/xiaoduoli-small.jpg', isPet: true })
+    options.push({ key: 'pet', label: '小多利', avatar: '/pet/xiaoduoli.png', isPet: true })
     return options
   }, [conversation.friend, conversation.title])
 
@@ -83,6 +84,9 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
             {message.text && <p>{message.text}</p>}
             <time>{message.createdAt}</time>
           </div>
+          <span className="chat-row__avatar chat-row__avatar--mine">
+            <AvatarView user={currentUser} size={36} style={{ width: '100%', height: '100%' }} />
+          </span>
         </div>
       )
     }
@@ -90,12 +94,12 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
     return (
       <div key={message.id} className="chat-row">
         <button
-          className="chat-row__avatar"
+          className={`chat-row__avatar${isPet ? ' chat-row__avatar--pet' : ''}`}
           onClick={() => { if (!isPetDm && !isPet) setProfileOpen(true) }}
           aria-label={isPet ? '小多利' : `${conversation.title}的头像`}
         >
           {isPet
-            ? <img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" />
+            ? <img className="pet-avatar-image" src="/pet/xiaoduoli.png" alt="" />
             : conversation.friend
               ? <AvatarView user={conversation.friend} size={36} style={{ width: '100%', height: '100%' }} />
               : <span>{conversation.title.slice(0, 1)}</span>}
@@ -145,7 +149,7 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
             <AvatarView user={conversation.friend} size={38} style={{ width: '100%', height: '100%' }} />
           </button>
         )}
-        {isPetDm && <span className="chat-view__avatar"><img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" /></span>}
+        {isPetDm && <span className="chat-view__avatar chat-view__avatar--pet"><img className="pet-avatar-image" src="/pet/xiaoduoli.png" alt="" /></span>}
       </header>
 
       <div className="chat-view__scroll" ref={scrollRef}>
@@ -153,7 +157,7 @@ export function ChatView({ conversation, runtime, onBack, onSend, onTyping, onUp
         {rows}
         {runtime.petTyping && (
           <div className="chat-row">
-            <span className="chat-row__avatar"><img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" /></span>
+            <span className="chat-row__avatar chat-row__avatar--pet"><img className="pet-avatar-image" src="/pet/xiaoduoli.png" alt="" /></span>
             <div className="chat-bubble chat-bubble--pet chat-bubble--typing"><span /><span /><span /></div>
           </div>
         )}

@@ -86,9 +86,9 @@ export function FeedScreen({ pairRoom, myUserId, myName, myProfile, friendName, 
       <ul className="feed-screen__list">
         {posts.map((post) => (
           <li key={post.id} className={`feed-item ${post.authorType === 'pet' ? 'feed-item--pet' : ''}`}>
-            <span className="feed-item__avatar">
+            <span className={`feed-item__avatar${post.authorType === 'pet' ? ' feed-item__avatar--pet' : ''}`}>
               {post.authorType === 'pet'
-                ? <img className="img-multiply" src="/pet/xiaoduoli-small.jpg" alt="" />
+                ? <img className="pet-avatar-image" src="/pet/xiaoduoli.png" alt="" />
                 : (() => {
                     const author = post.authorId === myUserId ? myProfile : pairRoom?.friend
                     return author
