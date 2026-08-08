@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { zodiacFromBirthday, type UserProfile } from '../domain/types'
 import { socialApi } from '../services/socialApi'
 import { disableWebPush, enableWebPush } from '../services/pushClient'
@@ -129,7 +130,7 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
         </button>
       </section>
 
-      {renameOpen && (
+      {renameOpen && createPortal(
         <div className="sheet-overlay" onClick={() => setRenameOpen(false)}>
           <div className="sheet" onClick={(event) => event.stopPropagation()}>
             <h3>修改昵称</h3>
@@ -147,7 +148,8 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )

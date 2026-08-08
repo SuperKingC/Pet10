@@ -129,7 +129,7 @@ button:active { transition: transform .1s ease; }
 
 .message-row { display: flex; align-items: flex-end; gap: 8px; margin: 11px 0; animation: rise-in .28s ease both; }
 .message-row--mine { justify-content: flex-end; }
-.message-avatar { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 13px; display: grid; place-items: center; background: #79a9a3; color: white; font-size: 11px; font-weight: 900; overflow: hidden; }
+.message-avatar { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; background: #79a9a3; color: white; font-size: 11px; font-weight: 900; overflow: hidden; }
 .message-avatar--pet { background: #ffe0a8; }
 .message-bubble { max-width: 78%; padding: 11px 13px 8px; border-radius: 8px 19px 19px 19px; background: #fff; box-shadow: 0 7px 20px rgba(70, 48, 37, .07); }
 .message-bubble--mine { border-radius: 19px 8px 19px 19px; background: #e59a73; color: #fff; }
@@ -224,7 +224,7 @@ button:active { transition: transform .1s ease; }
 .conversation-list__empty { padding: 36px 12px; text-align: center; color: #aa9790; font-size: 13px; }
 .conversation-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 10px; border: 0; background: transparent; border-radius: 18px; text-align: left; }
 .conversation-item:active { background: #f5ede6; }
-.conversation-item__avatar { position: relative; flex: 0 0 auto; width: 48px; height: 48px; border-radius: 17px; background: #79a9a3; color: #fff; display: grid; place-items: center; overflow: visible; }
+.conversation-item__avatar { position: relative; flex: 0 0 auto; width: 48px; height: 48px; border-radius: 50%; background: #79a9a3; color: #fff; display: grid; place-items: center; overflow: visible; }
 .conversation-item__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .conversation-item__avatar svg, .chat-view__avatar svg, .chat-row__avatar svg, .me-profile-card__avatar svg, .profile-card__avatar svg, .feed-item__avatar svg, .mention-picker__item svg { width: 100%; height: 100%; display: block; }
 .conversation-item__letter { font-weight: 900; font-size: 17px; }
@@ -242,8 +242,8 @@ button:active { transition: transform .1s ease; }
 .chat-view__title { flex: 1; min-width: 0; border: 0; background: transparent; text-align: left; display: flex; flex-direction: column; gap: 1px; padding: 0 4px; }
 .chat-view__title strong { color: #453530; font-size: 16px; }
 .chat-view__title span { color: #a89489; font-size: 11px; }
-.chat-view__avatar { width: 38px; height: 38px; flex: 0 0 auto; border: 0; padding: 0; border-radius: 14px; background: #79a9a3; color: #fff; display: grid; place-items: center; font-weight: 800; overflow: hidden; }
-.chat-view__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-view__avatar { width: 38px; height: 38px; flex: 0 0 auto; border: 0; padding: 0; border-radius: 50%; background: #79a9a3; color: #fff; display: grid; place-items: center; font-weight: 800; overflow: hidden; }
+.chat-view__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .chat-view__scroll { flex: 1; overflow-y: auto; padding: 12px 14px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .chat-view__scroll::-webkit-scrollbar { display: none; }
 .chat-view__loading { text-align: center; color: #b0a09a; font-size: 12px; padding: 20px 0; }
@@ -251,8 +251,8 @@ button:active { transition: transform .1s ease; }
 .chat-day-divider span { padding: 4px 12px; border-radius: 999px; background: #f1e8e1; color: #a5918a; font-size: 11px; }
 .chat-row { display: flex; align-items: flex-start; gap: 9px; margin: 12px 0; animation: rise-in .26s ease both; }
 .chat-row--mine { justify-content: flex-end; }
-.chat-row__avatar { width: 36px; height: 36px; flex: 0 0 auto; border: 0; padding: 0; border-radius: 14px; background: #79a9a3; color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; overflow: hidden; }
-.chat-row__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-row__avatar { width: 36px; height: 36px; flex: 0 0 auto; border: 0; padding: 0; border-radius: 50%; background: #79a9a3; color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; overflow: hidden; }
+.chat-row__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .chat-row__body { display: flex; flex-direction: column; gap: 3px; max-width: 78%; }
 .chat-row__name { color: #a89489; font-size: 11px; }
 .chat-bubble { position: relative; max-width: 100%; padding: 10px 13px 7px; border-radius: 6px 18px 18px 18px; background: #fff; box-shadow: 0 6px 18px rgba(70, 48, 37, .07); }
@@ -373,8 +373,8 @@ button:active { transition: transform .1s ease; }
 .me-tab__header h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
 .me-tab__notice { margin: 0; padding: 10px 13px; border-radius: 13px; background: #fff7df; color: #8b6236; font-size: 12px; line-height: 1.6; }
 .me-profile-card { display: flex; gap: 14px; align-items: center; border-radius: 22px; padding: 17px 16px; background: linear-gradient(140deg, #ffe8bf, #fff4df 65%, #fff); border: 1px solid rgba(208, 144, 80, .16); box-shadow: 0 14px 32px rgba(137, 87, 50, .1); }
-.me-profile-card__avatar { position: relative; width: 64px; height: 64px; flex: 0 0 auto; border: 0; padding: 0; border-radius: 22px; background: #79a9a3; color: #fff; font-size: 22px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
-.me-profile-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.me-profile-card__avatar { position: relative; width: 64px; height: 64px; flex: 0 0 auto; border: 0; padding: 0; border-radius: 50%; background: #79a9a3; color: #fff; font-size: 22px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
+.me-profile-card__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .me-profile-card__avatar em { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(40, 30, 25, .55); color: #fff; font-size: 9px; font-style: normal; padding: 2px 0; }
 .me-profile-card__info { flex: 1; min-width: 0; }
 .me-profile-card__info h3 { margin: 0; font-size: 18px; color: #43332b; display: flex; align-items: center; gap: 7px; }
@@ -425,8 +425,8 @@ button.me-list__item:active { background: #f8f1ea; }
 .feed-screen__empty { text-align: center; color: #aa9790; font-size: 13px; padding: 40px 10px; line-height: 1.8; }
 .feed-item { display: flex; gap: 10px; padding: 13px; border-radius: 18px; background: #fff; border: 1px solid #f0e4dc; }
 .feed-item--pet { background: linear-gradient(135deg, #fff8e3, #fff); border-color: #f2dfb2; }
-.feed-item__avatar { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 14px; background: #79a9a3; color: #fff; display: grid; place-items: center; font-weight: 800; overflow: hidden; }
-.feed-item__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.feed-item__avatar { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 50%; background: #79a9a3; color: #fff; display: grid; place-items: center; font-weight: 800; overflow: hidden; }
+.feed-item__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .feed-item__body { flex: 1; min-width: 0; }
 .feed-item__meta { display: flex; align-items: baseline; gap: 8px; }
 .feed-item__meta strong { font-size: 13px; color: #453530; }
@@ -461,8 +461,8 @@ button.me-list__item:active { background: #f8f1ea; }
 .profile-card-overlay { position: fixed; inset: 0; z-index: 75; display: grid; place-items: center; background: rgba(55, 40, 33, .35); backdrop-filter: blur(5px); animation: fade-in .18s ease both; }
 .profile-card { position: relative; width: min(100% - 48px, 300px); padding: 26px 20px 22px; border-radius: 25px; background: #fffaf6; text-align: center; box-shadow: 0 24px 60px rgba(58, 41, 33, .28); animation: rise-in .24s ease both; }
 .profile-card__close { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f3eae4; color: #80685d; font-size: 16px; }
-.profile-card__avatar { width: 76px; height: 76px; margin: 0 auto 12px; border-radius: 25px; background: #79a9a3; color: #fff; font-size: 26px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
-.profile-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-card__avatar { width: 76px; height: 76px; margin: 0 auto 12px; border-radius: 50%; background: #79a9a3; color: #fff; font-size: 26px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
+.profile-card__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .profile-card__name { margin: 0 0 5px; font-size: 19px; color: #43332b; }
 .profile-card__id { margin: 0 0 12px; color: #9b7865; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 7px; }
 .profile-card__copy { border: 0; background: #f3eae4; color: #b5784f; font-size: 10px; padding: 2px 9px; border-radius: 999px; font-weight: 800; }
@@ -475,7 +475,7 @@ button.me-list__item:active { background: #f8f1ea; }
 .mention-picker__panel { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(74px + env(safe-area-inset-bottom)); width: min(100% - 32px, 400px); padding: 8px; border-radius: 18px; background: #fff; box-shadow: 0 16px 44px rgba(58, 41, 33, .22); animation: rise-in .2s ease both; }
 .mention-picker__item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; background: transparent; border-radius: 13px; font-size: 14px; color: #5c4a41; font-weight: 700; }
 .mention-picker__item:active { background: #f8f1ea; }
-.mention-picker__item img, .mention-picker__letter { width: 32px; height: 32px; border-radius: 12px; display: grid; place-items: center; background: #ffe0a8; font-size: 15px; object-fit: cover; }
+.mention-picker__item img, .mention-picker__letter { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #ffe0a8; font-size: 15px; object-fit: cover; }
 
 /* ========== 塔罗密室（深色仪式风） ========== */
 .tarot-game { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; max-width: 520px; margin: 0 auto; color: #e8e0f5; background: radial-gradient(circle at 22% 14%, rgba(122, 92, 190, .35), transparent 42%), radial-gradient(circle at 82% 28%, rgba(66, 88, 160, .3), transparent 45%), radial-gradient(circle at 55% 85%, rgba(150, 88, 160, .18), transparent 50%), linear-gradient(180deg, #181430, #100e20 60%, #0c0a18); animation: fade-in .3s ease both; }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Conversation } from '../domain/types'
 import { friendshipApi } from '../services/friendshipApi'
 import { AvatarView } from './AvatarView'
@@ -95,7 +96,7 @@ export function ConversationList({ conversations, unread, onOpen, onOpenFeed, on
         {conversations.length === 0 && <li className="conversation-list__empty">正在打开你的会话…</li>}
       </ul>
 
-      {addOpen && (
+      {addOpen && createPortal(
         <div className="sheet-overlay" onClick={() => setAddOpen(false)}>
           <div className="sheet" onClick={(event) => event.stopPropagation()}>
             <h3>添加新朋友</h3>
@@ -117,7 +118,8 @@ export function ConversationList({ conversations, unread, onOpen, onOpenFeed, on
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )
