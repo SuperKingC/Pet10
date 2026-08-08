@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ChatScreen } from './components/ChatScreen'
+import { AppShell } from './components/AppShell'
 import { FriendSetupScreen } from './components/FriendSetupScreen'
 import { LoginScreen } from './components/LoginScreen'
 import { getAccessToken } from './services/httpClient'
@@ -33,13 +33,13 @@ function App() {
     void refreshSession()
   }, [])
 
-  if (runtimeConfig.useMockApi) return <ChatScreen />
-  if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli.png" alt="小多利" /></div><p>正在打开小多利的家…</p></main>
+  if (runtimeConfig.useMockApi) return <AppShell onLogout={() => undefined} />
+  if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli-small.jpg" alt="小多利" /></div><p>正在打开小多利的家…</p></main>
   if (!getAccessToken()) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (error && !session) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (!session) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (session.status !== 'accepted') return <FriendSetupScreen session={session} onChanged={() => void refreshSession()} />
-  return <ChatScreen session={session} onSessionChanged={() => void refreshSession()} />
+  return <AppShell session={session} onLogout={() => void refreshSession()} />
 }
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)

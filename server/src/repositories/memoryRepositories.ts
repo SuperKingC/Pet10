@@ -1,10 +1,16 @@
 import { randomUUID } from 'node:crypto'
 import type {
+  AppNotification,
   ChatMessage,
+  CodewordAnswer,
+  Fortune,
   InviteCode,
   LoginCode,
+  MoodEntry,
   Pet,
+  PetEventStat,
   PetMemory,
+  Post,
   Relationship,
   Room,
   User
@@ -27,6 +33,14 @@ export function createMemoryRepositories(): RepositoryBundle {
   const pets = new Map<string, Pet>()
   const messages = new Map<string, ChatMessage[]>()
   const memories = new Map<string, PetMemory[]>()
+  const moods = new Map<string, MoodEntry>()
+  const posts = new Map<string, Post>()
+  const postLikes = new Map<string, Set<string>>()
+  const notifications = new Map<string, AppNotification>()
+  const fortunes = new Map<string, Fortune>()
+  const codewords = new Map<string, CodewordAnswer>()
+  const petEvents = new Map<string, { petId: string; userId: string; action: string }[]>()
+  const pushSubscriptions = new Map<string, { userId: string; endpoint: string; p256dh: string; auth: string }>()
 
   const userRepo = {
     async findById(id: string) { return users.get(id) },
@@ -41,6 +55,14 @@ export function createMemoryRepositories(): RepositoryBundle {
       const user = users.get(id)
       if (!user) throw new Error('user_not_found')
       user.username = username
+      return user
+    },
+    async updateProfile(id: string, patch: { avatarUrl?: string | null; birthday?: string | null; mbti?: string | null }) {
+      const user = users.get(id)
+      if (!user) throw new Error('user_not_found')
+      if (patch.avatarUrl !== undefined) user.avatarUrl = patch.avatarUrl
+      if (patch.birthday !== undefined) user.birthday = patch.birthday
+      if (patch.mbti !== undefined) user.mbti = patch.mbti
       return user
     }
   }
@@ -92,15 +114,34 @@ export function createMemoryRepositories(): RepositoryBundle {
 
   const roomRepo = {
     async createForRelationship(relationshipId: string) {
-      const room: Room = { id: randomUUID(), relationshipId, createdAt: now() }
+      const existing = [...rooms.values()].find((room) => room.relationshipId === relationshipId)
+      if (existing) return existing
+      const room: Room = { id: randomUUID(), relationshipId, type: 'pair', proactiveEnabled: true, createdAt: now() }
       rooms.set(room.id, room)
       const relationship = relationships.get(relationshipId)
       if (relationship) roomMembers.set(room.id, new Set([relationship.requesterId, relationship.addresseeId]))
       return room
     },
+    async createPetDm(userId: string) {
+      const existing = [...rooms.values()].find((room) => room.type === 'pet_dm' && roomMembers.get(room.id)?.has(userId))
+      if (existing) return existing
+      const room: Room = { id: randomUUID(), relationshipId: null, type: 'pet_dm', proactiveEnabled: true, createdAt: now() }
+      rooms.set(room.id, room)
+      roomMembers.set(room.id, new Set([userId]))
+      return room
+    },
     async findById(id: string) { return rooms.get(id) },
     async findByRelationshipId(relationshipId: string) { return [...rooms.values()].find((room) => room.relationshipId === relationshipId) },
-    async isMember(roomId: string, userId: string) { return roomMembers.get(roomId)?.has(userId) ?? false }
+    async listForUser(userId: string) {
+      return [...rooms.values()].filter((room) => roomMembers.get(room.id)?.has(userId))
+    },
+    async isMember(roomId: string, userId: string) { return roomMembers.get(roomId)?.has(userId) ?? false },
+    async setProactive(roomId: string, enabled: boolean) {
+      const room = rooms.get(roomId)
+      if (!room) throw new Error('room_not_found')
+      room.proactiveEnabled = enabled
+      return room
+    }
   }
 
   const petRepo = {
@@ -133,6 +174,121 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
+  const moodRepo = {
+    async upsert(roomId: string, userId: string, day: string, level: number) {
+      const key = `${roomId}:${userId}:${day}`
+      const existing = moods.get(key)
+      const entry: MoodEntry = existing
+        ? { ...existing, level, updatedAt: now() }
+        : { id: randomUUID(), roomId, userId, day, level, updatedAt: now() }
+      moods.set(key, entry)
+      return entry
+    },
+    async listForRange(roomId: string, fromDay: string, toDay: string) {
+      return [...moods.values()].filter((mood) => mood.roomId === roomId && mood.day >= fromDay && mood.day <= toDay)
+    }
+  }
+
+  const postRepo = {
+    async create(input: Omit<Post, 'id' | 'createdAt'>) {
+      const post: Post = { ...input, id: randomUUID(), createdAt: now() }
+      posts.set(post.id, post)
+      return post
+    },
+    async createAsPet(roomId: string, text: string, imageUrl?: string) {
+      const post: Post = { id: randomUUID(), roomId, authorType: 'pet', authorId: null, text, imageUrl: imageUrl ?? null, createdAt: now() }
+      posts.set(post.id, post)
+      return post
+    },
+    async listByRoom(roomId: string, limit: number) {
+      return [...posts.values()].filter((post) => post.roomId === roomId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limit)
+    },
+    async like(postId: string, userId: string) {
+      const likes = postLikes.get(postId) ?? new Set<string>()
+      likes.add(userId)
+      postLikes.set(postId, likes)
+    },
+    async unlike(postId: string, userId: string) {
+      postLikes.get(postId)?.delete(userId)
+    },
+    async likeStats(postId: string, userId: string) {
+      const likes = postLikes.get(postId)
+      return { count: likes?.size ?? 0, likedByMe: likes?.has(userId) ?? false }
+    }
+  }
+
+  const notificationRepo = {
+    async create(userId: string, type: string, payload: Record<string, unknown>) {
+      const item: AppNotification = { id: randomUUID(), userId, type, payload, read: false, createdAt: now() }
+      notifications.set(item.id, item)
+      return item
+    },
+    async list(userId: string, limit: number) {
+      return [...notifications.values()].filter((item) => item.userId === userId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limit)
+    },
+    async unreadCount(userId: string) {
+      return [...notifications.values()].filter((item) => item.userId === userId && !item.read).length
+    },
+    async markAllRead(userId: string) {
+      for (const item of notifications.values()) if (item.userId === userId) item.read = true
+    }
+  }
+
+  const fortuneRepo = {
+    async findByRoomAndDay(roomId: string, day: string) {
+      return fortunes.get(`${roomId}:${day}`)
+    },
+    async create(roomId: string, day: string, content: Fortune['content']) {
+      const fortune: Fortune = { id: randomUUID(), roomId, day, content, createdAt: now() }
+      fortunes.set(`${roomId}:${day}`, fortune)
+      return fortune
+    }
+  }
+
+  const codewordRepo = {
+    async getAnswer(roomId: string, day: string, userId: string) {
+      return codewords.get(`${roomId}:${day}:${userId}`)
+    },
+    async setAnswer(roomId: string, day: string, userId: string, answer: string) {
+      const item: CodewordAnswer = { roomId, day, userId, answer, createdAt: now() }
+      codewords.set(`${roomId}:${day}:${userId}`, item)
+      return item
+    },
+    async listForDay(roomId: string, day: string) {
+      return [...codewords.values()].filter((item) => item.roomId === roomId && item.day === day)
+    }
+  }
+
+  const petEventRepo = {
+    async record(petId: string, userId: string, action: string) {
+      petEvents.set(petId, [...(petEvents.get(petId) ?? []), { petId, userId, action }])
+    },
+    async statsByRoom(petId: string): Promise<PetEventStat[]> {
+      const counts = new Map<string, PetEventStat>()
+      for (const event of petEvents.get(petId) ?? []) {
+        const key = `${event.userId}:${event.action}`
+        const stat = counts.get(key) ?? { userId: event.userId, action: event.action, count: 0 }
+        stat.count += 1
+        counts.set(key, stat)
+      }
+      return [...counts.values()]
+    }
+  }
+
+  const pushSubscriptionRepo = {
+    async save(userId: string, endpoint: string, p256dh: string, auth: string) {
+      pushSubscriptions.set(`${userId}:${endpoint}`, { userId, endpoint, p256dh, auth })
+    },
+    async listForUser(userId: string) {
+      return [...pushSubscriptions.values()].filter((item) => item.userId === userId)
+    },
+    async deleteByEndpoint(userId: string, endpoint: string) {
+      pushSubscriptions.delete(`${userId}:${endpoint}`)
+    }
+  }
+
   return {
     users: userRepo,
     invites: inviteRepo,
@@ -141,6 +297,13 @@ export function createMemoryRepositories(): RepositoryBundle {
     rooms: roomRepo,
     pets: petRepo,
     messages: messageRepo,
-    memories: memoryRepo
+    memories: memoryRepo,
+    moods: moodRepo,
+    posts: postRepo,
+    notifications: notificationRepo,
+    fortunes: fortuneRepo,
+    codewords: codewordRepo,
+    petEvents: petEventRepo,
+    pushSubscriptions: pushSubscriptionRepo
   }
 }

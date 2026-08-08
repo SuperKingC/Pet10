@@ -19,6 +19,8 @@ export function mapServerMessage(message: ServerMessage, currentUserId?: string)
     kind: message.kind,
     text: message.text,
     imageUrl: message.imageUrl,
+    senderId: message.senderId,
+    rawCreatedAt: message.createdAt,
     createdAt: new Intl.DateTimeFormat('zh-CN', {
       hour: '2-digit',
       minute: '2-digit',

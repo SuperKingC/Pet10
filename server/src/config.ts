@@ -21,7 +21,10 @@ const environmentSchema = z.object({
   OSS_PUBLIC_BASE_URL: z.preprocess(
     value => value === '' ? undefined : value,
     z.string().url().optional()
-  )
+  ),
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().default('mailto:pet10-support@example.com')
 })
 
 export interface ServerConfig {
@@ -50,6 +53,12 @@ export interface ServerConfig {
     accessKeyId?: string
     accessKeySecret?: string
     publicBaseUrl?: string
+  }
+  push: {
+    enabled: boolean
+    publicKey?: string
+    privateKey?: string
+    subject: string
   }
 }
 
@@ -94,6 +103,12 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       accessKeyId: parsed.OSS_ACCESS_KEY_ID,
       accessKeySecret: parsed.OSS_ACCESS_KEY_SECRET,
       publicBaseUrl: parsed.OSS_PUBLIC_BASE_URL?.replace(/\/$/, '')
+    },
+    push: {
+      enabled: Boolean(parsed.VAPID_PUBLIC_KEY && parsed.VAPID_PRIVATE_KEY),
+      publicKey: parsed.VAPID_PUBLIC_KEY,
+      privateKey: parsed.VAPID_PRIVATE_KEY,
+      subject: parsed.VAPID_SUBJECT
     }
   }
 }

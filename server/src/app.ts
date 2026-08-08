@@ -7,12 +7,16 @@ import { createAuthRoutes } from './http/authRoutes.js'
 import { createFriendshipRoutes } from './http/friendshipRoutes.js'
 import { createRoomRoutes } from './http/roomRoutes.js'
 import { createSessionRoutes } from './http/sessionRoutes.js'
+import { createSocialRoutes } from './http/socialRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
 import { createAuthService } from './services/authService.js'
 import { createFriendshipService } from './services/friendshipService.js'
+import { createPetBrain } from './services/petBrain.js'
 import { createPetService } from './services/petService.js'
+import { createPushService, type PushService } from './services/pushService.js'
 import { createRoomService } from './services/roomService.js'
 import { createSessionService } from './services/sessionService.js'
+import { createSocialService } from './services/socialService.js'
 import type { AiService } from './services/aiService.js'
 import type { createUploadService } from './services/uploadService.js'
 
@@ -22,9 +26,10 @@ export interface AppDependencies {
   ai: AiService
   uploads: ReturnType<typeof createUploadService>
   emit?: (roomId: string, event: string, payload: unknown) => void
+  emitUser?: (userId: string, event: string, payload: unknown) => void
 }
 
-export function createApp({ config, repositories, ai, uploads, emit = () => undefined }: AppDependencies) {
+export function createApp({ config, repositories, ai, uploads, emit = () => undefined, emitUser = () => undefined }: AppDependencies) {
   const app = express()
   app.disable('x-powered-by')
   app.use(cors({ origin: config.appOrigin, credentials: true }))
@@ -47,15 +52,31 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     allowedEmails: config.allowedEmails,
     logCode: (email, code) => console.log(`[login-code] ${email}: ${code}`)
   })
-  const friendshipService = createFriendshipService(repositories)
-  const petService = createPetService(repositories)
-  const roomService = createRoomService({ repositories, ai })
+  const brain = createPetBrain({ repositories, ai, emit })
+  let pushService: PushService | undefined
+  const socialService = createSocialService({
+    repositories,
+    ai,
+    emit,
+    emitUser,
+    onMoodSet: (roomId, userId, level) => void brain.onMoodSet(roomId, userId, level),
+    onNotify: (userId) => void pushService?.notifyUser(userId)
+  })
+  const friendshipService = createFriendshipService(repositories, {
+    notify: (userId, type, payload) => void socialService.notify(userId, type, payload)
+  })
+  const petService = createPetService(repositories, {
+    onPetEvent: (roomId, userId, action, outcome) => void brain.onPetEvent(roomId, userId, action, outcome)
+  })
+  const roomService = createRoomService({ repositories, ai, brain })
   const sessionService = createSessionService(repositories)
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
+  pushService = createPushService(config.push, repositories)
 
   app.use('/api/auth', createAuthRoutes(authService))
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
   app.use('/api/friendships', authenticate, createFriendshipRoutes(friendshipService))
+  app.use('/api/social', authenticate, createSocialRoutes({ social: socialService, pets: petService, push: pushService }))
   app.use('/api/rooms', authenticate, createRoomRoutes({
     rooms: roomService,
     pets: petService,

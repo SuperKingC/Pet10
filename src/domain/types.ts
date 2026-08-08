@@ -11,6 +11,10 @@ export interface Message {
   text: string
   createdAt: string
   imageUrl?: string
+  /** 服务端真实发送者 id（资料卡/多房间用） */
+  senderId?: string
+  /** 服务端时间戳（日期分隔/日历事件用） */
+  rawCreatedAt?: string
 }
 
 export interface PetState {
@@ -31,4 +35,129 @@ export interface PetMemory {
   text: string
   sourceMessageId: string
   canMention: boolean
+}
+
+// ---------- 社交化新增 ----------
+export interface UserProfile {
+  id: string
+  email: string
+  username: string
+  displayName: string
+  avatarUrl?: string | null
+  birthday?: string | null
+  mbti?: string | null
+}
+
+export interface Conversation {
+  roomId: string
+  type: 'pair' | 'pet_dm'
+  title: string
+  avatarUrl: string | null
+  proactiveEnabled: boolean
+  friend?: UserProfile
+  latestMessage?: { id: string; text: string; kind: MessageKind; createdAt: string }
+  updatedAt: string
+}
+
+export interface RoomBootstrap {
+  room: { id: string; type: 'pair' | 'pet_dm'; proactiveEnabled: boolean }
+  pet: PetState | null
+  messages: Message[]
+  memories: PetMemory[]
+}
+
+export interface MoodEntry {
+  id: string
+  roomId: string
+  userId: string
+  day: string
+  level: number
+  updatedAt: string
+}
+
+export interface Post {
+  id: string
+  roomId: string
+  authorType: 'user' | 'pet'
+  authorId?: string | null
+  text: string
+  imageUrl?: string | null
+  createdAt: string
+  likes?: { count: number; likedByMe: boolean }
+}
+
+export interface AppNotification {
+  id: string
+  userId: string
+  type: string
+  payload: Record<string, unknown>
+  read: boolean
+  createdAt: string
+}
+
+export interface FortuneContent {
+  mine: string
+  friend: string
+  pair: string
+  luckyAction: 'feed' | 'play' | 'clean' | 'sleep'
+  luckyColor: string
+  luckyNumber: number
+}
+
+export interface Fortune {
+  id: string
+  roomId: string
+  day: string
+  content: FortuneContent
+}
+
+export interface CodewordState {
+  day: string
+  question: string
+  myAnswer: string | null
+  partnerAnswer: string | null
+  answeredCount: number
+}
+
+export interface ContributionStat {
+  userId: string
+  action: string
+  count: number
+}
+
+export const ZODIAC_LABELS: Array<{ name: string; icon: string }> = [
+  { name: '白羊座', icon: '♈' },
+  { name: '金牛座', icon: '♉' },
+  { name: '双子座', icon: '♊' },
+  { name: '巨蟹座', icon: '♋' },
+  { name: '狮子座', icon: '♌' },
+  { name: '处女座', icon: '♍' },
+  { name: '天秤座', icon: '♎' },
+  { name: '天蝎座', icon: '♏' },
+  { name: '射手座', icon: '♐' },
+  { name: '摩羯座', icon: '♑' },
+  { name: '水瓶座', icon: '♒' },
+  { name: '双鱼座', icon: '♓' }
+]
+
+export function zodiacFromBirthday(birthday?: string | null): { name: string; icon: string } | null {
+  if (!birthday) return null
+  const date = new Date(birthday)
+  if (Number.isNaN(date.getTime())) return null
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  // 边界：(月, 日) >= 起始日 → 当前座，否则上一座
+  const edges: Array<[number, number, number]> = [
+    [1, 20, 10], [2, 19, 11], [3, 21, 0], [4, 20, 1], [5, 21, 2], [6, 22, 3],
+    [7, 23, 4], [8, 23, 5], [9, 23, 6], [10, 24, 7], [11, 23, 8], [12, 22, 9]
+  ]
+  for (const [edgeMonth, edgeDay, zodiacIndex] of edges) {
+    if (month === edgeMonth && day < edgeDay) {
+      return ZODIAC_LABELS[(zodiacIndex + 11) % 12]
+    }
+    if (month === edgeMonth && day >= edgeDay) {
+      return ZODIAC_LABELS[zodiacIndex]
+    }
+  }
+  return null
 }

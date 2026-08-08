@@ -27,15 +27,28 @@ describe('friendship service', () => {
     expect(pet?.name).toBe('小多利')
   })
 
-  it('prevents a user from binding a second friend in the first version', async () => {
+  it('allows a user to bind multiple friends', async () => {
     const repositories = createMemoryRepositories()
     const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
     await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
     await repositories.users.create({ email: 'c@example.com', username: 'c', displayName: 'C' })
     const service = createFriendshipService(repositories)
 
+    const firstRequest = await service.sendRequest(first.id, 'b')
+    const secondRequest = await service.sendRequest(first.id, 'c')
+
+    expect(firstRequest.status).toBe('pending')
+    expect(secondRequest.status).toBe('pending')
+  })
+
+  it('rejects duplicate relationship between the same pair', async () => {
+    const repositories = createMemoryRepositories()
+    const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const service = createFriendshipService(repositories)
+
     await service.sendRequest(first.id, 'b')
-    await expect(service.sendRequest(first.id, 'c')).rejects.toThrow('friend_limit_reached')
+    await expect(service.sendRequest(first.id, 'b')).rejects.toThrow('relationship_already_exists')
   })
 
   it('finds a friend by email address', async () => {

@@ -30,7 +30,11 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         'INSERT INTO users(email,username,display_name) VALUES($1,$2,$3) RETURNING *',
         [input.email.toLowerCase(), input.username, input.displayName]
       ),
-      updateUsername: (id, username) => one('UPDATE users SET username=$2 WHERE id=$1 RETURNING *', [id, username])
+      updateUsername: (id, username) => one('UPDATE users SET username=$2 WHERE id=$1 RETURNING *', [id, username]),
+      updateProfile: (id, patch) => one(
+        'UPDATE users SET avatar_url=COALESCE($2, avatar_url), birthday=COALESCE($3, birthday), mbti=COALESCE($4, mbti) WHERE id=$1 RETURNING *',
+        [id, patch.avatarUrl === undefined ? null : patch.avatarUrl, patch.birthday === undefined ? null : patch.birthday, patch.mbti === undefined ? null : patch.mbti]
+      )
     },
     invites: {
       findByCode: (code) => one('SELECT * FROM invite_codes WHERE code=$1', [code.toUpperCase()]),
@@ -113,11 +117,28 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         if (existing) return existing
         return one('INSERT INTO rooms(relationship_id) VALUES($1) RETURNING *', [relationshipId])
       },
+      createPetDm: async (userId) => {
+        const existing = await one(
+          `SELECT r.* FROM rooms r JOIN room_members m ON m.room_id=r.id
+           WHERE r.type='pet_dm' AND m.user_id=$1`,
+          [userId]
+        )
+        if (existing) return existing
+        const room = await one(`INSERT INTO rooms(relationship_id,type) VALUES(NULL,'pet_dm') RETURNING *`)
+        await database.query('INSERT INTO room_members(room_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING', [room.id, userId])
+        return room
+      },
       findById: (id) => one('SELECT * FROM rooms WHERE id=$1', [id]),
       findByRelationshipId: (relationshipId) => one('SELECT * FROM rooms WHERE relationship_id=$1', [relationshipId]),
+      listForUser: (userId) => many(
+        `SELECT r.* FROM rooms r JOIN room_members m ON m.room_id=r.id
+         WHERE m.user_id=$1 ORDER BY r.created_at`,
+        [userId]
+      ),
       async isMember(roomId, userId) {
         return Boolean(await one('SELECT 1 FROM room_members WHERE room_id=$1 AND user_id=$2', [roomId, userId]))
-      }
+      },
+      setProactive: (roomId, enabled) => one('UPDATE rooms SET proactive_enabled=$2 WHERE id=$1 RETURNING *', [roomId, enabled])
     },
     pets: {
       createForRelationship: async (relationshipId, roomId) => {
@@ -147,6 +168,92 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       listByRoom: (roomId) => many('SELECT * FROM pet_memories WHERE room_id=$1 ORDER BY created_at DESC', [roomId]),
       async deleteById(roomId, memoryId) {
         await database.query('DELETE FROM pet_memories WHERE room_id=$1 AND id=$2', [roomId, memoryId])
+      }
+    },
+    moods: {
+      upsert: (roomId, userId, day, level) => one(
+        `INSERT INTO moods(room_id,user_id,day,level) VALUES($1,$2,$3,$4)
+         ON CONFLICT(room_id,user_id,day) DO UPDATE SET level=EXCLUDED.level, updated_at=now()
+         RETURNING *`,
+        [roomId, userId, day, level]
+      ),
+      listForRange: (roomId, fromDay, toDay) => many(
+        'SELECT * FROM moods WHERE room_id=$1 AND day BETWEEN $2 AND $3 ORDER BY day',
+        [roomId, fromDay, toDay]
+      )
+    },
+    posts: {
+      create: (input) => one(
+        `INSERT INTO posts(room_id,author_type,author_id,text,image_url) VALUES($1,$2,$3,$4,$5) RETURNING *`,
+        [input.roomId, input.authorType, input.authorId ?? null, input.text, input.imageUrl ?? null]
+      ),
+      createAsPet: (roomId, text, imageUrl) => one(
+        `INSERT INTO posts(room_id,author_type,author_id,text,image_url) VALUES($1,'pet',NULL,$2,$3) RETURNING *`,
+        [roomId, text, imageUrl ?? null]
+      ),
+      listByRoom: (roomId, limit) => many('SELECT * FROM posts WHERE room_id=$1 ORDER BY created_at DESC LIMIT $2', [roomId, limit]),
+      async like(postId, userId) {
+        await database.query('INSERT INTO post_likes(post_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING', [postId, userId])
+      },
+      async unlike(postId, userId) {
+        await database.query('DELETE FROM post_likes WHERE post_id=$1 AND user_id=$2', [postId, userId])
+      },
+      async likeStats(postId, userId) {
+        const countRow = await one('SELECT count(*)::int AS count FROM post_likes WHERE post_id=$1', [postId])
+        const mine = await one('SELECT 1 FROM post_likes WHERE post_id=$1 AND user_id=$2', [postId, userId])
+        return { count: countRow?.count ?? 0, likedByMe: Boolean(mine) }
+      }
+    },
+    notifications: {
+      create: (userId, type, payload) => one(
+        'INSERT INTO notifications(user_id,type,payload) VALUES($1,$2,$3) RETURNING *',
+        [userId, type, JSON.stringify(payload)]
+      ),
+      list: (userId, limit) => many('SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT $2', [userId, limit]),
+      unreadCount: async (userId) => {
+        const row = await one('SELECT count(*)::int AS count FROM notifications WHERE user_id=$1 AND read=false', [userId])
+        return row?.count ?? 0
+      },
+      async markAllRead(userId) {
+        await database.query('UPDATE notifications SET read=true WHERE user_id=$1 AND read=false', [userId])
+      }
+    },
+    fortunes: {
+      findByRoomAndDay: (roomId, day) => one('SELECT * FROM fortunes WHERE room_id=$1 AND day=$2', [roomId, day]),
+      create: (roomId, day, content) => one(
+        'INSERT INTO fortunes(room_id,day,content) VALUES($1,$2,$3) ON CONFLICT(room_id,day) DO UPDATE SET content=EXCLUDED.content RETURNING *',
+        [roomId, day, JSON.stringify(content)]
+      )
+    },
+    codewords: {
+      getAnswer: (roomId, day, userId) => one('SELECT * FROM codeword_answers WHERE room_id=$1 AND day=$2 AND user_id=$3', [roomId, day, userId]),
+      setAnswer: (roomId, day, userId, answer) => one(
+        `INSERT INTO codeword_answers(room_id,day,user_id,answer) VALUES($1,$2,$3,$4)
+         ON CONFLICT(room_id,day,user_id) DO UPDATE SET answer=EXCLUDED.answer RETURNING *`,
+        [roomId, day, userId, answer]
+      ),
+      listForDay: (roomId, day) => many('SELECT * FROM codeword_answers WHERE room_id=$1 AND day=$2', [roomId, day])
+    },
+    petEvents: {
+      async record(petId, userId, action, payload = {}) {
+        await database.query('INSERT INTO pet_events(pet_id,actor_user_id,action,payload) VALUES($1,$2,$3,$4)', [petId, userId, action, JSON.stringify(payload)])
+      },
+      statsByRoom: (petId) => many(
+        `SELECT actor_user_id AS user_id, action, count(*)::int AS count FROM pet_events WHERE pet_id=$1 GROUP BY actor_user_id, action`,
+        [petId]
+      )
+    },
+    pushSubscriptions: {
+      async save(userId, endpoint, p256dh, auth) {
+        await database.query(
+          `INSERT INTO push_subscriptions(user_id,endpoint,p256dh,auth) VALUES($1,$2,$3,$4)
+           ON CONFLICT(user_id,endpoint) DO UPDATE SET p256dh=EXCLUDED.p256dh, auth=EXCLUDED.auth`,
+          [userId, endpoint, p256dh, auth]
+        )
+      },
+      listForUser: (userId) => many('SELECT user_id,endpoint,p256dh,auth FROM push_subscriptions WHERE user_id=$1', [userId]),
+      async deleteByEndpoint(userId, endpoint) {
+        await database.query('DELETE FROM push_subscriptions WHERE user_id=$1 AND endpoint=$2', [userId, endpoint])
       }
     }
   } as RepositoryBundle

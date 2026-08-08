@@ -1,16 +1,19 @@
 import type { MessageKind } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
+import type { createPetBrain } from './petBrain.js'
 
 interface RoomServiceDependencies {
   repositories: RepositoryBundle
   ai: AiService
+  brain?: ReturnType<typeof createPetBrain>
   logError?: (message: string, error: unknown) => void
 }
 
 export function createRoomService({
   repositories,
   ai,
+  brain,
   logError = (message, error) => console.error(message, error)
 }: RoomServiceDependencies) {
   async function assertMember(roomId: string, userId: string) {
@@ -20,11 +23,15 @@ export function createRoomService({
   return {
     async bootstrap(roomId: string, userId: string) {
       await assertMember(roomId, userId)
+      const room = await repositories.rooms.findById(roomId)
       const pet = await repositories.pets.findByRoomId(roomId)
-      if (!pet) throw new Error('pet_not_found')
+      // 私聊房（pet_dm）没有宠物，其余房间必须有
+      if (!pet && room?.type !== 'pet_dm') throw new Error('pet_not_found')
+      // 每日首开问候（后台触发，通过 socket 送达）
+      void brain?.dailyGreeting(roomId)
       return {
-        room: await repositories.rooms.findById(roomId),
-        pet,
+        room,
+        pet: pet ?? null,
         messages: await repositories.messages.listRecent(roomId, 50),
         memories: await repositories.memories.listByRoom(roomId)
       }
@@ -36,7 +43,7 @@ export function createRoomService({
     async sendMessage(roomId: string, userId: string, input: { text: string; imageUrl?: string }) {
       await assertMember(roomId, userId)
       const kind: MessageKind = input.imageUrl ? 'image' : 'text'
-      return repositories.messages.create({
+      const message = await repositories.messages.create({
         roomId,
         senderType: 'user',
         senderId: userId,
@@ -44,9 +51,13 @@ export function createRoomService({
         text: input.text,
         imageUrl: input.imageUrl
       })
+      // 小多利始终“看”到每条消息，按规则决定是否接话（不阻塞发送响应）
+      void brain?.onUserMessage(roomId, message)
+      return message
     },
     async requestPetReply(roomId: string, userId: string) {
       await assertMember(roomId, userId)
+      if (brain) return brain.forceReply(roomId)
       const pet = await repositories.pets.findByRoomId(roomId)
       if (!pet) throw new Error('pet_not_found')
       const messages = await repositories.messages.listRecent(roomId, 50)

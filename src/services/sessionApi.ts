@@ -7,6 +7,9 @@ export interface ServerUser {
   email: string
   username: string
   displayName: string
+  avatarUrl?: string | null
+  birthday?: string | null
+  mbti?: string | null
 }
 
 export interface ServerFriend {
@@ -14,6 +17,9 @@ export interface ServerFriend {
   email: string
   username: string
   displayName: string
+  avatarUrl?: string | null
+  birthday?: string | null
+  mbti?: string | null
 }
 
 export interface ServerRelationship {

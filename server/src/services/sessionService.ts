@@ -55,6 +55,15 @@ export function createSessionService(repositories: RepositoryBundle) {
       const existing = await repositories.users.findByUsername(normalized)
       if (existing && existing.id !== userId) throw new Error('username_already_exists')
       return repositories.users.updateUsername(userId, normalized)
+    },
+    async updateProfile(userId: string, patch: { avatarUrl?: string; birthday?: string | null; mbti?: string | null }) {
+      if (patch.birthday !== undefined && patch.birthday !== null && Number.isNaN(Date.parse(patch.birthday))) {
+        throw new Error('invalid_birthday')
+      }
+      if (patch.mbti !== undefined && patch.mbti !== null && !/^[IE][SN][TF][JP]$/.test(patch.mbti)) {
+        throw new Error('invalid_mbti')
+      }
+      return repositories.users.updateProfile(userId, patch)
     }
   }
 }
