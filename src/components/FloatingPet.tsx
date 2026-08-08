@@ -24,7 +24,7 @@ export function FloatingPet({ proactiveEnabled, onToggleProactive, onPoke }: Flo
   })
   const [bubble, setBubble] = useState('')
   const [pressed, setPressed] = useState(false)
-  const dragState = useRef<{ dragging: boolean; moved: boolean; startX: number; startY: number; originX: number; originY: number; timer: number }>()
+  const dragState = useRef<{ dragging: boolean; moved: boolean; startX: number; startY: number; originX: number; originY: number; timer: number } | undefined>(undefined)
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pos))

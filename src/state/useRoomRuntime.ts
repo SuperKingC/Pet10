@@ -38,7 +38,7 @@ const EMPTY_RUNTIME: RoomRuntime = { loaded: false, messages: [], pet: null, mem
  */
 export function useRoomRuntime(options: RoomRuntimeOptions) {
   const [states, setStates] = useState<Record<string, RoomRuntime>>({})
-  const realtimeRef = useRef<RealtimeConnection>()
+  const realtimeRef = useRef<RealtimeConnection | undefined>(undefined)
   const optionsRef = useRef(options)
   optionsRef.current = options
 

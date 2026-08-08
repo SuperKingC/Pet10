@@ -52,7 +52,7 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
   const [shared, setShared] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [history, setHistory] = useState<TarotReading[]>([])
-  const shuffleTimer = useRef<number>()
+  const shuffleTimer = useRef<number | undefined>(undefined)
 
   const needCount = useMemo(() => SPREADS.find((item) => item.key === spread)?.count ?? 1, [spread])
 
