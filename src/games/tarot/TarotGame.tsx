@@ -3,6 +3,10 @@ import {
   QUESTION_CATEGORIES,
   SPREADS,
   buildClosing,
+  buildSummary,
+  buildAdvice,
+  buildCautions,
+  buildSynthesis,
   buildShareText,
   interpretCard,
   listReadingHistory,
@@ -12,6 +16,7 @@ import {
   type TarotCategory,
   type TarotReading,
   type TarotSpreadKey
+  , QUESTION_PROMPTS
 } from './tarotDeck'
 
 type Stage = 'question' | 'spread' | 'shuffle' | 'cut' | 'fan' | 'reveal' | 'reading'
@@ -42,6 +47,8 @@ function CardFace({ drawn, flipped }: { drawn: DrawnCard; flipped: boolean }) {
 export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
   const [stage, setStage] = useState<Stage>('question')
   const [category, setCategory] = useState<TarotCategory>('overall')
+  const [question, setQuestion] = useState('')
+  const [promptOffset, setPromptOffset] = useState(0)
   const [spread, setSpread] = useState<TarotSpreadKey>('single')
   const [shuffleProgress, setShuffleProgress] = useState(0)
   const [drawn, setDrawn] = useState<DrawnCard[]>([])
@@ -52,6 +59,8 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
   const [shared, setShared] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [history, setHistory] = useState<TarotReading[]>([])
+  const [cutting, setCutting] = useState(false)
+  const [revealReady, setRevealReady] = useState(false)
   const shuffleTimer = useRef<number | undefined>(undefined)
 
   const needCount = useMemo(() => SPREADS.find((item) => item.key === spread)?.count ?? 1, [spread])
@@ -76,6 +85,17 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
     setStage('fan')
   }
 
+  function cutDeck() {
+    if (cutting) return
+    setCutting(true)
+    window.setTimeout(proceedToFan, 700)
+  }
+
+  function skipRitual() {
+    setShuffleProgress(100)
+    proceedToFan()
+  }
+
   function pickCard(index: number) {
     if (picked.includes(index) || picked.length >= needCount) return
     const next = [...picked, index]
@@ -92,13 +112,24 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
 
   const allFlipped = flipped.length > 0 && flipped.every(Boolean)
 
+  useEffect(() => {
+    if (!allFlipped) { setRevealReady(false); return }
+    const timer = window.setTimeout(() => setRevealReady(true), 500)
+    return () => window.clearTimeout(timer)
+  }, [allFlipped])
+
   function finishReading() {
     const result: TarotReading = {
+      question: question.trim() || QUESTION_PROMPTS[category][promptOffset % QUESTION_PROMPTS[category].length],
       category,
       spread,
       drawn,
       cardTexts: drawn.map((item) => interpretCard(item, category)),
       closing: buildClosing(drawn, category),
+      summary: buildSummary(drawn, category),
+      synthesis: buildSynthesis(drawn),
+      advice: buildAdvice(drawn),
+      cautions: buildCautions(drawn),
       createdAt: new Date().toISOString()
     }
     setReading(result)
@@ -125,6 +156,9 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
     setReading(undefined)
     setShared(false)
     setShuffleProgress(0)
+    setQuestion('')
+    setCutting(false)
+    setRevealReady(false)
   }
 
   return (
@@ -134,10 +168,16 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
         <h3>🔮 塔罗密室</h3>
         <button onClick={() => { setHistory(listReadingHistory()); setHistoryOpen(true) }}>记录</button>
       </header>
+      {stage !== 'reading' && <div className="tarot-progress" aria-label="占卜进度">{(['question', 'spread', 'shuffle', 'cut', 'fan', 'reveal'] as Stage[]).map((item, index) => <span key={item} className={item === stage ? 'tarot-progress--active' : ''}>{index + 1}</span>)}</div>}
 
       {stage === 'question' && (
         <section className="tarot-stage">
-          <p className="tarot-stage__title">深呼吸，选一个你想问的问题</p>
+          <p className="tarot-stage__title">先写下你真正想知道的事</p>
+          <textarea className="tarot-question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="例如：我该如何面对这段关系？" maxLength={120} />
+          <div className="tarot-prompts__header"><span>不知道怎么问？试试这些</span><button type="button" onClick={() => setPromptOffset((value) => value + 3)}>换一批</button></div>
+          <div className="tarot-prompts">
+            {QUESTION_PROMPTS[category].slice(promptOffset % 3, (promptOffset % 3) + 3).map((prompt) => <button type="button" key={prompt} className="tarot-prompt" onClick={() => setQuestion(prompt)}>{prompt}</button>)}
+          </div>
           {QUESTION_CATEGORIES.map((item) => (
             <button
               key={item.key}
@@ -188,13 +228,14 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
           <button className="tarot-next" disabled={shuffleProgress < 100} onClick={() => setStage('cut')}>
             {shuffleProgress < 100 ? '继续洗牌…' : '下一步 · 切牌'}
           </button>
+          <button className="tarot-skip" type="button" onClick={skipRitual}>跳过洗牌与切牌</button>
         </section>
       )}
 
       {stage === 'cut' && (
         <section className="tarot-stage tarot-stage--center">
           <p className="tarot-stage__title">凭直觉切一下牌</p>
-          <button className="tarot-cut-deck" onClick={() => window.setTimeout(proceedToFan, 450)}>
+          <button className={`tarot-cut-deck ${cutting ? 'tarot-cut-deck--cutting' : ''}`} disabled={cutting} onClick={cutDeck}>
             <span className="tarot-cut-deck__left" /><span className="tarot-cut-deck__right" />
           </button>
           <p className="tarot-stage__hint">点击牌堆，完成切牌</p>
@@ -229,7 +270,7 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
               </button>
             ))}
           </div>
-          <button className="tarot-next" disabled={!allFlipped} onClick={finishReading}>
+          <button className="tarot-next" disabled={!revealReady} onClick={finishReading}>
             {allFlipped ? '查看解读' : `已翻开 ${flipped.filter(Boolean).length}/${needCount}`}
           </button>
         </section>
@@ -237,6 +278,9 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
 
       {stage === 'reading' && reading && (
         <section className="tarot-stage tarot-reading">
+          <div className="tarot-reading__question"><span>你的问题</span><strong>{reading.question}</strong></div>
+          <section className="tarot-reading__summary"><h3>核心结论</h3><p>{reading.summary}</p></section>
+          <section className="tarot-reading__synthesis"><h3>牌阵之间的关系</h3><p>{reading.synthesis}</p></section>
           {reading.drawn.map((item, index) => (
             <article key={item.card.id} className="tarot-reading__card">
               <header>
@@ -248,6 +292,7 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
             </article>
           ))}
           <p className="tarot-reading__closing">{reading.closing}</p>
+          <section className="tarot-reading__guidance"><h3>行动建议</h3>{reading.advice.map((item) => <p key={item}>{item}</p>)}{reading.cautions.length > 0 && <><h3>留意</h3>{reading.cautions.map((item) => <p key={item}>{item}</p>)}</>}</section>
           <div className="tarot-reading__actions">
             <button disabled={sharing || shared} onClick={() => void share()}>
               {shared ? '已分享到聊天室 ✓' : sharing ? '分享中…' : '分享到聊天室'}

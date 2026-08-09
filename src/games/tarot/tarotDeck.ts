@@ -5,7 +5,7 @@
  */
 
 export type TarotCategory = 'overall' | 'love' | 'study' | 'pet'
-export type TarotSpreadKey = 'single' | 'triple'
+export type TarotSpreadKey = 'single' | 'triple' | 'relationship' | 'decision'
 
 export interface TarotCard {
   id: number
@@ -25,11 +25,16 @@ export interface DrawnCard {
 }
 
 export interface TarotReading {
+  question: string
   category: TarotCategory
   spread: TarotSpreadKey
   drawn: DrawnCard[]
   cardTexts: string[]
   closing: string
+  summary: string
+  synthesis: string
+  advice: string[]
+  cautions: string[]
   createdAt: string
 }
 
@@ -44,6 +49,20 @@ export const SPREADS: Array<{ key: TarotSpreadKey; label: string; description: s
   { key: 'single', label: '单牌速占卜', description: '一张牌，快速获得今日指引', count: 1 },
   { key: 'triple', label: '三牌阵', description: '过去 · 现在 · 未来', count: 3 }
 ]
+
+export const EXTRA_SPREADS: Array<{ key: TarotSpreadKey; label: string; description: string; count: number }> = [
+  { key: 'relationship', label: '关系三牌阵', description: '我 · 对方 · 关系走向', count: 3 },
+  { key: 'decision', label: '决定五牌阵', description: '现状 · 选项 · 风险 · 资源 · 建议', count: 5 }
+]
+
+SPREADS.push(...EXTRA_SPREADS)
+
+export const QUESTION_PROMPTS: Record<TarotCategory, string[]> = {
+  overall: ['我现在最需要看清的是什么？', '未来一个月最值得把握的机会是什么？', '我该如何找回自己的能量？', '今天宇宙想提醒我什么？', '我正在忽略哪一个重要信号？', '下一步怎样走会更顺利？'],
+  love: ['Ta 现在对我是什么想法？', '我们这段关系下一步会怎样？', '我该如何改善这段关系？', '这段缘分真正的课题是什么？', '我何时适合主动表达心意？', '我在感情里最需要放下什么？'],
+  study: ['我该不该接受这个机会？', '怎样做才能突破目前的瓶颈？', '我最适合投入哪一个方向？', '这次选择的隐藏风险是什么？', '如何让努力更快看到结果？', '我现在最需要培养的能力是什么？'],
+  pet: ['小多利最近最想对我说什么？', '我怎样才能更懂小多利？', '小多利需要我做出的改变是什么？', '我们之间的默契正在发生什么变化？', '今天适合和小多利一起做什么？', '小多利眼中的我是怎样的？']
+}
 
 export const MAJOR_ARCANA: TarotCard[] = [
   { id: 0, numeral: '0', name: '愚者', symbol: '🎒', keywords: ['出发', '天真', '可能性'], upright: '新的开始正在招手，带着好奇心大胆迈步。', reversed: '冲动和鲁莽可能让你绕路，先看清脚下。' },
@@ -121,7 +140,7 @@ export function secureRandom(): number {
 export function drawCards(spread: TarotSpreadKey, count?: number): DrawnCard[] {
   const spreadDef = SPREADS.find((item) => item.key === spread) ?? SPREADS[0]
   const drawCount = count ?? spreadDef.count
-  const positions = spread === 'triple' ? ['过去', '现在', '未来'] : ['核心指引']
+  const positions = spread === 'triple' ? ['过去', '现在', '未来'] : spread === 'relationship' ? ['我', '对方', '关系走向'] : spread === 'decision' ? ['现状', '选项', '风险', '资源', '建议'] : ['核心指引']
   const pool = [...MAJOR_ARCANA]
   // Fisher-Yates 洗牌
   for (let i = pool.length - 1; i > 0; i -= 1) {
@@ -139,7 +158,15 @@ export function drawCards(spread: TarotSpreadKey, count?: number): DrawnCard[] {
 export function interpretCard(drawn: DrawnCard, category: TarotCategory): string {
   const meaning = drawn.reversed ? drawn.card.reversed : drawn.card.upright
   const direction = drawn.reversed ? '逆位' : '正位'
-  return `${CATEGORY_OPENING[category]}「${drawn.card.name}」（${direction}）落在「${drawn.position}」的位置：${meaning}`
+  const positionPurpose: Record<string, string> = {
+    '我': '它映照你此刻的真实感受与行为模式。',
+    '对方': '它描述关系中可观察到的态度与倾向，而不是对他人内心的确定判断。',
+    '关系走向': '它呈现双方维持当前互动方式时可能发展的趋势。',
+    '风险': '它指出目前容易忽略的代价或阻碍。',
+    '资源': '它提示你已经拥有、可以主动调用的支持。',
+    '建议': '它给出此刻最值得落实的方向。'
+  }
+  return `${CATEGORY_OPENING[category]}「${drawn.card.name}」（${direction}）落在「${drawn.position}」的位置：${meaning}${positionPurpose[drawn.position] ?? ''}`
 }
 
 /** 整体结语（确定性取句，避免随机抖动） */
@@ -149,15 +176,44 @@ export function buildClosing(drawn: DrawnCard[], category: TarotCategory): strin
   return closings[seed % closings.length]
 }
 
+export function buildSummary(drawn: DrawnCard[], category: TarotCategory): string {
+  const lead = drawn[0]
+  const meaning = lead ? (lead.reversed ? lead.card.reversed : lead.card.upright) : '先让自己安静下来，答案会逐渐清晰。'
+  const label = CATEGORY_LABEL[category]
+  return `${label}的核心牌是「${lead?.card.name ?? '未知'}」，它提醒你：${meaning}`
+}
+
+export function buildAdvice(drawn: DrawnCard[]): string[] {
+  const first = drawn[0]
+  return first ? [`围绕“${first.card.keywords[0]}”做一个今天能完成的小行动`, '给自己留出复盘和调整的空间'] : ['先把问题写清楚，再做决定']
+}
+
+export function buildCautions(drawn: DrawnCard[]): string[] {
+  return drawn.filter((item) => item.reversed).map((item) => `留意「${item.card.name}」逆位带来的拖延或误读`).slice(0, 2)
+}
+
+export function buildSynthesis(drawn: DrawnCard[]): string {
+  if (drawn.length < 2) return '这次阅读由一张核心牌集中回应问题，重点在于把牌的提醒落实为一个具体行动。'
+  const reversedCount = drawn.filter((item) => item.reversed).length
+  if (reversedCount > drawn.length / 2) return '牌阵中逆位能量较多，当前阻力更可能来自迟疑、误读或尚未整理好的内在冲突。先校准判断，再推动外部变化。'
+  if (reversedCount === 0) return '牌阵整体方向较为一致，想法与外部条件正在形成呼应。保持主动，同时用现实反馈校正下一步。'
+  return '牌阵同时出现推进与阻滞的信号，说明事情并非单一答案。先处理最明显的阻碍，再利用已经成熟的条件向前推进。'
+}
+
 /** 生成完整解读 */
 export function createReading(category: TarotCategory, spread: TarotSpreadKey): TarotReading {
   const drawn = drawCards(spread)
   return {
+    question: QUESTION_PROMPTS[category][0],
     category,
     spread,
     drawn,
     cardTexts: drawn.map((item) => interpretCard(item, category)),
     closing: buildClosing(drawn, category),
+    summary: buildSummary(drawn, category),
+    synthesis: buildSynthesis(drawn),
+    advice: buildAdvice(drawn),
+    cautions: buildCautions(drawn),
     createdAt: new Date().toISOString()
   }
 }

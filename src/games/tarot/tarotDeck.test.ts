@@ -8,6 +8,7 @@ import {
   createReading,
   drawCards,
   interpretCard
+  , buildSynthesis
 } from './tarotDeck'
 
 describe('tarot deck completeness', () => {
@@ -31,7 +32,30 @@ describe('tarot deck completeness', () => {
 
   it('4 类问题与 2 种牌阵齐备', () => {
     expect(QUESTION_CATEGORIES.map((item) => item.key)).toEqual(['overall', 'love', 'study', 'pet'])
-    expect(SPREADS.map((item) => item.key)).toEqual(['single', 'triple'])
+    expect(SPREADS.map((item) => item.key)).toEqual(['single', 'triple', 'relationship', 'decision'])
+  })
+})
+
+describe('structured reading', () => {
+  it('includes question, summary, advice and cautions', () => {
+    const reading = createReading('love', 'single')
+    expect(reading.question.length).toBeGreaterThan(0)
+    expect(reading.summary).toContain(reading.drawn[0].card.name)
+    expect(reading.advice.length).toBeGreaterThan(0)
+    expect(Array.isArray(reading.cautions)).toBe(true)
+  })
+
+  it('uses spread-specific position purposes', () => {
+    const relationship = drawCards('relationship')
+    expect(relationship.map((item) => item.position)).toEqual(['我', '对方', '关系走向'])
+    expect(interpretCard(relationship[1], 'love')).toContain('可观察到的态度')
+  })
+
+  it('synthesizes reversal balance across a spread', () => {
+    const reading = createReading('overall', 'triple')
+    const synthesis = buildSynthesis(reading.drawn)
+    expect(synthesis.length).toBeGreaterThan(20)
+    expect(reading.synthesis).toBe(synthesis)
   })
 })
 
