@@ -10,7 +10,7 @@ export function createImageRoutes(config: ServerConfig) {
     const inviteCode = auth.toLowerCase().startsWith('bearer ') ? auth.slice(7).trim() : ''
     const body = request.body as Record<string, unknown>
     try {
-      const data = await service.generate({ inviteCode, ip: request.ip || request.socket.remoteAddress || 'unknown', prompt: typeof body.prompt === 'string' ? body.prompt : '', model: typeof body.model === 'string' ? body.model : undefined, size: typeof body.size === 'string' ? body.size : undefined, n: body.n === undefined ? undefined : Number(body.n) })
+      const data = await service.generate({ inviteCode, ip: request.ip || request.socket.remoteAddress || 'unknown', prompt: typeof body.prompt === 'string' ? body.prompt : '', model: typeof body.model === 'string' ? body.model : undefined, size: typeof body.size === 'string' ? body.size : undefined, n: body.n === undefined ? undefined : Number(body.n), referenceImages: Array.isArray(body.referenceImages) && body.referenceImages.every(image => typeof image === 'string') ? body.referenceImages : body.referenceImages === undefined ? undefined : [''] })
       response.json(data)
     } catch (error) {
       const code = error instanceof Error ? error.message : 'internal'

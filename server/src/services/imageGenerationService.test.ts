@@ -52,4 +52,29 @@ describe('image generation service', () => {
     await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.3', prompt: 'empty' }))
       .rejects.toThrow('upstream_invalid_response')
   })
+
+  it('maps valid reference images into multimodal message content', async () => {
+    let requestedInit: RequestInit | undefined
+    const fetcher: typeof fetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      requestedInit = init
+      return new Response(JSON.stringify({ choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }] }), { status: 200 })
+    })
+    const service = createImageGenerationService(config, fetcher)
+    const reference = 'data:image/png;base64,aGVsbG8='
+
+    await service.generate({ inviteCode: 'friends-only', ip: '127.0.0.4', prompt: '保持构图', referenceImages: [reference] })
+
+    const request = JSON.parse(String(requestedInit?.body))
+    expect(request.messages[0].content).toEqual([
+      { type: 'text', text: '保持构图' },
+      { type: 'image_url', image_url: { url: reference } }
+    ])
+  })
+
+  it('rejects more than two reference images and unsupported data URLs', async () => {
+    const service = createImageGenerationService(config, vi.fn() as typeof fetch)
+    const png = 'data:image/png;base64,aA=='
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.5', prompt: 'test', referenceImages: [png, png, png] })).rejects.toThrow('invalid_reference_images')
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.6', prompt: 'test', referenceImages: ['data:image/svg+xml;base64,PHN2Zz4='] })).rejects.toThrow('invalid_reference_image')
+  })
 })

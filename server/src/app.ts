@@ -34,6 +34,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   const app = express()
   app.disable('x-powered-by')
   app.use(cors({ origin: config.appOrigin, credentials: true }))
+  app.use('/api/images', express.json({ limit: '6mb' }), createImageRoutes(config))
   app.use(express.json({ limit: '2mb' }))
 
   app.get('/health', (_request, response) => {
@@ -88,7 +89,6 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     createImageUpload: (roomId, fileName, contentType, size) =>
       uploads.createImageUpload(roomId, fileName, contentType, size)
   }))
-  app.use('/api/images', createImageRoutes(config))
 
   const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
     console.error(error)

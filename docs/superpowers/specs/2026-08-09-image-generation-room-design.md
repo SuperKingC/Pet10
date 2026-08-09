@@ -12,6 +12,7 @@
 - 上游固定为 `https://apirouter.zhiqiteai.cn/ApiRouterServ/v1/chat/completions`，使用 `openai/gpt-5.4-image-2` 的图片模态。
 - 页面首屏即为工具，不做营销落地页。
 - 默认每次生成 1 张图片，提示词最多 4000 字符，模型和尺寸使用白名单。
+- 可选上传最多 2 张 JPEG、PNG 或 WebP 参考图；浏览器压缩到最长边 2048 像素、单张不超过 2 MB，服务端只验证并转发，不持久化。
 
 ## 用户流程
 
@@ -50,7 +51,8 @@ Content-Type: application/json
   "prompt": "...",
   "model": "<allowed-model>",
   "size": "1024x1024",
-  "n": 1
+  "n": 1,
+  "referenceImages": ["data:image/jpeg;base64,..."]
 }
 ```
 

@@ -97,3 +97,14 @@
 - [ ] Stage only the image-room implementation, tests, configuration examples, docs, and plan/spec files.
 - [ ] Commit with `feat: add shared invite image generation room` once verification passes.
 
+### Task 9: Add reference image input
+
+**Files:**
+- Modify: `src/components/ImageGenerationRoom.tsx`, `src/styles.css`
+- Modify: `server/src/app.ts`, `server/src/http/imageRoutes.ts`, `server/src/services/imageGenerationService.ts`
+- Modify: `server/src/services/imageGenerationService.test.ts`
+
+- [ ] Test and implement validation for at most two JPEG/PNG/WebP data URLs, each decoding to at most 2 MB.
+- [ ] Map valid references into mixed text and `image_url` chat content while preserving text-only generation.
+- [ ] Add browser resize/compression, previews, removal, and a 6 MB image-route request limit.
+- [ ] Run build/tests and commit only image-room files.
