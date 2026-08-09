@@ -12,17 +12,22 @@ const config = {
 
 describe('image generation service', () => {
   it('maps a generation request to chat completions and normalizes its image response', async () => {
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
-      choices: [{ message: { images: [{ image_url: { url: 'data:image/png;base64,aGVsbG8=' } }] } }]
-    }), { status: 200, headers: { 'content-type': 'application/json' } }))
-    const service = createImageGenerationService(config, fetcher as typeof fetch)
+    let requestedUrl = ''
+    let requestedInit: RequestInit | undefined
+    const fetcher: typeof fetch = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      requestedUrl = String(input)
+      requestedInit = init
+      return new Response(JSON.stringify({
+        choices: [{ message: { images: [{ image_url: { url: 'data:image/png;base64,aGVsbG8=' } }] } }]
+      }), { status: 200, headers: { 'content-type': 'application/json' } })
+    })
+    const service = createImageGenerationService(config, fetcher)
 
     const result = await service.generate({ inviteCode: 'friends-only', ip: '127.0.0.1', prompt: '一只猫', size: '1024x1536', n: 1 })
 
-    expect(fetcher).toHaveBeenCalledWith('https://example.com/v1/chat/completions', expect.objectContaining({
-      headers: expect.objectContaining({ authorization: 'Bearer upstream-secret' })
-    }))
-    const request = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))
+    expect(requestedUrl).toBe('https://example.com/v1/chat/completions')
+    expect(requestedInit?.headers).toEqual(expect.objectContaining({ authorization: 'Bearer upstream-secret' }))
+    const request = JSON.parse(String(requestedInit?.body))
     expect(request).toEqual({
       model: 'openai/gpt-5.4-image-2',
       messages: [{ role: 'user', content: '一只猫' }],
