@@ -5,11 +5,13 @@ import { FriendSetupScreen } from './components/FriendSetupScreen'
 import { LoginScreen } from './components/LoginScreen'
 import { getAccessToken } from './services/httpClient'
 import { clearAppBadge } from './services/appBadge'
+import { ImageGenerationRoom } from './components/ImageGenerationRoom'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
 import './styles.css'
 
 function App() {
+  if (window.location.pathname === '/image') return <ImageGenerationRoom />
   const [session, setSession] = useState<ServerSession>()
   const [loading, setLoading] = useState(!runtimeConfig.useMockApi)
   const [error, setError] = useState('')

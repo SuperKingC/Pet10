@@ -9,6 +9,7 @@ import { createRoomRoutes } from './http/roomRoutes.js'
 import { createSessionRoutes } from './http/sessionRoutes.js'
 import { createSocialRoutes } from './http/socialRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
+import { createImageRoutes } from './http/imageRoutes.js'
 import { createAuthService } from './services/authService.js'
 import { createFriendshipService } from './services/friendshipService.js'
 import { createPetBrain } from './services/petBrain.js'
@@ -87,6 +88,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     createImageUpload: (roomId, fileName, contentType, size) =>
       uploads.createImageUpload(roomId, fileName, contentType, size)
   }))
+  app.use('/api/images', createImageRoutes(config))
 
   const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
     console.error(error)

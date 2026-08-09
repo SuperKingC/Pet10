@@ -24,7 +24,13 @@ const environmentSchema = z.object({
   ),
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
-  VAPID_SUBJECT: z.string().default('mailto:pet10-support@example.com')
+  VAPID_SUBJECT: z.string().default('mailto:pet10-support@example.com'),
+  IMAGE_INVITE_CODE: z.string().default('change-me'),
+  IMAGE_UPSTREAM_BASE_URL: z.string().url().default('https://apirouter.zhiqiteai.cn/ApiRouterServ/v1'),
+  IMAGE_UPSTREAM_API_KEY: z.string().optional(),
+  IMAGE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(3),
+  IMAGE_DAILY_LIMIT: z.coerce.number().int().positive().default(30),
+  IMAGE_MAX_PROMPT_LENGTH: z.coerce.number().int().positive().default(4000)
 })
 
 export interface ServerConfig {
@@ -59,6 +65,14 @@ export interface ServerConfig {
     publicKey?: string
     privateKey?: string
     subject: string
+  }
+  image: {
+    inviteCode: string
+    upstreamBaseUrl: string
+    upstreamApiKey?: string
+    rateLimitPerMinute: number
+    dailyLimit: number
+    maxPromptLength: number
   }
 }
 
@@ -109,6 +123,14 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       publicKey: parsed.VAPID_PUBLIC_KEY,
       privateKey: parsed.VAPID_PRIVATE_KEY,
       subject: parsed.VAPID_SUBJECT
+    },
+    image: {
+      inviteCode: parsed.IMAGE_INVITE_CODE,
+      upstreamBaseUrl: parsed.IMAGE_UPSTREAM_BASE_URL.replace(/\/$/, ''),
+      upstreamApiKey: parsed.IMAGE_UPSTREAM_API_KEY,
+      rateLimitPerMinute: parsed.IMAGE_RATE_LIMIT_PER_MINUTE,
+      dailyLimit: parsed.IMAGE_DAILY_LIMIT,
+      maxPromptLength: parsed.IMAGE_MAX_PROMPT_LENGTH
     }
   }
 }
