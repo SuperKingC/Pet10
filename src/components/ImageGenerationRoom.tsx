@@ -2,6 +2,21 @@ import { useState } from 'react'
 
 type ImageResult = { data?: Array<{ url?: string; b64_json?: string }> }
 
+async function readImageResponse(response: Response): Promise<ImageResult & { error?: string }> {
+  const contentType = response.headers.get('content-type') ?? ''
+  const text = await response.text()
+  if (!contentType.includes('application/json')) {
+    throw new Error(response.status === 404
+      ? '生图接口尚未部署，请更新并重启 API 服务'
+      : '服务器返回了异常响应，请稍后再试')
+  }
+  try {
+    return JSON.parse(text) as ImageResult & { error?: string }
+  } catch {
+    throw new Error('服务器返回的数据格式不正确')
+  }
+}
+
 export function ImageGenerationRoom() {
   const [invite, setInvite] = useState(() => sessionStorage.getItem('pet10_image_invite') ?? '')
   const [prompt, setPrompt] = useState('')
@@ -19,7 +34,7 @@ export function ImageGenerationRoom() {
     sessionStorage.setItem('pet10_image_invite', invite.trim())
     try {
       const response = await fetch('/api/images/generations', { method: 'POST', headers: { authorization: `Bearer ${invite.trim()}`, 'content-type': 'application/json' }, body: JSON.stringify({ prompt: prompt.trim(), model: 'openai/gpt-5.4-image-2', size, n: 1 }) })
-      const payload = await response.json() as ImageResult & { error?: string }
+      const payload = await readImageResponse(response)
       if (!response.ok) throw new Error(payload.error === 'rate_limit_exceeded' ? '请求太频繁，请稍后再试' : payload.error === 'invalid_invite_code' ? '邀请码不正确' : '生成失败，请稍后再试')
       setResult(payload)
     } catch (generationError) {
