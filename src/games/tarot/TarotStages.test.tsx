@@ -1,6 +1,6 @@
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MAJOR_ARCANA, type DrawnCard } from './tarotDeck'
 import { TarotCutStage } from './TarotCutStage'
 import { TarotFanStage } from './TarotFanStage'
@@ -9,6 +9,7 @@ import { TarotShuffleStage } from './TarotShuffleStage'
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const mountedRoots: Array<ReturnType<typeof createRoot>> = []
+let frameCallbacks: FrameRequestCallback[] = []
 
 function render(element: React.ReactNode) {
   const container = document.createElement('div')
@@ -30,11 +31,21 @@ function cards(): DrawnCard[] {
   }))
 }
 
+beforeEach(() => {
+  frameCallbacks = []
+  vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+    frameCallbacks.push(callback)
+    return frameCallbacks.length
+  }))
+  vi.stubGlobal('cancelAnimationFrame', vi.fn())
+})
+
 afterEach(() => {
   while (mountedRoots.length) {
     const root = mountedRoots.pop()
     if (root) act(() => root.unmount())
   }
+  vi.unstubAllGlobals()
 })
 
 describe('tarot ritual stages', () => {
@@ -72,6 +83,35 @@ describe('tarot ritual stages', () => {
     const buttons = container.querySelectorAll('button')
     expect((buttons[0] as HTMLButtonElement).disabled).toBe(true)
     expect((container.querySelector('.tarot-next') as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('drives both cut piles from one animation frame clock and completes once', () => {
+    const onFinishCut = vi.fn()
+    const container = render(
+      <TarotCutStage
+        cutCount={0}
+        cutting
+        swapped={false}
+        onStartCut={vi.fn()}
+        onFinishCut={onFinishCut}
+        onContinue={vi.fn()}
+      />
+    )
+
+    expect(frameCallbacks).toHaveLength(1)
+    act(() => frameCallbacks.shift()?.(100))
+    expect(frameCallbacks).toHaveLength(1)
+    act(() => frameCallbacks.shift()?.(1450))
+
+    const upper = container.querySelector('.tarot-cut-deck__left') as HTMLElement
+    const lower = container.querySelector('.tarot-cut-deck__right') as HTMLElement
+    const shadow = container.querySelector('.tarot-cut-deck__shadow') as HTMLElement
+
+    expect(upper.style.transform).toContain('translate3d')
+    expect(lower.style.transform).toContain('translate3d')
+    expect(shadow.style.transform).toContain('translateX')
+    expect(onFinishCut).toHaveBeenCalledOnce()
+    expect(onFinishCut).toHaveBeenCalledWith('tarot-cut-upper')
   })
 
   it('allows only one selected card to fly at a time', () => {

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { TarotCutStage } from '../../games/tarot/TarotCutStage'
 import { TarotFanStage } from '../../games/tarot/TarotFanStage'
 import { TarotQuestionStage } from '../../games/tarot/TarotQuestionStage'
@@ -57,6 +58,8 @@ export function TarotDevEntry({ search }: { search?: string }) {
   const drawn = fixedCards()
   const reading = fixedReading(drawn)
   const noOp = () => undefined
+  const [cutCount, setCutCount] = useState(0)
+  const [cutting, setCutting] = useState(false)
 
   return (
     <main className="tarot-game tarot-dev-entry" data-dev-stage={stage}>
@@ -75,11 +78,14 @@ export function TarotDevEntry({ search }: { search?: string }) {
       )}
       {stage === 'cut' && (
         <TarotCutStage
-          cutCount={1}
-          cutting={false}
-          swapped={false}
-          onStartCut={noOp}
-          onFinishCut={noOp}
+          cutCount={cutCount}
+          cutting={cutting}
+          swapped={cutCount % 2 === 1}
+          onStartCut={() => setCutting(true)}
+          onFinishCut={() => {
+            setCutCount((count) => count + 1)
+            setCutting(false)
+          }}
           onContinue={noOp}
         />
       )}
