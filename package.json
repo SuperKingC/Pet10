@@ -18,6 +18,7 @@
     "build:all": "npm run build && npm run server:build",
     "check:assets": "node scripts/check-assets.mjs",
     "check:docs": "node scripts/check-docs.mjs",
+    "check:architecture": "node scripts/check-architecture.mjs",
     "review": "node scripts/review.mjs",
     "review:stop": "node scripts/review-stop.mjs",
     "verify:quick": "node scripts/verify-quick.mjs",
