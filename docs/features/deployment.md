@@ -34,5 +34,6 @@ flowchart LR
 - 不在服务器手工编辑业务代码。
 - 不使用 `docker compose down -v`。
 - 数据库迁移必须单独确认。
+- GitHub 的 `production` Environment 必须启用人工批准，并配置服务器固定 SSH 主机公钥。
 
 详细配置见后续的 `docs/operations/lighthouse-deployment.md`。

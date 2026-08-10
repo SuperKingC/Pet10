@@ -39,9 +39,12 @@ DEPLOY_HOST
 DEPLOY_PORT
 DEPLOY_USER
 DEPLOY_SSH_PRIVATE_KEY
+DEPLOY_SSH_KNOWN_HOSTS
 DEPLOY_PATH
 DEPLOY_URL
 ```
+
+`DEPLOY_SSH_KNOWN_HOSTS` 必须保存服务器的固定 SSH 主机公钥行（`known_hosts` 格式）。不要在 GitHub Actions 中临时使用 `ssh-keyscan` 获取该值，以免首次连接遭受中间人攻击。
 
 ## 日常发布
 

@@ -11,4 +11,5 @@ server/dist
 coverage
 *.log
 docs
+public/tarot/concepts
 

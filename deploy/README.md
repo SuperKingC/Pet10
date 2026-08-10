@@ -1,58 +1,80 @@
-# Pet10 腾讯云测试部署
+# Pet10 腾讯云 Lighthouse 部署
 
-本方案使用 `sslip.io` 提供的免费解析地址，通过
-`https://43-156-174-77.sslip.io` 测试 Pet10，无需提前购买域名。
+## 推荐流程
 
-## 部署
+```text
+本地验收 → 合并 main → CI 通过 → 手动运行 Deploy Production
+→ GitHub Environment 批准 → Lighthouse 固定脚本 → 健康检查
+```
+
+## 一次性服务器准备
 
 ```bash
 cd /opt
 git clone https://github.com/SuperKingC/Pet10.git pet10
 cd /opt/pet10
-
 cp .env.production.example .env.production
-POSTGRES_PASSWORD="$(openssl rand -hex 24)"
-JWT_SECRET="$(openssl rand -hex 48)"
-sed -i "s|replace-with-a-strong-database-password|$POSTGRES_PASSWORD|" .env.production
-sed -i "s|replace-with-a-long-random-string|$JWT_SECRET|" .env.production
-
-docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
-docker compose --env-file .env.production -f docker-compose.prod.yml ps
-```
-
-腾讯云防火墙只需放行：
-
-- TCP `22`：SSH
-- TCP `80`：HTTPS 证书签发及 HTTP 跳转
-- TCP `443`：Pet10 HTTPS 网页
-- UDP `443`：HTTP/3，可选但建议放行
-
-不要向公网放行 PostgreSQL `5432`、Redis `6379` 或 API `8787`。
-
-## 验证
-
-```bash
-curl -i https://43-156-174-77.sslip.io/healthz
-curl -i https://43-156-174-77.sslip.io/api/session
-docker compose --env-file .env.production -f docker-compose.prod.yml ps
-docker compose --env-file .env.production -f docker-compose.prod.yml logs --tail=100
-```
-
-`/api/session` 未携带登录令牌时返回 `401` 属于正常现象。
-
-## 更新
-
-```bash
-cd /opt/pet10
-git pull --ff-only
+chmod +x deploy/*.sh deploy/lib/*.sh
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
 ```
 
-## 停止
+生产 `.env.production` 只保存在服务器。不要提交真实密码、JWT Secret 或 AI Key。
 
-```bash
-cd /opt/pet10
-docker compose --env-file .env.production -f docker-compose.prod.yml down
+## GitHub Environment
+
+创建名为 `production` 的 Environment，并启用 required reviewer。配置：
+
+```text
+DEPLOY_HOST
+DEPLOY_PORT
+DEPLOY_USER
+DEPLOY_SSH_PRIVATE_KEY
+DEPLOY_SSH_KNOWN_HOSTS
+DEPLOY_PATH
+DEPLOY_URL
 ```
 
-不要执行 `down -v`，否则会删除 PostgreSQL 和 Redis 数据卷。
+建议使用专用部署用户和独立 SSH Key，不使用 root 密码。
+
+`DEPLOY_SSH_KNOWN_HOSTS` 需要填入服务器的 SSH 主机公钥行，而不是服务器密码。首次在可信网络中从本地电脑运行 `ssh-keyscan -p <端口> <服务器地址>` 获取并人工确认后，再保存到 GitHub 的 `production` Environment Secret。
+
+## 更新类型
+
+```bash
+DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-web.sh <commit>
+DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-api.sh <commit>
+DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-all.sh <commit>
+```
+
+- `web`：React、CSS、塔罗动画和前端图片。
+- `api`：服务端 API。
+- `all`：Compose、环境变量或前后端共同变化。
+
+脚本只接受属于远端 `main` 的提交，要求服务器工作区干净，并使用 detached HEAD 部署准确版本。
+
+## 验证与回滚
+
+```bash
+DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/verify.sh
+DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/rollback.sh
+```
+
+- `/healthz`：前端 Nginx。
+- `/health`：API 代理。
+
+回滚不处理数据库 schema。数据库迁移必须单独设计兼容和恢复方案。
+
+## 腾讯云防火墙
+
+只开放：
+
+- TCP `22`
+- TCP `80`
+- TCP `443`
+- UDP `443`（可选）
+
+不要公开 PostgreSQL `5432`、Redis `6379` 或 API `8787`。
+
+## 图片与更新速度
+
+`.dockerignore` 排除了 `public/tarot/concepts`。约 `202.9 MB` 的原始概念图不会进入 Docker 构建上下文，正式塔罗展示图仍保留高质量版本。

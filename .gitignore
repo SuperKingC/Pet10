@@ -13,3 +13,4 @@ server/.env
 .DS_Store
 Thumbs.db
 .codex/
+.deploy-state/

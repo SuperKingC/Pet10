@@ -1,0 +1,94 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Commit on main to deploy; leave empty for latest main
+        required: false
+        type: string
+      service:
+        description: Smallest service set to update
+        required: true
+        default: web
+        type: choice
+        options:
+          - web
+          - api
+          - all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pet10-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.revision.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit || 'main' }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:full
+      - name: Confirm revision belongs to main
+        run: |
+          REVISION="$(git rev-parse HEAD)"
+          git fetch origin main
+          git merge-base --is-ancestor "$REVISION" origin/main
+      - id: revision
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ secrets.DEPLOY_URL }}
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Deploy approved revision
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+          REVISION: ${{ needs.validate.outputs.sha }}
+          SERVICE: ${{ inputs.service }}
+        run: |
+          printf -v remote_command \
+            'cd -- %q && DEPLOY_PUBLIC_URL=%q ./deploy/update-%q.sh %q' \
+            "$DEPLOY_PATH" "$DEPLOY_URL" "$SERVICE" "$REVISION"
+          ssh -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote_command"
+      - name: Deployment summary
+        env:
+          DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+          REVISION: ${{ needs.validate.outputs.sha }}
+          SERVICE: ${{ inputs.service }}
+        run: |
+          {
+            echo "## Pet10 production deployment"
+            echo "- Revision: \`$REVISION\`"
+            echo "- Service: \`$SERVICE\`"
+            echo "- URL: $DEPLOY_URL"
+            echo "- Health: $DEPLOY_URL/healthz"
+          } >> "$GITHUB_STEP_SUMMARY"
