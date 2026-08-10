@@ -15,7 +15,9 @@
     "server:test": "npm run test --workspace server",
     "server:build": "npm run build --workspace server",
     "test:all": "npm test -- --run && npm run server:test",
-    "build:all": "npm run build && npm run server:build"
+    "build:all": "npm run build && npm run server:build",
+    "check:assets": "node scripts/check-assets.mjs",
+    "check:docs": "node scripts/check-docs.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",
