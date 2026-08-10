@@ -32,21 +32,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit || 'main' }}
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+      - name: Resolve approved revision
+        id: revision
+        run: |
+          git fetch origin main
+          REQUESTED_REVISION="${{ inputs.commit }}"
+          if [ -z "$REQUESTED_REVISION" ]; then
+            REQUESTED_REVISION=origin/main
+          fi
+          REVISION="$(git rev-parse --verify "${REQUESTED_REVISION}^{commit}")"
+          git merge-base --is-ancestor "$REVISION" origin/main
+          git checkout --detach "$REVISION"
+          echo "sha=$REVISION" >> "$GITHUB_OUTPUT"
       - run: npm ci
       - run: npm run verify:full
-      - name: Confirm revision belongs to main
-        run: |
-          REVISION="$(git rev-parse HEAD)"
-          git fetch origin main
-          git merge-base --is-ancestor "$REVISION" origin/main
-      - id: revision
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: validate
