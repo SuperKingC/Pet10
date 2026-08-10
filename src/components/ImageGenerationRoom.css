@@ -6,6 +6,18 @@
 }
 
 .image-room__field-title span { color: #766d62; font-weight: 500; }
+.image-room__references {
+  margin: -8px;
+  padding: 8px;
+  border: 2px dashed transparent;
+  border-radius: 10px;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.image-room__references--dragging {
+  border-color: #9c8062;
+  background: #f7f0e7;
+}
+.image-room__reference-hint { margin: -2px 0 10px; color: #766d62; font-size: 12px; }
 .image-room__reference-grid { display: grid; grid-template-columns: repeat(2, 112px); gap: 10px; }
 
 .image-room__reference,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createImageGenerationService } from './imageGenerationService.js'
+import { createImageGenerationService, ImageGenerationError } from './imageGenerationService.js'
 
 const config = {
   inviteCode: 'friends-only',
@@ -51,6 +51,56 @@ describe('image generation service', () => {
     const service = createImageGenerationService(config, fetcher as typeof fetch)
     await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.3', prompt: 'empty' }))
       .rejects.toThrow('upstream_invalid_response')
+  })
+
+  it('preserves safe diagnostics from an HTTP 200 upstream error payload', async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      error: {
+        message: 'sensitive upstream details',
+        code: 502,
+        request_id: 'req_embedded_error'
+      }
+    }), { status: 200 }))
+    const service = createImageGenerationService(config, fetcher as typeof fetch)
+
+    const error = await service.generate({
+      inviteCode: 'friends-only',
+      ip: '127.0.0.7',
+      prompt: 'test'
+    }).catch(caught => caught)
+
+    expect(error).toBeInstanceOf(ImageGenerationError)
+    expect(error).toMatchObject({
+      message: 'upstream_unavailable',
+      upstreamCode: 502,
+      requestId: 'req_embedded_error'
+    })
+    expect(JSON.stringify(error)).not.toContain('sensitive upstream details')
+  })
+
+  it('preserves safe diagnostics from a rejected upstream response', async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      error: {
+        message: 'account rejected',
+        code: 403
+      },
+      request_id: 'req_rejected'
+    }), { status: 403 }))
+    const service = createImageGenerationService(config, fetcher as typeof fetch)
+
+    const error = await service.generate({
+      inviteCode: 'friends-only',
+      ip: '127.0.0.8',
+      prompt: 'test'
+    }).catch(caught => caught)
+
+    expect(error).toBeInstanceOf(ImageGenerationError)
+    expect(error).toMatchObject({
+      message: 'upstream_rejected',
+      upstreamCode: 403,
+      requestId: 'req_rejected'
+    })
+    expect(JSON.stringify(error)).not.toContain('account rejected')
   })
 
   it('maps valid reference images into multimodal message content', async () => {
