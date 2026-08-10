@@ -35,6 +35,7 @@
 
 ## Git and deployment
 
+- Write Git commit messages in Chinese.
 - Do not commit secrets, `.env.production`, or generated local process state.
 - Do not edit production files directly on the server.
 - Production deployment uses the approved GitHub workflow and repository deployment scripts.
