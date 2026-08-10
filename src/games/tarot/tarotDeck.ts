@@ -35,7 +35,21 @@ export interface TarotReading {
   synthesis: string
   advice: string[]
   cautions: string[]
+  cardAnalyses: TarotCardAnalysis[]
+  next24Hours: string
+  next7Days: string
+  misreadings: string[]
   createdAt: string
+}
+
+export interface TarotCardAnalysis {
+  positionRole: string
+  symbolism: string
+  orientation: string
+  questionConnection: string
+  realWorldPattern: string
+  action: string
+  caution: string
 }
 
 export const QUESTION_CATEGORIES: Array<{ key: TarotCategory; label: string; description: string; icon: string }> = [
@@ -200,22 +214,52 @@ export function buildSynthesis(drawn: DrawnCard[]): string {
   return '牌阵同时出现推进与阻滞的信号，说明事情并非单一答案。先处理最明显的阻碍，再利用已经成熟的条件向前推进。'
 }
 
-/** 生成完整解读 */
-export function createReading(category: TarotCategory, spread: TarotSpreadKey): TarotReading {
-  const drawn = drawCards(spread)
+function positionRole(position: string): string {
+  return ({ '过去': '过去：说明形成当前局面的背景、惯性或尚未消化的经验。', '现在': '现在：指出此刻最值得如实面对的条件与选择。', '未来': '未来：展示维持当前方式时较可能展开的趋势，而非固定命运。', '核心指引': '核心指引：把复杂问题收束到眼下最值得练习的一件事。' } as Record<string, string>)[position] ?? `「${position}」牌位：揭示这部分经验在问题中的作用。`
+}
+
+export function buildCardAnalysis(drawn: DrawnCard, question: string): TarotCardAnalysis {
+  const direction = drawn.reversed ? '逆位' : '正位'
+  const meaning = drawn.reversed ? drawn.card.reversed : drawn.card.upright
+  const [first, second, third] = drawn.card.keywords
   return {
-    question: QUESTION_PROMPTS[category][0],
+    positionRole: positionRole(drawn.position),
+    symbolism: `「${drawn.card.name}」的象征核心是${first}、${second}与${third}；它邀请你先看见这些力量在现实中的具体形态。`,
+    orientation: `${direction}并不等于好坏判断。此刻它提示：${meaning}`,
+    questionConnection: `放回你的问题“${question}”，这张牌更像在追问：你是否愿意围绕“${first}”重新确认真正想守住的方向？`,
+    realWorldPattern: drawn.reversed ? `现实中可能表现为节奏失衡、信息不足或把${second}推得太急；先辨认哪里出现了消耗。` : `现实中可能表现为一个可利用的机会、一次需要坦诚沟通的时刻，或把${second}落实到日程的行动。`,
+    action: `在未来 24 小时内，做一件与“${first}”有关、十五分钟内能完成的小事，并记录完成后的感受与现实反馈。`,
+    caution: drawn.reversed ? `避免把逆位解读成失败。它更像提醒你放慢、核对事实，并给“${third}”留出修正空间。` : `避免把顺位当作保证。保持“${third}”的弹性，用实际反馈而不是想象校正下一步。`
+  }
+}
+
+export function buildProfessionalReading(question: string, spread: TarotSpreadKey, selectedCards?: DrawnCard[]): TarotReading {
+  const drawn = selectedCards ?? drawCards(spread)
+  const safeQuestion = question.trim() || '我现在最需要看清与落实的是什么？'
+  const category: TarotCategory = 'overall'
+  const cardAnalyses = drawn.map((item) => buildCardAnalysis(item, safeQuestion))
+  return {
+    question: safeQuestion,
     category,
     spread,
     drawn,
     cardTexts: drawn.map((item) => interpretCard(item, category)),
     closing: buildClosing(drawn, category),
-    summary: buildSummary(drawn, category),
+    summary: `围绕“${safeQuestion}”，牌面建议你先从「${drawn[0]?.card.name ?? '当下'}」所提示的现实行动开始，而不是急于寻找唯一答案。`,
     synthesis: buildSynthesis(drawn),
-    advice: buildAdvice(drawn),
-    cautions: buildCautions(drawn),
+    advice: cardAnalyses.map((item) => item.action).slice(0, 2),
+    cautions: cardAnalyses.map((item) => item.caution).slice(0, 2),
+    cardAnalyses,
+    next24Hours: cardAnalyses[0]?.action ?? '把问题写成一句可执行的话，再完成其中最小的一步。',
+    next7Days: `未来 7 天观察“${drawn.map((item) => item.card.keywords[0]).join('、')}”是否在你的日程、关系或情绪中反复出现；记录事实后再调整判断。`,
+    misreadings: cardAnalyses.map((item) => item.caution).slice(0, 3),
     createdAt: new Date().toISOString()
   }
+}
+
+/** 生成完整解读 */
+export function createReading(category: TarotCategory, spread: TarotSpreadKey): TarotReading {
+  return buildProfessionalReading(QUESTION_PROMPTS[category][0], spread)
 }
 
 /** 生成分享到聊天室的卡片式文本 */

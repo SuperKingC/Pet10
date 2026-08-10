@@ -7,7 +7,7 @@ import {
   buildShareText,
   createReading,
   drawCards,
-  interpretCard
+  interpretCard, buildProfessionalReading
   , buildSynthesis
 } from './tarotDeck'
 
@@ -56,6 +56,29 @@ describe('structured reading', () => {
     const synthesis = buildSynthesis(reading.drawn)
     expect(synthesis.length).toBeGreaterThan(20)
     expect(reading.synthesis).toBe(synthesis)
+  })
+})
+
+describe('professional ritual reading', () => {
+  it('builds a category-free reading around the actual question', () => {
+    const reading = buildProfessionalReading('我应该如何处理最近的合作分歧？', 'triple')
+    expect(reading.question).toBe('我应该如何处理最近的合作分歧？')
+    expect(reading.cardAnalyses).toHaveLength(3)
+    expect(reading.next24Hours.length).toBeGreaterThan(8)
+    expect(reading.next7Days.length).toBeGreaterThan(8)
+    expect(reading.misreadings.length).toBeGreaterThan(0)
+  })
+
+  it('gives every card a seven-part analysis and keeps reversal descriptive', () => {
+    const reading = buildProfessionalReading('我该怎样重建自己的节奏？', 'single')
+    const analysis = reading.cardAnalyses[0]
+    expect(analysis.positionRole.length).toBeGreaterThan(4)
+    expect(analysis.symbolism.length).toBeGreaterThan(8)
+    expect(analysis.orientation.length).toBeGreaterThan(8)
+    expect(analysis.questionConnection).toContain(reading.question)
+    expect(analysis.realWorldPattern.length).toBeGreaterThan(8)
+    expect(analysis.action.length).toBeGreaterThan(8)
+    expect(analysis.caution.length).toBeGreaterThan(8)
   })
 })
 

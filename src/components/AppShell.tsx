@@ -26,6 +26,7 @@ import { TabBar, type TabKey } from './TabBar'
 import { GobangGame } from '../games/gobang/GobangGame'
 import { MapScreen } from '../games/map/MapScreen'
 import { TarotGame } from '../games/tarot/TarotGame'
+import { preloadTarotArtwork } from '../games/tarot/tarotAssets'
 import { FortuneDetail } from './FortuneDetail'
 import { mountFortuneHistory } from '../services/fortuneHistory'
 
@@ -78,6 +79,7 @@ async function fileToAvatarDataUrl(file: File): Promise<string> {
 }
 
 export function AppShell({ session, onLogout }: AppShellProps) {
+  const [tarotLoad, setTarotLoad] = useState<{ progress: number; error?: string }>()
   const [profile, setProfile] = useState<UserProfile>(() => session
     ? {
         id: session.user.id,
@@ -319,6 +321,21 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     ...(pairRoom?.friend ? { [pairRoom.friend.id]: pairRoom.friend.displayName } : {})
   }
 
+  async function openGame(game: 'tarot' | 'gobang' | 'map') {
+    if (game !== 'tarot') {
+      setOverlay(game)
+      return
+    }
+    setTarotLoad({ progress: 0 })
+    try {
+      await preloadTarotArtwork(undefined, (progress) => setTarotLoad({ progress }))
+      setTarotLoad(undefined)
+      setOverlay('tarot')
+    } catch {
+      setTarotLoad({ progress: 0, error: '资源下载失败，请检查网络后重试' })
+    }
+  }
+
   return (
     <main className="app-shell-v2">
       {/* 四面板常驻挂载（display 切换），切 tab 不丢状态 */}
@@ -338,7 +355,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           friendNames={friendNames}
           onAction={handlePetAction}
           onOpenMemories={() => setOverlay('memory')}
-          onOpenGame={(game) => setOverlay(game)}
+          onOpenGame={(game) => void openGame(game)}
         />
       </section>
       <section className={`tab-panel ${activeTab === 'calendar' ? 'tab-panel--active' : ''}`}>
@@ -419,6 +436,21 @@ export function AppShell({ session, onLogout }: AppShellProps) {
       )}
       {overlay === 'tarot' && (
         <TarotGame onClose={() => setOverlay(null)} onShareToChat={shareTarotToChat} />
+      )}
+      {tarotLoad && (
+        <section className="tarot-download" role="dialog" aria-modal="true" aria-label="塔罗资源下载">
+          <div className="tarot-download__sigil" aria-hidden="true"><span>II</span></div>
+          <h2>{tarotLoad.error ? '资源尚未准备好' : '资源下载中'}</h2>
+          <p>{tarotLoad.error ?? '正在准备 22 张手绘大阿卡纳'}</p>
+          <div className="tarot-download__bar" aria-label={`下载进度 ${Math.round(tarotLoad.progress * 100)}%`}>
+            <span style={{ width: `${tarotLoad.progress * 100}%` }} />
+          </div>
+          <strong>{Math.round(tarotLoad.progress * 100)}%</strong>
+          <div className="tarot-download__actions">
+            {tarotLoad.error && <button onClick={() => void openGame('tarot')}>重新下载</button>}
+            <button onClick={() => setTarotLoad(undefined)}>关闭</button>
+          </div>
+        </section>
       )}
       {overlay === 'avatar' && (
         <>
