@@ -3,13 +3,16 @@ import {
   MAJOR_ARCANA,
   QUESTION_CATEGORIES,
   SPREADS,
-  buildClosing,
-  buildShareText,
-  createReading,
-  drawCards,
-  interpretCard, buildProfessionalReading
-  , buildSynthesis
+  drawCards
 } from './tarotDeck'
+import {
+  buildClosing,
+  buildProfessionalReading,
+  buildShareText,
+  buildSynthesis,
+  createReading,
+  interpretCard
+} from './tarotReading'
 
 describe('tarot deck completeness', () => {
   it('包含完整的 22 张大阿卡纳且编号唯一', () => {

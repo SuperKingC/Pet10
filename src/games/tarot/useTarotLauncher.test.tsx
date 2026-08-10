@@ -1,0 +1,52 @@
+import { act } from 'react'
+import { createRoot } from 'react-dom/client'
+import { describe, expect, it, vi } from 'vitest'
+import { useTarotLauncher } from './useTarotLauncher'
+
+;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+
+function Harness({
+  options,
+  onReady
+}: {
+  options: Parameters<typeof useTarotLauncher>[0]
+  onReady(value: ReturnType<typeof useTarotLauncher>): void
+}) {
+  const value = useTarotLauncher(options)
+  onReady(value)
+  return null
+}
+
+describe('tarot launcher', () => {
+  it('opens tarot after all assets preload', async () => {
+    const preload = vi.fn().mockImplementation(async (_urls, onProgress) => {
+      onProgress(0.5)
+      onProgress(1)
+    })
+    const onOpen = vi.fn()
+    let current!: ReturnType<typeof useTarotLauncher>
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => root.render(<Harness options={{ preload, onOpen }} onReady={(value) => { current = value }} />))
+    await act(async () => { await current.open() })
+
+    expect(preload).toHaveBeenCalledOnce()
+    expect(onOpen).toHaveBeenCalledOnce()
+    expect(current.load).toBeUndefined()
+    act(() => root.unmount())
+  })
+
+  it('keeps an actionable error state when preload fails', async () => {
+    const preload = vi.fn().mockRejectedValue(new Error('network'))
+    let current!: ReturnType<typeof useTarotLauncher>
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => root.render(<Harness options={{ preload, onOpen: vi.fn() }} onReady={(value) => { current = value }} />))
+    await act(async () => { await current.open() })
+
+    expect(current.load).toEqual({ progress: 0, error: '资源下载失败，请检查网络后重试' })
+    act(() => root.unmount())
+  })
+})

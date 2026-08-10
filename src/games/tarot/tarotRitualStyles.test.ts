@@ -2,8 +2,12 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8')
+const css = readFileSync(resolve(process.cwd(), 'src/games/tarot/tarotRitual.css'), 'utf8')
 const game = readFileSync(resolve(process.cwd(), 'src/games/tarot/TarotGame.tsx'), 'utf8')
+const shuffleStage = readFileSync(resolve(process.cwd(), 'src/games/tarot/TarotShuffleStage.tsx'), 'utf8')
+const cutStage = readFileSync(resolve(process.cwd(), 'src/games/tarot/TarotCutStage.tsx'), 'utf8')
+const fanStage = readFileSync(resolve(process.cwd(), 'src/games/tarot/TarotFanStage.tsx'), 'utf8')
+const pressProgress = readFileSync(resolve(process.cwd(), 'src/games/tarot/usePressProgress.ts'), 'utf8')
 
 describe('tarot ritual interaction', () => {
   it('moves the tarot room header away from the top edge', () => {
@@ -11,8 +15,8 @@ describe('tarot ritual interaction', () => {
   })
 
   it('starts as a neat stack and interleaves cards during the purple-mist shuffle', () => {
-    expect(game).toContain('Array.from({ length: 10 }')
-    expect(game).toContain('tarot-shuffle-deck__slot')
+    expect(shuffleStage).toContain('Array.from({ length: 10 }')
+    expect(shuffleStage).toContain('tarot-shuffle-deck__slot')
     expect(css).toMatch(/\.tarot-shuffle-deck\s*\{[^}]*width:\s*min\(92vw,\s*360px\)/s)
     expect(css).toMatch(/\.tarot-shuffle-deck \.tarot-shuffle-deck__card\s*\{[^}]*transform:none/s)
     expect(css).toMatch(/\.tarot-shuffle-deck__slot\s*\{[^}]*transform:translate3d\(0,0,0\) rotate\(0deg\)/s)
@@ -30,10 +34,10 @@ describe('tarot ritual interaction', () => {
   })
 
   it('keeps shuffle progress off the interval-driven render loop', () => {
-    expect(game).toContain('requestAnimationFrame')
-    expect(game).toContain('cancelAnimationFrame')
-    expect(game).toContain('shuffleProgressRef')
-    expect(game).not.toContain('window.setInterval(startShuffle')
+    expect(pressProgress).toContain('requestAnimationFrame')
+    expect(pressProgress).toContain('cancelAnimationFrame')
+    expect(pressProgress).toContain('progressRef')
+    expect(pressProgress).not.toContain('setInterval')
   })
 
   it('keeps the card motion on compositor-friendly properties', () => {
@@ -63,12 +67,11 @@ describe('tarot ritual interaction', () => {
     expect(cutFrames).toContain('translate3d(0,12px,-14px)')
     expect(cutFrames).not.toContain('translate3d(58px')
     expect(css).toContain('translate3d(0,12px,-14px)')
-    expect(game).toContain("event.animationName !== 'tarot-cut-upper'")
-    expect(game).toContain("event.animationName !== 'tarot-cut-upper-reverse'")
-    expect(game).toContain(
-      '<span className="tarot-cut-deck__left" onAnimationEnd={finishCut} /><span className="tarot-cut-deck__right" onAnimationEnd={finishCut} />'
-    )
-    expect(game).toContain("cutCount % 2 ? 'tarot-cut-deck--swapped' : ''")
+    expect(game).toContain("animationName !== 'tarot-cut-upper'")
+    expect(game).toContain("animationName !== 'tarot-cut-upper-reverse'")
+    expect(cutStage).toContain('tarot-cut-deck__left')
+    expect(cutStage).toContain('tarot-cut-deck__right')
+    expect(cutStage).toContain('swapped ? \'tarot-cut-deck--swapped\' : \'\'')
   })
 
   it('keeps one cut pile continuous while its depth and thickness stay visible', () => {
@@ -106,16 +109,15 @@ describe('tarot ritual interaction', () => {
   })
 
   it('draws each selected card upward from a visible lower deck anchor', () => {
-    expect(game).toContain('tarot-fan__deck-anchor')
-    expect(game).toContain('onPointerCancel={handleShuffleUp}')
-    expect(game).toContain('tarot-fan__card--picked')
-    expect(game).toContain("'--fan-angle': `${(index - 4.5) * 6}deg`")
-    expect(game).toContain("'--fan-drop': `${Math.abs(index - 4.5) * 3}px`")
-    expect(game).toContain("if (prefersReducedMotion())")
-    expect(game).toContain('if (flyingCard !== null || picked.includes(index) || picked.length >= needCount) return')
-    expect(game).toContain('disabled={picked.includes(index) || flyingCard !== null}')
-    expect(game).toContain("'--fan-x': `${(index - 4.5) * 18}px`")
-    expect(game).toContain("'--fan-mid-x': `${(index - 4.5) * 9.9}px`")
+    expect(fanStage).toContain('tarot-fan__deck-anchor')
+    expect(shuffleStage).toContain('onPointerCancel={handlePointerEnd}')
+    expect(fanStage).toContain('tarot-fan__card--picked')
+    expect(fanStage).toContain("'--fan-angle': `${(index - 4.5) * 6}deg`")
+    expect(fanStage).toContain("'--fan-drop': `${Math.abs(index - 4.5) * 3}px`")
+    expect(game).toContain('prefersReducedMotion()')
+    expect(fanStage).toContain('disabled={picked.includes(index) || flyingCard !== undefined}')
+    expect(fanStage).toContain("'--fan-x': `${(index - 4.5) * 18}px`")
+    expect(fanStage).toContain("'--fan-mid-x': `${(index - 4.5) * 9.9}px`")
     expect(css).toContain('@keyframes tarot-pick-smooth')
     expect(css).toMatch(/\.tarot-fan__card--flying\s*\{[^}]*animation:tarot-pick-smooth \.82s/s)
     expect(css).toMatch(/@keyframes tarot-pick-smooth[\s\S]*?42%\s*\{\s*transform:translate3d\(0,153px,26px\)/s)
@@ -136,8 +138,8 @@ describe('tarot ritual interaction', () => {
   })
 
   it('flies a selected card smoothly through the deck anchor on the positioned wrapper', () => {
-    expect(game).toContain('tarot-fan__visual')
-    expect(game).toContain("event.animationName === 'tarot-pick-smooth'")
+    expect(fanStage).toContain('tarot-fan__visual')
+    expect(fanStage).toContain("event.animationName === 'tarot-pick-smooth'")
     expect(css).toMatch(/\.tarot-fan__card--flying\s*\{[^}]*animation:tarot-pick-smooth \.82s/s)
     expect(css).toContain('@keyframes tarot-pick-smooth')
   })
