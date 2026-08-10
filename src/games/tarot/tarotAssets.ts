@@ -26,6 +26,7 @@ export const TAROT_ARTWORK: Record<number, string> = {
 export const TAROT_ARTWORK_URLS = Object.values(TAROT_ARTWORK)
 export const TAROT_SANCTUARY_BACKGROUND = '/tarot/ui/sanctuary-background.jpg'
 export const TAROT_CARD_BACK = '/tarot/ui/card-back.jpg'
+export const TAROT_CRITICAL_RESOURCE_URLS = [TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 export const TAROT_RESOURCE_URLS = [...TAROT_ARTWORK_URLS, TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 
 function loadImage(url: string): Promise<void> {
@@ -40,12 +41,33 @@ function loadImage(url: string): Promise<void> {
 export async function preloadTarotArtwork(
   urls: string[] = TAROT_RESOURCE_URLS,
   onProgress: (progress: number) => void = () => undefined,
-  loader: (url: string) => Promise<void> = loadImage
+  loader: (url: string) => Promise<void> = loadImage,
+  options: { concurrency?: number } = {}
 ): Promise<void> {
-  let completed = 0
-  for (const url of urls) {
-    await loader(url)
-    completed += 1
-    onProgress(completed / urls.length)
+  if (urls.length === 0) {
+    onProgress(1)
+    return
   }
+
+  let completed = 0
+  let nextIndex = 0
+  const concurrency = Math.max(1, Math.min(options.concurrency ?? 3, urls.length))
+
+  async function worker() {
+    while (nextIndex < urls.length) {
+      const index = nextIndex
+      nextIndex += 1
+      const url = urls[index]
+      try {
+        await loader(url)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`${url}: ${message}`)
+      }
+      completed += 1
+      onProgress(completed / urls.length)
+    }
+  }
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()))
 }
