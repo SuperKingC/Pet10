@@ -18,6 +18,7 @@ describe('GitHub workflows', () => {
   it('requires the production environment and calls fixed deploy scripts', async () => {
     const workflow = await readFile(resolve(root, '.github/workflows/deploy-production.yml'), 'utf8')
     expect(workflow).toContain('name: production')
+    expect(workflow).not.toContain('url: ${{ secrets.')
     expect(workflow).toContain('cancel-in-progress: false')
     expect(workflow).toContain('fetch-depth: 0')
     expect(workflow).toContain('git merge-base --is-ancestor "$REVISION" origin/main')
