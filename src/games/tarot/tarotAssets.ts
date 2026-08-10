@@ -29,19 +29,12 @@ export const TAROT_CARD_BACK = '/tarot/ui/card-back.jpg'
 export const TAROT_CRITICAL_RESOURCE_URLS = [TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 export const TAROT_RESOURCE_URLS = [...TAROT_ARTWORK_URLS, TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 
-function loadImage(url: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.onload = () => resolve()
-    image.onerror = () => reject(new Error(`塔罗资源下载失败：${url}`))
-    image.src = url
-  })
-}
+type TarotAssetLoader = (url: string, onProgress?: ImageResourceProgress) => Promise<void>
 
 export async function preloadTarotArtwork(
   urls: string[] = TAROT_RESOURCE_URLS,
   onProgress: (progress: number) => void = () => undefined,
-  loader: (url: string) => Promise<void> = loadImage,
+  loader: TarotAssetLoader = loadImageResource,
   options: { concurrency?: number } = {}
 ): Promise<void> {
   if (urls.length === 0) {
@@ -49,9 +42,23 @@ export async function preloadTarotArtwork(
     return
   }
 
-  let completed = 0
   let nextIndex = 0
+  const loadedBytes = new Array<number>(urls.length).fill(0)
+  const totalBytes = new Array<number | undefined>(urls.length).fill(undefined)
+  const completedResources = new Array<boolean>(urls.length).fill(false)
   const concurrency = Math.max(1, Math.min(options.concurrency ?? 3, urls.length))
+
+  function reportProgress() {
+    const knownTotals = totalBytes.every((total): total is number => total !== undefined && total > 0)
+    const progress = knownTotals
+      ? loadedBytes.reduce((sum, value) => sum + value, 0) / totalBytes.reduce((sum, value) => sum + value, 0)
+      : urls.reduce((sum, _url, index) => {
+          if (completedResources[index]) return sum + 1
+          const total = totalBytes[index]
+          return sum + (total ? Math.min(1, loadedBytes[index] / total) : 0)
+        }, 0) / urls.length
+    onProgress(Math.min(1, progress))
+  }
 
   async function worker() {
     while (nextIndex < urls.length) {
@@ -59,15 +66,21 @@ export async function preloadTarotArtwork(
       nextIndex += 1
       const url = urls[index]
       try {
-        await loader(url)
+        await loader(url, (loaded, total) => {
+          loadedBytes[index] = loaded
+          totalBytes[index] = total
+          reportProgress()
+        })
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
         throw new Error(`${url}: ${message}`)
       }
-      completed += 1
-      onProgress(completed / urls.length)
+      completedResources[index] = true
+      if (totalBytes[index]) loadedBytes[index] = totalBytes[index]
+      reportProgress()
     }
   }
 
   await Promise.all(Array.from({ length: concurrency }, () => worker()))
 }
+import { loadImageResource, type ImageResourceProgress } from '../../services/imageResourceLoader'

@@ -1,7 +1,7 @@
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { describe, expect, it, vi } from 'vitest'
-import { TAROT_CRITICAL_RESOURCE_URLS } from './tarotAssets'
+import { TAROT_RESOURCE_URLS } from './tarotAssets'
 import { useTarotLauncher } from './useTarotLauncher'
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -32,7 +32,7 @@ describe('tarot launcher', () => {
     act(() => root.render(<Harness options={{ preload, onOpen }} onReady={(value) => { current = value }} />))
     await act(async () => { await current.open() })
 
-    expect(preload).toHaveBeenCalledWith(TAROT_CRITICAL_RESOURCE_URLS, expect.any(Function))
+    expect(preload).toHaveBeenCalledWith(TAROT_RESOURCE_URLS, expect.any(Function))
     expect(onOpen).toHaveBeenCalledOnce()
     expect(current.load).toBeUndefined()
     act(() => root.unmount())

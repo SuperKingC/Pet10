@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { TAROT_ARTWORK, preloadTarotArtwork } from './tarotAssets'
+import { useMemo, useState } from 'react'
 import { SPREADS } from './tarotDeck'
 import { buildShareText, type TarotReading } from './tarotReading'
 import { listReadingHistory } from './tarotHistory'
@@ -33,12 +32,6 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
     () => SPREADS.find((spread) => spread.key === state.spread)?.count ?? 1,
     [state.spread]
   )
-
-  useEffect(() => {
-    if (state.stage !== 'fan' && state.stage !== 'reveal' && state.stage !== 'reading') return
-    const urls = [...new Set(state.drawn.map((drawn) => TAROT_ARTWORK[drawn.card.id]))]
-    void preloadTarotArtwork(urls).catch(() => undefined)
-  }, [state])
 
   async function share() {
     if (state.stage !== 'reading' || sharing || state.shared) return

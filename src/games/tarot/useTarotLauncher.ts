@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { TAROT_CRITICAL_RESOURCE_URLS, preloadTarotArtwork } from './tarotAssets'
+import { TAROT_RESOURCE_URLS, preloadTarotArtwork } from './tarotAssets'
 
 interface TarotLauncherOptions {
   preload?: typeof preloadTarotArtwork
@@ -12,7 +12,7 @@ export function useTarotLauncher({ preload = preloadTarotArtwork, onOpen }: Taro
   const open = useCallback(async () => {
     setLoad({ progress: 0 })
     try {
-      await preload(TAROT_CRITICAL_RESOURCE_URLS, (progress) => setLoad({ progress }))
+      await preload(TAROT_RESOURCE_URLS, (progress) => setLoad({ progress }))
       setLoad(undefined)
       onOpen()
     } catch {

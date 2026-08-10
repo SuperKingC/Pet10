@@ -26,6 +26,7 @@ import { TabBar, type TabKey } from './TabBar'
 import { GobangGame } from '../games/gobang/GobangGame'
 import { MapScreen } from '../games/map/MapScreen'
 import { TarotGame } from '../games/tarot/TarotGame'
+import { formatTarotDownloadTitle } from '../games/tarot/tarotDownloadStatus'
 import { useTarotLauncher } from '../games/tarot/useTarotLauncher'
 import { FortuneDetail } from './FortuneDetail'
 import { mountFortuneHistory } from '../services/fortuneHistory'
@@ -433,12 +434,11 @@ export function AppShell({ session, onLogout }: AppShellProps) {
       {tarotLauncher.load && (
         <section className="tarot-download" role="dialog" aria-modal="true" aria-label="塔罗资源下载">
           <div className="tarot-download__sigil" aria-hidden="true"><span>II</span></div>
-          <h2>{tarotLauncher.load.error ? '资源尚未准备好' : '资源下载中'}</h2>
-          <p>{tarotLauncher.load.error ?? '正在准备 22 张手绘大阿卡纳'}</p>
+          <h2>{tarotLauncher.load.error ? '资源尚未准备好' : formatTarotDownloadTitle(tarotLauncher.load.progress)}</h2>
+          <p>{tarotLauncher.load.error ?? '正在准备 22 张牌面与塔罗场景'}</p>
           <div className="tarot-download__bar" aria-label={`下载进度 ${Math.round(tarotLauncher.load.progress * 100)}%`}>
             <span style={{ width: `${tarotLauncher.load.progress * 100}%` }} />
           </div>
-          <strong>{Math.round(tarotLauncher.load.progress * 100)}%</strong>
           <div className="tarot-download__actions">
             {tarotLauncher.load.error && <button onClick={() => void tarotLauncher.open()}>重新下载</button>}
             <button onClick={tarotLauncher.closeLoad}>关闭</button>

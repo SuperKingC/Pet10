@@ -40,6 +40,18 @@ describe('tarot artwork preloader', () => {
     expect(progress).toEqual([1 / 3, 2 / 3, 1])
   })
 
+  it('reports byte progress before an image finishes downloading', async () => {
+    const progress: number[] = []
+    const load = vi.fn(async (_url: string, onProgress?: (loaded: number, total?: number) => void) => {
+      onProgress?.(25, 100)
+      onProgress?.(75, 100)
+    })
+
+    await preloadTarotArtwork(['/a.jpg'], (value) => progress.push(value), load)
+
+    expect(progress).toEqual([0.25, 0.75, 1])
+  })
+
   it('rejects when an image cannot be downloaded', async () => {
     const load = vi.fn(async (url: string) => {
       if (url === '/broken.jpg') throw new Error('download failed')
