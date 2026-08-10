@@ -8,9 +8,13 @@ import { clearAppBadge } from './services/appBadge'
 import { ImageGenerationRoom } from './components/ImageGenerationRoom'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
+import { TarotDevEntry } from './dev/tarot/TarotDevEntry'
 import './styles.css'
 
 function App() {
+  if (import.meta.env.DEV && window.location.pathname === '/dev/tarot') {
+    return <TarotDevEntry />
+  }
   if (window.location.pathname === '/image') return <ImageGenerationRoom />
   const [session, setSession] = useState<ServerSession>()
   const [loading, setLoading] = useState(!runtimeConfig.useMockApi)
