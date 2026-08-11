@@ -48,4 +48,22 @@ describe('Lighthouse deployment scripts', () => {
     expect(rollback).toContain('resolve_target_commit "${1:-$PREVIOUS_COMMIT}"')
     expect(rollback).not.toContain('git cat-file -e')
   })
+
+  it('passes the public tarot asset origin into the frontend build', async () => {
+    const dockerfile = await readFile(resolve(root, 'Dockerfile'), 'utf8')
+    const compose = await readFile(resolve(root, 'docker-compose.prod.yml'), 'utf8')
+
+    expect(dockerfile).toContain('ARG VITE_TAROT_ASSET_BASE_URL')
+    expect(compose).toContain('VITE_TAROT_ASSET_BASE_URL: "${TAROT_ASSET_BASE_URL:-https://pet10-tarot-1300973162.cos.ap-guangzhou.myqcloud.com/pet10-v1}"')
+  })
+
+  it('caches immutable assets while revalidating the app shell', async () => {
+    const nginx = await readFile(resolve(root, 'deploy/nginx.conf'), 'utf8')
+
+    expect(nginx).toContain('location ^~ /assets/')
+    expect(nginx).toContain('Cache-Control "public, max-age=31536000, immutable"')
+    expect(nginx).toContain('location ~* ^/(tarot|icons|pet)/')
+    expect(nginx).toContain('location = /sw.js')
+    expect(nginx).toContain('Cache-Control "no-cache"')
+  })
 })

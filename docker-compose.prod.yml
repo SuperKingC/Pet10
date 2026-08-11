@@ -22,6 +22,7 @@ services:
       args:
         VITE_USE_MOCK_API: "false"
         VITE_API_BASE_URL: "/"
+        VITE_TAROT_ASSET_BASE_URL: "${TAROT_ASSET_BASE_URL:-https://pet10-tarot-1300973162.cos.ap-guangzhou.myqcloud.com/pet10-v1}"
     restart: unless-stopped
     expose:
       - "80"

@@ -1,31 +1,39 @@
+import { loadImageResource, type ImageResourceProgress } from '../../services/imageResourceLoader'
+import { runtimeConfig } from '../../services/runtimeConfig'
+
+export function resolveTarotAssetUrl(path: string, baseUrl = runtimeConfig.tarotAssetBaseUrl): string {
+  if (!baseUrl) return path
+  return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
+}
+
 export const TAROT_ARTWORK: Record<number, string> = {
-  0: '/tarot/cards/the-fool.jpg',
-  1: '/tarot/cards/the-magician.jpg',
-  2: '/tarot/cards/high-priestess.jpg',
-  3: '/tarot/cards/the-empress.jpg',
-  4: '/tarot/cards/the-emperor.jpg',
-  5: '/tarot/cards/the-hierophant.jpg',
-  6: '/tarot/cards/the-lovers.jpg',
-  7: '/tarot/cards/the-chariot.jpg',
-  8: '/tarot/cards/strength.jpg',
-  9: '/tarot/cards/the-hermit.jpg',
-  10: '/tarot/cards/wheel-of-fortune.jpg',
-  11: '/tarot/cards/justice.jpg',
-  12: '/tarot/cards/the-hanged-man.jpg',
-  13: '/tarot/cards/death.jpg',
-  14: '/tarot/cards/temperance.jpg',
-  15: '/tarot/cards/the-devil.jpg',
-  16: '/tarot/cards/the-tower.jpg',
-  17: '/tarot/cards/the-star.jpg',
-  18: '/tarot/cards/the-moon.jpg',
-  19: '/tarot/cards/the-sun.jpg',
-  20: '/tarot/cards/judgement.jpg',
-  21: '/tarot/cards/the-world.jpg'
+  0: resolveTarotAssetUrl('/tarot/cards/the-fool.jpg'),
+  1: resolveTarotAssetUrl('/tarot/cards/the-magician.jpg'),
+  2: resolveTarotAssetUrl('/tarot/cards/high-priestess.jpg'),
+  3: resolveTarotAssetUrl('/tarot/cards/the-empress.jpg'),
+  4: resolveTarotAssetUrl('/tarot/cards/the-emperor.jpg'),
+  5: resolveTarotAssetUrl('/tarot/cards/the-hierophant.jpg'),
+  6: resolveTarotAssetUrl('/tarot/cards/the-lovers.jpg'),
+  7: resolveTarotAssetUrl('/tarot/cards/the-chariot.jpg'),
+  8: resolveTarotAssetUrl('/tarot/cards/strength.jpg'),
+  9: resolveTarotAssetUrl('/tarot/cards/the-hermit.jpg'),
+  10: resolveTarotAssetUrl('/tarot/cards/wheel-of-fortune.jpg'),
+  11: resolveTarotAssetUrl('/tarot/cards/justice.jpg'),
+  12: resolveTarotAssetUrl('/tarot/cards/the-hanged-man.jpg'),
+  13: resolveTarotAssetUrl('/tarot/cards/death.jpg'),
+  14: resolveTarotAssetUrl('/tarot/cards/temperance.jpg'),
+  15: resolveTarotAssetUrl('/tarot/cards/the-devil.jpg'),
+  16: resolveTarotAssetUrl('/tarot/cards/the-tower.jpg'),
+  17: resolveTarotAssetUrl('/tarot/cards/the-star.jpg'),
+  18: resolveTarotAssetUrl('/tarot/cards/the-moon.jpg'),
+  19: resolveTarotAssetUrl('/tarot/cards/the-sun.jpg'),
+  20: resolveTarotAssetUrl('/tarot/cards/judgement.jpg'),
+  21: resolveTarotAssetUrl('/tarot/cards/the-world.jpg')
 }
 
 export const TAROT_ARTWORK_URLS = Object.values(TAROT_ARTWORK)
-export const TAROT_SANCTUARY_BACKGROUND = '/tarot/ui/sanctuary-background.jpg'
-export const TAROT_CARD_BACK = '/tarot/ui/card-back.jpg'
+export const TAROT_SANCTUARY_BACKGROUND = resolveTarotAssetUrl('/tarot/ui/sanctuary-background.jpg')
+export const TAROT_CARD_BACK = resolveTarotAssetUrl('/tarot/ui/card-back.jpg')
 export const TAROT_CRITICAL_RESOURCE_URLS = [TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 export const TAROT_RESOURCE_URLS = [...TAROT_ARTWORK_URLS, TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 const TAROT_ESTIMATED_RESOURCE_BYTES = 5_118_840 / TAROT_RESOURCE_URLS.length
@@ -93,4 +101,3 @@ export async function preloadTarotArtwork(
 
   await Promise.all(Array.from({ length: concurrency }, () => worker()))
 }
-import { loadImageResource, type ImageResourceProgress } from '../../services/imageResourceLoader'
