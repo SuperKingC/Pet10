@@ -97,7 +97,7 @@ export function TarotFanStage({
             style={{
               '--fan-x': `${(index - 4.5) * 18}px`,
               '--fan-angle': `${(index - 4.5) * 6}deg`,
-              '--fan-drop': `${Math.abs(index - 4.5) * 3}px`
+              '--fan-drop': `${Math.round(Math.abs(index - 4.5) * 3)}px`
             } as CSSProperties}
             onClick={() => onPick(index)}
             disabled={picked.includes(index) || flyingCard !== undefined}

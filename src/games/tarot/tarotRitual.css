@@ -23,6 +23,7 @@
 .tarot-next:disabled { opacity: .4; box-shadow: none; }
 .tarot-skip { border: 0; background: transparent; color: #a99bc8; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .tarot-shuffle-deck__card { position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(160deg, #3a2f6b, #241d47); border: 1px solid rgba(184, 156, 240, .4); box-shadow: 0 10px 26px rgba(0, 0, 0, .4); }
+:where(.tarot-shuffle-deck__card,.tarot-spread__layout i,.tarot-cut-deck__face,.tarot-picked-card,.tarot-fan__visual,.tarot-fan-flight,.tarot-card3d__back,.tarot-card3d__front,.tarot-card3d__front img,.tarot-card__back,.tarot-card__front,.tarot-card__art,.tarot-reading__art) { image-rendering: -webkit-optimize-contrast; }
 .tarot-shuffle-deck__card:nth-child(1) { transform: rotate(-7deg) translateX(-9px); }
 .tarot-shuffle-deck__card:nth-child(2) { transform: rotate(4deg) translateX(7px); }
 .tarot-shuffle-deck em { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; font-style: normal; }
@@ -153,7 +154,7 @@
 .tarot-picked-card i { position:absolute;top:-11px;left:50%;translate:-50% 0;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#d8bd73;color:#24172f;font:700 12px Georgia,serif;font-style:normal; }
 .tarot-fan { position: relative; height: 260px; margin: 0; display: flex; justify-content: center; overflow: visible; }
 .tarot-fan__card { position: absolute; top: 48px; width: 58px; height: 92px; border: 0; border-radius: 9px; background: transparent; box-shadow: none; transform-origin: 50% 220%; transition: none; padding: 0; transform: translate3d(var(--fan-x,0),var(--fan-drop,0),0) rotate(var(--fan-angle,0deg)); }
-.tarot-fan__visual { position:absolute;inset:0;display:block;border:1px solid rgba(218,184,105,.58);border-radius:9px;background:url('/tarot/ui/card-back.jpg') center/cover;box-shadow:-2px 4px 0 rgba(8,5,14,.5),0 10px 20px rgba(0,0,0,.35);backface-visibility:hidden;will-change:transform,opacity; }
+.tarot-fan__visual { position:absolute;inset:0;display:block;border:1px solid rgba(218,184,105,.58);border-radius:9px;background:url('/tarot/ui/card-back.jpg') center/cover;box-shadow:-2px 4px 0 rgba(8,5,14,.5),0 10px 20px rgba(0,0,0,.35);backface-visibility:hidden; }
 .tarot-fan__card--picked { transform: translateY(-26px) !important; opacity: 0; visibility: hidden; pointer-events: none; }
 .tarot-fan__card--departing .tarot-fan__visual { opacity:0; }
 .tarot-fan-flight { position:fixed;z-index:1000;display:block;border:1px solid rgba(218,184,105,.58);border-radius:9px;background:url('/tarot/ui/card-back.jpg') center/cover;box-shadow:-2px 4px 0 rgba(8,5,14,.5),0 10px 20px rgba(0,0,0,.35);pointer-events:none;transform-origin:center;backface-visibility:hidden;will-change:transform,opacity; }

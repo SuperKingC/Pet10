@@ -10,6 +10,35 @@ const fanStage = readFileSync(resolve(process.cwd(), 'src/games/tarot/TarotFanSt
 const pressProgress = readFileSync(resolve(process.cwd(), 'src/games/tarot/usePressProgress.ts'), 'utf8')
 
 describe('tarot ritual interaction', () => {
+  it('uses one sharp rendering contract for every card-back and card-art scene', () => {
+    const cardImageSelectors = [
+      '.tarot-shuffle-deck__card',
+      '.tarot-spread__layout i',
+      '.tarot-cut-deck__face',
+      '.tarot-picked-card',
+      '.tarot-fan__visual',
+      '.tarot-fan-flight',
+      '.tarot-card3d__back',
+      '.tarot-card3d__front',
+      '.tarot-card3d__front img',
+      '.tarot-card__back',
+      '.tarot-card__front',
+      '.tarot-card__art',
+      '.tarot-reading__art'
+    ]
+
+    const imageQualityRule = css.match(/:where\(([^)]*)\)\s*\{[^}]*image-rendering:\s*-webkit-optimize-contrast/s)?.[0]
+    expect(imageQualityRule).toBeDefined()
+    for (const selector of cardImageSelectors) {
+      expect(imageQualityRule).toContain(selector)
+    }
+  })
+
+  it('keeps the static fan cards on whole-pixel vertical offsets without pre-compositing their artwork', () => {
+    expect(fanStage).toContain('Math.round(Math.abs(index - 4.5) * 3)')
+    expect(css).toMatch(/\.tarot-fan__visual\s*\{(?![^}]*will-change:)[^}]*(?=\})/s)
+  })
+
   it('moves the tarot room header away from the top edge', () => {
     expect(css).toMatch(/\.tarot-game__header\s*\{[^}]*padding:\s*calc\(20px \+ env\(safe-area-inset-top\)\)/s)
   })
@@ -91,7 +120,7 @@ describe('tarot ritual interaction', () => {
     expect(shuffleStage).toContain('onPointerCancel={handlePointerEnd}')
     expect(fanStage).toContain('tarot-fan__card--picked')
     expect(fanStage).toContain("'--fan-angle': `${(index - 4.5) * 6}deg`")
-    expect(fanStage).toContain("'--fan-drop': `${Math.abs(index - 4.5) * 3}px`")
+    expect(fanStage).toContain("'--fan-drop': `${Math.round(Math.abs(index - 4.5) * 3)}px`")
     expect(game).toContain('prefersReducedMotion()')
     expect(fanStage).toContain('disabled={picked.includes(index) || flyingCard !== undefined}')
     expect(fanStage).toContain("'--fan-x': `${(index - 4.5) * 18}px`")
