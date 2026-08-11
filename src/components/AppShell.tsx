@@ -22,6 +22,7 @@ import { MeTab } from './MeTab'
 import { MemoryPanel } from './MemoryPanel'
 import { NestTab } from './NestTab'
 import { NotificationCenter } from './NotificationCenter'
+import { PawMenu } from './PawMenu'
 import { TabBar, type TabKey } from './TabBar'
 import { GobangGame } from '../games/gobang/GobangGame'
 import { MapScreen } from '../games/map/MapScreen'
@@ -99,6 +100,7 @@ export function AppShell({ session, onLogout }: AppShellProps) {
   const [unread, setUnread] = useState<Record<string, number>>({})
   const [notificationUnread, setNotificationUnread] = useState(0)
   const [overlay, setOverlay] = useState<Overlay>(null)
+  const [pawMenuOpen, setPawMenuOpen] = useState(false)
   const [fortuneDetail, setFortuneDetail] = useState<Fortune>()
   const [mapVersion, setMapVersion] = useState(0)
 
@@ -330,6 +332,11 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     void tarotLauncher.open()
   }
 
+  function changeTab(tab: TabKey) {
+    setPawMenuOpen(false)
+    setActiveTab(tab)
+  }
+
   return (
     <main className="app-shell-v2">
       {/* 四面板常驻挂载（display 切换），切 tab 不丢状态 */}
@@ -349,7 +356,6 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           friendNames={friendNames}
           onAction={handlePetAction}
           onOpenMemories={() => setOverlay('memory')}
-          onOpenGame={openGame}
         />
       </section>
       <section className={`tab-panel ${activeTab === 'calendar' ? 'tab-panel--active' : ''}`}>
@@ -397,7 +403,19 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         />
       )}
 
-      <TabBar active={activeTab} onChange={setActiveTab} messageBadge={totalUnread} />
+      <PawMenu
+        open={pawMenuOpen}
+        pairRoom={pairRoom}
+        onClose={() => setPawMenuOpen(false)}
+        onOpenGame={openGame}
+      />
+      <TabBar
+        active={activeTab}
+        onChange={changeTab}
+        onTogglePawMenu={() => setPawMenuOpen((open) => !open)}
+        messageBadge={totalUnread}
+        pawMenuOpen={pawMenuOpen}
+      />
 
       {/* 全屏覆盖层 */}
       {overlay === 'feed' && (

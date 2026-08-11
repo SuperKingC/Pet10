@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { CodewordState, Conversation, ContributionStat, PetState } from '../domain/types'
+import type { Conversation, ContributionStat, PetState } from '../domain/types'
 import type { PetAction } from '../domain/petRules'
 import { socialApi } from '../services/socialApi'
-import { MAP_SPOT_COUNT } from '../games/map/chinaMap'
 import { PetActionBar } from './PetActionBar'
 import { PetStatusCard } from './PetStatusCard'
 
@@ -12,7 +11,6 @@ interface NestTabProps {
   friendNames: Record<string, string>
   onAction(action: PetAction): void
   onOpenMemories(): void
-  onOpenGame(game: 'tarot' | 'gobang' | 'map'): void
 }
 
 function greeting(): string {
@@ -25,45 +23,22 @@ function greeting(): string {
   return '该休息啦，小多利帮你暖好被窝'
 }
 
-export function NestTab({ pairRoom, pet, friendNames, onAction, onOpenMemories, onOpenGame }: NestTabProps) {
+export function NestTab({ pairRoom, pet, friendNames, onAction, onOpenMemories }: NestTabProps) {
   const [contributions, setContributions] = useState<ContributionStat[]>([])
-  const [codeword, setCodeword] = useState<CodewordState>()
-  const [codewordDraft, setCodewordDraft] = useState('')
-  const [codewordBusy, setCodewordBusy] = useState(false)
-  const [litCount, setLitCount] = useState(0)
 
   const roomId = pairRoom?.roomId
 
   const refresh = useCallback(async () => {
     if (!roomId) return
     try {
-      const [stats, word, lights] = await Promise.all([
-        socialApi.listContributions(roomId),
-        socialApi.getCodeword(roomId),
-        socialApi.listMapLights(roomId)
-      ])
-      setContributions(stats)
-      setCodeword(word)
-      setLitCount(lights.length)
+      setContributions(await socialApi.listContributions(roomId))
     } catch { /* 静默降级 */ }
   }, [roomId])
 
   useEffect(() => {
-    setCodeword(undefined)
     setContributions([])
     void refresh()
   }, [refresh])
-
-  async function submitCodeword() {
-    if (!roomId || !codewordDraft.trim() || codewordBusy) return
-    setCodewordBusy(true)
-    try {
-      setCodeword(await socialApi.answerCodeword(roomId, codewordDraft.trim()))
-      setCodewordDraft('')
-    } finally {
-      setCodewordBusy(false)
-    }
-  }
 
   if (!pairRoom) {
     return (
@@ -109,51 +84,6 @@ export function NestTab({ pairRoom, pet, friendNames, onAction, onOpenMemories, 
         </section>
       )}
 
-      {codeword && (
-        <section className="codeword-card">
-          <h3>每日暗号 <em>{codeword.day}</em></h3>
-          <p className="codeword-card__question">{codeword.question}</p>
-          {codeword.myAnswer ? (
-            <p className="codeword-card__mine">我的答案：{codeword.myAnswer}</p>
-          ) : (
-            <div className="codeword-card__input">
-              <input
-                value={codewordDraft}
-                onChange={(event) => setCodewordDraft(event.target.value)}
-                placeholder="写下你的答案…"
-                onKeyDown={(event) => { if (event.key === 'Enter') void submitCodeword() }}
-              />
-              <button disabled={codewordBusy} onClick={() => void submitCodeword()}>
-                {codewordBusy ? '提交中…' : '提交'}
-              </button>
-            </div>
-          )}
-          {codeword.partnerAnswer
-            ? <p className="codeword-card__partner">TA 的答案：{codeword.partnerAnswer}</p>
-            : <p className="codeword-card__waiting">{codeword.myAnswer ? '等 TA 也答完，就能互相看到啦…' : `已有 ${codeword.answeredCount} 人作答`}</p>}
-        </section>
-      )}
-
-      <section className="game-wall">
-        <h3>一起玩</h3>
-        <div className="game-wall__grid">
-          <button className="game-card game-card--tarot" onClick={() => onOpenGame('tarot')}>
-            <span className="game-card__icon">🔮</span>
-            <strong>塔罗占卜</strong>
-            <span>专业仪式流程，问一问心事</span>
-          </button>
-          <button className="game-card game-card--gobang" onClick={() => onOpenGame('gobang')}>
-            <span className="game-card__icon">⚫</span>
-            <strong>五子棋</strong>
-            <span>和好友实时对弈</span>
-          </button>
-          <button className="game-card game-card--map" onClick={() => onOpenGame('map')}>
-            <span className="game-card__icon">🐾</span>
-            <strong>足迹地图</strong>
-            <span>已点亮 {litCount}/{MAP_SPOT_COUNT}，一起去过的地方</span>
-          </button>
-        </div>
-      </section>
     </section>
   )
 }

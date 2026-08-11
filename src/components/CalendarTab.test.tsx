@@ -48,10 +48,12 @@ describe('daily fortune entry', () => {
     expect(markup).toContain('设置生日，查看今日运势')
   })
 
-  it('renames the calendar tab to 日常', () => {
-    const markup = renderToStaticMarkup(<TabBar active="calendar" onChange={vi.fn()} messageBadge={0} />)
+  it('renames the calendar tab to 小记', () => {
+    const markup = renderToStaticMarkup(
+      <TabBar active="calendar" onChange={vi.fn()} onTogglePawMenu={vi.fn()} messageBadge={0} />
+    )
 
-    expect(markup).toContain('日常')
+    expect(markup).toContain('小记')
     expect(markup).not.toContain('>日历<')
   })
 
