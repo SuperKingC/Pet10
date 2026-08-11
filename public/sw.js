@@ -1,7 +1,6 @@
-const CACHE_NAME = 'xiaoduoli-shell-v6'
+const CACHE_NAME = 'xiaoduoli-shell-v7'
+const NAVIGATION_TIMEOUT_MS = 2500
 const APP_SHELL = [
-  '/',
-  '/index.html',
   '/manifest.webmanifest',
   '/pet/xiaoduoli-startup.png',
   '/icons/icon-180.png',
@@ -9,8 +8,21 @@ const APP_SHELL = [
   '/icons/icon-512.png'
 ]
 
+async function precacheAppShell() {
+  const cache = await caches.open(CACHE_NAME)
+  const response = await fetch('/index.html', { cache: 'no-store' })
+  if (!response.ok) throw new Error('app_shell_unavailable')
+  const html = await response.clone().text()
+  const assetUrls = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((match) => match[1])
+  await Promise.all([
+    cache.put('/', response.clone()),
+    cache.put('/index.html', response),
+    cache.addAll([...APP_SHELL, ...assetUrls])
+  ])
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)))
+  event.waitUntil(precacheAppShell())
   self.skipWaiting()
 })
 
@@ -23,39 +35,75 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// 图片资源：缓存优先，后台更新（第二次打开秒开、离线可用）
+function fetchWithTimeout(request, timeoutMs) {
+  return Promise.race([
+    fetch(request),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('network_timeout')), timeoutMs))
+  ])
+}
+
+async function handleNavigation(request) {
+  const cache = await caches.open(CACHE_NAME)
+  const cached = await cache.match('/index.html') || await cache.match('/')
+  try {
+    const response = await fetchWithTimeout(request, NAVIGATION_TIMEOUT_MS)
+    if (response.ok) {
+      await Promise.all([
+        cache.put('/', response.clone()),
+        cache.put('/index.html', response.clone())
+      ])
+    }
+    return response
+  } catch {
+    return cached || Response.error()
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME)
+  const cached = await cache.match(request)
+  const network = fetch(request)
+    .then((response) => {
+      if (response.ok) void cache.put(request, response.clone())
+      return response
+    })
+    .catch(() => cached)
+  return cached || network
+}
+
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return
-  const url = new URL(event.request.url)
-  if (url.origin === self.location.origin && /\.(png|jpg|jpeg|webp|svg)$/.test(url.pathname)) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async (cache) => {
-        const cached = await cache.match(event.request)
-        const fetched = fetch(event.request)
-          .then((response) => {
-            if (response.ok) cache.put(event.request, response.clone())
-            return response
-          })
-          .catch(() => cached)
-        return cached || fetched
-      })
-    )
+  const request = event.request
+  if (request.method !== 'GET') return
+
+  if (request.mode === 'navigate') {
+    event.respondWith(handleNavigation(request))
     return
   }
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request).then((response) => response || caches.match('/')))
-  )
+
+  const url = new URL(request.url)
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/socket.io/')) {
+    return
+  }
+
+  if (
+    request.destination === 'script'
+    || request.destination === 'style'
+    || request.destination === 'font'
+    || request.destination === 'image'
+  ) {
+    event.respondWith(staleWhileRevalidate(request))
+  }
 })
 
-// Web Push：服务端发的是空载荷唤醒推送，展示通用通知
 self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification('小多利', {
-      body: '汪！有人在叫你，快回家看看～',
+      body: '你有一条新消息',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
-      tag: 'xiaoduoli-push',
-      renotify: true
+      tag: 'pet10-message',
+      renotify: true,
+      data: { url: '/' }
     })
   )
 })

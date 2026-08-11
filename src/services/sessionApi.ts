@@ -50,8 +50,8 @@ export interface ServerSession {
 }
 
 export const sessionApi = {
-  async getHome() {
-    const session = await apiRequest<Omit<ServerSession, 'messages'> & { messages?: ServerMessage[] }>('/api/session')
+  async getHome(init: RequestInit = {}) {
+    const session = await apiRequest<Omit<ServerSession, 'messages'> & { messages?: ServerMessage[] }>('/api/session', init)
     return {
       ...session,
       messages: session.messages?.map((message) => mapServerMessage(message, session.user.id))

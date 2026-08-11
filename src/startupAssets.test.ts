@@ -15,4 +15,16 @@ describe('startup artwork', () => {
     expect(login).toContain('/pet/xiaoduoli-startup.png')
     expect(statSync(asset).size).toBeLessThan(200_000)
   })
+
+  it('bounds installed-app navigation and session startup waits', () => {
+    const root = resolve(import.meta.dirname, '..')
+    const serviceWorker = readFileSync(resolve(root, 'public/sw.js'), 'utf8')
+    const main = readFileSync(resolve(root, 'src/main.tsx'), 'utf8')
+
+    expect(serviceWorker).toContain('NAVIGATION_TIMEOUT_MS')
+    expect(serviceWorker).toContain("request.mode === 'navigate'")
+    expect(serviceWorker).toContain("request.destination === 'script'")
+    expect(main).toContain('SESSION_STARTUP_TIMEOUT_MS')
+    expect(main).toContain('controller.abort()')
+  })
 })

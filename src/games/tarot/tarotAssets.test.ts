@@ -6,10 +6,21 @@ import {
   TAROT_CARD_BACK,
   TAROT_CRITICAL_RESOURCE_URLS,
   TAROT_SANCTUARY_BACKGROUND,
-  preloadTarotArtwork
+  preloadTarotArtwork,
+  resolveTarotAssetUrl
 } from './tarotAssets'
 
 describe('tarot artwork manifest', () => {
+  it('resolves tarot paths against an optional public asset origin', () => {
+    expect(resolveTarotAssetUrl('/tarot/cards/the-world.jpg', '')).toBe('/tarot/cards/the-world.jpg')
+    expect(resolveTarotAssetUrl('/tarot/cards/the-world.jpg', 'https://example.cos.ap-shanghai.myqcloud.com')).toBe(
+      'https://example.cos.ap-shanghai.myqcloud.com/tarot/cards/the-world.jpg'
+    )
+    expect(resolveTarotAssetUrl('/tarot/cards/the-world.jpg', 'https://example.cos.ap-shanghai.myqcloud.com/')).toBe(
+      'https://example.cos.ap-shanghai.myqcloud.com/tarot/cards/the-world.jpg'
+    )
+  })
+
   it('maps every major arcana card to an optimized image', () => {
     expect(Object.keys(TAROT_ARTWORK)).toHaveLength(22)
     for (const card of MAJOR_ARCANA) {

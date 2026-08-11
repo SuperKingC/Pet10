@@ -29,12 +29,17 @@ flowchart LR
 - 塔罗背景和牌背位于 `public/tarot/ui/`。
 - 原始概念图位于 `public/tarot/concepts/`，当前标记为 `source-only`。
 - 机器可读清单位于 `docs/assets/asset-manifest.json`。
+- 生产环境只把 `public/tarot/cards/` 和 `public/tarot/ui/` 上传到 COS；不得上传 `public/tarot/concepts/`。
+- `VITE_TAROT_ASSET_BASE_URL` 只包含公开读基址，不包含 SecretId、SecretKey 或签名参数。
+- COS 资源使用版本化目录和长期缓存；同源回退资源使用一天缓存并允许一周后台重验证。
 
 ## 常见问题
 
 ### 图片很清晰但打开很慢
 
 先检查是否误用了原始大图、是否首屏预加载了全部功能图片，以及是否提供了正确尺寸。不要先把压缩质量调到很低。
+
+塔罗下载长期停在低百分比时，先直接测单张牌面的首字节和完整下载时间。当前生产服务器曾出现 `248 KB` 图片在 25 秒内只返回 `32 KB` 的情况，这属于静态资源传输链路异常，不应通过伪造进度解决。
 
 ### 塔罗翻牌时闪烁
 
@@ -51,4 +56,6 @@ flowchart LR
 - [ ] 首屏没有无关大图请求。
 - [ ] 塔罗翻牌不等待网络。
 - [ ] 慢速网络有占位或 fallback。
+- [ ] COS 响应包含允许站点来源的 CORS 头。
+- [ ] COS 公共基址使用版本目录，更新图片时切换版本目录。
 - [ ] `npm run check:assets` 通过。
