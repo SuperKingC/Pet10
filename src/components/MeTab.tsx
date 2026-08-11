@@ -100,7 +100,7 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
 
       <section className="me-list">
         <label className="me-list__item">
-          <span>🎂 生日</span>
+          <span><img className="me-list__icon" src="/me/birthday.png" alt="" />生日</span>
           <input
             type="date"
             value={birthdayDraft}
@@ -109,7 +109,7 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
           />
         </label>
         <label className="me-list__item">
-          <span>🔔 消息通知</span>
+          <span><img className="me-list__icon" src="/me/notification.png" alt="" />消息通知</span>
           <button
             className={`me-switch ${notifyEnabled ? 'me-switch--on' : ''}`}
             onClick={toggleNotify}
@@ -118,15 +118,15 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
           />
         </label>
         <a className="me-list__item" href="mailto:pet10-support@example.com">
-          <span>💌 联系我们</span>
+          <span><img className="me-list__icon" src="/me/contact.png" alt="" />联系我们</span>
           <em>›</em>
         </a>
         <button className="me-list__item" onClick={() => setNotice('小多利 v2.0：两位好友共养的 AI 小狗，水彩手账风社交小窝。')}>
-          <span>🐾 关于小多利</span>
+          <span><img className="me-list__icon" src="/me/about.png" alt="" />关于小多利</span>
           <em>›</em>
         </button>
         <button className="me-list__item me-list__item--danger" onClick={onLogout}>
-          <span>🚪 退出登录</span>
+          <span><img className="me-list__icon" src="/me/logout.png" alt="" />退出登录</span>
         </button>
       </section>
 

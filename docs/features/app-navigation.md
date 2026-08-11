@@ -25,6 +25,8 @@ flowchart TD
 - `src/components/AppShell.tsx`
 - `src/components/TabBar.tsx`
 - `src/components/PawMenu.tsx`
+- `src/components/MeTab.tsx`：渲染“我的”页面列表及其手绘图标。
+- `public/me/`：存放“我的”页面列表图标运行时资源。
 
 ## 底部导航
 
@@ -63,3 +65,4 @@ flowchart TD
 - [ ] 底栏在 320px、390px 和 520px 宽度下图标比例稳定；宽屏保持设计比例并居中，不左右拉伸。
 - [ ] 点击狗脚印不改变当前页面，并能打开或关闭快捷上拉栏。
 - [ ] 每日暗号、五子棋、足迹地图和塔罗占卜只在快捷上拉栏提供入口。
+- [ ] “我的”页面五个列表项显示对应手绘图标，文字与交互保持不变。

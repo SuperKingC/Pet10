@@ -33,6 +33,7 @@ flowchart LR
 - 生产环境只把 `public/tarot/cards/` 和 `public/tarot/ui/` 上传到 COS；不得上传 `public/tarot/concepts/`。
 - `VITE_TAROT_ASSET_BASE_URL` 只包含公开读基址，不包含 SecretId、SecretKey 或签名参数。
 - COS 资源使用版本化目录和长期缓存；同源回退资源使用一天缓存并允许一周后台重验证。
+- “我的”页面列表图标位于 `public/me/`，使用 128×128 透明 PNG，随该页面按需加载。
 
 ## 常见问题
 
@@ -61,4 +62,5 @@ flowchart LR
 - [ ] 慢速网络有占位或 fallback。
 - [ ] COS 响应包含允许站点来源的 CORS 头。
 - [ ] COS 公共基址使用版本目录，更新图片时切换版本目录。
+- [ ] `public/me/` 图标保持透明背景且单张不超过通用运行时图片预算。
 - [ ] `npm run check:assets` 通过。

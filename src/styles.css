@@ -458,6 +458,8 @@ button:active { transition: transform .1s ease; }
 .me-profile-card__mbti-test { border: 1px dashed #d9a987; background: transparent; color: #b5784f; font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 800; }
 .me-list { border-radius: 21px; background: #fff; border: 1px solid #f0e4dc; overflow: hidden; }
 .me-list__item { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 15px 17px; border: 0; background: transparent; color: #5c4a41; font-size: 14px; text-align: left; border-bottom: 1px solid #f4ebe4; text-decoration: none; }
+.me-list__item > span { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.me-list__icon { width: 42px; height: 42px; flex: 0 0 42px; object-fit: contain; }
 .me-list__item:last-child { border-bottom: 0; }
 button.me-list__item:active { background: #f8f1ea; }
 .me-list__item em { font-style: normal; color: #b7a69d; }
