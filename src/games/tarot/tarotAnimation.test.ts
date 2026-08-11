@@ -24,6 +24,7 @@ describe('tarot animation contract', () => {
 
   it('uses an immediate completion duration when reduced motion is requested', () => {
     expect(tarotMotionDuration('cut-upper', false)).toBe(1150)
+    expect(tarotMotionDuration('pick-card', false)).toBe(900)
     expect(tarotMotionDuration('cut-upper', true)).toBe(0)
   })
 })

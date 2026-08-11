@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TarotCutStage } from '../../games/tarot/TarotCutStage'
 import { TarotFanStage } from '../../games/tarot/TarotFanStage'
 import { TarotQuestionStage } from '../../games/tarot/TarotQuestionStage'
@@ -15,6 +15,10 @@ export type TarotDevStage = typeof TAROT_DEV_STAGES[number]
 function readStage(search = typeof window === 'undefined' ? '' : window.location.search): TarotDevStage {
   const requested = new URLSearchParams(search).get('stage')
   return TAROT_DEV_STAGES.includes(requested as TarotDevStage) ? requested as TarotDevStage : 'question'
+}
+
+function readFanNeedCount(search = typeof window === 'undefined' ? '' : window.location.search): 3 | 5 {
+  return new URLSearchParams(search).get('count') === '5' ? 5 : 3
 }
 
 function fixedCards(): DrawnCard[] {
@@ -55,11 +59,20 @@ function fixedReading(drawn: DrawnCard[]): TarotReading {
 
 export function TarotDevEntry({ search }: { search?: string }) {
   const stage = readStage(search)
+  const fanNeedCount = readFanNeedCount(search)
   const drawn = fixedCards()
   const reading = fixedReading(drawn)
   const noOp = () => undefined
   const [cutCount, setCutCount] = useState(0)
   const [cutting, setCutting] = useState(false)
+  const [fanPicked, setFanPicked] = useState([0])
+  const [fanFlyingCard, setFanFlyingCard] = useState<number>()
+
+  useEffect(() => {
+    if (stage !== 'fan') return
+    setFanPicked([0])
+    setFanFlyingCard(undefined)
+  }, [stage, search])
 
   return (
     <main className="tarot-game tarot-dev-entry" data-dev-stage={stage}>
@@ -92,11 +105,18 @@ export function TarotDevEntry({ search }: { search?: string }) {
       {stage === 'fan' && (
         <TarotFanStage
           drawn={Array.from({ length: 10 }, (_, index) => ({ ...drawn[index % drawn.length], position: `验收牌 ${index + 1}` }))}
-          picked={[0]}
-          flyingCard={undefined}
-          needCount={3}
-          onPick={noOp}
-          onFinishPick={noOp}
+          picked={fanPicked}
+          flyingCard={fanFlyingCard}
+          needCount={fanNeedCount}
+          onPick={(index) => {
+            if (fanFlyingCard !== undefined || fanPicked.includes(index) || fanPicked.length >= fanNeedCount) return
+            setFanFlyingCard(index)
+          }}
+          onFinishPick={(index) => {
+            if (fanFlyingCard !== index) return
+            setFanPicked((picked) => [...picked, index])
+            setFanFlyingCard(undefined)
+          }}
           onContinue={noOp}
         />
       )}

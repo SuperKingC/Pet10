@@ -42,11 +42,10 @@ describe('tarot ritual interaction', () => {
 
   it('keeps the card motion on compositor-friendly properties', () => {
     const shuffleAnimation = css.match(/@keyframes tarot-shuffle-interleave-left\s*\{([^{}]|\{[^{}]*\})*\}/g)?.at(-1)
-    const pickAnimation = css.match(/@keyframes tarot-pick-glow\s*\{([^{}]|\{[^{}]*\})*\}/g)?.at(-1)
     expect(shuffleAnimation).toBeDefined()
-    expect(pickAnimation).toBeDefined()
     expect(shuffleAnimation).not.toMatch(/filter\s*:/)
-    expect(pickAnimation).not.toMatch(/filter\s*:/)
+    expect(fanStage).toContain('flightElement.current.animate(flight.keyframes, flight.options)')
+    expect(fanStage).not.toContain("filter: '")
   })
 
   it('drives the standard table cut from one frame clock instead of CSS keyframes', () => {
@@ -81,8 +80,7 @@ describe('tarot ritual interaction', () => {
     expect(activeCut).not.toContain('animation:tarot-cut-lower')
   })
 
-  it('draws each selected card upward from a visible lower deck anchor', () => {
-    expect(fanStage).toContain('tarot-fan__deck-anchor')
+  it('draws each selected card upward without a decorative lower deck anchor', () => {
     expect(shuffleStage).toContain('onPointerCancel={handlePointerEnd}')
     expect(fanStage).toContain('tarot-fan__card--picked')
     expect(fanStage).toContain("'--fan-angle': `${(index - 4.5) * 6}deg`")
@@ -90,31 +88,52 @@ describe('tarot ritual interaction', () => {
     expect(game).toContain('prefersReducedMotion()')
     expect(fanStage).toContain('disabled={picked.includes(index) || flyingCard !== undefined}')
     expect(fanStage).toContain("'--fan-x': `${(index - 4.5) * 18}px`")
-    expect(fanStage).toContain("'--fan-mid-x': `${(index - 4.5) * 9.9}px`")
-    expect(css).toContain('@keyframes tarot-pick-smooth')
-    expect(css).toMatch(/\.tarot-fan__card--flying\s*\{[^}]*animation:tarot-pick-smooth \.82s/s)
-    expect(css).toMatch(/@keyframes tarot-pick-smooth[\s\S]*?42%\s*\{\s*transform:translate3d\(0,153px,26px\)/s)
-    expect(css).toMatch(/@keyframes tarot-pick-smooth[\s\S]*?74%\s*\{\s*transform:translate3d\(0,-6px,28px\)/s)
-    expect(css).toMatch(/\.tarot-picked-row\s*\{[^}]*gap:\s*clamp\(18px,6vw,34px\)/s)
-    expect(css).toMatch(/@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.tarot-fan__card--flying,\.tarot-fan__card--flying \.tarot-fan__visual\{animation-duration:\.01ms!important;animation-iteration-count:1!important;\}/s)
+    expect(fanStage).toContain('source.offsetWidth || 58')
+    expect(fanStage).toContain('source.offsetHeight || 92')
+    expect(fanStage).toContain('pickedSlots.current[picked.length]')
+    expect(fanStage).toContain('createPortal')
+    expect(fanStage).not.toContain('tarot-fan__deck-anchor')
+    expect(css).not.toContain('.tarot-fan__deck-anchor')
+    expect(css).toMatch(/\.tarot-picked-row\s*\{[^}]*gap:\s*clamp\(6px,1\.5vw,14px\)/s)
+    expect(css).toMatch(/@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.tarot-fan-flight\{display:none;\}/s)
   })
 
   it('keeps five picked cards inside the stage on narrow screens', () => {
-    expect(css).toMatch(/\.tarot-picked-row\s*\{[^}]*gap:\s*clamp\(18px,\s*6vw,\s*34px\)/s)
-    expect(css).toMatch(/\.tarot-picked-card\s*\{[^}]*width:\s*clamp\(46px,\s*15vw,\s*76px\)/s)
-    expect(css).toMatch(/\.tarot-picked-card\s*\{[^}]*height:\s*clamp\(72px,\s*23\.5vw,\s*118px\)/s)
-    expect(css).toMatch(/@media\(max-width:380px\)[\s\S]*?\.tarot-picked-card\{width:clamp\(46px,15vw,76px\);height:clamp\(72px,23\.5vw,118px\)\}/s)
+    expect(fanStage).toContain('tarot-picked-row--${needCount}')
+    expect(css).toMatch(/\.tarot-picked-row\s*\{[^}]*gap:\s*clamp\(6px,\s*1\.5vw,\s*14px\)/s)
+    expect(css).toMatch(/\.tarot-picked-row\s*\{[^}]*margin:\s*20px 0 16px/s)
+    expect(css).toMatch(/\.tarot-picked-slot\s*\{[^}]*width:\s*clamp\(62px,\s*16vw,\s*78px\)/s)
+    expect(css).toMatch(/\.tarot-picked-slot\s*\{[^}]*height:\s*clamp\(98px,\s*25vw,\s*122px\)/s)
+    expect(css).toMatch(/\.tarot-fan__card\s*\{[^}]*width:\s*58px;[^}]*height:\s*92px/s)
+    expect(css).toMatch(/\.tarot-picked-row--3\s*\{[^}]*gap:\s*clamp\(20px,\s*6vw,\s*28px\)/s)
+    expect(css).toMatch(/@media\(max-width:380px\)[\s\S]*?\.tarot-picked-row--5\{gap:3px\}/s)
+    expect(css).toMatch(/@media\(max-width:380px\)[\s\S]*?\.tarot-picked-row--5 \.tarot-picked-slot\{width:52px;height:82px\}/s)
+    expect(css).not.toMatch(/\.tarot-picked-row--5 \.tarot-picked-slot\+\.tarot-picked-slot\{margin-left:-/s)
+    expect(css).toMatch(/@media\(max-width:380px\)[\s\S]*?\.tarot-fan__card\{width:48px;height:76px\}/s)
   })
 
   it('places the reveal cards lower in the ritual stage', () => {
     expect(css).toMatch(/\.tarot-reveal-row\s*\{[^}]*margin:\s*44px 0 48px/s)
   })
 
-  it('flies a selected card smoothly through the deck anchor on the positioned wrapper', () => {
-    expect(fanStage).toContain('tarot-fan__visual')
-    expect(fanStage).toContain("event.animationName === 'tarot-pick-smooth'")
-    expect(css).toMatch(/\.tarot-fan__card--flying\s*\{[^}]*animation:tarot-pick-smooth \.82s/s)
-    expect(css).toContain('@keyframes tarot-pick-smooth')
+  it('styles a measured flight overlay without overriding the fan card transform', () => {
+    expect(fanStage).toContain('tarot-fan-flight')
+    expect(fanStage).not.toContain('tarot-fan-flight__trail')
+    expect(fanStage).not.toContain('tarot-fan-flight__particles')
+    expect(fanStage).not.toContain('tarot-fan-flight__glint')
+    expect(fanStage).not.toContain('tarot-fan-flight__burst')
+    expect(fanStage).toContain('createTarotFanFlight')
+    expect(css).toMatch(/\.tarot-fan-flight\s*\{[^}]*position:\s*fixed/s)
+    expect(css).toMatch(/\.tarot-fan-flight\s*\{[^}]*will-change:\s*transform,opacity/s)
+    expect(css).toMatch(/\.tarot-fan__card--departing\s+\.tarot-fan__visual\s*\{[^}]*opacity:\s*0/s)
+    expect(css).not.toContain('tarot-fan-flight__trail')
+    expect(css).not.toContain('tarot-fan-flight__particles')
+    expect(css).not.toContain('tarot-fan-flight__glint')
+    expect(css).not.toContain('tarot-fan-flight__burst')
+    expect(css).not.toContain('@keyframes tarot-flight-')
+    expect(css).not.toContain('tarot-picked-illuminate')
+    expect(css).not.toContain('tarot-flight-sparkles')
+    expect(css).not.toContain('tarot-pick-smooth')
   })
 
   it('keeps reveal labels upright and crops artwork that has excess margins', () => {

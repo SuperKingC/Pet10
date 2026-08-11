@@ -14,7 +14,7 @@ const MOTION_DURATIONS: Record<TarotAnimationName, number> = {
   'cut-upper': 1150,
   'cut-upper-reverse': 1150,
   'cut-lower': 1150,
-  'pick-card': 820,
+  'pick-card': 900,
   'reveal-card': 1250
 }
 

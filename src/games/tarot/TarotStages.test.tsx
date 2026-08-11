@@ -10,6 +10,11 @@ import { TarotShuffleStage } from './TarotShuffleStage'
 
 const mountedRoots: Array<ReturnType<typeof createRoot>> = []
 let frameCallbacks: FrameRequestCallback[] = []
+let animations: Array<{
+  keyframes: Keyframe[]
+  options?: number | KeyframeAnimationOptions
+  animation: Animation
+}> = []
 
 function render(element: React.ReactNode) {
   const container = document.createElement('div')
@@ -33,11 +38,40 @@ function cards(): DrawnCard[] {
 
 beforeEach(() => {
   frameCallbacks = []
+  animations = []
   vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
     frameCallbacks.push(callback)
     return frameCallbacks.length
   }))
   vi.stubGlobal('cancelAnimationFrame', vi.fn())
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    if (this.classList.contains('tarot-fan__visual')) {
+      return { left: 120, top: 420, width: 70, height: 112, right: 190, bottom: 532, x: 120, y: 420, toJSON() {} }
+    }
+    if (this.classList.contains('tarot-picked-slot') && this.getAttribute('data-order') === '1') {
+      return { left: 210, top: 120, width: 56, height: 88, right: 266, bottom: 208, x: 210, y: 120, toJSON() {} }
+    }
+    return { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0, x: 0, y: 0, toJSON() {} }
+  })
+  Object.defineProperty(HTMLElement.prototype, 'animate', {
+    configurable: true,
+    value: vi.fn(function (
+      this: HTMLElement,
+      keyframes: Keyframe[] | PropertyIndexedKeyframes,
+      options?: number | KeyframeAnimationOptions
+    ) {
+    const animation = {
+      cancel: vi.fn(),
+      onfinish: null
+    } as unknown as Animation
+    animations.push({
+      keyframes: Array.from(keyframes as Iterable<Keyframe>),
+      options,
+      animation
+    })
+    return animation
+    })
+  })
 })
 
 afterEach(() => {
@@ -133,5 +167,60 @@ describe('tarot ritual stages', () => {
     expect((cardButtons[2] as HTMLButtonElement).disabled).toBe(true)
     click(cardButtons[2])
     expect(onPick).not.toHaveBeenCalled()
+  })
+
+  it('flies a measured overlay into the next picked slot and completes once', () => {
+    const onFinishPick = vi.fn()
+    const container = render(
+      <TarotFanStage
+        drawn={cards()}
+        picked={[0]}
+        flyingCard={4}
+        needCount={3}
+        onPick={vi.fn()}
+        onFinishPick={onFinishPick}
+        onContinue={vi.fn()}
+      />
+    )
+
+    expect(container.querySelectorAll('.tarot-picked-slot')).toHaveLength(3)
+    expect(document.body.querySelector('.tarot-fan-flight')).not.toBeNull()
+    expect(animations).toHaveLength(1)
+    expect(animations[0].keyframes.at(-1)).toMatchObject({
+      transform: 'translate3d(83px, -312px, 0) rotate(0deg) scale(0.9655172413793104, 0.9565217391304348)'
+    })
+    expect(animations[0].options).toMatchObject({ duration: 900 })
+
+    act(() => {
+      animations[0].animation.onfinish?.({} as AnimationPlaybackEvent)
+      animations[0].animation.onfinish?.({} as AnimationPlaybackEvent)
+    })
+
+    expect(onFinishPick).toHaveBeenCalledOnce()
+    expect(onFinishPick).toHaveBeenCalledWith(4)
+  })
+
+  it('cancels an active card flight without completing after unmount', () => {
+    const onFinishPick = vi.fn()
+    render(
+      <TarotFanStage
+        drawn={cards()}
+        picked={[]}
+        flyingCard={2}
+        needCount={1}
+        onPick={vi.fn()}
+        onFinishPick={onFinishPick}
+        onContinue={vi.fn()}
+      />
+    )
+
+    const animation = animations[0].animation
+    const root = mountedRoots.pop()
+    if (root) act(() => root.unmount())
+
+    expect(animation.cancel).toHaveBeenCalledOnce()
+    act(() => animation.onfinish?.({} as AnimationPlaybackEvent))
+    expect(onFinishPick).not.toHaveBeenCalled()
+    expect(document.body.querySelector('.tarot-fan-flight')).toBeNull()
   })
 })

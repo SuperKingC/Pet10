@@ -1,6 +1,20 @@
-import { describe, expect, it } from 'vitest'
+import { act } from 'react'
+import { createRoot } from 'react-dom/client'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getTarotDevStage, isTarotDevStage, TAROT_DEV_STAGES, TarotDevEntry } from './TarotDevEntry'
 import { renderToStaticMarkup } from 'react-dom/server'
+
+;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+
+const roots: Array<ReturnType<typeof createRoot>> = []
+
+afterEach(() => {
+  while (roots.length) {
+    const root = roots.pop()
+    if (root) act(() => root.unmount())
+  }
+  vi.restoreAllMocks()
+})
 
 describe('tarot development entry', () => {
   it('supports every documented stage', () => {
@@ -18,5 +32,41 @@ describe('tarot development entry', () => {
     const markup = renderToStaticMarkup(<TarotDevEntry search="?stage=cut" />)
     expect(markup).toContain('data-dev-stage="cut"')
     expect(markup).toContain('tarot-cut')
+  })
+
+  it('supports a five-card fan layout review', () => {
+    const markup = renderToStaticMarkup(<TarotDevEntry search="?stage=fan&count=5" />)
+    expect(markup).toContain('tarot-picked-row--5')
+    expect(markup).toContain('已选 1/5')
+  })
+
+  it('lets the fan review stage play and finish a selected-card flight', () => {
+    let finish: Animation['onfinish']
+    Object.defineProperty(HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: vi.fn(() => ({
+        cancel: vi.fn(),
+        get onfinish() {
+          return finish
+        },
+        set onfinish(callback) {
+          finish = callback
+        }
+      }))
+    })
+
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    roots.push(root)
+    act(() => root.render(<TarotDevEntry search="?stage=fan" />))
+
+    const card = container.querySelector('[aria-label="第 5 张牌"]') as HTMLButtonElement
+    act(() => card.click())
+    expect(card.disabled).toBe(true)
+
+    act(() => finish?.call({} as Animation, {} as AnimationPlaybackEvent))
+    expect(container.textContent).toContain('已选 2/3')
+    container.remove()
   })
 })
