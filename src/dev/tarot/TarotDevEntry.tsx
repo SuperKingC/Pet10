@@ -58,6 +58,7 @@ export function TarotDevEntry({ search }: { search?: string }) {
   const drawn = fixedCards()
   const reading = fixedReading(drawn)
   const noOp = () => undefined
+  const [shuffleProgress, setShuffleProgress] = useState(0)
   const [cutCount, setCutCount] = useState(0)
   const [cutting, setCutting] = useState(false)
 
@@ -74,7 +75,7 @@ export function TarotDevEntry({ search }: { search?: string }) {
         <TarotSpreadStage spread="triple" onSpreadChange={noOp} onContinue={noOp} />
       )}
       {stage === 'shuffle' && (
-        <TarotShuffleStage progress={55} onProgress={noOp} onContinue={noOp} onSkip={noOp} />
+        <TarotShuffleStage progress={shuffleProgress} onProgress={setShuffleProgress} onContinue={noOp} onSkip={noOp} />
       )}
       {stage === 'cut' && (
         <TarotCutStage

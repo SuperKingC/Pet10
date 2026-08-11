@@ -18,9 +18,11 @@ const MOTION_DURATIONS: Record<TarotAnimationName, number> = {
   'reveal-card': 1250
 }
 
+export const TAROT_SHUFFLE_HOLD_DURATION_MS = 2000
+
 export function advancePressProgress(progress: number, elapsedMs: number): number {
   if (elapsedMs <= 0) return progress
-  return Math.min(100, progress + elapsedMs * 0.072)
+  return Math.min(100, progress + elapsedMs / TAROT_SHUFFLE_HOLD_DURATION_MS * 100)
 }
 
 export function createTarotAnimationRun(name: TarotAnimationName, token: number): TarotAnimationRun {
