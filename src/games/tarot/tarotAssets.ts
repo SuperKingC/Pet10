@@ -1,4 +1,8 @@
-import { loadImageResource, type ImageResourceProgress } from '../../services/imageResourceLoader'
+import {
+  decodeImageResource,
+  loadImageResource,
+  type ImageResourceProgress
+} from '../../services/imageResourceLoader'
 import { runtimeConfig } from '../../services/runtimeConfig'
 
 export function resolveTarotAssetUrl(path: string, baseUrl = runtimeConfig.tarotAssetBaseUrl): string {
@@ -39,12 +43,13 @@ export const TAROT_RESOURCE_URLS = [...TAROT_ARTWORK_URLS, TAROT_SANCTUARY_BACKG
 const TAROT_ESTIMATED_RESOURCE_BYTES = 5_118_840 / TAROT_RESOURCE_URLS.length
 
 type TarotAssetLoader = (url: string, onProgress?: ImageResourceProgress) => Promise<void>
+type TarotAssetDecoder = (url: string) => Promise<void>
 
 export async function preloadTarotArtwork(
   urls: string[] = TAROT_RESOURCE_URLS,
   onProgress: (progress: number) => void = () => undefined,
   loader: TarotAssetLoader = loadImageResource,
-  options: { concurrency?: number } = {}
+  options: { concurrency?: number; decoder?: TarotAssetDecoder } = {}
 ): Promise<void> {
   if (urls.length === 0) {
     onProgress(1)
@@ -60,11 +65,7 @@ export async function preloadTarotArtwork(
 
   function reportProgress() {
     const completed = completedResources.every(Boolean)
-    if (completed) {
-      lastProgress = 1
-      onProgress(1)
-      return
-    }
+    if (completed) return
 
     const loadedTotal = loadedBytes.reduce<number>((sum, value, index) => (
       sum + Math.min(value, totalBytes[index] ?? TAROT_ESTIMATED_RESOURCE_BYTES)
@@ -100,4 +101,23 @@ export async function preloadTarotArtwork(
   }
 
   await Promise.all(Array.from({ length: concurrency }, () => worker()))
+
+  let nextDecodeIndex = 0
+  const decoder = options.decoder ?? decodeImageResource
+
+  async function decodeWorker() {
+    while (nextDecodeIndex < urls.length) {
+      const url = urls[nextDecodeIndex]
+      nextDecodeIndex += 1
+      try {
+        await decoder(url)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`${url}: ${message}`)
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(2, urls.length) }, () => decodeWorker()))
+  onProgress(1)
 }

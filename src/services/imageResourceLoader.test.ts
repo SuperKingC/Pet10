@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { loadImageResource } from './imageResourceLoader'
+import { decodeImageResource, loadImageResource } from './imageResourceLoader'
 
 describe('loadImageResource', () => {
   afterEach(() => {
@@ -29,5 +29,21 @@ describe('loadImageResource', () => {
 
     expect(progress).toEqual([[2, 5], [5, 5], [5, 5]])
     expect(imageConstructor).not.toHaveBeenCalled()
+  })
+
+  it('waits until the browser decodes an image resource', async () => {
+    const decode = vi.fn(async () => undefined)
+    const image = {
+      decoding: 'auto',
+      src: '',
+      decode
+    }
+    vi.stubGlobal('Image', vi.fn(() => image))
+
+    await decodeImageResource('/tarot/cards/the-world.jpg')
+
+    expect(image.decoding).toBe('async')
+    expect(image.src).toBe('/tarot/cards/the-world.jpg')
+    expect(decode).toHaveBeenCalledOnce()
   })
 })

@@ -24,3 +24,10 @@ export async function loadImageResource(url: string, onProgress?: ImageResourceP
 
   onProgress?.(total ?? loaded, total ?? loaded)
 }
+
+export async function decodeImageResource(url: string): Promise<void> {
+  const image = new Image()
+  image.decoding = 'async'
+  image.src = url
+  await image.decode()
+}

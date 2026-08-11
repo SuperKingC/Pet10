@@ -10,6 +10,13 @@ const fanStage = readFileSync(resolve(process.cwd(), 'src/games/tarot/TarotFanSt
 const pressProgress = readFileSync(resolve(process.cwd(), 'src/games/tarot/usePressProgress.ts'), 'utf8')
 
 describe('tarot ritual interaction', () => {
+  it('uses runtime tarot asset variables instead of same-origin UI image paths', () => {
+    expect(css).toContain('var(--tarot-card-back)')
+    expect(css).toContain('var(--tarot-sanctuary-background)')
+    expect(css).not.toContain("url('/tarot/ui/card-back.jpg')")
+    expect(css).not.toContain("url('/tarot/ui/sanctuary-background.jpg')")
+  })
+
   it('uses one sharp rendering contract for every card-back and card-art scene', () => {
     const cardImageSelectors = [
       '.tarot-shuffle-deck__card',

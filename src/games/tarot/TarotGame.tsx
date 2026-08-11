@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { SPREADS } from './tarotDeck'
+import { TAROT_CARD_BACK, TAROT_SANCTUARY_BACKGROUND } from './tarotAssets'
 import { buildShareText, type TarotReading } from './tarotReading'
 import { listReadingHistory } from './tarotHistory'
 import { TarotCutStage } from './TarotCutStage'
@@ -18,6 +19,10 @@ interface TarotGameProps {
 }
 
 const RITUAL_STAGES = ['question', 'spread', 'shuffle', 'cut', 'fan', 'reveal'] as const
+const TAROT_ASSET_STYLES = {
+  '--tarot-card-back': `url("${TAROT_CARD_BACK}")`,
+  '--tarot-sanctuary-background': `url("${TAROT_SANCTUARY_BACKGROUND}")`
+} as CSSProperties
 
 function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -55,7 +60,7 @@ export function TarotGame({ onClose, onShareToChat }: TarotGameProps) {
   }
 
   return (
-    <div className="tarot-game">
+    <div className="tarot-game" style={TAROT_ASSET_STYLES}>
       <header className="tarot-game__header">
         <button onClick={onClose} aria-label="退出塔罗占卜">×</button>
         <h3>🔮 塔罗密室</h3>

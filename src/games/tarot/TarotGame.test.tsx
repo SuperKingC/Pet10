@@ -2,6 +2,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TarotGame } from './TarotGame'
+import { TAROT_CARD_BACK, TAROT_SANCTUARY_BACKGROUND } from './tarotAssets'
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -40,6 +41,15 @@ describe('tarot game flow', () => {
   function click(element: Element) {
     act(() => element.dispatchEvent(new MouseEvent('click', { bubbles: true })))
   }
+
+  it('provides the downloaded tarot UI images to every ritual stage', () => {
+    const game = container.querySelector('.tarot-game') as HTMLElement
+
+    expect(game.style.getPropertyValue('--tarot-card-back')).toBe(`url("${TAROT_CARD_BACK}")`)
+    expect(game.style.getPropertyValue('--tarot-sanctuary-background')).toBe(
+      `url("${TAROT_SANCTUARY_BACKGROUND}")`
+    )
+  })
 
   it('completes and restarts a single-card reading without waiting for animations', () => {
     click(button('我现在最需要看清的是什么？'))

@@ -10,6 +10,8 @@ import {
   resolveTarotAssetUrl
 } from './tarotAssets'
 
+const decodeImmediately = async () => undefined
+
 describe('tarot artwork manifest', () => {
   it('resolves tarot paths against an optional public asset origin', () => {
     expect(resolveTarotAssetUrl('/tarot/cards/the-world.jpg', '')).toBe('/tarot/cards/the-world.jpg')
@@ -45,7 +47,12 @@ describe('tarot artwork preloader', () => {
     const progress: number[] = []
     const load = vi.fn(async () => undefined)
 
-    await preloadTarotArtwork(['/a.jpg', '/b.jpg', '/c.jpg'], (value) => progress.push(value), load)
+    await preloadTarotArtwork(
+      ['/a.jpg', '/b.jpg', '/c.jpg'],
+      (value) => progress.push(value),
+      load,
+      { decoder: decodeImmediately }
+    )
 
     expect(load).toHaveBeenCalledTimes(3)
     expect(progress).toEqual([1 / 3, 2 / 3, 1])
@@ -58,7 +65,7 @@ describe('tarot artwork preloader', () => {
       onProgress?.(75, 100)
     })
 
-    await preloadTarotArtwork(['/a.jpg'], (value) => progress.push(value), load)
+    await preloadTarotArtwork(['/a.jpg'], (value) => progress.push(value), load, { decoder: decodeImmediately })
 
     expect(progress).toEqual([0.25, 0.75, 1])
   })
@@ -70,7 +77,7 @@ describe('tarot artwork preloader', () => {
       onProgress?.(80, 200)
     })
 
-    await preloadTarotArtwork(['/a.jpg'], (value) => progress.push(value), load)
+    await preloadTarotArtwork(['/a.jpg'], (value) => progress.push(value), load, { decoder: decodeImmediately })
 
     expect(progress).toEqual([0.8, 0.8, 1])
   })
@@ -84,7 +91,12 @@ describe('tarot artwork preloader', () => {
       onProgress?.(128 * 1024, undefined)
     })
 
-    const pending = preloadTarotArtwork(['/a.jpg', '/b.jpg'], (value) => progress.push(value), load, { concurrency: 2 })
+    const pending = preloadTarotArtwork(
+      ['/a.jpg', '/b.jpg'],
+      (value) => progress.push(value),
+      load,
+      { concurrency: 2, decoder: decodeImmediately }
+    )
     await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(2))
 
     expect(progress.some((value) => value > 0 && value < 1)).toBe(true)
@@ -118,7 +130,8 @@ describe('tarot artwork preloader', () => {
     const pending = preloadTarotArtwork(
       ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg', '/6.jpg', '/7.jpg'],
       () => undefined,
-      load
+      load,
+      { decoder: decodeImmediately }
     )
 
     await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(6))
@@ -129,6 +142,66 @@ describe('tarot artwork preloader', () => {
     await pending
 
     expect(maxActive).toBe(6)
+  })
+
+  it('waits for every downloaded image to decode before reporting completion', async () => {
+    const progress: number[] = []
+    const decodeReleases: Array<() => void> = []
+    const load = vi.fn(async () => undefined)
+    const decode = vi.fn(() => new Promise<void>((resolve) => {
+      decodeReleases.push(resolve)
+    }))
+
+    let completed = false
+    const pending = preloadTarotArtwork(
+      ['/a.jpg', '/b.jpg'],
+      (value) => progress.push(value),
+      load,
+      { decoder: decode }
+    ).then(() => {
+      completed = true
+    })
+
+    await vi.waitFor(() => expect(decode).toHaveBeenCalledTimes(2))
+    expect(completed).toBe(false)
+    expect(progress.every((value) => value < 1)).toBe(true)
+
+    decodeReleases.forEach((release) => release())
+    await pending
+
+    expect(completed).toBe(true)
+    expect(progress.at(-1)).toBe(1)
+  })
+
+  it('decodes at most two images concurrently', async () => {
+    let active = 0
+    let maxActive = 0
+    const decodeReleases: Array<() => void> = []
+    const decode = vi.fn(() => new Promise<void>((resolve) => {
+      active += 1
+      maxActive = Math.max(maxActive, active)
+      decodeReleases.push(() => {
+        active -= 1
+        resolve()
+      })
+    }))
+
+    const pending = preloadTarotArtwork(
+      ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg'],
+      () => undefined,
+      async () => undefined,
+      { decoder: decode }
+    )
+
+    await vi.waitFor(() => expect(decode).toHaveBeenCalledTimes(2))
+    decodeReleases[0]?.()
+    await vi.waitFor(() => expect(decode).toHaveBeenCalledTimes(3))
+    decodeReleases[1]?.()
+    await vi.waitFor(() => expect(decode).toHaveBeenCalledTimes(4))
+    decodeReleases.slice(2).forEach((release) => release())
+    await pending
+
+    expect(maxActive).toBe(2)
   })
 
   it('completes an empty preload list', async () => {
