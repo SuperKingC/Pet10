@@ -28,6 +28,7 @@ export const TAROT_SANCTUARY_BACKGROUND = '/tarot/ui/sanctuary-background.jpg'
 export const TAROT_CARD_BACK = '/tarot/ui/card-back.jpg'
 export const TAROT_CRITICAL_RESOURCE_URLS = [TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
 export const TAROT_RESOURCE_URLS = [...TAROT_ARTWORK_URLS, TAROT_SANCTUARY_BACKGROUND, TAROT_CARD_BACK]
+const TAROT_ESTIMATED_RESOURCE_BYTES = 5_118_840 / TAROT_RESOURCE_URLS.length
 
 type TarotAssetLoader = (url: string, onProgress?: ImageResourceProgress) => Promise<void>
 
@@ -46,18 +47,27 @@ export async function preloadTarotArtwork(
   const loadedBytes = new Array<number>(urls.length).fill(0)
   const totalBytes = new Array<number | undefined>(urls.length).fill(undefined)
   const completedResources = new Array<boolean>(urls.length).fill(false)
-  const concurrency = Math.max(1, Math.min(options.concurrency ?? 3, urls.length))
+  const concurrency = Math.max(1, Math.min(options.concurrency ?? 6, urls.length))
+  let lastProgress = 0
 
   function reportProgress() {
-    const knownTotals = totalBytes.every((total): total is number => total !== undefined && total > 0)
-    const progress = knownTotals
-      ? loadedBytes.reduce((sum, value) => sum + value, 0) / totalBytes.reduce((sum, value) => sum + value, 0)
-      : urls.reduce((sum, _url, index) => {
-          if (completedResources[index]) return sum + 1
-          const total = totalBytes[index]
-          return sum + (total ? Math.min(1, loadedBytes[index] / total) : 0)
-        }, 0) / urls.length
-    onProgress(Math.min(1, progress))
+    const completed = completedResources.every(Boolean)
+    if (completed) {
+      lastProgress = 1
+      onProgress(1)
+      return
+    }
+
+    const loadedTotal = loadedBytes.reduce<number>((sum, value, index) => (
+      sum + Math.min(value, totalBytes[index] ?? TAROT_ESTIMATED_RESOURCE_BYTES)
+    ), 0)
+    const estimatedTotal = totalBytes.reduce<number>(
+      (sum, total) => sum + (total && total > 0 ? total : TAROT_ESTIMATED_RESOURCE_BYTES),
+      0
+    )
+    const progress = Math.min(0.99, loadedTotal / estimatedTotal)
+    lastProgress = Math.max(lastProgress, progress)
+    onProgress(lastProgress)
   }
 
   async function worker() {
@@ -76,7 +86,7 @@ export async function preloadTarotArtwork(
         throw new Error(`${url}: ${message}`)
       }
       completedResources[index] = true
-      if (totalBytes[index]) loadedBytes[index] = totalBytes[index]
+      loadedBytes[index] = totalBytes[index] ?? TAROT_ESTIMATED_RESOURCE_BYTES
       reportProgress()
     }
   }

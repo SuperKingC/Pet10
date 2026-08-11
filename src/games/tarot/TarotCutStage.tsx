@@ -10,6 +10,23 @@ interface TarotCutStageProps {
   onContinue(): void
 }
 
+const CUT_PILE_SHEETS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const
+
+function TarotCutPileLayers() {
+  return (
+    <>
+      {CUT_PILE_SHEETS.map((sheet) => (
+        <span
+          key={sheet}
+          className={`tarot-cut-deck__sheet tarot-cut-deck__sheet--${sheet}`}
+          aria-hidden="true"
+        />
+      ))}
+      <span className="tarot-cut-deck__face" aria-hidden="true" />
+    </>
+  )
+}
+
 export function TarotCutStage({
   cutCount,
   cutting,
@@ -78,8 +95,12 @@ export function TarotCutStage({
         onClick={onStartCut}
       >
         <span ref={shadowRef} className="tarot-cut-deck__shadow" aria-hidden="true" />
-        <span ref={leftRef} className="tarot-cut-deck__left" />
-        <span ref={rightRef} className="tarot-cut-deck__right" />
+        <span ref={leftRef} className="tarot-cut-deck__left">
+          <TarotCutPileLayers />
+        </span>
+        <span ref={rightRef} className="tarot-cut-deck__right">
+          <TarotCutPileLayers />
+        </span>
       </button>
       <p className="tarot-stage__hint">{cutCount > 0 ? `已切 ${cutCount} 次，还可以继续切牌` : '点击牌堆，每次完成一次切牌'}</p>
       <button className="tarot-next" disabled={cutCount === 0 || cutting} onClick={onContinue}>完成切牌 · 进入选牌</button>

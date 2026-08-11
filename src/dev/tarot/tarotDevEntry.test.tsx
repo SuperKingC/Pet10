@@ -69,4 +69,30 @@ describe('tarot development entry', () => {
     expect(container.textContent).toContain('已选 2/3')
     container.remove()
   })
+
+  it('updates shuffle progress while holding the deck', () => {
+    const frameCallbacks: FrameRequestCallback[] = []
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      frameCallbacks.push(callback)
+      return frameCallbacks.length
+    }))
+    vi.stubGlobal('cancelAnimationFrame', vi.fn())
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    act(() => root.render(<TarotDevEntry search="?stage=shuffle" />))
+
+    const deck = container.querySelector('.tarot-shuffle-deck') as HTMLButtonElement
+    const progress = container.querySelector('.tarot-shuffle-bar span') as HTMLSpanElement
+    expect(progress.style.transform).toBe('scaleX(0)')
+
+    act(() => deck.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })))
+    act(() => frameCallbacks.shift()?.(100))
+    act(() => frameCallbacks.shift()?.(148))
+
+    expect(progress.style.transform).not.toBe('scaleX(0)')
+
+    act(() => root.unmount())
+    vi.unstubAllGlobals()
+  })
 })

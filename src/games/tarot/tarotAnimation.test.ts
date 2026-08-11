@@ -3,12 +3,15 @@ import {
   advancePressProgress,
   animationMatches,
   createTarotAnimationRun,
+  TAROT_SHUFFLE_HOLD_DURATION_MS,
   tarotMotionDuration
 } from './tarotAnimation'
 
 describe('tarot animation contract', () => {
   it('advances held shuffle progress by elapsed time and clamps it to one hundred', () => {
-    expect(advancePressProgress(25, 500)).toBe(61)
+    expect(TAROT_SHUFFLE_HOLD_DURATION_MS).toBe(2000)
+    expect(advancePressProgress(0, 1000)).toBe(50)
+    expect(advancePressProgress(25, 500)).toBe(50)
     expect(advancePressProgress(95, 500)).toBe(100)
     expect(advancePressProgress(20, -10)).toBe(20)
   })
