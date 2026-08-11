@@ -409,13 +409,15 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         onClose={() => setPawMenuOpen(false)}
         onOpenGame={openGame}
       />
-      <TabBar
-        active={activeTab}
-        onChange={changeTab}
-        onTogglePawMenu={() => setPawMenuOpen((open) => !open)}
-        messageBadge={totalUnread}
-        pawMenuOpen={pawMenuOpen}
-      />
+      {!(activeTab === 'messages' && currentRoomId) && (
+        <TabBar
+          active={activeTab}
+          onChange={changeTab}
+          onTogglePawMenu={() => setPawMenuOpen((open) => !open)}
+          messageBadge={totalUnread}
+          pawMenuOpen={pawMenuOpen}
+        />
+      )}
 
       {/* 全屏覆盖层 */}
       {overlay === 'feed' && (
