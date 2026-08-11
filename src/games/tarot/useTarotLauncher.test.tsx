@@ -50,4 +50,32 @@ describe('tarot launcher', () => {
     expect(current.load).toEqual({ progress: 0, error: '资源下载失败，请检查网络后重试' })
     act(() => root.unmount())
   })
+
+  it('stays closed when a cancelled preload reports progress or completes later', async () => {
+    let reportProgress!: (progress: number) => void
+    let finishPreload!: () => void
+    const preload = vi.fn().mockImplementation(async (_urls, onProgress) => {
+      reportProgress = onProgress
+      await new Promise<void>((resolve) => { finishPreload = resolve })
+    })
+    const onOpen = vi.fn()
+    let current!: ReturnType<typeof useTarotLauncher>
+    let pending!: Promise<void>
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => root.render(<Harness options={{ preload, onOpen }} onReady={(value) => { current = value }} />))
+    act(() => { pending = current.open() })
+    expect(current.load).toEqual({ progress: 0 })
+
+    act(() => current.closeLoad())
+    act(() => reportProgress(0.5))
+    expect(current.load).toBeUndefined()
+
+    finishPreload()
+    await act(async () => { await pending })
+    expect(current.load).toBeUndefined()
+    expect(onOpen).not.toHaveBeenCalled()
+    act(() => root.unmount())
+  })
 })

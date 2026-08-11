@@ -52,6 +52,37 @@ describe('tarot artwork preloader', () => {
     expect(progress).toEqual([0.25, 0.75, 1])
   })
 
+  it('never reports a lower percentage when a larger total becomes known', async () => {
+    const progress: number[] = []
+    const load = vi.fn(async (_url: string, onProgress?: (loaded: number, total?: number) => void) => {
+      onProgress?.(80, 100)
+      onProgress?.(80, 200)
+    })
+
+    await preloadTarotArtwork(['/a.jpg'], (value) => progress.push(value), load)
+
+    expect(progress).toEqual([0.8, 0.8, 1])
+  })
+
+  it('keeps progressing when active resources do not expose content length', async () => {
+    const progress: number[] = []
+    const releases: Array<() => void> = []
+    const load = vi.fn(async (_url: string, onProgress?: (loaded: number, total?: number) => void) => {
+      onProgress?.(64 * 1024, undefined)
+      await new Promise<void>((resolve) => { releases.push(resolve) })
+      onProgress?.(128 * 1024, undefined)
+    })
+
+    const pending = preloadTarotArtwork(['/a.jpg', '/b.jpg'], (value) => progress.push(value), load, { concurrency: 2 })
+    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(2))
+
+    expect(progress.some((value) => value > 0 && value < 1)).toBe(true)
+    expect(progress.every((value) => value < 1)).toBe(true)
+    releases.forEach((release) => release())
+    await pending
+    expect(progress.at(-1)).toBe(1)
+  })
+
   it('rejects when an image cannot be downloaded', async () => {
     const load = vi.fn(async (url: string) => {
       if (url === '/broken.jpg') throw new Error('download failed')
@@ -74,21 +105,19 @@ describe('tarot artwork preloader', () => {
     }))
 
     const pending = preloadTarotArtwork(
-      ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg'],
+      ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg', '/6.jpg', '/7.jpg'],
       () => undefined,
-      load,
-      { concurrency: 3 }
+      load
     )
 
-    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(3))
+    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(6))
     releases[0]?.()
-    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(4))
+    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(7))
     releases[1]?.()
-    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(5))
     releases.slice(2).forEach((release) => release())
     await pending
 
-    expect(maxActive).toBe(3)
+    expect(maxActive).toBe(6)
   })
 
   it('completes an empty preload list', async () => {
