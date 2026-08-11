@@ -85,6 +85,38 @@ describe('tarot ritual stages', () => {
     expect((container.querySelector('.tarot-next') as HTMLButtonElement).disabled).toBe(true)
   })
 
+  it('renders a visible card-back face for both cut piles', () => {
+    const container = render(
+      <TarotCutStage
+        cutCount={0}
+        cutting={false}
+        swapped={false}
+        onStartCut={vi.fn()}
+        onFinishCut={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    )
+
+    expect(container.querySelectorAll('.tarot-cut-deck__face')).toHaveLength(2)
+    expect(container.querySelectorAll('.tarot-cut-deck__left .tarot-cut-deck__face, .tarot-cut-deck__right .tarot-cut-deck__face')).toHaveLength(2)
+  })
+
+  it('builds each cut pile from individually layered thin cards', () => {
+    const container = render(
+      <TarotCutStage
+        cutCount={0}
+        cutting={false}
+        swapped={false}
+        onStartCut={vi.fn()}
+        onFinishCut={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    )
+
+    expect(container.querySelectorAll('.tarot-cut-deck__left .tarot-cut-deck__sheet')).toHaveLength(10)
+    expect(container.querySelectorAll('.tarot-cut-deck__right .tarot-cut-deck__sheet')).toHaveLength(10)
+  })
+
   it('drives both cut piles from one animation frame clock and completes once', () => {
     const onFinishCut = vi.fn()
     const container = render(
