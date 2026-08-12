@@ -14,6 +14,8 @@ cd /opt
 git clone https://github.com/SuperKingC/Pet10.git pet10
 cd /opt/pet10
 cp .env.production.example .env.production
+# 把 STATIC_ASSET_BASE_URL 改成 COS 公共读目录，
+# 把 STATIC_ASSET_VERSION 改成 `git rev-parse HEAD` 的完整结果。
 chmod +x deploy/*.sh deploy/lib/*.sh
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
 ```
@@ -32,6 +34,11 @@ DEPLOY_SSH_PRIVATE_KEY
 DEPLOY_SSH_KNOWN_HOSTS
 DEPLOY_PATH
 DEPLOY_URL
+COS_SECRET_ID
+COS_SECRET_KEY
+COS_BUCKET
+COS_REGION
+STATIC_ASSET_BASE_URL
 ```
 
 建议使用专用部署用户和独立 SSH Key，不使用 root 密码。
@@ -41,12 +48,14 @@ DEPLOY_URL
 ## 更新类型
 
 ```bash
-DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-web.sh <commit>
+STATIC_ASSET_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com/pet10-web \
+  DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-web.sh <commit>
 DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-api.sh <commit>
-DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-all.sh <commit>
+STATIC_ASSET_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com/pet10-web \
+  DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-all.sh <commit>
 ```
 
-- `web`：React、CSS、塔罗动画和前端图片。
+- `web`：React、CSS、塔罗动画和前端图片；GitHub Actions 先上传版本化静态资源，再更新 Lighthouse。
 - `api`：服务端 API。
 - `all`：Compose、环境变量或前后端共同变化。
 
@@ -56,7 +65,8 @@ DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/update-all.sh <commit>
 
 ```bash
 DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/verify.sh
-DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/rollback.sh
+STATIC_ASSET_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com/pet10-web \
+  DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/rollback.sh
 ```
 
 - `/healthz`：前端 Nginx。
@@ -78,3 +88,17 @@ DEPLOY_PUBLIC_URL=https://your-domain.example ./deploy/rollback.sh
 ## 图片与更新速度
 
 `.dockerignore` 排除了 `public/tarot/concepts`。约 `202.9 MB` 的原始概念图不会进入 Docker 构建上下文，正式塔罗展示图仍保留高质量版本。
+
+生产 `web` 和 `all` 工作流会把以下目录上传到 `{STATIC_ASSET_BASE_URL}/{完整提交 SHA}/`：
+
+- `assets/`
+- `pet/`
+- `icons/`
+- `navigation/`
+- `me/`
+- `tarot/cards/`
+- `tarot/ui/`
+
+`index.html`、`sw.js`、`manifest.webmanifest`、API 和 Socket.IO 仍由 Lighthouse 提供。Caddy 对上述静态目录返回 `302`，浏览器随后直接从 COS 下载，不再经 Lighthouse 转发文件字节。
+
+COS Bucket 必须允许生产站点来源执行 `GET`、`HEAD`，允许请求头 `*`，并暴露 `Content-Length`、`ETag`。上传对象使用一年不可变缓存；每次发布使用新的提交 SHA 目录，回滚时切换回旧目录。

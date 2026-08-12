@@ -59,6 +59,42 @@ jobs:
     environment:
       name: production
     steps:
+      - uses: actions/checkout@v4
+        if: ${{ inputs.service != 'api' }}
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        if: ${{ inputs.service != 'api' }}
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build static assets
+        if: ${{ inputs.service != 'api' }}
+        env:
+          VITE_USE_MOCK_API: "false"
+          VITE_API_BASE_URL: "/"
+          VITE_TAROT_ASSET_BASE_URL: ""
+        run: |
+          npm ci
+          npm run build
+      - name: Upload static assets to COS
+        if: ${{ inputs.service != 'api' }}
+        env:
+          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
+          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
+          COS_BUCKET: ${{ secrets.COS_BUCKET }}
+          COS_REGION: ${{ secrets.COS_REGION }}
+          STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
+        run: npm run upload:static
+      - name: Verify public COS asset
+        if: ${{ inputs.service != 'api' }}
+        env:
+          STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}
+          STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
+        run: |
+          curl --fail --head --retry 3 --max-time 30 \
+            "$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli-startup.png"
       - name: Configure SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
@@ -76,12 +112,13 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+          STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}
           REVISION: ${{ needs.validate.outputs.sha }}
           SERVICE: ${{ inputs.service }}
         run: |
           printf -v remote_command \
-            'cd -- %q && DEPLOY_PUBLIC_URL=%q ./deploy/update-%q.sh %q' \
-            "$DEPLOY_PATH" "$DEPLOY_URL" "$SERVICE" "$REVISION"
+            'cd -- %q && STATIC_ASSET_BASE_URL=%q DEPLOY_PUBLIC_URL=%q ./deploy/update-%q.sh %q' \
+            "$DEPLOY_PATH" "$STATIC_ASSET_BASE_URL" "$DEPLOY_URL" "$SERVICE" "$REVISION"
           ssh -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote_command"
       - name: Deployment summary
         env:

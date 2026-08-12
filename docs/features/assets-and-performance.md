@@ -30,9 +30,11 @@ flowchart LR
 - 塔罗背景和牌背位于 `public/tarot/ui/`。
 - 原始概念图位于 `public/tarot/concepts/`，当前标记为 `source-only`。
 - 机器可读清单位于 `docs/assets/asset-manifest.json`。
-- 生产环境只把 `public/tarot/cards/` 和 `public/tarot/ui/` 上传到 COS；不得上传 `public/tarot/concepts/`。
-- `VITE_TAROT_ASSET_BASE_URL` 只包含公开读基址，不包含 SecretId、SecretKey 或签名参数。
-- COS 资源使用版本化目录和长期缓存；同源回退资源使用一天缓存并允许一周后台重验证。
+- 生产环境把构建产物 `assets/` 和运行时目录 `pet/`、`icons/`、`navigation/`、`me/`、`tarot/cards/`、`tarot/ui/` 上传到 COS。
+- 每次发布使用完整 Git 提交 SHA 作为版本目录，Caddy 只返回重定向，文件字节由 COS 直接发送。
+- `public/tarot/concepts/`、`index.html`、`sw.js`、`manifest.webmanifest` 不上传。
+- COS SecretId、SecretKey 只保存在 GitHub Production Environment，不进入前端、服务器环境或仓库。
+- COS 版本资源使用一年不可变缓存；Web 镜像仍保留同源文件作为紧急关闭重定向时的回退。
 - “我的”页面列表图标位于 `public/me/`，使用 128×128 透明 PNG，随该页面按需加载。
 - 塔罗资源下载完成后以固定 2 路并发调用浏览器图片解码；只有 24 项资源全部可直接绘制时，进度才允许达到 100%。
 - 塔罗 CSS 背景和牌背通过运行时 CSS 变量引用资源清单 URL，避免下载 COS 资源后又从应用服务器重复请求同源图片。
@@ -66,6 +68,8 @@ flowchart LR
 - [ ] 慢速网络有占位或 fallback。
 - [ ] COS 响应包含允许站点来源的 CORS 头。
 - [ ] COS 公共基址使用版本目录，更新图片时切换版本目录。
+- [ ] 线上主 JS、主 CSS 和启动图均重定向到当前部署提交的 COS 目录。
+- [ ] `/api/`、`/socket.io/`、`index.html`、`sw.js` 不发生 COS 重定向。
 - [ ] `public/me/` 图标保持透明背景且单张不超过通用运行时图片预算。
 - [ ] 小多利头像无设定图文字、旁侧角色残片或背景边缘。
 - [ ] 小多利 PNG 保持透明背景，JPG 不出现黑色透明区域。

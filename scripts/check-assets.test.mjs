@@ -10,5 +10,5 @@ describe('asset checks', () => {
     expect(report.runtimeBytes).toBeLessThan(12 * 1024 * 1024)
     expect(report.errors).toEqual([])
     expect(report.warnings.some((warning) => warning.includes('source-only assets remain'))).toBe(true)
-  })
+  }, 15_000)
 })

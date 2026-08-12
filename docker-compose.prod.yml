@@ -2,6 +2,9 @@ services:
   caddy:
     image: caddy:2.10-alpine
     restart: unless-stopped
+    environment:
+      STATIC_ASSET_BASE_URL: "${STATIC_ASSET_BASE_URL}"
+      STATIC_ASSET_VERSION: "${STATIC_ASSET_VERSION}"
     ports:
       - "80:80"
       - "443:443"
@@ -22,7 +25,7 @@ services:
       args:
         VITE_USE_MOCK_API: "false"
         VITE_API_BASE_URL: "/"
-        VITE_TAROT_ASSET_BASE_URL: "${TAROT_ASSET_BASE_URL:-https://pet10-tarot-1300973162.cos.ap-guangzhou.myqcloud.com/pet10-v1}"
+        VITE_TAROT_ASSET_BASE_URL: ""
     restart: unless-stopped
     expose:
       - "80"

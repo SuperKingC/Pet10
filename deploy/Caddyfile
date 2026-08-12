@@ -1,5 +1,9 @@
 43-156-174-77.sslip.io {
     encode zstd gzip
+
+    @static_assets path /assets/* /pet/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*
+    redir @static_assets {$STATIC_ASSET_BASE_URL}/{$STATIC_ASSET_VERSION}{uri} 302
+
     reverse_proxy web:80
 }
 
