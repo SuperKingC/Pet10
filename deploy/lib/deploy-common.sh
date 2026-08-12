@@ -79,6 +79,31 @@ assert_static_asset_config() {
   export STATIC_ASSET_BASE_URL STATIC_ASSET_VERSION
 }
 
+persist_static_asset_config() {
+  assert_static_asset_config
+  local environment_directory
+  local temporary_file
+  environment_directory="$(dirname "$ENV_FILE")"
+  temporary_file="$(mktemp "$environment_directory/.pet10-env.XXXXXX")"
+
+  if ! awk '
+    !/^STATIC_ASSET_BASE_URL=/ &&
+    !/^STATIC_ASSET_VERSION=/
+  ' "$ENV_FILE" >"$temporary_file"; then
+    rm -f "$temporary_file"
+    fail "Could not prepare static asset configuration"
+  fi
+
+  {
+    printf '\nSTATIC_ASSET_BASE_URL=%s\n' "$STATIC_ASSET_BASE_URL"
+    printf 'STATIC_ASSET_VERSION=%s\n' "$STATIC_ASSET_VERSION"
+  } >>"$temporary_file"
+
+  chmod --reference="$ENV_FILE" "$temporary_file"
+  mv "$temporary_file" "$ENV_FILE"
+  log "Persisted static asset delivery configuration"
+}
+
 restart_static_delivery() {
   assert_static_asset_config
   compose up -d --no-deps --force-recreate caddy

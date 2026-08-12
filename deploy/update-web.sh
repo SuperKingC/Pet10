@@ -12,4 +12,5 @@ compose up -d --no-deps web
 restart_static_delivery
 verify_public_endpoints
 verify_static_asset_redirect
+persist_static_asset_config
 print_success

@@ -37,10 +37,11 @@ flowchart LR
 4. `public/tarot/concepts/`、`index.html`、`sw.js`、`manifest.webmanifest` 不上传。
 5. CORS 允许生产站点来源使用 `GET`、`HEAD`，允许请求头 `*`，暴露 `Content-Length`、`ETag`。
 6. 上传对象设置 `Cache-Control: public, max-age=31536000, immutable`。
-7. Caddy 将允许的静态路径重定向到当前提交目录；API、Socket.IO 和应用壳控制文件继续同源。
+7. Caddy 仅在静态资源公共基址和提交版本都非空时，将允许的静态路径重定向到当前提交目录；配置缺失时回退到同源 Nginx 文件，避免主 JS、CSS 和启动图被重定向到不存在的 `//` 路径。API、Socket.IO 和应用壳控制文件始终同源。
 8. 上传失败或启动图重定向不匹配时，部署停止且不报告成功。
+9. `web`、`all` 发布和静态资源回滚在健康检查通过后，自动将已验证的 `STATIC_ASSET_BASE_URL` 与完整提交 SHA 写回服务器 `.env.production`；以后直接重建 Caddy 也会继续使用最近一次成功版本，不需要人工更新 SHA。`api` 发布不修改这两个配置。
 
-回滚时部署脚本使用旧提交 SHA 切换 Caddy，旧 COS 目录保持不可变，不需要重新上传。
+回滚时部署脚本使用旧提交 SHA 切换 Caddy，并在验证成功后同步更新 `.env.production`；旧 COS 目录保持不可变，不需要重新上传。
 
 ## 安全规则
 

@@ -70,7 +70,9 @@ describe('Lighthouse deployment scripts', () => {
   it('redirects only production runtime assets to the versioned COS origin', async () => {
     const caddy = await readFile(resolve(root, 'deploy/Caddyfile'), 'utf8')
 
-    expect(caddy).toContain('@static_assets path /assets/* /pet/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*')
+    expect(caddy).toContain('@static_assets {')
+    expect(caddy).toContain('path /assets/* /pet/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*')
+    expect(caddy).toContain('expression `"{$STATIC_ASSET_BASE_URL}" != "" && "{$STATIC_ASSET_VERSION}" != ""`')
     expect(caddy).toContain('redir @static_assets {$STATIC_ASSET_BASE_URL}/{$STATIC_ASSET_VERSION}{uri} 302')
     expect(caddy).not.toContain('/tarot/concepts/*')
     expect(caddy).not.toContain('/api/*')
@@ -124,6 +126,27 @@ describe('Lighthouse deployment scripts', () => {
     expect(common).toContain("Rollback: STATIC_ASSET_BASE_URL='$STATIC_ASSET_BASE_URL'")
     expect(common).not.toContain('COS_SECRET_ID=')
     expect(common).not.toContain('COS_SECRET_KEY=')
+  })
+
+  it('persists the verified COS origin and commit version for future container restarts', async () => {
+    const common = await readFile(resolve(root, 'deploy/lib/deploy-common.sh'), 'utf8')
+    const web = await readFile(resolve(root, 'deploy/update-web.sh'), 'utf8')
+    const all = await readFile(resolve(root, 'deploy/update-all.sh'), 'utf8')
+    const api = await readFile(resolve(root, 'deploy/update-api.sh'), 'utf8')
+    const rollback = await readFile(resolve(root, 'deploy/rollback.sh'), 'utf8')
+
+    expect(common).toContain('persist_static_asset_config()')
+    expect(common).toContain('/^STATIC_ASSET_BASE_URL=/')
+    expect(common).toContain('/^STATIC_ASSET_VERSION=/')
+    expect(common).toContain('mv "$temporary_file" "$ENV_FILE"')
+
+    for (const content of [web, all]) {
+      expect(content.indexOf('persist_static_asset_config')).toBeGreaterThan(content.indexOf('verify_static_asset_redirect'))
+      expect(content.indexOf('persist_static_asset_config')).toBeLessThan(content.indexOf('print_success'))
+    }
+
+    expect(rollback.indexOf('persist_static_asset_config')).toBeGreaterThan(rollback.indexOf('verify_static_asset_redirect'))
+    expect(api).not.toContain('persist_static_asset_config')
   })
 
   it('validates static delivery configuration before changing web deployment state', async () => {
