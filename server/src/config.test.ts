@@ -10,6 +10,16 @@ describe('server config', () => {
     expect(config.mail.mode).toBe('console')
     expect(config.allowedEmails).toEqual([])
     expect(config.oss.enabled).toBe(false)
+    expect(config.search).toEqual({
+      enabled: false,
+      apiKey: undefined,
+      baseUrl: 'https://api.search.brave.com',
+      timeoutMs: 8000,
+      maxQueries: 2,
+      maxResults: 6,
+      maxSnippetLength: 500,
+      locale: 'zh-cn'
+    })
   })
 
   it('requires production secrets', () => {
@@ -57,5 +67,28 @@ describe('server config', () => {
     })
 
     expect(config.allowedEmails).toEqual(['first@example.com', 'second@example.com'])
+  })
+
+  it('enables web search when configured', () => {
+    const config = parseConfig({
+      SEARCH_API_KEY: 'search-secret',
+      SEARCH_BASE_URL: 'https://search.example/',
+      SEARCH_TIMEOUT_MS: '5000',
+      SEARCH_MAX_QUERIES: '3',
+      SEARCH_MAX_RESULTS: '8',
+      SEARCH_MAX_SNIPPET_LENGTH: '400',
+      SEARCH_LOCALE: 'zh-cn'
+    })
+
+    expect(config.search).toEqual({
+      enabled: true,
+      apiKey: 'search-secret',
+      baseUrl: 'https://search.example',
+      timeoutMs: 5000,
+      maxQueries: 3,
+      maxResults: 8,
+      maxSnippetLength: 400,
+      locale: 'zh-cn'
+    })
   })
 })

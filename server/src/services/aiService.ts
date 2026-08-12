@@ -1,6 +1,8 @@
 import type { ChatMessage, Pet, PetMemory, User } from '../domain/models.js'
 import type { ServerConfig } from '../config.js'
 import { buildSystemPrompt } from '../ai/persona.js'
+import { routeAiQuestion } from './aiRouting.js'
+import type { SearchResult, SearchService } from './searchService.js'
 
 export interface AiReplyInput {
   messages: ChatMessage[]
@@ -17,9 +19,41 @@ export interface AiService {
   extractMemory(recentMessages: ChatMessage[], existingTexts: string[]): Promise<string | null>
 }
 
-export function createAiService(config: ServerConfig['ai']): AiService {
+interface AiServiceDependencies {
+  search?: SearchService
+  fetchImpl?: typeof fetch
+  logSearch?: (event: SearchLogEvent) => void
+}
+
+interface SearchLogEvent {
+  category: Exclude<ReturnType<typeof routeAiQuestion>['category'], 'casual'>
+  status: 'success' | 'empty' | 'unavailable'
+  resultCount: number
+  durationMs: number
+}
+
+const unavailableSearch: SearchService = {
+  async search() {
+    return { status: 'unavailable', results: [] }
+  }
+}
+
+function formatSearchEvidence(results: SearchResult[]): string {
+  return results.map((result, index) => [
+    `资料 ${index + 1}`,
+    `标题：${result.title}`,
+    `摘要：${result.snippet}`,
+    result.publishedAt ? `时间：${result.publishedAt}` : ''
+  ].filter(Boolean).join('\n')).join('\n\n')
+}
+
+export function createAiService(config: ServerConfig['ai'], dependencies: AiServiceDependencies = {}): AiService {
+  const search = dependencies.search ?? unavailableSearch
+  const fetchImpl = dependencies.fetchImpl ?? fetch
+  const logSearch = dependencies.logSearch ?? (() => undefined)
+
   async function chat(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) {
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    const response = await fetchImpl(`${config.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${config.apiKey}`,
@@ -40,6 +74,11 @@ export function createAiService(config: ServerConfig['ai']): AiService {
       if (!config.enabled || !config.apiKey) {
         return '汪！我在认真听。等主人配置好 AI 接口后，我就能更聪明地陪你们聊天啦。'
       }
+      const latestUserQuestion = [...messages].reverse().find(message => message.senderType === 'user')?.text.trim() ?? ''
+      const route = routeAiQuestion(latestUserQuestion)
+      if (route.mode === 'clarify') {
+        return route.clarification ?? '你可以再告诉我具体一点吗？'
+      }
       const system = buildSystemPrompt({ pet, memories, owners, moodsText, roomType, hour: new Date().getHours() })
       // 消息分层：最近 20 条全文，更早的压缩为摘要行
       const recent = messages.slice(-20)
@@ -57,7 +96,35 @@ export function createAiService(config: ServerConfig['ai']): AiService {
         content: message.text
       })))
       try {
-        const text = await chat([{ role: 'system', content: system }, ...history])
+        let answerSystem = system
+        if (route.mode === 'search') {
+          const searchStartedAt = Date.now()
+          const research = await search.search({
+            queries: route.searchQueries ?? [route.question],
+            category: route.category,
+            freshnessRequired: route.freshnessRequired,
+            locale: 'zh-cn'
+          })
+          logSearch({
+            category: route.category,
+            status: research.status,
+            resultCount: research.results.length,
+            durationMs: Date.now() - searchStartedAt
+          })
+          if (research.status !== 'success' || research.results.length === 0) {
+            return '我暂时没查到足够可靠的新资料，可以换个关键词，或者告诉我更具体的型号、版本和地区。'
+          }
+          answerSystem = [
+            system,
+            '你正在回答一个需要实时或专业资料的问题。',
+            '只能使用下面提供的资料支持事实；资料不足或互相冲突时，要明确表达不确定性，不能补写或猜测。',
+            '先给结论，再整理关键数据、适用条件、差异和下一步建议。',
+            '不要输出链接、来源列表、引用编号、资料编号或任何内部检索字段。',
+            `当前日期：${new Date().toISOString().slice(0, 10)}`,
+            `检索资料：\n${formatSearchEvidence(research.results)}`
+          ].join('\n\n')
+        }
+        const text = await chat([{ role: 'system', content: answerSystem }, ...history])
         return text || '汪？小多利刚刚走神了，再叫我一次吧。'
       } catch {
         return '汪呜，小多利刚才打了个盹，稍后再叫我一次吧。'

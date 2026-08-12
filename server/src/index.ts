@@ -6,12 +6,17 @@ import { pool } from './db/pool.js'
 import { ensureRuntimeMigrations } from './db/migrations.js'
 import { createPostgresRepositories } from './repositories/postgresRepositories.js'
 import { createAiService } from './services/aiService.js'
+import { createSearchService } from './services/searchService.js'
 import { createSocketServer } from './realtime/socketServer.js'
 import { createAliOssSigner, createUploadService } from './services/uploadService.js'
 import { createGobangService, type GobangService } from './services/gobangService.js'
 
 const repositories = createPostgresRepositories(pool)
-const ai = createAiService(config.ai)
+const search = createSearchService(config.search)
+const ai = createAiService(config.ai, {
+  search,
+  logSearch: (event) => console.info(JSON.stringify({ event: 'ai.search', ...event }))
+})
 const uploads = createUploadService({
   enabled: config.oss.enabled,
   publicBaseUrl: config.oss.publicBaseUrl,

@@ -14,6 +14,13 @@ const environmentSchema = z.object({
   AI_API_KEY: z.string().optional(),
   AI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
   AI_MODEL: z.string().default('gpt-4.1-mini'),
+  SEARCH_API_KEY: z.string().optional(),
+  SEARCH_BASE_URL: z.string().url().default('https://api.search.brave.com'),
+  SEARCH_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
+  SEARCH_MAX_QUERIES: z.coerce.number().int().positive().max(5).default(2),
+  SEARCH_MAX_RESULTS: z.coerce.number().int().positive().max(20).default(6),
+  SEARCH_MAX_SNIPPET_LENGTH: z.coerce.number().int().positive().max(2000).default(500),
+  SEARCH_LOCALE: z.string().default('zh-cn'),
   OSS_REGION: z.string().optional(),
   OSS_BUCKET: z.string().optional(),
   OSS_ACCESS_KEY_ID: z.string().optional(),
@@ -51,6 +58,16 @@ export interface ServerConfig {
     apiKey?: string
     baseUrl: string
     model: string
+  }
+  search: {
+    enabled: boolean
+    apiKey?: string
+    baseUrl: string
+    timeoutMs: number
+    maxQueries: number
+    maxResults: number
+    maxSnippetLength: number
+    locale: string
   }
   oss: {
     enabled: boolean
@@ -109,6 +126,16 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       apiKey: parsed.AI_API_KEY,
       baseUrl: parsed.AI_BASE_URL.replace(/\/$/, ''),
       model: parsed.AI_MODEL
+    },
+    search: {
+      enabled: Boolean(parsed.SEARCH_API_KEY),
+      apiKey: parsed.SEARCH_API_KEY,
+      baseUrl: parsed.SEARCH_BASE_URL.replace(/\/$/, ''),
+      timeoutMs: parsed.SEARCH_TIMEOUT_MS,
+      maxQueries: parsed.SEARCH_MAX_QUERIES,
+      maxResults: parsed.SEARCH_MAX_RESULTS,
+      maxSnippetLength: parsed.SEARCH_MAX_SNIPPET_LENGTH,
+      locale: parsed.SEARCH_LOCALE
     },
     oss: {
       enabled: Boolean(parsed.OSS_REGION && parsed.OSS_BUCKET && parsed.OSS_ACCESS_KEY_ID && parsed.OSS_ACCESS_KEY_SECRET),
