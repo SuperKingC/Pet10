@@ -36,5 +36,6 @@ esac
 verify_public_endpoints
 if [ "$DEPLOY_SERVICE" != "api" ]; then
   verify_static_asset_redirect
+  persist_static_asset_config
 fi
 log "Rollback completed: $ROLLBACK_COMMIT"
