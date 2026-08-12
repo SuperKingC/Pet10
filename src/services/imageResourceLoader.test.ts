@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { decodeImageResource, loadImageResource } from './imageResourceLoader'
+import { decodeImageResource, loadImageResource, preloadImage } from './imageResourceLoader'
 
 describe('loadImageResource', () => {
   afterEach(() => {
@@ -44,6 +44,25 @@ describe('loadImageResource', () => {
 
     expect(image.decoding).toBe('async')
     expect(image.src).toBe('/tarot/cards/the-world.jpg')
+    expect(decode).toHaveBeenCalledOnce()
+  })
+
+  it('starts non-blocking image decoding for critical interface artwork', async () => {
+    const decode = vi.fn(async () => undefined)
+    const image = {
+      decoding: 'auto',
+      loading: 'lazy',
+      src: '',
+      decode
+    }
+    vi.stubGlobal('Image', vi.fn(() => image))
+
+    preloadImage('/pet/xiaoduoli.png')
+    await Promise.resolve()
+
+    expect(image.decoding).toBe('async')
+    expect(image.loading).toBe('eager')
+    expect(image.src).toBe('/pet/xiaoduoli.png')
     expect(decode).toHaveBeenCalledOnce()
   })
 })

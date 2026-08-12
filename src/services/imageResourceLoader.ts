@@ -1,5 +1,18 @@
 export type ImageResourceProgress = (loaded: number, total?: number) => void
 
+const preloadedImages = new Map<string, HTMLImageElement>()
+
+export function preloadImage(url: string): void {
+  if (preloadedImages.has(url)) return
+
+  const image = new Image()
+  image.decoding = 'async'
+  image.loading = 'eager'
+  image.src = url
+  preloadedImages.set(url, image)
+  void image.decode().catch(() => undefined)
+}
+
 export async function loadImageResource(url: string, onProgress?: ImageResourceProgress): Promise<void> {
   const response = await fetch(url)
   if (!response.ok) throw new Error(`图片资源下载失败：${url}`)

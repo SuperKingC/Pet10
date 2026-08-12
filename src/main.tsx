@@ -5,6 +5,7 @@ import { FriendSetupScreen } from './components/FriendSetupScreen'
 import { LoginScreen } from './components/LoginScreen'
 import { getAccessToken } from './services/httpClient'
 import { clearAppBadge } from './services/appBadge'
+import { preloadImage } from './services/imageResourceLoader'
 import { ImageGenerationRoom } from './components/ImageGenerationRoom'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
@@ -12,6 +13,16 @@ import { TarotDevEntry } from './dev/tarot/TarotDevEntry'
 import './styles.css'
 
 const SESSION_STARTUP_TIMEOUT_MS = 8_000
+
+if (window.location.pathname !== '/image' && (runtimeConfig.useMockApi || getAccessToken())) {
+  preloadImage('/pet/xiaoduoli.png')
+  preloadImage('/navigation/tab-bar-background.png')
+  preloadImage('/navigation/nest.png')
+  preloadImage('/navigation/journal.png')
+  preloadImage('/navigation/paw.png')
+  preloadImage('/navigation/messages.png')
+  preloadImage('/navigation/me.png')
+}
 
 function App() {
   if (import.meta.env.DEV && window.location.pathname === '/dev/tarot') {

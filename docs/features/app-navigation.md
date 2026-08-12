@@ -22,6 +22,7 @@ flowchart TD
 ## 关键入口
 
 - `src/main.tsx`
+- `src/services/imageResourceLoader.ts`：非阻塞预加载主应用关键图片并提前触发浏览器解码。
 - `src/components/AppShell.tsx`
 - `src/components/TabBar.tsx`
 - `src/components/PawMenu.tsx`

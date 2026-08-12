@@ -27,4 +27,22 @@ describe('startup artwork', () => {
     expect(main).toContain('SESSION_STARTUP_TIMEOUT_MS')
     expect(main).toContain('controller.abort()')
   })
+
+  it('preloads chat avatar and bottom navigation artwork before the app opens', () => {
+    const root = resolve(import.meta.dirname, '..')
+    const main = readFileSync(resolve(root, 'src/main.tsx'), 'utf8')
+    const requiredAssets = [
+      '/pet/xiaoduoli.png',
+      '/navigation/tab-bar-background.png',
+      '/navigation/nest.png',
+      '/navigation/journal.png',
+      '/navigation/paw.png',
+      '/navigation/messages.png',
+      '/navigation/me.png'
+    ]
+
+    for (const asset of requiredAssets) {
+      expect(main).toContain(`preloadImage('${asset}')`)
+    }
+  })
 })
