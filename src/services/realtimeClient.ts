@@ -1,7 +1,7 @@
 import { io, type Socket } from 'socket.io-client'
 import { getAccessToken } from './httpClient'
 import { runtimeConfig } from './runtimeConfig'
-import type { AppNotification, MoodEntry, Post } from '../domain/types'
+import type { AppNotification, MoodEntry, PetMemory, Post } from '../domain/types'
 
 /**
  * 单 socket 连接订阅全部房间 + 个人通知频道。
@@ -16,6 +16,7 @@ export interface RealtimeHandlers {
   onPostNew: (post: Post) => void
   onNotification: (notification: AppNotification) => void
   onCodewordUpdated: (payload: { roomId: string; day: string; answeredCount: number }) => void
+  onMemoryCreated: (memory: PetMemory & { roomId: string }) => void
   onMemoryDeleted: (payload: { roomId?: string; id: string }) => void
   onProfileUpdated?: (payload: { userId: string; user: Record<string, unknown> }) => void
   onMapLit?: (payload: { roomId: string; spotId: number; litBy: string }) => void
@@ -57,6 +58,7 @@ export function connectRealtime(handlers: RealtimeHandlers): RealtimeConnection 
   socket.on('post.new', (payload) => handlers.onPostNew(payload as Post))
   socket.on('notification.new', (payload) => handlers.onNotification(payload as AppNotification))
   socket.on('codeword.updated', (payload) => handlers.onCodewordUpdated(payload as { roomId: string; day: string; answeredCount: number }))
+  socket.on('memory.created', (payload) => handlers.onMemoryCreated(payload as PetMemory & { roomId: string }))
   socket.on('memory.deleted', (payload) => handlers.onMemoryDeleted(payload as { roomId?: string; id: string }))
   socket.on('profile.updated', (payload) => handlers.onProfileUpdated?.(payload as { userId: string; user: Record<string, unknown> }))
   socket.on('map.lit', (payload) => handlers.onMapLit?.(payload as { roomId: string; spotId: number; litBy: string }))

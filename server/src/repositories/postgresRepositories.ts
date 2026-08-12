@@ -199,11 +199,50 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
     memories: {
       listByRoom: (roomId) => many('SELECT * FROM pet_memories WHERE room_id=$1 ORDER BY created_at DESC', [roomId]),
       create: (input) => one(
-        'INSERT INTO pet_memories(room_id,text,source_message_id,can_mention) VALUES($1,$2,$3,$4) RETURNING *',
-        [input.roomId, input.text, input.sourceMessageId ?? null, input.canMention ?? true]
+        `INSERT INTO pet_memories(room_id,text,source_message_id,can_mention,category,importance,source)
+         VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [
+          input.roomId,
+          input.text,
+          input.sourceMessageId ?? null,
+          input.canMention ?? true,
+          input.category ?? 'other',
+          input.importance ?? 1,
+          input.source ?? 'inferred'
+        ]
       ),
       async deleteById(roomId, memoryId) {
         await database.query('DELETE FROM pet_memories WHERE room_id=$1 AND id=$2', [roomId, memoryId])
+      }
+    },
+    tasks: {
+      create: (input) => one(
+        `INSERT INTO pet_tasks(room_id,user_id,content,schedule_type,next_run_at)
+         VALUES($1,$2,$3,$4,$5) RETURNING *`,
+        [input.roomId, input.userId, input.content, input.scheduleType, input.nextRunAt]
+      ),
+      async claimDue(now, limit) {
+        return many(
+          `UPDATE pet_tasks SET status='processing', updated_at=now()
+           WHERE id IN (
+             SELECT id FROM pet_tasks
+             WHERE status='pending' AND next_run_at <= $1
+             ORDER BY next_run_at
+             FOR UPDATE SKIP LOCKED
+             LIMIT $2
+           )
+           RETURNING *`,
+          [now, limit]
+        )
+      },
+      async complete(id) {
+        await database.query("UPDATE pet_tasks SET status='completed', updated_at=now() WHERE id=$1", [id])
+      },
+      async reschedule(id, nextRunAt) {
+        await database.query("UPDATE pet_tasks SET status='pending', next_run_at=$2, updated_at=now() WHERE id=$1", [id, nextRunAt])
+      },
+      async fail(id) {
+        await database.query("UPDATE pet_tasks SET status='failed', updated_at=now() WHERE id=$1", [id])
       }
     },
     moods: {

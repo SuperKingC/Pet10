@@ -126,4 +126,28 @@ describe('AiService intelligent replies', () => {
     expect(JSON.stringify(logSearch.mock.calls)).not.toContain('索尼 A7C II')
     expect(JSON.stringify(logSearch.mock.calls)).not.toContain('12000')
   })
+
+  it('injects at most fifteen prioritized memories into the answer prompt', async () => {
+    const fetchImpl = createFetchReply('回答')
+    const ai = createAiService(config, { search: createSearch(), fetchImpl })
+    const memories = Array.from({ length: 20 }, (_, index) => ({
+      id: `memory-${index}`,
+      roomId: 'room-1',
+      text: `MEMORY_${String(index).padStart(2, '0')}`,
+      sourceMessageId: undefined,
+      canMention: true,
+      category: 'other' as const,
+      importance: 1 as const,
+      source: 'inferred' as const,
+      createdAt: new Date(2026, 7, 12, 0, index),
+      updatedAt: new Date(2026, 7, 12, 0, index)
+    }))
+
+    await ai.reply({ ...replyInput('普通问题'), memories })
+
+    const body = String(fetchImpl.mock.calls[0][1]?.body)
+    expect(body).toContain('MEMORY_19')
+    expect(body).toContain('MEMORY_05')
+    expect(body).not.toContain('MEMORY_04')
+  })
 })

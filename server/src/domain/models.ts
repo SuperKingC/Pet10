@@ -80,7 +80,26 @@ export interface PetMemory {
   text: string
   sourceMessageId?: Id
   canMention: boolean
+  category: MemoryCategory
+  importance: 1 | 2 | 3
+  source: MemorySource
   createdAt: Date
+  updatedAt: Date
+}
+
+export type MemoryCategory = 'identity' | 'preference' | 'habit' | 'plan' | 'relationship' | 'other'
+export type MemorySource = 'explicit' | 'inferred'
+
+export interface PetTask {
+  id: Id
+  roomId: Id
+  userId: Id
+  content: string
+  scheduleType: 'once' | 'daily' | 'weekly'
+  nextRunAt: Date
+  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'failed'
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface MoodEntry {

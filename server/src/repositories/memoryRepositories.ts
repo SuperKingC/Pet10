@@ -10,6 +10,7 @@ import type {
   Pet,
   PetEventStat,
   PetMemory,
+  PetTask,
   Post,
   Relationship,
   Room,
@@ -33,6 +34,7 @@ export function createMemoryRepositories(): RepositoryBundle {
   const pets = new Map<string, Pet>()
   const messages = new Map<string, ChatMessage[]>()
   const memories = new Map<string, PetMemory[]>()
+  const tasks = new Map<string, PetTask>()
   const moods = new Map<string, MoodEntry>()
   const posts = new Map<string, Post>()
   const postLikes = new Map<string, Set<string>>()
@@ -180,13 +182,70 @@ export function createMemoryRepositories(): RepositoryBundle {
 
   const memoryRepo = {
     async listByRoom(roomId: string) { return memories.get(roomId) ?? [] },
-    async create(input: { roomId: string; text: string; sourceMessageId?: string; canMention?: boolean }) {
-      const item: PetMemory = { id: randomUUID(), roomId: input.roomId, text: input.text, sourceMessageId: input.sourceMessageId, canMention: input.canMention ?? true, createdAt: now() }
+    async create(input: { roomId: string; text: string; sourceMessageId?: string; canMention?: boolean; category?: PetMemory['category']; importance?: PetMemory['importance']; source?: PetMemory['source'] }) {
+      const timestamp = now()
+      const item: PetMemory = {
+        id: randomUUID(),
+        roomId: input.roomId,
+        text: input.text,
+        sourceMessageId: input.sourceMessageId,
+        canMention: input.canMention ?? true,
+        category: input.category ?? 'other',
+        importance: input.importance ?? 1,
+        source: input.source ?? 'inferred',
+        createdAt: timestamp,
+        updatedAt: timestamp
+      }
       memories.set(input.roomId, [item, ...(memories.get(input.roomId) ?? [])])
       return item
     },
     async deleteById(roomId: string, memoryId: string) {
       memories.set(roomId, (memories.get(roomId) ?? []).filter((memory) => memory.id !== memoryId))
+    }
+  }
+
+  const taskRepo = {
+    async create(input: Pick<PetTask, 'roomId' | 'userId' | 'content' | 'scheduleType' | 'nextRunAt'>) {
+      const timestamp = now()
+      const task: PetTask = {
+        ...input,
+        id: randomUUID(),
+        status: 'pending',
+        createdAt: timestamp,
+        updatedAt: timestamp
+      }
+      tasks.set(task.id, task)
+      return task
+    },
+    async claimDue(currentTime: Date, limit: number) {
+      const due = [...tasks.values()]
+        .filter((task) => task.status === 'pending' && task.nextRunAt <= currentTime)
+        .sort((first, second) => first.nextRunAt.getTime() - second.nextRunAt.getTime())
+        .slice(0, limit)
+      for (const task of due) {
+        task.status = 'processing'
+        task.updatedAt = now()
+      }
+      return due
+    },
+    async complete(id: string) {
+      const task = tasks.get(id)
+      if (!task) return
+      task.status = 'completed'
+      task.updatedAt = now()
+    },
+    async reschedule(id: string, nextRunAt: Date) {
+      const task = tasks.get(id)
+      if (!task) return
+      task.status = 'pending'
+      task.nextRunAt = nextRunAt
+      task.updatedAt = now()
+    },
+    async fail(id: string) {
+      const task = tasks.get(id)
+      if (!task) return
+      task.status = 'failed'
+      task.updatedAt = now()
     }
   }
 
@@ -327,6 +386,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     pets: petRepo,
     messages: messageRepo,
     memories: memoryRepo,
+    tasks: taskRepo,
     moods: moodRepo,
     posts: postRepo,
     notifications: notificationRepo,

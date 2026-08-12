@@ -2,11 +2,13 @@ import type { ChatMessage, Pet, PetAction, User } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { PetActionOutcome } from './petService.js'
+import type { createReminderService } from './reminderService.js'
 
 interface PetBrainDependencies {
   repositories: RepositoryBundle
   ai: AiService
   emit: (roomId: string, event: string, payload: unknown) => void
+  reminders?: Pick<ReturnType<typeof createReminderService>, 'handleMessage'>
   logError?: (message: string, error: unknown) => void
 }
 
@@ -37,9 +39,10 @@ function defaultPet(roomId: string): Pet {
   }
 }
 
-export function createPetBrain({ repositories, ai, emit, logError = (m, e) => console.error(m, e) }: PetBrainDependencies) {
+export function createPetBrain({ repositories, ai, emit, reminders, logError = (m, e) => console.error(m, e) }: PetBrainDependencies) {
   const lastProactiveAt = new Map<string, number>()
   const lastMemoryExtractAt = new Map<string, number>()
+  const memoryExtractionInFlight = new Set<string>()
   const pairReplyTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const pairChatterTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const pairReplyInFlight = new Set<string>()
@@ -170,18 +173,21 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
 
   /** 说完话后按冷却+概率提取一条真实记忆；每房上限 60 条，淘汰最旧 */
   async function maybeExtractMemory(roomId: string) {
+    if (memoryExtractionInFlight.has(roomId)) return
+    memoryExtractionInFlight.add(roomId)
     try {
       const last = lastMemoryExtractAt.get(roomId) ?? 0
       if (Date.now() - last < MEMORY_COOLDOWN_MS) return
-      if (Math.random() > 0.5) return
-      lastMemoryExtractAt.set(roomId, Date.now())
       const [recent, memories] = await Promise.all([
         repositories.messages.listRecent(roomId, 12),
         repositories.memories.listByRoom(roomId)
       ])
       const text = await ai.extractMemory(recent, memories.map((memory) => memory.text))
       if (!text) return
-      await repositories.memories.create({ roomId, text })
+      if (memories.some((memory) => memory.text.trim() === text.trim())) return
+      const memory = await repositories.memories.create({ roomId, text })
+      lastMemoryExtractAt.set(roomId, Date.now())
+      emit(roomId, 'memory.created', memory)
       // listByRoom 按时间倒序，超出上限时删尾部（最旧）
       if (memories.length + 1 > MEMORY_LIMIT) {
         for (const oldest of memories.slice(MEMORY_LIMIT - 1)) {
@@ -190,7 +196,37 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
       }
     } catch (error) {
       logError('petBrain memory extraction failed', error)
+    } finally {
+      memoryExtractionInFlight.delete(roomId)
     }
+  }
+
+  async function saveExplicitMemory(roomId: string, message: ChatMessage) {
+    const match = message.text.trim().match(/^记住(?:：|:|\s*)?(.+)$/)
+    if (!match) return false
+    const text = match[1].trim()
+    if (!text) return false
+    const existing = await repositories.memories.listByRoom(roomId)
+    let memory = existing.find((item) => item.text === text)
+    if (!memory) {
+      memory = await repositories.memories.create({
+        roomId,
+        text,
+        sourceMessageId: message.id,
+        category: 'other',
+        importance: 3,
+        source: 'explicit'
+      })
+      emit(roomId, 'memory.created', memory)
+    }
+    const reply = await repositories.messages.create({
+      roomId,
+      senderType: 'pet',
+      kind: 'pet',
+      text: `汪，我记住啦：${text}`
+    })
+    emit(roomId, 'message.created', reply)
+    return true
   }
 
   return {
@@ -198,6 +234,8 @@ export function createPetBrain({ repositories, ai, emit, logError = (m, e) => co
     async onUserMessage(roomId: string, message: ChatMessage) {
       const room = await repositories.rooms.findById(roomId)
       if (!room) return
+      if (message.senderId && await reminders?.handleMessage(roomId, message.senderId, message.text)) return
+      if (await saveExplicitMemory(roomId, message)) return
       const roomType = room.type === 'pet_dm' ? 'pet_dm' as const : 'pair' as const
 
       if (roomType === 'pet_dm') {

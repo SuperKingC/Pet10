@@ -35,6 +35,12 @@ export interface PetMemory {
   text: string
   sourceMessageId: string
   canMention: boolean
+  roomId?: string
+  category?: 'identity' | 'preference' | 'habit' | 'plan' | 'relationship' | 'other'
+  importance?: 1 | 2 | 3
+  source?: 'explicit' | 'inferred'
+  createdAt?: string
+  updatedAt?: string
 }
 
 // ---------- 社交化新增 ----------

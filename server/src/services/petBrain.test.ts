@@ -131,4 +131,81 @@ describe('pet brain pair-room scheduling', () => {
     await vi.advanceTimersByTimeAsync(1)
     expect(reply).toHaveBeenCalledTimes(2)
   })
+
+  it('extracts memory after a reply without a random gate and emits the created memory', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    const emit = vi.fn()
+    const brain = createPetBrain({
+      repositories,
+      ai: {
+        reply: async () => '记住啦',
+        extractMemory: async () => '主人喜欢摄影'
+      },
+      emit
+    })
+
+    const message = await storeUserMessage(repositories, room.id, first.id, '我喜欢摄影')
+    await brain.onUserMessage(room.id, message)
+    await vi.advanceTimersByTimeAsync(1500)
+    await vi.advanceTimersByTimeAsync(0)
+
+    const memories = await repositories.memories.listByRoom(room.id)
+    expect(memories.map((memory) => memory.text)).toContain('主人喜欢摄影')
+    expect(emit).toHaveBeenCalledWith(room.id, 'memory.created', expect.objectContaining({
+      roomId: room.id,
+      text: '主人喜欢摄影'
+    }))
+  })
+
+  it('retries memory extraction after an empty result instead of starting cooldown', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    const extractMemory = vi.fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce('主人不吃香菜')
+    const brain = createPetBrain({
+      repositories,
+      ai: { reply: async () => '好', extractMemory },
+      emit: vi.fn()
+    })
+
+    const firstMessage = await storeUserMessage(repositories, room.id, first.id, '随便聊聊')
+    await brain.onUserMessage(room.id, firstMessage)
+    await vi.advanceTimersByTimeAsync(1500)
+    await vi.advanceTimersByTimeAsync(0)
+
+    const secondMessage = await storeUserMessage(repositories, room.id, first.id, '我不吃香菜')
+    await brain.onUserMessage(room.id, secondMessage)
+    await vi.advanceTimersByTimeAsync(1500)
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(extractMemory).toHaveBeenCalledTimes(2)
+    expect((await repositories.memories.listByRoom(room.id)).map((memory) => memory.text)).toContain('主人不吃香菜')
+  })
+
+  it('saves an explicit important memory immediately and replies without AI', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    const reply = vi.fn(async () => '不应调用')
+    const emit = vi.fn()
+    const brain = createPetBrain({
+      repositories,
+      ai: { reply, extractMemory: async () => null },
+      emit
+    })
+
+    const message = await storeUserMessage(repositories, room.id, first.id, '记住我不吃香菜')
+    await brain.onUserMessage(room.id, message)
+
+    const memories = await repositories.memories.listByRoom(room.id)
+    expect(memories[0]).toMatchObject({
+      text: '我不吃香菜',
+      importance: 3,
+      source: 'explicit'
+    })
+    expect(reply).not.toHaveBeenCalled()
+    expect(emit).toHaveBeenCalledWith(room.id, 'memory.created', memories[0])
+    expect(emit).toHaveBeenCalledWith(room.id, 'message.created', expect.objectContaining({
+      text: expect.stringContaining('记住')
+    }))
+  })
 })

@@ -79,7 +79,21 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
       if (route.mode === 'clarify') {
         return route.clarification ?? '你可以再告诉我具体一点吗？'
       }
-      const system = buildSystemPrompt({ pet, memories, owners, moodsText, roomType, hour: new Date().getHours() })
+      const prioritizedMemories = [...memories]
+        .sort((first, second) => {
+          const importanceDifference = (second.importance ?? 1) - (first.importance ?? 1)
+          if (importanceDifference !== 0) return importanceDifference
+          return second.createdAt.getTime() - first.createdAt.getTime()
+        })
+        .slice(0, 15)
+      const system = buildSystemPrompt({
+        pet,
+        memories: prioritizedMemories,
+        owners,
+        moodsText,
+        roomType,
+        hour: new Date().getHours()
+      })
       // 消息分层：最近 20 条全文，更早的压缩为摘要行
       const recent = messages.slice(-20)
       const older = messages.slice(0, -20)

@@ -10,6 +10,7 @@ import type {
   Pet,
   PetEventStat,
   PetMemory,
+  PetTask,
   Post,
   Relationship,
   Room,
@@ -77,8 +78,24 @@ export interface MessageRepository {
 
 export interface MemoryRepository {
   listByRoom(roomId: string): Promise<PetMemory[]>
-  create(input: { roomId: string; text: string; sourceMessageId?: string; canMention?: boolean }): Promise<PetMemory>
+  create(input: {
+    roomId: string
+    text: string
+    sourceMessageId?: string
+    canMention?: boolean
+    category?: PetMemory['category']
+    importance?: PetMemory['importance']
+    source?: PetMemory['source']
+  }): Promise<PetMemory>
   deleteById(roomId: string, memoryId: string): Promise<void>
+}
+
+export interface TaskRepository {
+  create(input: Pick<PetTask, 'roomId' | 'userId' | 'content' | 'scheduleType' | 'nextRunAt'>): Promise<PetTask>
+  claimDue(now: Date, limit: number): Promise<PetTask[]>
+  complete(id: string): Promise<void>
+  reschedule(id: string, nextRunAt: Date): Promise<void>
+  fail(id: string): Promise<void>
 }
 
 export interface MoodRepository {
@@ -145,6 +162,7 @@ export interface RepositoryBundle {
   pets: PetRepository
   messages: MessageRepository
   memories: MemoryRepository
+  tasks: TaskRepository
   moods: MoodRepository
   posts: PostRepository
   notifications: NotificationRepository

@@ -20,6 +20,7 @@ import { createSessionService } from './services/sessionService.js'
 import { createSocialService } from './services/socialService.js'
 import type { AiService } from './services/aiService.js'
 import type { createUploadService } from './services/uploadService.js'
+import { createReminderService } from './services/reminderService.js'
 
 export interface AppDependencies {
   config: ServerConfig
@@ -54,8 +55,15 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     allowedEmails: config.allowedEmails,
     logCode: (email, code) => console.log(`[login-code] ${email}: ${code}`)
   })
-  const brain = createPetBrain({ repositories, ai, emit })
-  let pushService: PushService | undefined
+  let pushService: PushService | undefined = createPushService(config.push, repositories)
+  const reminders = createReminderService({
+    repositories,
+    emit,
+    emitUser,
+    notifyPush: (userId) => pushService?.notifyUser(userId)
+  })
+  reminders.start()
+  const brain = createPetBrain({ repositories, ai, emit, reminders })
   const socialService = createSocialService({
     repositories,
     ai,
@@ -73,8 +81,6 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   const roomService = createRoomService({ repositories, ai, brain })
   const sessionService = createSessionService(repositories, { emitUser })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
-  pushService = createPushService(config.push, repositories)
-
   app.use('/api/auth', createAuthRoutes(authService))
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
   app.use('/api/friendships', authenticate, createFriendshipRoutes(friendshipService))

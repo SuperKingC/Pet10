@@ -4,6 +4,7 @@ import { appendUniqueMessage } from '../services/messageCollection'
 import { mapServerMessage, type ServerMessage } from '../services/messageMapper'
 import { connectRealtime, type RealtimeConnection } from '../services/realtimeClient'
 import { socialApi } from '../services/socialApi'
+import { upsertMemory } from './memoryState'
 
 export interface RoomRuntime {
   loaded: boolean
@@ -118,6 +119,11 @@ export function useRoomRuntime(options: RoomRuntimeOptions) {
       },
       onCodewordUpdated() {
         // 暗号卡打开时拉取最新
+      },
+      onMemoryCreated(memory) {
+        patchRoom(memory.roomId, (previous) => ({
+          memories: upsertMemory(previous.memories, memory)
+        }))
       },
       onMemoryDeleted({ roomId, id }) {
         if (!roomId) return
