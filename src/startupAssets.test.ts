@@ -45,4 +45,12 @@ describe('startup artwork', () => {
       expect(main).toContain(`preloadImage('${asset}')`)
     }
   })
+
+  it('pre-caches the bottom navigation background for standalone launches', () => {
+    const root = resolve(import.meta.dirname, '..')
+    const serviceWorker = readFileSync(resolve(root, 'public/sw.js'), 'utf8')
+
+    expect(serviceWorker).toContain("const CACHE_NAME = 'xiaoduoli-shell-v8'")
+    expect(serviceWorker).toContain("'/navigation/tab-bar-background.png'")
+  })
 })

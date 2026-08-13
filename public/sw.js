@@ -1,8 +1,9 @@
-const CACHE_NAME = 'xiaoduoli-shell-v7'
+const CACHE_NAME = 'xiaoduoli-shell-v8'
 const NAVIGATION_TIMEOUT_MS = 2500
 const APP_SHELL = [
   '/manifest.webmanifest',
   '/pet/xiaoduoli-startup.png',
+  '/navigation/tab-bar-background.png',
   '/icons/icon-180.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
