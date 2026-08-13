@@ -7,6 +7,7 @@ interface TabBarProps {
   messageBadge: number
   nestBadge?: boolean
   pawMenuOpen?: boolean
+  hidden?: boolean
 }
 
 const TABS: Array<{ key: TabKey; label: string; icon: string }> = [
@@ -22,10 +23,15 @@ export function TabBar({
   onTogglePawMenu,
   messageBadge,
   nestBadge = false,
-  pawMenuOpen = false
+  pawMenuOpen = false,
+  hidden = false
 }: TabBarProps) {
   return (
-    <nav className="tab-bar" aria-label="主导航">
+    <nav
+      className={`tab-bar${hidden ? ' tab-bar--hidden' : ''}`}
+      aria-label="主导航"
+      aria-hidden={hidden || undefined}
+    >
       {TABS.slice(0, 2).map((tab) => {
         const badge = tab.key === 'messages' ? messageBadge : tab.key === 'nest' && nestBadge ? 1 : 0
         return (

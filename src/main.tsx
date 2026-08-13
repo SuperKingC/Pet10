@@ -22,6 +22,11 @@ if (window.location.pathname !== '/image' && (runtimeConfig.useMockApi || getAcc
   preloadImage('/navigation/paw.png')
   preloadImage('/navigation/messages.png')
   preloadImage('/navigation/me.png')
+  preloadImage('/me/birthday.png')
+  preloadImage('/me/notification.png')
+  preloadImage('/me/contact.png')
+  preloadImage('/me/about.png')
+  preloadImage('/me/logout.png')
 }
 
 function App() {

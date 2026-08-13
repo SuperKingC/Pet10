@@ -38,11 +38,39 @@ describe('startup artwork', () => {
       '/navigation/journal.png',
       '/navigation/paw.png',
       '/navigation/messages.png',
-      '/navigation/me.png'
+      '/navigation/me.png',
+      '/me/birthday.png',
+      '/me/notification.png',
+      '/me/contact.png',
+      '/me/about.png',
+      '/me/logout.png'
     ]
 
     for (const asset of requiredAssets) {
       expect(main).toContain(`preloadImage('${asset}')`)
+    }
+  })
+
+  it('precaches fixed interface artwork for installed PWA launches', () => {
+    const root = resolve(import.meta.dirname, '..')
+    const serviceWorker = readFileSync(resolve(root, 'public/sw.js'), 'utf8')
+    const requiredAssets = [
+      '/pet/xiaoduoli.png',
+      '/navigation/tab-bar-background.png',
+      '/navigation/nest.png',
+      '/navigation/journal.png',
+      '/navigation/paw.png',
+      '/navigation/messages.png',
+      '/navigation/me.png',
+      '/me/birthday.png',
+      '/me/notification.png',
+      '/me/contact.png',
+      '/me/about.png',
+      '/me/logout.png'
+    ]
+
+    for (const asset of requiredAssets) {
+      expect(serviceWorker).toContain(`'${asset}'`)
     }
   })
 })

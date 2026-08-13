@@ -44,4 +44,16 @@ describe('bottom navigation motion', () => {
     expect(styles).toMatch(/\.tab-bar__icon\s*\{[^}]*width:\s*var\(--tab-icon-size\)/)
     expect(styles).toMatch(/\.tab-bar__icon img\s*\{[^}]*width:\s*100%/)
   })
+
+  it('keeps installed-app artwork painted while screens switch', () => {
+    expect(styles).toMatch(/\.tab-bar--hidden\s*\{[^}]*z-index:\s*0/)
+    expect(styles).toMatch(/\.tab-bar--hidden\s*\{[^}]*pointer-events:\s*none/)
+    expect(styles).not.toMatch(/\.tab-bar--hidden\s*\{[^}]*visibility:\s*hidden/)
+    expect(styles).not.toMatch(/\.tab-bar--hidden\s*\{[^}]*display:\s*none/)
+    expect(styles).not.toMatch(/\.tab-panel--active\s*\{[^}]*animation:\s*fade-in/)
+    expect(styles).toMatch(/\.chat-view\s*\{[^}]*animation:\s*screen-slide-in/)
+    expect(styles).toMatch(/\.chat-row\s*\{[^}]*animation:\s*row-slide-in/)
+    expect(styles).toMatch(/@keyframes screen-slide-in\s*\{[^}]*transform:[^}]*translateY/)
+    expect(styles).toMatch(/@keyframes row-slide-in\s*\{[^}]*transform:[^}]*translateY/)
+  })
 })

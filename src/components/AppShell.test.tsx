@@ -13,19 +13,22 @@ afterEach(() => {
 
 describe('AppShell bottom navigation visibility', () => {
   it('keeps the bottom navigation on the conversation list', () => {
-    expect(renderWithUiState('messages')).toContain('aria-label="主导航"')
+    expect(renderWithUiState('messages')).toContain('class="tab-bar"')
   })
 
-  it('hides the bottom navigation inside a conversation detail', () => {
-    expect(renderWithUiState('messages', 'room-1')).not.toContain('aria-label="主导航"')
+  it('keeps the bottom navigation mounted but hidden inside a conversation detail', () => {
+    const markup = renderWithUiState('messages', 'room-1')
+
+    expect(markup).toContain('class="tab-bar tab-bar--hidden"')
+    expect(markup).toContain('aria-hidden="true"')
   })
 
   it('shows the bottom navigation again after returning to the conversation list', () => {
     renderWithUiState('messages', 'room-1')
-    expect(renderWithUiState('messages')).toContain('aria-label="主导航"')
+    expect(renderWithUiState('messages')).toContain('class="tab-bar"')
   })
 
   it('keeps the bottom navigation on other tabs', () => {
-    expect(renderWithUiState('nest', 'room-1')).toContain('aria-label="主导航"')
+    expect(renderWithUiState('nest', 'room-1')).toContain('class="tab-bar"')
   })
 })

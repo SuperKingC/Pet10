@@ -1,11 +1,23 @@
-const CACHE_NAME = 'xiaoduoli-shell-v7'
+const CACHE_NAME = 'xiaoduoli-shell-v8'
 const NAVIGATION_TIMEOUT_MS = 2500
 const APP_SHELL = [
   '/manifest.webmanifest',
   '/pet/xiaoduoli-startup.png',
+  '/pet/xiaoduoli.png',
   '/icons/icon-180.png',
   '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/icons/icon-512.png',
+  '/navigation/tab-bar-background.png',
+  '/navigation/nest.png',
+  '/navigation/journal.png',
+  '/navigation/paw.png',
+  '/navigation/messages.png',
+  '/navigation/me.png',
+  '/me/birthday.png',
+  '/me/notification.png',
+  '/me/contact.png',
+  '/me/about.png',
+  '/me/logout.png'
 ]
 
 async function precacheAppShell() {
