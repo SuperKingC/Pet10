@@ -58,6 +58,14 @@ SEARCH_MAX_SNIPPET_LENGTH
 SEARCH_LOCALE
 ```
 
+默认搜索供应商为 Tavily。生产服务器只需在 `.env.production` 填写：
+
+```text
+SEARCH_API_KEY=tvly-你的真实密钥
+```
+
+`SEARCH_BASE_URL` 默认使用 `https://api.tavily.com`。密钥只允许保存在服务端，不得添加 `VITE_` 前缀、写入前端或提交到 Git。
+
 ## 风险
 
 - 重复消息通常与实时事件和请求结果同时写入有关。

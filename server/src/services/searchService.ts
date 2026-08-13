@@ -35,16 +35,13 @@ export interface SearchService {
   search(input: SearchInput): Promise<SearchResultSet>
 }
 
-interface BraveSearchResponse {
-  web?: {
-    results?: Array<{
-      title?: unknown
-      url?: unknown
-      description?: unknown
-      age?: unknown
-      page_age?: unknown
-    }>
-  }
+interface TavilySearchResponse {
+  results?: Array<{
+    title?: unknown
+    url?: unknown
+    content?: unknown
+    published_date?: unknown
+  }>
 }
 
 function text(value: unknown): string {
@@ -67,58 +64,58 @@ function domainOf(url: string): string {
   }
 }
 
-function normalizeResponse(data: BraveSearchResponse, maxSnippetLength: number): SearchResult[] {
-  return (data.web?.results ?? []).flatMap((candidate) => {
+function normalizeResponse(data: TavilySearchResponse, maxSnippetLength: number, maxResults: number): SearchResult[] {
+  return (data.results ?? []).flatMap((candidate) => {
     const title = text(candidate.title)
     const url = text(candidate.url)
-    const snippet = text(candidate.description).slice(0, maxSnippetLength)
+    const snippet = text(candidate.content).slice(0, maxSnippetLength)
     const domain = domainOf(url)
     if (!title || !url || !snippet || !domain) return []
-    const publishedAt = text(candidate.page_age) || text(candidate.age) || undefined
+    const publishedAt = text(candidate.published_date) || undefined
     return [{ title, url, snippet, domain, publishedAt }]
-  })
+  }).slice(0, maxResults)
 }
 
 export function createSearchService(config: SearchConfig, fetchImpl: typeof fetch = fetch): SearchService {
-  async function searchQuery(query: string, locale: string): Promise<SearchResult[]> {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), config.timeoutMs)
-    try {
-      const url = new URL('/res/v1/web/search', config.baseUrl)
-      url.searchParams.set('q', query)
-      url.searchParams.set('count', String(Math.min(config.maxResults, 20)))
-      url.searchParams.set('search_lang', locale.startsWith('zh') ? 'zh-hans' : locale.split('-')[0])
-      url.searchParams.set('safesearch', 'moderate')
-      const response = await fetchImpl(url.toString(), {
-        headers: {
-          Accept: 'application/json',
-          'X-Subscription-Token': config.apiKey ?? ''
-        },
-        signal: controller.signal
-      })
-      if (!response.ok) throw new Error(`search_request_failed:${response.status}`)
-      return normalizeResponse(await response.json() as BraveSearchResponse, config.maxSnippetLength)
-    } finally {
-      clearTimeout(timeout)
-    }
-  }
-
   return {
     async search(input) {
       if (!config.enabled || !config.apiKey) return { status: 'unavailable', results: [] }
       const queries = [...new Set(input.queries.map(sanitizeQuery).filter(Boolean))].slice(0, config.maxQueries)
       if (queries.length === 0) return { status: 'empty', results: [] }
+
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), config.timeoutMs)
       try {
-        const batches = await Promise.all(queries.map(query => searchQuery(query, input.locale || config.locale)))
-        const unique = new Map<string, SearchResult>()
-        for (const result of batches.flat()) {
-          if (!unique.has(result.url)) unique.set(result.url, result)
-          if (unique.size >= config.maxResults) break
-        }
-        const results = [...unique.values()]
+        const response = await fetchImpl(`${config.baseUrl}/search`, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            query: queries.join('；'),
+            search_depth: 'basic',
+            topic: 'general',
+            max_results: config.maxResults,
+            include_answer: false,
+            include_raw_content: false,
+            include_images: false,
+            auto_parameters: false
+          }),
+          signal: controller.signal
+        })
+        if (!response.ok) throw new Error(`search_request_failed:${response.status}`)
+        const results = normalizeResponse(
+          await response.json() as TavilySearchResponse,
+          config.maxSnippetLength,
+          config.maxResults
+        )
         return { status: results.length > 0 ? 'success' : 'empty', results }
       } catch {
         return { status: 'unavailable', results: [] }
+      } finally {
+        clearTimeout(timeout)
       }
     }
   }

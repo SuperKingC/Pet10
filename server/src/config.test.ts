@@ -13,7 +13,7 @@ describe('server config', () => {
     expect(config.search).toEqual({
       enabled: false,
       apiKey: undefined,
-      baseUrl: 'https://api.search.brave.com',
+      baseUrl: 'https://api.tavily.com',
       timeoutMs: 8000,
       maxQueries: 2,
       maxResults: 6,
@@ -72,7 +72,7 @@ describe('server config', () => {
   it('enables web search when configured', () => {
     const config = parseConfig({
       SEARCH_API_KEY: 'search-secret',
-      SEARCH_BASE_URL: 'https://search.example/',
+      SEARCH_BASE_URL: 'https://api.tavily.com/',
       SEARCH_TIMEOUT_MS: '5000',
       SEARCH_MAX_QUERIES: '3',
       SEARCH_MAX_RESULTS: '8',
@@ -83,7 +83,7 @@ describe('server config', () => {
     expect(config.search).toEqual({
       enabled: true,
       apiKey: 'search-secret',
-      baseUrl: 'https://search.example',
+      baseUrl: 'https://api.tavily.com',
       timeoutMs: 5000,
       maxQueries: 3,
       maxResults: 8,

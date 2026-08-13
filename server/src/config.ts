@@ -15,7 +15,7 @@ const environmentSchema = z.object({
   AI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
   AI_MODEL: z.string().default('gpt-4.1-mini'),
   SEARCH_API_KEY: z.string().optional(),
-  SEARCH_BASE_URL: z.string().url().default('https://api.search.brave.com'),
+  SEARCH_BASE_URL: z.string().url().default('https://api.tavily.com'),
   SEARCH_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
   SEARCH_MAX_QUERIES: z.coerce.number().int().positive().max(5).default(2),
   SEARCH_MAX_RESULTS: z.coerce.number().int().positive().max(20).default(6),

@@ -4,7 +4,7 @@ import { createSearchService, type SearchConfig } from './searchService.js'
 const config: SearchConfig = {
   enabled: true,
   apiKey: 'search-secret',
-  baseUrl: 'https://api.search.example',
+  baseUrl: 'https://api.tavily.com',
   timeoutMs: 1000,
   maxQueries: 2,
   maxResults: 4,
@@ -22,15 +22,13 @@ function response(body: unknown, ok = true, status = 200): Response {
 describe('SearchService', () => {
   it('normalizes provider results and limits the result count', async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockImplementation(async () => response({
-        web: {
-          results: [
-            { title: 'A', url: 'https://example.com/a', description: '摘要 A', age: '2 days ago' },
-            { title: 'B', url: 'https://example.com/b', description: '摘要 B' },
-            { title: 'C', url: 'https://example.com/c', description: '摘要 C' },
-            { title: 'D', url: 'https://example.com/d', description: '摘要 D' },
-            { title: 'E', url: 'https://example.com/e', description: '摘要 E' }
-          ]
-        }
+        results: [
+          { title: 'A', url: 'https://example.com/a', content: '摘要 A', published_date: '2026-08-12' },
+          { title: 'B', url: 'https://example.com/b', content: '摘要 B' },
+          { title: 'C', url: 'https://example.com/c', content: '摘要 C' },
+          { title: 'D', url: 'https://example.com/d', content: '摘要 D' },
+          { title: 'E', url: 'https://example.com/e', content: '摘要 E' }
+        ]
       }))
     const service = createSearchService(config, fetchImpl)
 
@@ -49,15 +47,23 @@ describe('SearchService', () => {
       snippet: '摘要 A',
       domain: 'example.com'
     })
-    expect(fetchImpl).toHaveBeenCalledTimes(2)
-    expect(fetchImpl.mock.calls[0][0]).toContain('/res/v1/web/search')
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://api.tavily.com/search')
+    expect(fetchImpl.mock.calls[0][1]?.method).toBe('POST')
     expect(fetchImpl.mock.calls[0][1]?.headers).toMatchObject({
-      'X-Subscription-Token': 'search-secret'
+      Authorization: 'Bearer search-secret'
+    })
+    expect(JSON.parse(String(fetchImpl.mock.calls[0][1]?.body))).toMatchObject({
+      query: expect.stringContaining('索尼 A7C II'),
+      search_depth: 'basic',
+      max_results: 4,
+      include_answer: false,
+      include_raw_content: false
     })
   })
 
   it('returns empty when the provider has no usable results', async () => {
-    const service = createSearchService(config, vi.fn<typeof fetch>().mockResolvedValue(response({ web: { results: [] } })))
+    const service = createSearchService(config, vi.fn<typeof fetch>().mockResolvedValue(response({ results: [] })))
 
     await expect(service.search({
       queries: ['不存在的资料'],
@@ -107,9 +113,7 @@ describe('SearchService', () => {
 
   it('removes obvious private contact details from provider queries', async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockImplementation(async () => response({
-      web: {
-        results: [{ title: 'A', url: 'https://example.com/a', description: '摘要 A' }]
-      }
+      results: [{ title: 'A', url: 'https://example.com/a', content: '摘要 A' }]
     }))
     const service = createSearchService(config, fetchImpl)
 
@@ -120,9 +124,9 @@ describe('SearchService', () => {
       locale: 'zh-cn'
     })
 
-    const requestedUrl = String(fetchImpl.mock.calls[0][0])
-    expect(requestedUrl).not.toContain('13800138000')
-    expect(requestedUrl).not.toContain('me%40example.com')
-    expect(requestedUrl).toContain('A7C')
+    const requestedBody = String(fetchImpl.mock.calls[0][1]?.body)
+    expect(requestedBody).not.toContain('13800138000')
+    expect(requestedBody).not.toContain('me@example.com')
+    expect(requestedBody).toContain('A7C')
   })
 })
