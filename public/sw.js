@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xiaoduoli-shell-v8'
+const CACHE_NAME = 'xiaoduoli-shell-v9'
 const NAVIGATION_TIMEOUT_MS = 2500
 const APP_SHELL = [
   '/manifest.webmanifest',

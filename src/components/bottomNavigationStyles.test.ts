@@ -22,8 +22,10 @@ describe('bottom navigation motion', () => {
   })
 
   it('renders the supplied blue navigation plate behind the icons', () => {
-    expect(styles).toContain("url('/navigation/tab-bar-background.png')")
-    expect(styles).toMatch(/\.tab-bar::before\s*\{[^}]*background:[^}]*tab-bar-background\.png/)
+    expect(styles).not.toContain("url('/navigation/tab-bar-background.png')")
+    expect(styles).not.toMatch(/\.tab-bar::before\s*\{/)
+    expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*position:\s*absolute/)
+    expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*object-fit:\s*contain/)
   })
 
   it('aligns the paw circle with the plate bump', () => {
@@ -39,8 +41,9 @@ describe('bottom navigation motion', () => {
     expect(styles).toMatch(/\.tab-bar\s*\{[^}]*width:\s*min\(100%,\s*430px\)/)
     expect(styles).toMatch(/\.tab-bar\s*\{[^}]*align-self:\s*center/)
     expect(styles).toMatch(/\.tab-bar\s*\{[^}]*padding:[^;}]*calc\(9px \+ env\(safe-area-inset-bottom\)\)/)
-    expect(styles).toMatch(/\.tab-bar::before\s*\{[^}]*aspect-ratio:\s*1219\s*\/\s*261/)
-    expect(styles).toMatch(/\.tab-bar::before\s*\{[^}]*background:[^;}]*\/\s*contain\s+no-repeat/)
+    expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*aspect-ratio:\s*1219\s*\/\s*261/)
+    expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*width:\s*calc\(100%\s*-\s*8px\)/)
+    expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*object-position:\s*center bottom/)
     expect(styles).toMatch(/\.tab-bar__icon\s*\{[^}]*width:\s*var\(--tab-icon-size\)/)
     expect(styles).toMatch(/\.tab-bar__icon img\s*\{[^}]*width:\s*100%/)
   })
