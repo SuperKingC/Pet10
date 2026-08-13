@@ -32,6 +32,12 @@ export function TabBar({
       aria-label="主导航"
       aria-hidden={hidden || undefined}
     >
+      <img
+        className="tab-bar__background"
+        src="/navigation/tab-bar-background.png"
+        alt=""
+        aria-hidden="true"
+      />
       {TABS.slice(0, 2).map((tab) => {
         const badge = tab.key === 'messages' ? messageBadge : tab.key === 'nest' && nestBadge ? 1 : 0
         return (

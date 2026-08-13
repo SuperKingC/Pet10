@@ -28,6 +28,21 @@ describe('TabBar', () => {
     expect(markup).toContain('/navigation/me.png')
   })
 
+  it('renders the navigation background as a real image layer', () => {
+    const markup = renderToStaticMarkup(
+      <TabBar
+        active="nest"
+        onChange={vi.fn()}
+        onTogglePawMenu={vi.fn()}
+        messageBadge={0}
+      />
+    )
+
+    expect(markup).toContain('class="tab-bar__background"')
+    expect(markup).toContain('src="/navigation/tab-bar-background.png"')
+    expect(markup).toContain('aria-hidden="true"')
+  })
+
   it('toggles the paw menu without changing the active tab', async () => {
     const onChange = vi.fn()
     const onTogglePawMenu = vi.fn()

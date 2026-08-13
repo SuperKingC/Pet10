@@ -73,7 +73,7 @@ describe('startup artwork', () => {
       expect(serviceWorker).toContain(`'${asset}'`)
     }
 
-    expect(serviceWorker).toContain("const CACHE_NAME = 'xiaoduoli-shell-v8'")
+    expect(serviceWorker).toContain("const CACHE_NAME = 'xiaoduoli-shell-v9'")
     expect(serviceWorker).toContain("'/navigation/tab-bar-background.png'")
   })
 })
