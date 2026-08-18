@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xiaoduoli-shell-v10'
+const CACHE_NAME = 'xiaoduoli-shell-v11'
 const NAVIGATION_TIMEOUT_MS = 2500
 const APP_SHELL = [
   '/manifest.webmanifest',
@@ -26,10 +26,12 @@ async function precacheAppShell() {
   if (!response.ok) throw new Error('app_shell_unavailable')
   const html = await response.clone().text()
   const assetUrls = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((match) => match[1])
+  const shellRequests = [...APP_SHELL, ...assetUrls]
+    .map((assetUrl) => new Request(assetUrl, { cache: 'reload' }))
   await Promise.all([
     cache.put('/', response.clone()),
     cache.put('/index.html', response),
-    cache.addAll([...APP_SHELL, ...assetUrls])
+    cache.addAll(shellRequests)
   ])
 }
 

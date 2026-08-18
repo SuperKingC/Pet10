@@ -44,6 +44,7 @@ describe('bottom navigation motion', () => {
     expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*aspect-ratio:\s*1219\s*\/\s*261/)
     expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*width:\s*calc\(100%\s*-\s*8px\)/)
     expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*object-position:\s*center bottom/)
+    expect(styles).toMatch(/\.tab-bar__background\s*\{[^}]*bottom:\s*env\(safe-area-inset-bottom/)
     expect(styles).toMatch(/\.tab-bar__icon\s*\{[^}]*width:\s*var\(--tab-icon-size\)/)
     expect(styles).toMatch(/\.tab-bar__icon img\s*\{[^}]*width:\s*100%/)
   })
