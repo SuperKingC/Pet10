@@ -11,6 +11,7 @@ async function createFixture() {
   const files = [
     'assets/index-abc.js',
     'pet/xiaoduoli.png',
+    'nest/action-feed.png',
     'icons/icon-192.png',
     'navigation/nest.png',
     'me/about.png',
@@ -40,6 +41,7 @@ describe('static asset manifest', () => {
     expect(entries.map((entry) => entry.key)).toEqual(expect.arrayContaining([
       'commit-sha/assets/index-abc.js',
       'commit-sha/pet/xiaoduoli.png',
+      'commit-sha/nest/action-feed.png',
       'commit-sha/tarot/cards/the-world.jpg'
     ]))
   })
@@ -50,7 +52,8 @@ describe('static asset manifest', () => {
     const entries = await collectStaticAssets(distRoot, 'commit-sha', 'pet10-web')
 
     expect(entries.map((entry) => entry.key)).toEqual(expect.arrayContaining([
-      'pet10-web/commit-sha/pet/xiaoduoli.png'
+      'pet10-web/commit-sha/pet/xiaoduoli.png',
+      'pet10-web/commit-sha/nest/action-feed.png'
     ]))
   })
 

@@ -2,7 +2,7 @@
     encode zstd gzip
 
     @static_assets {
-        path /assets/* /pet/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*
+        path /assets/* /pet/* /nest/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*
         expression `"{$STATIC_ASSET_BASE_URL}" != "" && "{$STATIC_ASSET_VERSION}" != ""`
     }
     redir @static_assets {$STATIC_ASSET_BASE_URL}/{$STATIC_ASSET_VERSION}{uri} 302

@@ -4,6 +4,7 @@ import { extname, join, relative, sep } from 'node:path'
 const RUNTIME_ROOTS = [
   'assets',
   'pet',
+  'nest',
   'icons',
   'navigation',
   'me',

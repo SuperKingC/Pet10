@@ -93,6 +93,7 @@ STATIC_ASSET_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com/pet10-we
 
 - `assets/`
 - `pet/`
+- `nest/`
 - `icons/`
 - `navigation/`
 - `me/`

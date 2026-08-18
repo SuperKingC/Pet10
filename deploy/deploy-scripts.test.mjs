@@ -71,7 +71,7 @@ describe('Lighthouse deployment scripts', () => {
     const caddy = await readFile(resolve(root, 'deploy/Caddyfile'), 'utf8')
 
     expect(caddy).toContain('@static_assets {')
-    expect(caddy).toContain('path /assets/* /pet/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*')
+    expect(caddy).toContain('path /assets/* /pet/* /nest/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*')
     expect(caddy).toContain('expression `"{$STATIC_ASSET_BASE_URL}" != "" && "{$STATIC_ASSET_VERSION}" != ""`')
     expect(caddy).toContain('redir @static_assets {$STATIC_ASSET_BASE_URL}/{$STATIC_ASSET_VERSION}{uri} 302')
     expect(caddy).not.toContain('/tarot/concepts/*')
@@ -117,7 +117,8 @@ describe('Lighthouse deployment scripts', () => {
     expect(workflow).toContain('STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}')
     expect(workflow).toContain('Verify public COS asset')
     expect(workflow).toContain('STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL%/}"')
-    expect(workflow).toContain('$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli.png')
+    expect(workflow).toContain('for asset_path in pet/xiaoduoli.png nest/action-feed.png; do')
+    expect(workflow).toContain('"$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/$asset_path"')
     expect(workflow.indexOf('run: npm run upload:static')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
     expect(workflow.indexOf('Verify public COS asset')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
   })

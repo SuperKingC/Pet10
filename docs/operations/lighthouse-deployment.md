@@ -60,7 +60,7 @@ STATIC_ASSET_BASE_URL
 - CORS 允许生产站点来源和本地验收来源执行 `GET`、`HEAD`。
 - 允许请求头 `*`。
 - 暴露 `Content-Length`、`ETag`。
-- 对象键格式为 `{STATIC_ASSET_BASE_URL pathname}/{完整提交 SHA}/{运行时路径}`；pathname 为空时直接从完整提交 SHA 开始。
+- 对象键格式为 `{STATIC_ASSET_BASE_URL pathname}/{完整提交 SHA}/{运行时路径}`；运行时路径包含 `nest/`，pathname 为空时直接从完整提交 SHA 开始。
 - 上传对象使用 `Cache-Control: public, max-age=31536000, immutable`。
 - `tarot/concepts/` 不得上传。
 
