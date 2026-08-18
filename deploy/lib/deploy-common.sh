@@ -134,8 +134,8 @@ verify_public_endpoints() {
 verify_static_asset_redirect() {
   assert_static_asset_config
   [ -n "$PUBLIC_URL" ] || fail "DEPLOY_PUBLIC_URL is required"
-  local source="${PUBLIC_URL%/}/pet/xiaoduoli-startup.png"
-  local expected="${STATIC_ASSET_BASE_URL%/}/${STATIC_ASSET_VERSION}/pet/xiaoduoli-startup.png"
+  local source="${PUBLIC_URL%/}/pet/xiaoduoli.png"
+  local expected="${STATIC_ASSET_BASE_URL%/}/${STATIC_ASSET_VERSION}/pet/xiaoduoli.png"
   local location
   location="$(curl --silent --show-error --head --max-time 10 "$source" | tr -d '\r' | awk -F ': ' 'tolower($1) == "location" { print $2 }')"
   [ "$location" = "$expected" ] || fail "Unexpected static redirect: ${location:-missing}; expected $expected"

@@ -94,7 +94,7 @@ jobs:
           STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
         run: |
           curl --fail --head --retry 3 --max-time 30 \
-            "$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli-startup.png"
+            "$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli.png"
       - name: Configure SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}

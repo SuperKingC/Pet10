@@ -105,7 +105,7 @@ describe('Lighthouse deployment scripts', () => {
     expect(workflow).toContain('COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}')
     expect(workflow).toContain('STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}')
     expect(workflow).toContain('Verify public COS asset')
-    expect(workflow).toContain('$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli-startup.png')
+    expect(workflow).toContain('$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli.png')
     expect(workflow.indexOf('run: npm run upload:static')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
     expect(workflow.indexOf('Verify public COS asset')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
   })
