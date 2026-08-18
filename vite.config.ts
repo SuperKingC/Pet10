@@ -10,6 +10,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    exclude: ['server/**', 'node_modules/**', 'dist/**']
+    exclude: ['server/**', '**/node_modules/**', 'dist/**', '.worktrees/**']
   }
 })

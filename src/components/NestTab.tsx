@@ -83,7 +83,6 @@ export function NestTab({ pairRoom, pet, friendNames, onAction, onOpenMemories }
           </ul>
         </section>
       )}
-
     </section>
   )
 }

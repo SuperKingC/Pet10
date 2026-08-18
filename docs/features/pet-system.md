@@ -20,6 +20,12 @@ flowchart LR
 - `server/src/domain/petRules.ts`
 - `server/src/services/petService.ts`
 
+## 小窝视觉
+
+- 小窝场景使用 `public/nest/room-background.webp`，小多利统一使用 `public/pet/xiaoduoli.png`。
+- 小窝主页面依次展示场景、成长经验、照顾按钮和双方贡献榜。
+- 成长经验和照顾按钮采用自适应紧凑卡片布局，常见手机高度下应同时看到四个照顾按钮与底部蓝色导航栏。
+
 ## 风险
 
 前后端目前都有宠物规则，修改时必须同时检查两端，防止 Mock 和真实模式结果不同。

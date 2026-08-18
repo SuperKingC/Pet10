@@ -3,17 +3,17 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 describe('startup artwork', () => {
-  it('uses a dedicated lightweight image before the app opens', () => {
+  it('uses the unified pet image before the app opens', () => {
     const root = resolve(import.meta.dirname, '..')
     const html = readFileSync(resolve(root, 'index.html'), 'utf8')
     const main = readFileSync(resolve(root, 'src/main.tsx'), 'utf8')
     const login = readFileSync(resolve(root, 'src/components/LoginScreen.tsx'), 'utf8')
-    const asset = resolve(root, 'public/pet/xiaoduoli-startup.png')
+    const asset = resolve(root, 'public/pet/xiaoduoli.png')
 
-    expect(html).toContain('/pet/xiaoduoli-startup.png')
-    expect(main).toContain('/pet/xiaoduoli-startup.png')
-    expect(login).toContain('/pet/xiaoduoli-startup.png')
-    expect(statSync(asset).size).toBeLessThan(200_000)
+    expect(html).toContain('/pet/xiaoduoli.png')
+    expect(main).toContain('/pet/xiaoduoli.png')
+    expect(login).toContain('/pet/xiaoduoli.png')
+    expect(statSync(asset).size).toBeLessThan(1024 * 1024)
   })
 
   it('bounds installed-app navigation and session startup waits', () => {
@@ -33,6 +33,7 @@ describe('startup artwork', () => {
     const main = readFileSync(resolve(root, 'src/main.tsx'), 'utf8')
     const requiredAssets = [
       '/pet/xiaoduoli.png',
+      '/nest/room-background.webp',
       '/navigation/tab-bar-background.png',
       '/navigation/nest.png',
       '/navigation/journal.png',
@@ -56,6 +57,7 @@ describe('startup artwork', () => {
     const serviceWorker = readFileSync(resolve(root, 'public/sw.js'), 'utf8')
     const requiredAssets = [
       '/pet/xiaoduoli.png',
+      '/nest/room-background.webp',
       '/navigation/tab-bar-background.png',
       '/navigation/nest.png',
       '/navigation/journal.png',
@@ -73,7 +75,7 @@ describe('startup artwork', () => {
       expect(serviceWorker).toContain(`'${asset}'`)
     }
 
-    expect(serviceWorker).toContain("const CACHE_NAME = 'xiaoduoli-shell-v9'")
+    expect(serviceWorker).toContain("const CACHE_NAME = 'xiaoduoli-shell-v10'")
     expect(serviceWorker).toContain("'/navigation/tab-bar-background.png'")
   })
 })

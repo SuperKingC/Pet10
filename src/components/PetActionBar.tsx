@@ -5,21 +5,28 @@ interface PetActionBarProps {
 }
 
 const actions: Array<{ id: PetAction; icon: string; label: string }> = [
-  { id: 'feed', icon: '🥣', label: '喂食' },
-  { id: 'play', icon: '🎾', label: '玩耍' },
-  { id: 'clean', icon: '🫧', label: '清洁' },
-  { id: 'sleep', icon: '🌙', label: '睡觉' }
+  { id: 'feed', icon: '/nest/action-feed.png', label: '喂食' },
+  { id: 'play', icon: '/nest/action-play.png', label: '玩耍' },
+  { id: 'clean', icon: '/nest/action-clean.png', label: '清洁' },
+  { id: 'sleep', icon: '/nest/action-sleep.png', label: '睡觉' }
 ]
 
 export function PetActionBar({ onAction }: PetActionBarProps) {
   return (
-    <div className="pet-actions" aria-label="照顾小多利">
-      {actions.map((action) => (
-        <button key={action.id} onClick={() => onAction(action.id)}>
-          <span>{action.icon}</span>
-          {action.label}
-        </button>
-      ))}
-    </div>
+    <section className="pet-actions-panel" aria-label="照顾小多利">
+      <h3>照顾小多利</h3>
+      <div className="pet-actions">
+        {actions.map((action) => (
+          <button
+            className="pet-action-button"
+            key={action.id}
+            aria-label={action.label}
+            onClick={() => onAction(action.id)}
+          >
+            <img src={action.icon} alt="" />
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }

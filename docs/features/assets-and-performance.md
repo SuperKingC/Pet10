@@ -40,7 +40,7 @@ flowchart LR
 - “我的”页面列表图标位于 `public/me/`，使用 128×128 透明 PNG，随该页面按需加载。
 - 塔罗资源下载完成后以固定 2 路并发调用浏览器图片解码；只有 24 项资源全部可直接绘制时，进度才允许达到 100%。
 - 塔罗 CSS 背景和牌背通过运行时 CSS 变量引用资源清单 URL，避免下载 COS 资源后又从应用服务器重复请求同源图片。
-- 小多利运行时资源位于 `public/pet/`：`xiaoduoli.png` 和 `xiaoduoli-startup.png` 保留透明背景，`xiaoduoli-large.jpg` 与 `xiaoduoli-small.jpg` 使用暖白背景铺底；四张图均取自同一张正面原色角色设定图，保持头像和启动页形象一致。
+- 小多利运行时资源统一为 `public/pet/xiaoduoli.png`，登录、加载、小窝、聊天头像和悬浮宠物均使用同一张透明 PNG，避免不同页面混用旧形象。小窝房间背景位于 `public/nest/room-background.webp`，进入主应用后与宠物图一起非阻塞预加载。
 
 ## 常见问题
 

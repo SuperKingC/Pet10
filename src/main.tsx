@@ -16,6 +16,7 @@ const SESSION_STARTUP_TIMEOUT_MS = 8_000
 
 if (window.location.pathname !== '/image' && (runtimeConfig.useMockApi || getAccessToken())) {
   preloadImage('/pet/xiaoduoli.png')
+  preloadImage('/nest/room-background.webp')
   preloadImage('/navigation/tab-bar-background.png')
   preloadImage('/navigation/nest.png')
   preloadImage('/navigation/journal.png')
@@ -66,8 +67,8 @@ function App() {
   }, [])
 
   if (runtimeConfig.useMockApi) return <AppShell onLogout={() => undefined} />
-  if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli-startup.png" alt="小多利" width="256" height="384" /></div><p>正在打开小多利的家…</p></main>
-  if (error && getAccessToken() && !session) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli-startup.png" alt="小多利" width="256" height="384" /></div><p>{error}</p><button onClick={() => void refreshSession()}>重新连接</button></main>
+  if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli.png" alt="小多利" width="561" height="900" /></div><p>正在打开小多利的家…</p></main>
+  if (error && getAccessToken() && !session) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli.png" alt="小多利" width="561" height="900" /></div><p>{error}</p><button onClick={() => void refreshSession()}>重新连接</button></main>
   if (!getAccessToken()) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (error && !session) return <LoginScreen onLoggedIn={() => void refreshSession()} />
   if (!session) return <LoginScreen onLoggedIn={() => void refreshSession()} />

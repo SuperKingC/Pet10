@@ -28,14 +28,13 @@ async function listFiles(directory) {
 function categoryFor(path) {
   const repoPath = toRepoPath(path)
   if (sourceOnlyDirectories.some((directory) => repoPath.startsWith(`${directory}/`))) return 'source-only'
-  if (repoPath.startsWith('public/icons/') || repoPath === 'public/pet/xiaoduoli-startup.png') return 'runtime-critical'
+  if (repoPath.startsWith('public/icons/') || repoPath === 'public/pet/xiaoduoli.png') return 'runtime-critical'
   return 'runtime-feature'
 }
 
 function budgetFor(repoPath) {
   if (repoPath.startsWith('public/tarot/cards/')) return { warning: 350 * 1024, error: 500 * 1024 }
   if (repoPath.startsWith('public/tarot/ui/')) return { warning: 300 * 1024, error: 500 * 1024 }
-  if (repoPath === 'public/pet/xiaoduoli-startup.png') return { warning: 150 * 1024, error: 300 * 1024 }
   if (repoPath === 'public/pet/xiaoduoli.png') return { warning: 1024 * 1024, error: 1536 * 1024 }
   return { warning: 500 * 1024, error: 1024 * 1024 }
 }

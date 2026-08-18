@@ -32,21 +32,30 @@ export function PetStatusCard({ pet, onOpenMemories }: PetStatusCardProps) {
 
   return (
     <section className="pet-card">
-      <div className="pet-card__visual">
+      <div className="pet-card__scene">
         <div className="pet-level">Lv.{pet.level}</div>
         <PetAvatar mood={pet.moodLabel} />
-      </div>
-      <div className="pet-card__content">
-        <div className="pet-card__heading">
-          <div>
-            <span className="eyebrow">共享 AI 宠物</span>
-            <h1>{pet.name}</h1>
-            <p>{moodText[pet.moodLabel]}</p>
-          </div>
-          <button className="memory-button" onClick={onOpenMemories}>
-            记忆
+        <strong className="pet-name-badge">{pet.name}</strong>
+        <button className="memory-button" onClick={onOpenMemories}>
+          记忆
+        </button>
+        <div className="nest-shortcuts" aria-label="小窝入口">
+          <button className="nest-shortcut" aria-label="衣柜">
+            <span className="nest-shortcut__icon"><img src="/nest/wardrobe.png" alt="" /></span>
+            <span>衣柜</span>
+          </button>
+          <button className="nest-shortcut" aria-label="照片墙">
+            <span className="nest-shortcut__icon"><img src="/nest/photo-wall.png" alt="" /></span>
+            <span>照片墙</span>
+          </button>
+          <button className="nest-shortcut" aria-label="任务">
+            <span className="nest-shortcut__icon"><img src="/nest/tasks.png" alt="" /></span>
+            <span>任务</span>
           </button>
         </div>
+      </div>
+      <div className="pet-card__experience">
+        <p className="pet-card__mood">{moodText[pet.moodLabel]}</p>
         <div className="experience">
           <div>
             <span>成长经验</span>

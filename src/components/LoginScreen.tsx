@@ -46,7 +46,7 @@ export function LoginScreen({ onLoggedIn }: LoginScreenProps) {
   return (
     <main className="onboarding-shell">
       <div className="onboarding-card">
-        <div className="onboarding-pet"><img src="/pet/xiaoduoli-startup.png" alt="小多利" width="256" height="384" /></div>
+        <div className="onboarding-pet"><img src="/pet/xiaoduoli.png" alt="小多利" width="561" height="900" /></div>
         <span className="eyebrow">PET10 · PRIVATE BETA</span>
         <h1>和朋友一起养<br />小多利</h1>
         <p>一个只属于你们两个人的共享 AI 小狗。</p>

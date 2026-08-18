@@ -82,7 +82,7 @@ STATIC_ASSET_BASE_URL
 
 - 前端：`/healthz`
 - API：`/health`
-- 静态资源：`/pet/xiaoduoli-startup.png` 返回指向当前提交 SHA 目录的 `302`
+- 静态资源：`/pet/xiaoduoli.png` 返回指向当前提交 SHA 目录的 `302`
 
 ## 回滚
 
