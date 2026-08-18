@@ -3,7 +3,7 @@ import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { collectStaticAssets } from './lib/static-assets.mjs'
+import { collectStaticAssets, normalizeAssetPrefix } from './lib/static-assets.mjs'
 import { uploadStaticAssets } from './lib/cos-upload.mjs'
 
 async function createFixture() {
@@ -44,6 +44,21 @@ describe('static asset manifest', () => {
     ]))
   })
 
+  it('adds the public URL pathname before the commit version when configured', async () => {
+    const distRoot = await createFixture()
+
+    const entries = await collectStaticAssets(distRoot, 'commit-sha', 'pet10-web')
+
+    expect(entries.map((entry) => entry.key)).toEqual(expect.arrayContaining([
+      'pet10-web/commit-sha/pet/xiaoduoli.png'
+    ]))
+  })
+
+  it('normalizes a public static URL pathname into a COS key prefix', () => {
+    expect(normalizeAssetPrefix('https://bucket.cos-region.myqcloud.com/pet10-web')).toBe('pet10-web')
+    expect(normalizeAssetPrefix('https://bucket.cos-region.myqcloud.com/')).toBe('')
+  })
+
   it('excludes source-only artwork and same-origin application control files', async () => {
     const distRoot = await createFixture()
 
@@ -75,7 +90,8 @@ describe('static asset upload', () => {
       bucket: 'pet10-123',
       region: 'ap-guangzhou',
       version: 'commit-sha',
-      distRoot
+      distRoot,
+      prefix: 'pet10-web'
     })
 
     expect(uploaded).toBeGreaterThan(0)
@@ -83,7 +99,7 @@ describe('static asset upload', () => {
       expect.objectContaining({
         Bucket: 'pet10-123',
         Region: 'ap-guangzhou',
-        Key: 'commit-sha/pet/xiaoduoli.png',
+        Key: 'pet10-web/commit-sha/pet/xiaoduoli.png',
         CacheControl: 'public, max-age=31536000, immutable',
         ContentType: 'image/png'
       })

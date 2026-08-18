@@ -89,7 +89,7 @@ STATIC_ASSET_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com/pet10-we
 
 `.dockerignore` 排除了 `public/tarot/concepts`。约 `202.9 MB` 的原始概念图不会进入 Docker 构建上下文，正式塔罗展示图仍保留高质量版本。
 
-生产 `web` 和 `all` 工作流会把以下目录上传到 `{STATIC_ASSET_BASE_URL}/{完整提交 SHA}/`：
+生产 `web` 和 `all` 工作流会读取 `STATIC_ASSET_BASE_URL` 的 pathname 作为 COS Object Key 前缀，再把以下目录上传到 `{STATIC_ASSET_BASE_URL}/{完整提交 SHA}/`。例如基址以 `/pet10-web` 结尾时，对象键以 `pet10-web/{完整提交 SHA}/` 开头：
 
 - `assets/`
 - `pet/`

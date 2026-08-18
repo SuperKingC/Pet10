@@ -27,6 +27,20 @@ function toPosixPath(path) {
   return path.split(sep).join('/')
 }
 
+export function normalizeAssetPrefix(baseUrl) {
+  const value = baseUrl?.trim()
+  if (!value) return ''
+
+  let pathname
+  try {
+    pathname = new URL(value).pathname
+  } catch {
+    throw new Error('Static asset base URL must be a valid absolute URL')
+  }
+
+  return pathname.split('/').filter(Boolean).join('/')
+}
+
 async function collectFiles(root) {
   try {
     const rootStat = await stat(root)
@@ -41,11 +55,16 @@ async function collectFiles(root) {
     .map((entry) => join(entry.parentPath, entry.name))
 }
 
-export async function collectStaticAssets(distRoot, version) {
+export async function collectStaticAssets(distRoot, version, prefix = '') {
   if (!version || version.includes('/') || version.includes('\\')) {
     throw new Error('Static asset version must be a single path segment')
   }
 
+  if (prefix.includes('\\') || prefix.split('/').some((segment) => segment === '..')) {
+    throw new Error('Static asset prefix must contain valid path segments')
+  }
+
+  const normalizedPrefix = prefix.split('/').filter(Boolean).join('/')
   const files = (await Promise.all(
     RUNTIME_ROOTS.map((root) => collectFiles(join(distRoot, root)))
   )).flat()
@@ -55,7 +74,7 @@ export async function collectStaticAssets(distRoot, version) {
       const fileStat = await stat(filePath)
       return {
         filePath,
-        key: `${version}/${assetPath}`,
+        key: `${normalizedPrefix ? `${normalizedPrefix}/` : ''}${version}/${assetPath}`,
         contentType: CONTENT_TYPES.get(extname(filePath).toLowerCase()) || 'application/octet-stream',
         cacheControl: 'public, max-age=31536000, immutable',
         size: fileStat.size

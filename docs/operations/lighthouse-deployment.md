@@ -52,7 +52,7 @@ STATIC_ASSET_BASE_URL
 
 `DEPLOY_SSH_KNOWN_HOSTS` 必须保存服务器的固定 SSH 主机公钥行（`known_hosts` 格式）。不要在 GitHub Actions 中临时使用 `ssh-keyscan` 获取该值，以免首次连接遭受中间人攻击。
 
-`STATIC_ASSET_BASE_URL` 是 COS 公共读目录，例如 `https://<bucket>.cos.<region>.myqcloud.com/pet10-web`。COS 密钥只提供给 GitHub 上传步骤，不传给 SSH 部署命令。
+`STATIC_ASSET_BASE_URL` 是 COS 公共读目录，例如 `https://<bucket>.cos.<region>.myqcloud.com/pet10-web`。URL pathname 会同时作为 COS Object Key 前缀；该示例会上传到 `pet10-web/{完整提交 SHA}/...`。COS 密钥只提供给 GitHub 上传步骤，不传给 SSH 部署命令。
 
 ## COS Bucket
 
@@ -60,7 +60,7 @@ STATIC_ASSET_BASE_URL
 - CORS 允许生产站点来源和本地验收来源执行 `GET`、`HEAD`。
 - 允许请求头 `*`。
 - 暴露 `Content-Length`、`ETag`。
-- 对象键格式为 `{完整提交 SHA}/{运行时路径}`。
+- 对象键格式为 `{STATIC_ASSET_BASE_URL pathname}/{完整提交 SHA}/{运行时路径}`；pathname 为空时直接从完整提交 SHA 开始。
 - 上传对象使用 `Cache-Control: public, max-age=31536000, immutable`。
 - `tarot/concepts/` 不得上传。
 

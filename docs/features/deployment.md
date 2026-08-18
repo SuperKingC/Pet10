@@ -33,7 +33,7 @@ flowchart LR
 
 1. 创建允许公共读取的 COS 存储桶或公开目录。
 2. GitHub Production Environment 配置 `COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION` 和公开的 `STATIC_ASSET_BASE_URL`。
-3. `web` 或 `all` 发布将 `assets/`、`pet/`、`icons/`、`navigation/`、`me/`、`tarot/cards/`、`tarot/ui/` 上传到以完整提交 SHA 命名的目录。
+3. `web` 或 `all` 发布将 `assets/`、`pet/`、`icons/`、`navigation/`、`me/`、`tarot/cards/`、`tarot/ui/` 上传到以完整提交 SHA 命名的目录；如果 `STATIC_ASSET_BASE_URL` 包含路径前缀（例如 `/pet10-web`），COS Object Key 会使用相同前缀。
 4. `public/tarot/concepts/`、`index.html`、`sw.js`、`manifest.webmanifest` 不上传。
 5. CORS 允许生产站点来源使用 `GET`、`HEAD`，允许请求头 `*`，暴露 `Content-Length`、`ETag`。
 6. 上传对象设置 `Cache-Control: public, max-age=31536000, immutable`。

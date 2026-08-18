@@ -19,13 +19,14 @@ export async function uploadStaticAssets({
   region,
   version,
   distRoot,
+  prefix = '',
   concurrency = 4
 }) {
   if (!client) throw new Error('COS client is required')
   if (!bucket) throw new Error('COS bucket is required')
   if (!region) throw new Error('COS region is required')
 
-  const entries = await collectStaticAssets(distRoot, version)
+  const entries = await collectStaticAssets(distRoot, version, prefix)
   let nextIndex = 0
   const workerCount = Math.max(1, Math.min(concurrency, entries.length || 1))
 

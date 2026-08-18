@@ -103,6 +103,17 @@ describe('Lighthouse deployment scripts', () => {
     expect(workflow).toContain('npm run build')
     expect(workflow).toContain('run: npm run upload:static')
     expect(workflow).toContain('COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}')
+    expect(workflow).toContain([
+      '      - name: Upload static assets to COS',
+      "        if: ${{ inputs.service != 'api' }}",
+      '        env:',
+      '          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}',
+      '          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}',
+      '          COS_BUCKET: ${{ secrets.COS_BUCKET }}',
+      '          COS_REGION: ${{ secrets.COS_REGION }}',
+      '          STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}',
+      '          STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}'
+    ].join('\n'))
     expect(workflow).toContain('STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}')
     expect(workflow).toContain('Verify public COS asset')
     expect(workflow).toContain('$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli.png')

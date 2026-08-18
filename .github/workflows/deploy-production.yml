@@ -85,6 +85,7 @@ jobs:
           COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
           COS_BUCKET: ${{ secrets.COS_BUCKET }}
           COS_REGION: ${{ secrets.COS_REGION }}
+          STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}
           STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
         run: npm run upload:static
       - name: Verify public COS asset
