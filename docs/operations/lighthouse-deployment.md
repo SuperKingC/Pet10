@@ -52,7 +52,7 @@ STATIC_ASSET_BASE_URL
 
 `DEPLOY_SSH_KNOWN_HOSTS` 必须保存服务器的固定 SSH 主机公钥行（`known_hosts` 格式）。不要在 GitHub Actions 中临时使用 `ssh-keyscan` 获取该值，以免首次连接遭受中间人攻击。
 
-`STATIC_ASSET_BASE_URL` 是 COS 公共读目录，例如 `https://<bucket>.cos.<region>.myqcloud.com/pet10-web`。URL pathname 会同时作为 COS Object Key 前缀；该示例会上传到 `pet10-web/{完整提交 SHA}/...`。COS 密钥只提供给 GitHub 上传步骤，不传给 SSH 部署命令。
+`STATIC_ASSET_BASE_URL` 是 COS 公共读目录，例如 `https://<bucket>.cos.<region>.myqcloud.com/pet10-web`。末尾可带 `/`，工作流和部署脚本会在拼接版本路径前统一去除。URL pathname 会同时作为 COS Object Key 前缀；该示例会上传到 `pet10-web/{完整提交 SHA}/...`。COS 密钥只提供给 GitHub 上传步骤，不传给 SSH 部署命令。
 
 ## COS Bucket
 

@@ -94,6 +94,7 @@ jobs:
           STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}
           STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
         run: |
+          STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL%/}"
           curl --fail --head --retry 3 --max-time 30 \
             "$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli.png"
       - name: Configure SSH

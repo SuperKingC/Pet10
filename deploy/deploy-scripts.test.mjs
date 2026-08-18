@@ -116,6 +116,7 @@ describe('Lighthouse deployment scripts', () => {
     ].join('\n'))
     expect(workflow).toContain('STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}')
     expect(workflow).toContain('Verify public COS asset')
+    expect(workflow).toContain('STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL%/}"')
     expect(workflow).toContain('$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/pet/xiaoduoli.png')
     expect(workflow.indexOf('run: npm run upload:static')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
     expect(workflow.indexOf('Verify public COS asset')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
@@ -137,6 +138,12 @@ describe('Lighthouse deployment scripts', () => {
     expect(common).toContain("Rollback: STATIC_ASSET_BASE_URL='$STATIC_ASSET_BASE_URL'")
     expect(common).not.toContain('COS_SECRET_ID=')
     expect(common).not.toContain('COS_SECRET_KEY=')
+  })
+
+  it('normalizes the public static origin before Caddy configuration', async () => {
+    const common = await readFile(resolve(root, 'deploy/lib/deploy-common.sh'), 'utf8')
+
+    expect(common).toContain('STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL%/}"')
   })
 
   it('persists the verified COS origin and commit version for future container restarts', async () => {
