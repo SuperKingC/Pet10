@@ -14,7 +14,8 @@ import type {
   Post,
   Relationship,
   Room,
-  User
+  User,
+  WechatIdentity
 } from '../domain/models.js'
 
 export interface UserProfilePatch {
@@ -44,6 +45,12 @@ export interface LoginCodeRepository {
   save(code: LoginCode): Promise<void>
   findByEmail(email: string): Promise<LoginCode | undefined>
   deleteByEmail(email: string): Promise<void>
+}
+
+export interface WechatIdentityRepository {
+  findByOpenId(openId: string): Promise<WechatIdentity | undefined>
+  findByUserId(userId: string): Promise<WechatIdentity | undefined>
+  create(input: Pick<WechatIdentity, 'userId' | 'openId' | 'unionId'>): Promise<WechatIdentity>
 }
 
 export interface RelationshipRepository {
@@ -157,6 +164,7 @@ export interface RepositoryBundle {
   users: UserRepository
   invites: InviteRepository
   loginCodes: LoginCodeRepository
+  wechatIdentities: WechatIdentityRepository
   relationships: RelationshipRepository
   rooms: RoomRepository
   pets: PetRepository

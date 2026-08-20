@@ -14,7 +14,8 @@ import type {
   Post,
   Relationship,
   Room,
-  User
+  User,
+  WechatIdentity
 } from '../domain/models.js'
 import type { RepositoryBundle } from './contracts.js'
 
@@ -28,6 +29,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     ['PET10-DEMO', { code: 'PET10-DEMO', active: true, maxUses: 10, useCount: 0 }]
   ])
   const loginCodes = new Map<string, LoginCode>()
+  const wechatIdentities = new Map<string, WechatIdentity>()
   const relationships = new Map<string, Relationship>()
   const rooms = new Map<string, Room>()
   const roomMembers = new Map<string, Set<string>>()
@@ -93,6 +95,31 @@ export function createMemoryRepositories(): RepositoryBundle {
     async save(code: LoginCode) { loginCodes.set(code.email, code) },
     async findByEmail(email: string) { return loginCodes.get(email.toLowerCase()) },
     async deleteByEmail(email: string) { loginCodes.delete(email.toLowerCase()) }
+  }
+
+  const wechatIdentityRepo = {
+    async findByOpenId(openId: string) {
+      return wechatIdentities.get(openId)
+    },
+    async findByUserId(userId: string) {
+      return [...wechatIdentities.values()].find((identity) => identity.userId === userId)
+    },
+    async create(input: Pick<WechatIdentity, 'userId' | 'openId' | 'unionId'>) {
+      if (wechatIdentities.has(input.openId)) throw new Error('wechat_identity_already_exists')
+      const existingUserIdentity = [...wechatIdentities.values()].find((identity) => identity.userId === input.userId)
+      if (existingUserIdentity) throw new Error('wechat_identity_already_exists')
+      const timestamp = now()
+      const identity: WechatIdentity = {
+        id: randomUUID(),
+        userId: input.userId,
+        openId: input.openId,
+        unionId: input.unionId ?? null,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      }
+      wechatIdentities.set(identity.openId, identity)
+      return identity
+    }
   }
 
   const relationshipRepo = {
@@ -381,6 +408,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     users: userRepo,
     invites: inviteRepo,
     loginCodes: loginCodeRepo,
+    wechatIdentities: wechatIdentityRepo,
     relationships: relationshipRepo,
     rooms: roomRepo,
     pets: petRepo,

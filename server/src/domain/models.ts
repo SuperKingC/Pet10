@@ -18,6 +18,15 @@ export interface User {
   createdAt: Date
 }
 
+export interface WechatIdentity {
+  id: Id
+  userId: Id
+  openId: string
+  unionId?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface InviteCode {
   code: string
   active: boolean

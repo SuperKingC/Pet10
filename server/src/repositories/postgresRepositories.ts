@@ -89,6 +89,15 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       findByEmail: (email) => one('SELECT email,code_hash,expires_at FROM login_codes WHERE email=$1', [email.toLowerCase()]),
       async deleteByEmail(email) { await database.query('DELETE FROM login_codes WHERE email=$1', [email.toLowerCase()]) }
     },
+    wechatIdentities: {
+      findByOpenId: (openId) => one('SELECT * FROM wechat_identities WHERE open_id=$1', [openId]),
+      findByUserId: (userId) => one('SELECT * FROM wechat_identities WHERE user_id=$1', [userId]),
+      create: (input) => one(
+        `INSERT INTO wechat_identities(user_id,open_id,union_id)
+         VALUES($1,$2,$3) RETURNING *`,
+        [input.userId, input.openId, input.unionId ?? null]
+      )
+    },
     relationships: {
       findActiveForUser: (userId) => one(
         `SELECT * FROM relationships WHERE status IN ('pending','accepted')
