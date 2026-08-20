@@ -63,10 +63,10 @@
 - Produces `resolveLaunchEntry(input)`，返回 `shared-room`、`invite`、`room-list` 或 `waiting-room`。
 
 **Steps:**
-- [ ] 先写用户对排序、重复关系和启动入口判断的失败测试。
-- [ ] 运行 `npm run server:test -- --run src/domain/launchContext.test.ts`，确认测试失败。
-- [ ] 实现最小领域类型和纯函数，不引入 HTTP、数据库或 React。
-- [ ] 运行同一聚焦测试并确认通过。
+- [x] 先写用户对排序、重复关系和启动入口判断的失败测试。
+- [x] 运行 `npm run test --workspace server -- src/domain/launchContext.test.ts`，确认测试失败。
+- [x] 实现最小领域类型和纯函数，不引入 HTTP、数据库或 React。
+- [x] 运行同一聚焦测试并确认通过。
 
 ## Task 2: 增加微信身份与多小窝数据库约束
 

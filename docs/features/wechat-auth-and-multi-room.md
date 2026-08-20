@@ -235,6 +235,8 @@ type LaunchContext = {
 
 后续正式化预计新增或调整：
 
+- `server/src/domain/launchContext.ts`
+- `server/src/domain/launchContext.test.ts`
 - 小程序微信登录服务；
 - 邀请凭证与邀请确认页；
 - 用户小窝列表和当前小窝切换；
@@ -268,4 +270,3 @@ type LaunchContext = {
 - [ ] 首屏资源按入口加载，塔罗和其他大型功能按需加载。
 - [ ] 资源失败不会被误判为登录失败或清理会话。
 - [ ] 真实 HTTPS API、两台真机和微信开发者工具完成验收。
-
