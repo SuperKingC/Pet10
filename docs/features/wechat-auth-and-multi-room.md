@@ -242,6 +242,8 @@ type LaunchContext = {
 - `server/src/http/authMiddleware.ts`
 - `server/src/services/sessionService.ts`
 - `server/src/http/sessionRoutes.ts`
+- `server/src/services/invitationService.ts`
+- `server/src/http/invitationRoutes.ts`
 - 小程序微信登录服务；
 - 邀请凭证与邀请确认页；
 - 用户小窝列表和当前小窝切换；

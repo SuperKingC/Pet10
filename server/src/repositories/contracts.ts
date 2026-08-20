@@ -4,6 +4,7 @@ import type {
   CodewordAnswer,
   Fortune,
   InviteCode,
+  Invitation,
   LoginCode,
   MapLight,
   MoodEntry,
@@ -51,6 +52,13 @@ export interface WechatIdentityRepository {
   findByOpenId(openId: string): Promise<WechatIdentity | undefined>
   findByUserId(userId: string): Promise<WechatIdentity | undefined>
   create(input: Pick<WechatIdentity, 'userId' | 'openId' | 'unionId'>): Promise<WechatIdentity>
+}
+
+export interface InvitationRepository {
+  create(input: Pick<Invitation, 'token' | 'inviterId' | 'expiresAt'>): Promise<Invitation>
+  findByToken(token: string): Promise<Invitation | undefined>
+  accept(token: string, accepterId: string): Promise<Invitation>
+  decline(token: string, userId: string): Promise<Invitation>
 }
 
 export interface RelationshipRepository {
@@ -166,6 +174,7 @@ export interface RepositoryBundle {
   invites: InviteRepository
   loginCodes: LoginCodeRepository
   wechatIdentities: WechatIdentityRepository
+  invitations: InvitationRepository
   relationships: RelationshipRepository
   rooms: RoomRepository
   pets: PetRepository

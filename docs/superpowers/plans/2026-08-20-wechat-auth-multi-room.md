@@ -136,11 +136,11 @@
 - `declineInvitation(token, viewerId)`：记录拒绝状态。
 
 **Steps:**
-- [ ] 先写自邀、过期、重复关系、已接受和并发接受测试。
-- [ ] 运行 `npm run server:test -- --run src/services/invitationService.test.ts`，确认失败。
-- [ ] 实现服务端生成的随机凭证和状态转换。
+- [x] 先写自邀、过期、重复关系、已接受和并发接受测试。
+- [x] 运行 `npm run test --workspace server -- src/services/invitationService.test.ts`，确认失败。
+- [x] 实现服务端生成的随机凭证和状态转换。
 - [ ] 使用数据库唯一约束处理并发重复创建，并将冲突映射为可理解错误。
-- [ ] 运行聚焦测试并确认通过。
+- [x] 运行聚焦测试并确认通过。
 
 ## Task 5: 替换小程序登录与启动分流
 

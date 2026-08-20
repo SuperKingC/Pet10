@@ -98,6 +98,24 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         [input.userId, input.openId, input.unionId ?? null]
       )
     },
+    invitations: {
+      create: (input) => one(
+        `INSERT INTO invitations(token,inviter_id,expires_at)
+         VALUES($1,$2,$3) RETURNING *`,
+        [input.token, input.inviterId, input.expiresAt]
+      ),
+      findByToken: (token) => one('SELECT * FROM invitations WHERE token=$1', [token]),
+      accept: (token, accepterId) => one(
+        `UPDATE invitations SET status='accepted', accepted_by=$2, accepted_at=now()
+         WHERE token=$1 AND status='pending' RETURNING *`,
+        [token, accepterId]
+      ),
+      decline: (token, userId) => one(
+        `UPDATE invitations SET status='declined'
+         WHERE token=$1 AND inviter_id<>$2 AND status='pending' RETURNING *`,
+        [token, userId]
+      )
+    },
     relationships: {
       findActiveForUser: (userId) => one(
         `SELECT * FROM relationships WHERE status IN ('pending','accepted')

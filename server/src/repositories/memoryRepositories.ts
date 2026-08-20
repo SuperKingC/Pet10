@@ -5,6 +5,7 @@ import type {
   CodewordAnswer,
   Fortune,
   InviteCode,
+  Invitation,
   LoginCode,
   MoodEntry,
   Pet,
@@ -30,6 +31,7 @@ export function createMemoryRepositories(): RepositoryBundle {
   ])
   const loginCodes = new Map<string, LoginCode>()
   const wechatIdentities = new Map<string, WechatIdentity>()
+  const invitations = new Map<string, Invitation>()
   const relationships = new Map<string, Relationship>()
   const rooms = new Map<string, Room>()
   const roomMembers = new Map<string, Set<string>>()
@@ -119,6 +121,40 @@ export function createMemoryRepositories(): RepositoryBundle {
       }
       wechatIdentities.set(identity.openId, identity)
       return identity
+    }
+  }
+
+  const invitationRepo = {
+    async create(input: Pick<Invitation, 'token' | 'inviterId' | 'expiresAt'>) {
+      const invitation: Invitation = {
+        id: randomUUID(),
+        token: input.token,
+        inviterId: input.inviterId,
+        status: 'pending',
+        expiresAt: input.expiresAt,
+        acceptedBy: null,
+        createdAt: now(),
+        acceptedAt: null
+      }
+      invitations.set(invitation.token, invitation)
+      return invitation
+    },
+    async findByToken(token: string) {
+      return invitations.get(token)
+    },
+    async accept(token: string, accepterId: string) {
+      const invitation = invitations.get(token)
+      if (!invitation) throw new Error('invitation_not_found')
+      invitation.status = 'accepted'
+      invitation.acceptedBy = accepterId
+      invitation.acceptedAt = now()
+      return invitation
+    },
+    async decline(token: string, userId: string) {
+      const invitation = invitations.get(token)
+      if (!invitation || invitation.inviterId === userId) throw new Error('invitation_not_found')
+      invitation.status = 'declined'
+      return invitation
     }
   }
 
@@ -414,6 +450,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     invites: inviteRepo,
     loginCodes: loginCodeRepo,
     wechatIdentities: wechatIdentityRepo,
+    invitations: invitationRepo,
     relationships: relationshipRepo,
     rooms: roomRepo,
     pets: petRepo,

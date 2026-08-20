@@ -27,6 +27,19 @@ export interface WechatIdentity {
   updatedAt: Date
 }
 
+export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'expired'
+
+export interface Invitation {
+  id: Id
+  token: string
+  inviterId: Id
+  status: InvitationStatus
+  expiresAt: Date
+  acceptedBy?: Id | null
+  createdAt: Date
+  acceptedAt?: Date | null
+}
+
 export interface InviteCode {
   code: string
   active: boolean
