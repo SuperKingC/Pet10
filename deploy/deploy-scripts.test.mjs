@@ -70,6 +70,7 @@ describe('Lighthouse deployment scripts', () => {
   it('redirects only production runtime assets to the versioned COS origin', async () => {
     const caddy = await readFile(resolve(root, 'deploy/Caddyfile'), 'utf8')
 
+    expect(caddy).toContain('pet10kk.com api.pet10kk.com {')
     expect(caddy).toContain('@static_assets {')
     expect(caddy).toContain('path /assets/* /pet/* /nest/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*')
     expect(caddy).toContain('expression `"{$STATIC_ASSET_BASE_URL}" != "" && "{$STATIC_ASSET_VERSION}" != ""`')

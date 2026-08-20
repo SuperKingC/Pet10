@@ -30,6 +30,7 @@ GitHub 自动测试通过后，由维护者手动批准生产部署。服务器�
 4. 在服务器项目目录保存 `.env.production`。
 5. 设置公开的 `STATIC_ASSET_BASE_URL` 和当前完整提交 SHA `STATIC_ASSET_VERSION`。
 6. 不把 `.env.production`、私钥或数据库密码提交到 GitHub。
+7. 将 `pet10kk.com` 和 `api.pet10kk.com` 解析到 Lighthouse 公网 IP；生产 Caddy 配置由仓库中的 `deploy/Caddyfile` 管理，不在服务器直接修改。
 
 ## GitHub Secrets
 

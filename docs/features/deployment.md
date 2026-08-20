@@ -10,6 +10,8 @@
 - `postgres`：业务数据。
 - `redis`：缓存和临时状态。
 
+生产 HTTPS 入口由 `deploy/Caddyfile` 固定为 `pet10kk.com` 和 `api.pet10kk.com`，不再使用临时 `sslip.io` 域名。
+
 ## 推荐发布流程
 
 ```mermaid
