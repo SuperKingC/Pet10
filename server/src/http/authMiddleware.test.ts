@@ -44,4 +44,20 @@ describe('auth middleware allowlist', () => {
     expect(next).toHaveBeenCalledOnce()
     expect(response.status).not.toHaveBeenCalled()
   })
+
+  it('accepts a WeChat token without an email allowlist entry', () => {
+    const token = jwt.sign({ sub: 'wechat-user', authProvider: 'wechat' }, 'secret')
+    const request = { headers: { authorization: `Bearer ${token}` } }
+    const response = createResponse()
+    const next = vi.fn()
+
+    createAuthMiddleware('secret', ['legacy@example.com'])(
+      request as never,
+      response as never,
+      next
+    )
+
+    expect(next).toHaveBeenCalledOnce()
+    expect(response.status).not.toHaveBeenCalled()
+  })
 })

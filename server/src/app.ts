@@ -11,6 +11,7 @@ import { createSocialRoutes } from './http/socialRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
 import { createImageRoutes } from './http/imageRoutes.js'
 import { createAuthService } from './services/authService.js'
+import { createWechatAuthService } from './services/wechatAuthService.js'
 import { createFriendshipService } from './services/friendshipService.js'
 import { createPetBrain } from './services/petBrain.js'
 import { createPetService } from './services/petService.js'
@@ -55,6 +56,26 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     allowedEmails: config.allowedEmails,
     logCode: (email, code) => console.log(`[login-code] ${email}: ${code}`)
   })
+  const wechatAuthService = config.wechat.enabled
+    ? createWechatAuthService({
+        repositories,
+        jwtSecret: config.jwtSecret,
+        jwtExpiresIn: config.jwtExpiresIn,
+        exchangeCode: async (code) => {
+          const query = new URLSearchParams({
+            appid: config.wechat.appId!,
+            secret: config.wechat.appSecret!,
+            js_code: code,
+            grant_type: 'authorization_code'
+          })
+          const response = await fetch(`https://api.weixin.qq.com/sns/jscode2session?${query}`)
+          if (!response.ok) throw new Error('wechat_exchange_failed')
+          const result = await response.json() as { openid?: string; unionid?: string; errcode?: number }
+          if (!result.openid || result.errcode) throw new Error('wechat_exchange_failed')
+          return { openId: result.openid, unionId: result.unionid }
+        }
+      })
+    : undefined
   let pushService: PushService | undefined = createPushService(config.push, repositories)
   const reminders = createReminderService({
     repositories,
@@ -81,7 +102,12 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   const roomService = createRoomService({ repositories, ai, brain })
   const sessionService = createSessionService(repositories, { emitUser })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
-  app.use('/api/auth', createAuthRoutes(authService))
+  app.use('/api/auth', createAuthRoutes({
+    ...authService,
+    loginWithWechat: wechatAuthService
+      ? (code, profile) => wechatAuthService.login(code, profile)
+      : undefined
+  }))
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
   app.use('/api/friendships', authenticate, createFriendshipRoutes(friendshipService))
   app.use('/api/social', authenticate, createSocialRoutes({ social: socialService, pets: petService, push: pushService }))

@@ -8,6 +8,8 @@ const environmentSchema = z.object({
   REDIS_URL: z.string().default('redis://localhost:6379'),
   JWT_SECRET: z.string().optional(),
   JWT_EXPIRES_IN: z.string().default('30d'),
+  WECHAT_APP_ID: z.string().optional(),
+  WECHAT_APP_SECRET: z.string().optional(),
   LOGIN_CODE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
   ALLOWED_EMAILS: z.string().default(''),
   MAIL_MODE: z.enum(['console', 'smtp']).default('console'),
@@ -48,6 +50,11 @@ export interface ServerConfig {
   redisUrl: string
   jwtSecret: string
   jwtExpiresIn: string
+  wechat: {
+    enabled: boolean
+    appId?: string
+    appSecret?: string
+  }
   loginCodeTtlSeconds: number
   allowedEmails: string[]
   mail: {
@@ -104,8 +111,8 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
   if (parsed.NODE_ENV === 'production' && !parsed.JWT_SECRET) {
     throw new Error('JWT_SECRET is required in production')
   }
-  if (parsed.NODE_ENV === 'production' && allowedEmails.length === 0) {
-    throw new Error('ALLOWED_EMAILS is required in production')
+  if (parsed.NODE_ENV === 'production' && allowedEmails.length === 0 && !(parsed.WECHAT_APP_ID && parsed.WECHAT_APP_SECRET)) {
+    throw new Error('ALLOWED_EMAILS or WECHAT_APP_ID/WECHAT_APP_SECRET is required in production')
   }
 
   return {
@@ -116,6 +123,11 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
     redisUrl: parsed.REDIS_URL,
     jwtSecret: parsed.JWT_SECRET ?? 'development-only-change-me',
     jwtExpiresIn: parsed.JWT_EXPIRES_IN,
+    wechat: {
+      enabled: Boolean(parsed.WECHAT_APP_ID && parsed.WECHAT_APP_SECRET),
+      appId: parsed.WECHAT_APP_ID,
+      appSecret: parsed.WECHAT_APP_SECRET
+    },
     loginCodeTtlSeconds: parsed.LOGIN_CODE_TTL_SECONDS,
     allowedEmails,
     mail: {

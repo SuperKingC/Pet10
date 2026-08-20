@@ -69,6 +69,19 @@ describe('server config', () => {
     expect(config.allowedEmails).toEqual(['first@example.com', 'second@example.com'])
   })
 
+  it('enables WeChat authentication when both credentials are configured', () => {
+    const config = parseConfig({
+      WECHAT_APP_ID: 'wx-app-id',
+      WECHAT_APP_SECRET: 'wx-app-secret'
+    })
+
+    expect(config.wechat).toEqual({
+      enabled: true,
+      appId: 'wx-app-id',
+      appSecret: 'wx-app-secret'
+    })
+  })
+
   it('enables web search when configured', () => {
     const config = parseConfig({
       SEARCH_API_KEY: 'search-secret',
