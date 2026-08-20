@@ -3,13 +3,11 @@
   padding: 48px 32px 72px;
 }
 
-.login-panel, .room-panel { margin-bottom: 24px; padding: 24px; border: 1px solid #ead5c2; border-radius: 22px; background: #fffaf6; }
+.login-panel, .room-panel, .waiting-panel, .rooms-panel { margin-bottom: 24px; padding: 24px; border: 1px solid #ead5c2; border-radius: 22px; background: #fffaf6; }
 .panel-title { display: block; margin-bottom: 16px; color: #5e3b1d; font-size: 28px; font-weight: 700; }
-.text-input { height: 76px; margin-bottom: 12px; padding: 0 20px; border: 1px solid #ead5c2; border-radius: 14px; background: #fff; color: #382b23; }
-.inline-actions { display: flex; align-items: center; gap: 10px; }
-.inline-actions button { flex: 0 0 auto; margin: 0; font-size: 22px; }
-.code-input { flex: 1; height: 70px; padding: 0 12px; border: 1px solid #ead5c2; border-radius: 14px; }
-.dev-code { display: block; margin-top: 12px; color: #b35e38; font-size: 22px; }
+.login-caption, .panel-copy { display: block; margin-bottom: 20px; color: #765c47; font-size: 24px; line-height: 1.5; }
+.wechat-button { border: 0; border-radius: 18px; background: #35a35c; color: #fff; font-size: 28px; }
+.wechat-button::after, .room-item::after, .room-button::after, .secondary-button::after { border: 0; }
 
 .page-heading {
   display: flex;
@@ -51,6 +49,28 @@
   font-size: 28px;
 }
 
-.room-button::after {
-  border: 0;
+.room-item {
+  display: block;
+  width: 100%;
+  margin: 12px 0 0;
+  border: 1px solid #ead5c2;
+  border-radius: 16px;
+  background: #fff;
+  color: #5e3b1d;
+  font-size: 25px;
+  text-align: left;
+}
+
+.room-item-active {
+  border-color: #d36d3d;
+  background: #fff1e5;
+}
+
+.secondary-button {
+  margin-top: 16px;
+  border: 1px solid #d9b99c;
+  border-radius: 18px;
+  background: transparent;
+  color: #765c47;
+  font-size: 24px;
 }

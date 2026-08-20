@@ -103,7 +103,10 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     onPetEvent: (roomId, userId, action, outcome) => void brain.onPetEvent(roomId, userId, action, outcome)
   })
   const roomService = createRoomService({ repositories, ai, brain })
-  const sessionService = createSessionService(repositories, { emitUser })
+  const sessionService = createSessionService(repositories, {
+    emitUser,
+    getInvitation: (token) => invitationService.get(token)
+  })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
   app.use('/api/auth', createAuthRoutes({
     ...authService,

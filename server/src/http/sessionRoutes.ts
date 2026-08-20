@@ -5,7 +5,11 @@ import type { AuthenticatedRequest } from './authMiddleware.js'
 
 export function createSessionRoutes(service: {
   getHome(userId: string): Promise<unknown>
-  getLaunchContext(userId: string, options?: { activeRoomId?: string; assetVersion?: string }): Promise<unknown>
+  getLaunchContext(userId: string, options?: {
+    activeRoomId?: string
+    assetVersion?: string
+    invitationToken?: string
+  }): Promise<unknown>
   updateUsername(userId: string, username: string): Promise<unknown>
   updateProfile(userId: string, patch: UserProfilePatch): Promise<unknown>
 }) {
@@ -17,7 +21,8 @@ export function createSessionRoutes(service: {
     try {
       const input = z.object({
         activeRoomId: z.string().min(1).optional(),
-        assetVersion: z.string().min(1).optional()
+        assetVersion: z.string().min(1).optional(),
+        invitationToken: z.string().min(1).optional()
       }).parse(request.query)
       response.json(await service.getLaunchContext(request.userId!, input))
     } catch (error) { next(error) }

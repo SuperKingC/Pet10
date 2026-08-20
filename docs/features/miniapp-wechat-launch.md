@@ -1,0 +1,45 @@
+# 小程序微信登录、邀请与多小窝
+
+## 目的
+
+小程序正式用户只使用微信登录。用户可以通过好友分享链接进入，也可以直接进入；每一对好友拥有一个独立小窝和一只共享宠物。
+
+## 用户流程
+
+1. 用户打开小程序，使用微信登录。
+2. 如果链接中带有邀请 token，登录后进入邀请确认页，显示邀请人，并提供“接受邀请”或“暂不加入”。
+3. 接受邀请后，系统在服务端一次性创建关系、小窝、房间成员和宠物；用户自动进入这个新小窝。
+4. 用户直接进入且已有小窝时，首页显示所有小窝摘要；A+B 与 A+C 分别对应不同宠物。
+5. 用户直接进入且没有邀请、没有小窝时，显示“准备中的小窝”，引导其邀请微信好友。
+
+## 规则与失败状态
+
+- 同一对用户只能有一个小窝；A+B 与 B+A 视为同一对。
+- 用户不能接受自己发出的邀请。
+- 邀请过期、已处理、无效或两人已有关系时，页面保留错误信息，用户可返回首页。
+- 邀请 token 必须在微信登录前后保留；资源加载失败不能清除登录会话、邀请 token 或当前小窝。
+- 微信 AppSecret 仅存在服务端环境变量，绝不能进入小程序包。
+
+## 资源加载时机
+
+1. 登录页和邀请确认页仅加载基础 UI。
+2. 用户接受邀请或选定已有小窝后，加载该小窝的宠物首屏资源。
+3. 塔罗、五子棋、图片生成等资源只在用户进入对应功能后加载。
+
+当前版本的宠物 PNG 仍在主包中。`assetLoader`、分包和资源失败重试是后续工作，不应被误认为已完成。
+
+## 代码入口
+
+- 服务端登录：`server/src/http/authRoutes.ts`、`server/src/services/wechatAuthService.ts`
+- 启动上下文：`server/src/http/sessionRoutes.ts`、`server/src/services/sessionService.ts`
+- 邀请原子接受：`server/src/services/invitationService.ts`、`server/src/repositories/postgresRepositories.ts`
+- 小程序登录与上下文：`miniapp/src/services/authApi.ts`、`miniapp/src/services/launchContextApi.ts`
+- 小程序邀请确认：`miniapp/src/services/invitationApi.ts`、`miniapp/src/pages/invite/invite.tsx`
+
+## 验收清单
+
+- [ ] 陌生用户可从微信分享邀请完成登录和接受。
+- [ ] A+B 与 A+C 各自显示独立宠物。
+- [ ] 无邀请的新用户看到准备中的小窝。
+- [ ] 邀请过期、重复和自邀显示可理解失败状态。
+- [ ] 微信开发者工具与两台真机完成视觉和接口验收。

@@ -58,6 +58,12 @@ export interface InvitationRepository {
   create(input: Pick<Invitation, 'token' | 'inviterId' | 'expiresAt'>): Promise<Invitation>
   findByToken(token: string): Promise<Invitation | undefined>
   accept(token: string, accepterId: string): Promise<Invitation>
+  acceptPair?(token: string, accepterId: string): Promise<{
+    invitation: Invitation
+    relationship: Relationship
+    room: Room
+    pet: Pet
+  }>
   decline(token: string, userId: string): Promise<Invitation>
 }
 

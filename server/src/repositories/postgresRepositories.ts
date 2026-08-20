@@ -110,6 +110,56 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
          WHERE token=$1 AND status='pending' RETURNING *`,
         [token, accepterId]
       ),
+      acceptPair: async (token, accepterId) => {
+        const client = 'connect' in database ? await (database as Pool).connect() : undefined
+        const db = client ?? database
+        try {
+          if (client) await client.query('BEGIN')
+          const invitationResult = await db.query(
+            `UPDATE invitations
+             SET status='accepted', accepted_by=$2, accepted_at=now()
+             WHERE token=$1 AND status='pending' AND expires_at > now()
+             RETURNING *`,
+            [token, accepterId]
+          )
+          if (!invitationResult.rows[0]) throw new Error('invitation_unavailable')
+          const invitation = camel(invitationResult.rows[0])
+          const relationshipResult = await db.query(
+            `INSERT INTO relationships(requester_id, addressee_id, status)
+             VALUES($1,$2,'accepted')
+             ON CONFLICT DO NOTHING
+             RETURNING *`,
+            [invitation.inviterId, accepterId]
+          )
+          if (!relationshipResult.rows[0]) throw new Error('relationship_already_exists')
+          const relationship = camel(relationshipResult.rows[0])
+          const roomResult = await db.query(
+            `INSERT INTO rooms(relationship_id) VALUES($1)
+             ON CONFLICT(relationship_id) DO UPDATE SET relationship_id=EXCLUDED.relationship_id
+             RETURNING *`,
+            [relationship.id]
+          )
+          const room = camel(roomResult.rows[0])
+          await db.query(
+            `INSERT INTO room_members(room_id,user_id) VALUES($1,$2),($1,$3)
+             ON CONFLICT DO NOTHING`,
+            [room.id, relationship.requesterId, relationship.addresseeId]
+          )
+          const petResult = await db.query(
+            `INSERT INTO pets(relationship_id,room_id) VALUES($1,$2)
+             ON CONFLICT(relationship_id) DO UPDATE SET relationship_id=EXCLUDED.relationship_id
+             RETURNING *`,
+            [relationship.id, room.id]
+          )
+          if (client) await client.query('COMMIT')
+          return { invitation, relationship, room, pet: camel(petResult.rows[0]) }
+        } catch (error) {
+          if (client) await client.query('ROLLBACK')
+          throw error
+        } finally {
+          client?.release()
+        }
+      },
       decline: (token, userId) => one(
         `UPDATE invitations SET status='declined'
          WHERE token=$1 AND inviter_id<>$2 AND status='pending' RETURNING *`,

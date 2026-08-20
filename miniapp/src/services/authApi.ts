@@ -1,14 +1,12 @@
+import Taro from '@tarojs/taro'
 import { apiRequest, setAccessToken } from './apiClient'
 
 export const authApi = {
-  requestCode(email: string, inviteCode: string) {
-    return apiRequest<{ expiresInSeconds: number; developmentCode?: string }>('/api/auth/request-code', {
-      method: 'POST', auth: false, body: { email, inviteCode }
-    })
-  },
-  async verifyCode(email: string, code: string) {
-    const result = await apiRequest<{ token: string; user: { id: string; email: string; displayName: string } }>(
-      '/api/auth/verify-code', { method: 'POST', auth: false, body: { email, code } }
+  async loginWithWechat(profile: { displayName?: string; avatarUrl?: string } = {}) {
+    const loginResult = await Taro.login()
+    const result = await apiRequest<{ token: string; user: { id: string; displayName: string; avatarUrl?: string | null } }>(
+      '/api/auth/wechat',
+      { method: 'POST', auth: false, body: { code: loginResult.code, profile } }
     )
     setAccessToken(result.token)
     return result.user

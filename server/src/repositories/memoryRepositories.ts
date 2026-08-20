@@ -150,6 +150,18 @@ export function createMemoryRepositories(): RepositoryBundle {
       invitation.acceptedAt = now()
       return invitation
     },
+    async acceptPair(token: string, accepterId: string) {
+      const invitation = invitations.get(token)
+      if (!invitation || invitation.status !== 'pending') throw new Error('invitation_unavailable')
+      invitation.status = 'accepted'
+      invitation.acceptedBy = accepterId
+      invitation.acceptedAt = now()
+      const relationship = await relationshipRepo.create(invitation.inviterId, accepterId)
+      relationship.status = 'accepted'
+      const room = await roomRepo.createForRelationship(relationship.id)
+      const pet = await petRepo.createForRelationship(relationship.id, room.id)
+      return { invitation, relationship, room, pet }
+    },
     async decline(token: string, userId: string) {
       const invitation = invitations.get(token)
       if (!invitation || invitation.inviterId === userId) throw new Error('invitation_not_found')

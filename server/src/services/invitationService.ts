@@ -48,6 +48,9 @@ export function createInvitationService(
       if (await repositories.relationships.findBetweenUsers(invitation.inviterId, accepterId)) {
         throw new Error('relationship_already_exists')
       }
+      if (repositories.invitations.acceptPair) {
+        return repositories.invitations.acceptPair(token, accepterId)
+      }
       const relationship = await repositories.relationships.create(invitation.inviterId, accepterId)
       const room = await repositories.rooms.createForRelationship(relationship.id)
       const pet = await repositories.pets.createForRelationship(relationship.id, room.id)

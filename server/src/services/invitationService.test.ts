@@ -41,4 +41,23 @@ describe('invitation service', () => {
     const second = await service.create(inviter.id)
     await expect(service.accept(second.token, invitee.id)).rejects.toThrow('relationship_already_exists')
   })
+
+  it('allows only one concurrent acceptance for the same invitation', async () => {
+    const repositories = createMemoryRepositories()
+    const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const invitee = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const service = createInvitationService(repositories)
+    const invitation = await service.create(inviter.id)
+
+    const results = await Promise.allSettled([
+      service.accept(invitation.token, invitee.id),
+      service.accept(invitation.token, invitee.id)
+    ])
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1)
+    expect(results.filter((result) => result.status === 'rejected')[0]).toMatchObject({
+      reason: expect.objectContaining({ message: 'invitation_unavailable' })
+    })
+    expect((await repositories.relationships.listAcceptedForUser(inviter.id))).toHaveLength(1)
+  })
 })

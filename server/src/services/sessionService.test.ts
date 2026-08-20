@@ -61,6 +61,43 @@ describe('session service', () => {
     expect(context.rooms.map((room) => room.partner.displayName)).toEqual(expect.arrayContaining(['B', 'C']))
   })
 
+  it('prioritizes a valid invitation in launch context', async () => {
+    const repositories = createMemoryRepositories()
+    const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const invitee = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const invitation = await repositories.invitations.create({
+      token: 'invite-token',
+      inviterId: inviter.id,
+      expiresAt: new Date(Date.now() + 60_000)
+    })
+
+    const context = await createSessionService(repositories, {
+      getInvitation: async (token) => {
+        if (token !== invitation.token) throw new Error('invitation_not_found')
+        return {
+          token: invitation.token,
+          inviter: {
+            id: inviter.id,
+            displayName: inviter.displayName,
+            avatarUrl: inviter.avatarUrl
+          },
+          expiresAt: invitation.expiresAt.toISOString()
+        }
+      }
+    }).getLaunchContext(invitee.id, { invitationToken: invitation.token })
+
+    expect(context.entry).toBe('invite')
+    expect(context.pendingInvitations).toEqual([{
+      token: invitation.token,
+      inviter: {
+        id: inviter.id,
+        displayName: inviter.displayName,
+        avatarUrl: inviter.avatarUrl
+      },
+      expiresAt: invitation.expiresAt.toISOString()
+    }])
+  })
+
   it('returns a waiting room entry without shared rooms', async () => {
     const repositories = createMemoryRepositories()
     const user = await repositories.users.create({ email: 'waiting@example.com', username: 'waiting', displayName: 'Waiting' })

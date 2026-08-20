@@ -19,8 +19,10 @@ export type HomeSession =
 
 export function createSessionService(repositories: RepositoryBundle, options?: {
   emitUser?: (userId: string, event: string, payload: unknown) => void
+  getInvitation?: (token: string) => Promise<LaunchContext['pendingInvitations'][number]>
 }) {
   const emitUser = options?.emitUser ?? (() => undefined)
+  const getInvitation = options?.getInvitation
   return {
     async getHome(userId: string): Promise<HomeSession> {
       const user = await repositories.users.findById(userId)
@@ -53,7 +55,11 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
         memories: await repositories.memories.listByRoom(room.id)
       }
     },
-    async getLaunchContext(userId: string, options?: { activeRoomId?: string; assetVersion?: string }): Promise<LaunchContext> {
+    async getLaunchContext(userId: string, options?: {
+      activeRoomId?: string
+      assetVersion?: string
+      invitationToken?: string
+    }): Promise<LaunchContext> {
       const user = await repositories.users.findById(userId)
       if (!user) throw new Error('user_not_found')
 
@@ -87,6 +93,9 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
       const activeRoomId = options?.activeRoomId && rooms.some((room) => room.id === options.activeRoomId)
         ? options.activeRoomId
         : rooms[0]?.id
+      const pendingInvitations = options?.invitationToken && getInvitation
+        ? [await getInvitation(options.invitationToken)]
+        : []
       return {
         user: {
           id: user.id,
@@ -94,12 +103,12 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
           avatarUrl: user.avatarUrl
         },
         rooms,
-        pendingInvitations: [],
+        pendingInvitations,
         activeRoomId,
         entry: resolveLaunchEntry({
-          hasValidInvitation: false,
+          hasValidInvitation: pendingInvitations.length > 0,
           hasRooms: rooms.length > 0,
-          hasPendingInvitations: false,
+          hasPendingInvitations: pendingInvitations.length > 0,
           activeRoomId
         }),
         assetVersion: options?.assetVersion ?? 'local'

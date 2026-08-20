@@ -1,6 +1,7 @@
 export default defineAppConfig({
   pages: [
     'pages/index/index',
+    'pages/invite/invite',
     'pages/pet/pet',
     'pages/room/room',
     'pages/settings/settings',
