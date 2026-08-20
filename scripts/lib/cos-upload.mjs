@@ -41,6 +41,7 @@ export async function uploadStaticAssets({
         Body: createReadStream(entry.filePath),
         ContentLength: entry.size,
         ContentType: entry.contentType,
+        ContentDisposition: 'inline',
         CacheControl: entry.cacheControl
       })
     }

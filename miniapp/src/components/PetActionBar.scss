@@ -1,0 +1,5 @@
+.pet-actions-panel { margin-top: 24px; padding: 20px 24px; border: 1px solid #e8bd91; border-radius: 22px; background: #fff7e9; }
+.pet-actions-title { color: #a98d7e; font-size: 22px; }
+.pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 10px; }
+.pet-action-button { display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: 20px; }
+.pet-action-button image { width: 120px; height: 120px; }

@@ -8,6 +8,7 @@
 - [聊天与实时消息](chat.md)
 - [宠物系统](pet-system.md)
 - [登录、好友和会话](social-and-session.md)
+- [微信登录与多关系小窝](wechat-auth-and-multi-room.md)
 - [每日运势](daily-fortune.md)
 - [塔罗](tarot.md)
 - [图片生成](image-generation.md)

@@ -1,0 +1,13 @@
+.pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
+.pet-card-scene { position: relative; height: 470px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
+.pet-avatar-image { width: 330px; height: 390px; }
+.pet-level { position: absolute; top: 28px; left: 28px; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: 24px; font-weight: 700; }
+.pet-name-badge { position: absolute; bottom: 24px; padding: 8px 24px; border-radius: 999px; background: rgba(255,255,255,.86); color: #5e3b1d; font-size: 32px; font-weight: 700; }
+.pet-card-experience { padding: 22px 28px 28px; }
+.pet-caption { color: #a98d7e; font-size: 25px; font-weight: 700; }
+.experience-meta, .status-meta { display: flex; justify-content: space-between; color: #8e776a; font-size: 22px; }
+.experience-meta { margin-top: 20px; }
+.experience-track, .status-track { height: 12px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: rgba(126,85,55,.09); }
+.experience-track > view, .status-track > view { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#e89264,#efbe68); }
+.status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; margin-top: 24px; }
+.status-item { min-width: 0; }

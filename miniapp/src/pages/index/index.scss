@@ -1,0 +1,56 @@
+.home-page {
+  min-height: 100vh;
+  padding: 48px 32px 72px;
+}
+
+.login-panel, .room-panel { margin-bottom: 24px; padding: 24px; border: 1px solid #ead5c2; border-radius: 22px; background: #fffaf6; }
+.panel-title { display: block; margin-bottom: 16px; color: #5e3b1d; font-size: 28px; font-weight: 700; }
+.text-input { height: 76px; margin-bottom: 12px; padding: 0 20px; border: 1px solid #ead5c2; border-radius: 14px; background: #fff; color: #382b23; }
+.inline-actions { display: flex; align-items: center; gap: 10px; }
+.inline-actions button { flex: 0 0 auto; margin: 0; font-size: 22px; }
+.code-input { flex: 1; height: 70px; padding: 0 12px; border: 1px solid #ead5c2; border-radius: 14px; }
+.dev-code { display: block; margin-top: 12px; color: #b35e38; font-size: 22px; }
+
+.page-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  color: #d36d3d;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.page-title {
+  color: #382b23;
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.page-description {
+  color: #9a806b;
+  font-size: 25px;
+  line-height: 1.5;
+}
+
+.feedback {
+  margin: 24px 4px;
+  color: #765c47;
+  font-size: 25px;
+  line-height: 1.5;
+}
+
+.room-button {
+  border: 0;
+  border-radius: 18px;
+  background: #5e3b1d;
+  color: #fff;
+  font-size: 28px;
+}
+
+.room-button::after {
+  border: 0;
+}

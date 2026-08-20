@@ -1,0 +1,39 @@
+.room-page {
+  min-height: 100vh;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.room-title {
+  color: #382b23;
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.room-caption {
+  color: #9a806b;
+  font-size: 26px;
+  line-height: 1.5;
+}
+
+.room-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 28px;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.room-card-title {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.room-card-detail {
+  color: #9a806b;
+  font-size: 24px;
+}

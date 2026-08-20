@@ -1,0 +1,19 @@
+.pet-page {
+  min-height: 100vh;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pet-page-title {
+  color: #382b23;
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.pet-page-caption {
+  color: #9a806b;
+  font-size: 26px;
+  line-height: 1.5;
+}

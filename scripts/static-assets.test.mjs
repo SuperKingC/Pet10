@@ -104,7 +104,8 @@ describe('static asset upload', () => {
         Region: 'ap-guangzhou',
         Key: 'pet10-web/commit-sha/pet/xiaoduoli.png',
         CacheControl: 'public, max-age=31536000, immutable',
-        ContentType: 'image/png'
+        ContentType: 'image/png',
+        ContentDisposition: 'inline'
       })
     ]))
   })
