@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ensureRuntimeMigrations } from './migrations.js'
 
 describe('runtime migrations', () => {
-  it('creates memory metadata and persistent reminder tables idempotently', async () => {
+  it('creates persistent runtime tables and constraints idempotently', async () => {
     let executedSql = ''
     const query = vi.fn(async (sql: string) => {
       executedSql = sql
@@ -20,5 +20,13 @@ describe('runtime migrations', () => {
     expect(executedSql).toContain('ADD COLUMN IF NOT EXISTS source')
     expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS pet_tasks')
     expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS pet_tasks_due_idx')
+    expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS wechat_identities')
+    expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS relationships_pair_unique')
+    expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS rooms_relationship_unique')
+    expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS pets_relationship_unique')
+    expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS pets_room_unique')
+    expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS invitations')
+    expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS invitations_inviter_idx')
+    expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS invitations_pending_expiry_idx')
   })
 })

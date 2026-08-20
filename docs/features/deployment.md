@@ -51,6 +51,7 @@ flowchart LR
 - 不在服务器手工编辑业务代码。
 - 不使用 `docker compose down -v`。
 - 数据库迁移必须单独确认。
+- API 启动会幂等补齐运行时表和索引，包括微信身份、好友邀请及关系小窝唯一约束；已有生产库首次补迁移前仍需备份并检查旧数据冲突。
 - GitHub 的 `production` Environment 必须启用人工批准，并配置服务器固定 SSH 主机公钥。
 - COS SecretId、SecretKey 只存在于 GitHub Environment，不能传到 Lighthouse、前端构建产物或日志。
 
