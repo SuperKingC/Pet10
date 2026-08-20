@@ -5,12 +5,22 @@ import type { AuthenticatedRequest } from './authMiddleware.js'
 
 export function createSessionRoutes(service: {
   getHome(userId: string): Promise<unknown>
+  getLaunchContext(userId: string, options?: { activeRoomId?: string; assetVersion?: string }): Promise<unknown>
   updateUsername(userId: string, username: string): Promise<unknown>
   updateProfile(userId: string, patch: UserProfilePatch): Promise<unknown>
 }) {
   const router = Router()
   router.get('/', async (request: AuthenticatedRequest, response, next) => {
     try { response.json(await service.getHome(request.userId!)) } catch (error) { next(error) }
+  })
+  router.get('/launch-context', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      const input = z.object({
+        activeRoomId: z.string().min(1).optional(),
+        assetVersion: z.string().min(1).optional()
+      }).parse(request.query)
+      response.json(await service.getLaunchContext(request.userId!, input))
+    } catch (error) { next(error) }
   })
   router.patch('/username', async (request: AuthenticatedRequest, response, next) => {
     try {

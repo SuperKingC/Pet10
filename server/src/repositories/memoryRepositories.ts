@@ -126,6 +126,11 @@ export function createMemoryRepositories(): RepositoryBundle {
     async findActiveForUser(userId: string) {
       return [...relationships.values()].find((item) => item.status !== 'rejected' && (item.requesterId === userId || item.addresseeId === userId))
     },
+    async listAcceptedForUser(userId: string) {
+      return [...relationships.values()]
+        .filter((item) => item.status === 'accepted' && (item.requesterId === userId || item.addresseeId === userId))
+        .sort((first, second) => second.createdAt.getTime() - first.createdAt.getTime())
+    },
     async findBetweenUsers(firstUserId: string, secondUserId: string) {
       return [...relationships.values()].find((item) =>
         [item.requesterId, item.addresseeId].includes(firstUserId) &&

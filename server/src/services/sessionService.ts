@@ -1,4 +1,5 @@
 import type { Relationship, User } from '../domain/models.js'
+import { resolveLaunchEntry, type LaunchContext } from '../domain/launchContext.js'
 import type { RepositoryBundle, UserProfilePatch } from '../repositories/contracts.js'
 
 export type HomeSession =
@@ -50,6 +51,58 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
         pet,
         messages: await repositories.messages.listRecent(room.id, 50),
         memories: await repositories.memories.listByRoom(room.id)
+      }
+    },
+    async getLaunchContext(userId: string, options?: { activeRoomId?: string; assetVersion?: string }): Promise<LaunchContext> {
+      const user = await repositories.users.findById(userId)
+      if (!user) throw new Error('user_not_found')
+
+      const relationships = await repositories.relationships.listAcceptedForUser(userId)
+      const rooms = []
+      for (const relationship of relationships) {
+        const room = await repositories.rooms.findByRelationshipId(relationship.id)
+        if (!room) continue
+        const friendId = relationship.requesterId === userId ? relationship.addresseeId : relationship.requesterId
+        const friend = await repositories.users.findById(friendId)
+        const pet = await repositories.pets.findByRoomId(room.id)
+        if (!friend || !pet) continue
+        rooms.push({
+          id: room.id,
+          partner: {
+            id: friend.id,
+            displayName: friend.displayName,
+            avatarUrl: friend.avatarUrl
+          },
+          pet: {
+            id: pet.id,
+            name: pet.name,
+            level: pet.level,
+            updatedAt: pet.updatedAt.toISOString()
+          },
+          lastUsedAt: null,
+          unreadCount: 0
+        })
+      }
+
+      const activeRoomId = options?.activeRoomId && rooms.some((room) => room.id === options.activeRoomId)
+        ? options.activeRoomId
+        : rooms[0]?.id
+      return {
+        user: {
+          id: user.id,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl
+        },
+        rooms,
+        pendingInvitations: [],
+        activeRoomId,
+        entry: resolveLaunchEntry({
+          hasValidInvitation: false,
+          hasRooms: rooms.length > 0,
+          hasPendingInvitations: false,
+          activeRoomId
+        }),
+        assetVersion: options?.assetVersion ?? 'local'
       }
     },
     async updateUsername(userId: string, username: string) {

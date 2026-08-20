@@ -104,6 +104,11 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
          AND (requester_id=$1 OR addressee_id=$1) ORDER BY created_at DESC LIMIT 1`,
         [userId]
       ),
+      listAcceptedForUser: (userId) => many(
+        `SELECT * FROM relationships WHERE status='accepted'
+         AND (requester_id=$1 OR addressee_id=$1) ORDER BY created_at DESC`,
+        [userId]
+      ),
       findBetweenUsers: (first, second) => one(
         `SELECT * FROM relationships WHERE status IN ('pending','accepted')
          AND ((requester_id=$1 AND addressee_id=$2) OR (requester_id=$2 AND addressee_id=$1)) LIMIT 1`,

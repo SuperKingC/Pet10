@@ -55,6 +55,7 @@ export interface WechatIdentityRepository {
 
 export interface RelationshipRepository {
   findActiveForUser(userId: string): Promise<Relationship | undefined>
+  listAcceptedForUser(userId: string): Promise<Relationship[]>
   findBetweenUsers(firstUserId: string, secondUserId: string): Promise<Relationship | undefined>
   findById(id: string): Promise<Relationship | undefined>
   create(requesterId: string, addresseeId: string): Promise<Relationship>

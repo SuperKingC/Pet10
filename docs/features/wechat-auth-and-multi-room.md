@@ -240,6 +240,8 @@ type LaunchContext = {
 - `server/src/services/wechatAuthService.ts`
 - `server/src/services/wechatAuthService.test.ts`
 - `server/src/http/authMiddleware.ts`
+- `server/src/services/sessionService.ts`
+- `server/src/http/sessionRoutes.ts`
 - 小程序微信登录服务；
 - 邀请凭证与邀请确认页；
 - 用户小窝列表和当前小窝切换；

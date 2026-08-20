@@ -42,4 +42,32 @@ describe('session service', () => {
     expect(result.room.relationshipId).toBe(relationship.id)
     expect(result.pet.name).toBe('小多利')
   })
+
+  it('returns every shared room for the user in launch context', async () => {
+    const repositories = createMemoryRepositories()
+    const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const second = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const third = await repositories.users.create({ email: 'c@example.com', username: 'c', displayName: 'C' })
+    const friendship = createFriendshipService(repositories)
+    const firstRelationship = await friendship.sendRequest(first.id, second.username)
+    await friendship.acceptRequest(second.id, firstRelationship.id)
+    const secondRelationship = await friendship.sendRequest(first.id, third.username)
+    await friendship.acceptRequest(third.id, secondRelationship.id)
+
+    const context = await createSessionService(repositories).getLaunchContext(first.id)
+
+    expect(context.entry).toBe('shared-room')
+    expect(context.rooms).toHaveLength(2)
+    expect(context.rooms.map((room) => room.partner.displayName)).toEqual(expect.arrayContaining(['B', 'C']))
+  })
+
+  it('returns a waiting room entry without shared rooms', async () => {
+    const repositories = createMemoryRepositories()
+    const user = await repositories.users.create({ email: 'waiting@example.com', username: 'waiting', displayName: 'Waiting' })
+
+    const context = await createSessionService(repositories).getLaunchContext(user.id)
+
+    expect(context.entry).toBe('waiting-room')
+    expect(context.rooms).toEqual([])
+  })
 })
