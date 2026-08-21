@@ -22,6 +22,18 @@ flowchart LR
 
 ## 当前范围
 
+### 小程序主界面补充
+
+- 小窝支持读取共同记忆、删除共同记忆，并展示双方贡献榜。
+- 消息页读取真实会话列表，支持切换当前共享房间。
+- 爪印菜单中的足迹地图使用 `/api/social/rooms/:roomId/map` 读取和点亮足迹。
+- 记忆和地图面板使用底部抽屉，不阻断主页面导航。
+
+### 当前未完成
+
+- 塔罗和五子棋仍需微信端独立适配；现有 PWA 实现依赖浏览器 DOM 或 Socket.IO，不能直接复制到 Taro。
+- 小程序端头像编辑器、MBTI 测试和完整运势详情仍待迁移。
+
 - Taro + React + TypeScript 微信小程序骨架；
 - 仅使用微信登录，服务端通过 `jscode2session` 创建或恢复 Pet10 身份；
 - 新用户无需邀请也能进入准备中的小窝；
@@ -80,13 +92,13 @@ API 域名必须使用 HTTPS，并添加到微信小程序后台的“开发管�
 
 | 文件 | 原始尺寸 | 体积 | 小程序用途 |
 | --- | --- | --- | --- |
-| `xiaoduoli.png` | 436×700 | 500 KB | 宠物场景主图 |
-| `action-feed.png` | 445×474 | 245 KB | 喂食动作 |
-| `action-play.png` | 449×474 | 247 KB | 玩耍动作 |
-| `action-clean.png` | 448×474 | 253 KB | 清洁动作 |
-| `action-sleep.png` | 447×474 | 258 KB | 睡觉动作 |
+| `xiaoduoli.png` | 436×700 | 85 KB | 宠物场景主图 |
+| `action-feed.png` | 445×474 | 25 KB | 喂食动作 |
+| `action-play.png` | 449×474 | 24 KB | 玩耍动作 |
+| `action-clean.png` | 448×474 | 25 KB | 清洁动作 |
+| `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
 
-图片均为 PNG；运行时使用固定容器尺寸和 `aspectFit`，避免布局跳动。它们分别与 `public/pet/xiaoduoli.png`、`public/nest/action-feed.png`、`public/nest/action-play.png`、`public/nest/action-clean.png` 和 `public/nest/action-sleep.png` 保持相同源文件；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
+图片均为 PNG，保留原尺寸与透明通道并采用 256 色优化；运行时使用固定容器尺寸和 `aspectFit`，避免布局跳动。每张小程序图片控制在 200 KB 以内，它们分别与 `public/pet/xiaoduoli.png`、`public/nest/action-feed.png`、`public/nest/action-play.png`、`public/nest/action-clean.png` 和 `public/nest/action-sleep.png` 保持相同源文件；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
 
 ## 开发命令
 

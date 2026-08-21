@@ -20,6 +20,19 @@ export interface RoomBootstrap {
   }
   pet: ServerPet | null
   messages: RoomMessage[]
+  memories: RoomMemory[]
+}
+
+export interface RoomMemory {
+  id: string
+  text: string
+  sourceMessageId: string
+  canMention: boolean
+  category?: string
+  importance?: number
+  source?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 const roomPath = (roomId: string) => `/api/rooms/${encodeURIComponent(roomId)}`
@@ -40,6 +53,14 @@ export const roomApi = {
   requestPetReply(roomId: string) {
     return apiRequest<RoomMessage>(`${roomPath(roomId)}/pet-replies`, {
       method: 'POST',
+    })
+  },
+  listMemories(roomId: string) {
+    return apiRequest<RoomMemory[]>(`${roomPath(roomId)}/memories`)
+  },
+  deleteMemory(roomId: string, memoryId: string) {
+    return apiRequest<void>(`${roomPath(roomId)}/memories/${encodeURIComponent(memoryId)}`, {
+      method: 'DELETE',
     })
   },
 }

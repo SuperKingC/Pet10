@@ -1,0 +1,57 @@
+.miniapp-contribution-board {
+  padding: 16px;
+  background: rgba(255, 255, 255, .82);
+  border: 1px solid #f0dfd2;
+  border-radius: 20px;
+  box-shadow: 0 7px 20px rgba(70, 48, 37, .06);
+}
+
+.miniapp-contribution-board__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.miniapp-contribution-board__title {
+  color: #5e3b1d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.miniapp-contribution-board__caption {
+  color: #b49a8d;
+  font-size: 10px;
+}
+
+.miniapp-contribution-board__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #f4e8df;
+}
+
+.miniapp-contribution-board__rank {
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  background: #d9845d;
+  border-radius: 50%;
+  font-size: 11px;
+  line-height: 22px;
+  text-align: center;
+}
+
+.miniapp-contribution-board__name {
+  flex: 1;
+  color: #6f5143;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.miniapp-contribution-board__count {
+  color: #a89489;
+  font-size: 11px;
+}

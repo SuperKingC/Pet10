@@ -9,9 +9,13 @@ describe('WeChat developer tools project config', () => {
     ) as {
       compileType?: string
       miniprogramRoot?: string
+      setting?: {
+        minified?: boolean
+      }
     }
 
     expect(config.compileType).toBe('miniprogram')
     expect(config.miniprogramRoot).toBe('./dist')
+    expect(config.setting?.minified).toBe(true)
   })
 })

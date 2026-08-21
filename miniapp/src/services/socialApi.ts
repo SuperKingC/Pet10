@@ -36,7 +36,37 @@ export interface MiniappCodeword {
   answeredCount: number
 }
 
+export interface MiniappConversation {
+  roomId: string
+  type: 'pair' | 'pet_dm'
+  title: string
+  avatarUrl: string | null
+  proactiveEnabled: boolean
+  latestMessage?: {
+    id: string
+    text: string
+    kind: 'text' | 'image' | 'pet'
+    createdAt: string
+  }
+  updatedAt: string
+}
+
+export interface MiniappContribution {
+  userId: string
+  action: string
+  count: number
+}
+
+export interface MiniappMapLight {
+  spotId: number
+  litBy: string
+  createdAt: string
+}
+
 export const socialApi = {
+  listConversations() {
+    return apiRequest<MiniappConversation[]>('/api/social/conversations')
+  },
   listMoods(roomId: string, from: string, to: string) {
     return apiRequest<MiniappMood[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/moods?from=${from}&to=${to}`)
   },
@@ -70,6 +100,18 @@ export const socialApi = {
     return apiRequest<MiniappCodeword>(`/api/social/rooms/${encodeURIComponent(roomId)}/codeword`, {
       method: 'PUT',
       body: { answer },
+    })
+  },
+  listContributions(roomId: string) {
+    return apiRequest<MiniappContribution[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/contributions`)
+  },
+  listMapLights(roomId: string) {
+    return apiRequest<MiniappMapLight[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/map`)
+  },
+  lightMapSpot(roomId: string, spotId: number) {
+    return apiRequest<MiniappMapLight>(`/api/social/rooms/${encodeURIComponent(roomId)}/map`, {
+      method: 'POST',
+      body: { spotId },
     })
   },
 }

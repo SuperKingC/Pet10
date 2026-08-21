@@ -17,6 +17,8 @@ describe('room api', () => {
     await roomApi.listMessages('room id')
     await roomApi.sendMessage('room id', '你好')
     await roomApi.requestPetReply('room id')
+    await roomApi.listMemories('room id')
+    await roomApi.deleteMemory('room id', 'memory id')
 
     expect(apiRequest).toHaveBeenNthCalledWith(1, '/api/rooms/room%20id')
     expect(apiRequest).toHaveBeenNthCalledWith(2, '/api/rooms/room%20id/messages')
@@ -26,6 +28,10 @@ describe('room api', () => {
     })
     expect(apiRequest).toHaveBeenNthCalledWith(4, '/api/rooms/room%20id/pet-replies', {
       method: 'POST',
+    })
+    expect(apiRequest).toHaveBeenNthCalledWith(5, '/api/rooms/room%20id/memories')
+    expect(apiRequest).toHaveBeenNthCalledWith(6, '/api/rooms/room%20id/memories/memory%20id', {
+      method: 'DELETE',
     })
   })
 })

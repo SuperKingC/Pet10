@@ -3,6 +3,7 @@
 .pet-avatar-image { width: 330px; height: 390px; }
 .pet-level { position: absolute; top: 28px; left: 28px; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: 24px; font-weight: 700; }
 .pet-name-badge { position: absolute; bottom: 24px; padding: 8px 24px; border-radius: 999px; background: rgba(255,255,255,.86); color: #5e3b1d; font-size: 32px; font-weight: 700; }
+.pet-memory-button { position: absolute; top: 28px; right: 28px; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: 22px; }
 .pet-card-experience { padding: 22px 28px 28px; }
 .pet-caption { color: #a98d7e; font-size: 25px; font-weight: 700; }
 .experience-meta, .status-meta { display: flex; justify-content: space-between; color: #8e776a; font-size: 22px; }

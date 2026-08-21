@@ -1,9 +1,12 @@
 import { Button, Image, Text, View } from '@tarojs/components'
+import { useEffect, useState } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
 import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
+import { MiniappContributionBoard } from './MiniappContributionBoard'
+import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import './MiniappNestView.scss'
 
 const wardrobe = require('../../assets/nest/wardrobe.png')
@@ -15,6 +18,7 @@ interface MiniappNestViewProps {
   roomId: string
   onAction(action: PetAction): void
   onSelectRoom(roomId: string): void
+  onOpenMemories(): void
 }
 
 function greeting() {
@@ -27,7 +31,24 @@ function greeting() {
   return '该休息啦，小多利帮你暖好被窝'
 }
 
-export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom }: MiniappNestViewProps) {
+export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, onOpenMemories }: MiniappNestViewProps) {
+  const [contributions, setContributions] = useState<MiniappContribution[]>([])
+
+  useEffect(() => {
+    if (!roomId) {
+      setContributions([])
+      return
+    }
+    let cancelled = false
+    void socialApi.listContributions(roomId)
+      .then((result) => { if (!cancelled) setContributions(result) })
+      .catch(() => { if (!cancelled) setContributions([]) })
+    return () => { cancelled = true }
+  }, [roomId])
+
+  const names = Object.fromEntries(
+    (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
+  )
   return (
     <View className="miniapp-nest">
       <View className="miniapp-nest__header">
@@ -49,7 +70,7 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom }
         </View>
       )}
 
-      {pet ? <PetStatusCard pet={pet} /> : (
+      {pet ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} /> : (
         <View className="miniapp-nest__empty">
           <Text>小多利正在赶来</Text>
           <Text>邀请一位好友，建立属于你们的共同小窝。</Text>
@@ -57,6 +78,8 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom }
       )}
 
       {pet && <PetActionBar onAction={onAction} />}
+
+      <MiniappContributionBoard contributions={contributions} names={names} />
 
       <View className="miniapp-nest__shortcuts">
         <View className="miniapp-nest__shortcut">

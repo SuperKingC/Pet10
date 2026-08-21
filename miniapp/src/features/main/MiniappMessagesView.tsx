@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Button, Input, ScrollView, Text, View } from '@tarojs/components'
 import { roomApi, type RoomMessage } from '../../services/roomApi'
+import { socialApi, type MiniappConversation } from '../../services/socialApi'
 import './MiniappMessagesView.scss'
 
 interface MiniappMessagesViewProps {
   roomId: string
-  onOpenRoom(): void
+  onOpenRoom(roomId: string): void
 }
 
 export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewProps) {
@@ -13,6 +14,7 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [conversations, setConversations] = useState<MiniappConversation[]>([])
 
   useEffect(() => {
     if (!roomId) return
@@ -32,6 +34,14 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
       clearInterval(timer)
     }
   }, [roomId])
+
+  useEffect(() => {
+    let cancelled = false
+    void socialApi.listConversations()
+      .then((result) => { if (!cancelled) setConversations(result) })
+      .catch(() => { if (!cancelled) setConversations([]) })
+    return () => { cancelled = true }
+  }, [])
 
   const send = async () => {
     const text = draft.trim()
@@ -71,7 +81,26 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
       </View>
       {roomId ? (
         <>
-          <Button className="miniapp-messages__conversation" onClick={onOpenRoom}>
+          <View className="miniapp-messages__conversation-list">
+            {conversations.map((conversation) => (
+              <Button
+                key={conversation.roomId}
+                className={conversation.roomId === roomId
+                  ? 'miniapp-messages__conversation miniapp-messages__conversation--active'
+                  : 'miniapp-messages__conversation'}
+                onClick={() => onOpenRoom(conversation.roomId)}
+              >
+                <View>
+                  <Text className="miniapp-messages__conversation-title">{conversation.title}</Text>
+                  <Text className="miniapp-messages__conversation-copy">
+                    {conversation.latestMessage?.text || '开启你们的共同聊天'}
+                  </Text>
+                </View>
+                <Text className="miniapp-messages__arrow">›</Text>
+              </Button>
+            ))}
+          </View>
+          <Button className="miniapp-messages__conversation" onClick={() => onOpenRoom(roomId)}>
             <View>
               <Text className="miniapp-messages__conversation-title">共享房间</Text>
               <Text className="miniapp-messages__conversation-copy">你们和小多利的共同聊天</Text>

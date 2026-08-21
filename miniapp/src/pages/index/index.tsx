@@ -8,6 +8,7 @@ import { resolveMiniappLaunchState } from '../../domain/launchState'
 import { hasAuthenticatedSession } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
+import { roomApi, type RoomMemory } from '../../services/roomApi'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
 import { launchContextApi, type LaunchContext } from '../../services/launchContextApi'
 import { petApi } from '../../services/petApi'
@@ -18,6 +19,8 @@ import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
 import { MiniappCalendarView } from '../../features/main/MiniappCalendarView'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
+import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
+import { MiniappMapPanel } from '../../features/main/MiniappMapPanel'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -41,6 +44,10 @@ export default function Index() {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<MiniappTab>('nest')
   const [pawMenuOpen, setPawMenuOpen] = useState(false)
+  const [memoryPanelOpen, setMemoryPanelOpen] = useState(false)
+  const [memories, setMemories] = useState<RoomMemory[]>([])
+  const [memoryBusy, setMemoryBusy] = useState(false)
+  const [mapPanelOpen, setMapPanelOpen] = useState(false)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -148,6 +155,33 @@ export default function Index() {
     }
   }
 
+  const openMemories = async () => {
+    if (!roomId) return
+    setMemoryPanelOpen(true)
+    setMemoryBusy(true)
+    try {
+      setMemories(await roomApi.listMemories(roomId))
+    } catch (error) {
+      Taro.showToast({ title: error instanceof Error ? error.message : '记忆加载失败', icon: 'none' })
+    } finally {
+      setMemoryBusy(false)
+    }
+  }
+
+  const removeMemory = async (memoryId: string) => {
+    if (!roomId || memoryBusy) return
+    setMemoryBusy(true)
+    try {
+      await roomApi.deleteMemory(roomId, memoryId)
+      setMemories((current) => current.filter((memory) => memory.id !== memoryId))
+      Taro.showToast({ title: '已删除', icon: 'none', duration: 1000 })
+    } catch (error) {
+      Taro.showToast({ title: error instanceof Error ? error.message : '删除失败', icon: 'none' })
+    } finally {
+      setMemoryBusy(false)
+    }
+  }
+
   const logout = () => {
     clearAccessToken()
     setAccessToken('')
@@ -166,7 +200,11 @@ export default function Index() {
     if (activeTab === 'messages') {
       return <MiniappMessagesView
         roomId={roomId}
-        onOpenRoom={() => Taro.navigateTo({ url: `/pages/room/room?roomId=${encodeURIComponent(roomId)}` })}
+        onOpenRoom={(nextRoomId) => {
+          setRoomId(nextRoomId)
+          Taro.setStorageSync(activeRoomKey, nextRoomId)
+          void loadContext(nextRoomId)
+        }}
       />
     }
     if (activeTab === 'calendar') {
@@ -181,6 +219,7 @@ export default function Index() {
       roomId={roomId}
       onAction={handleAction}
       onSelectRoom={selectRoom}
+      onOpenMemories={() => void openMemories()}
     />
   }
 
@@ -206,7 +245,21 @@ export default function Index() {
     {renderMainContent()}
 
     <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>
-    <MiniappPawMenu open={pawMenuOpen} roomId={roomId} onClose={() => setPawMenuOpen(false)} />
+    <MiniappPawMenu
+      open={pawMenuOpen}
+      roomId={roomId}
+      onClose={() => setPawMenuOpen(false)}
+      onOpenMap={() => { setPawMenuOpen(false); setMapPanelOpen(true) }}
+    />
+    {memoryPanelOpen && (
+      <MiniappMemoryPanel
+        memories={memories}
+        busy={memoryBusy}
+        onClose={() => setMemoryPanelOpen(false)}
+        onRemove={(memoryId) => void removeMemory(memoryId)}
+      />
+    )}
+    {mapPanelOpen && <MiniappMapPanel roomId={roomId} onClose={() => setMapPanelOpen(false)} />}
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && <Button
       className="share-button"
       openType="share"

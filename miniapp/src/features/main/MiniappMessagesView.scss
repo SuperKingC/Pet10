@@ -37,6 +37,16 @@
   box-shadow: 0 7px 20px rgba(70, 48, 37, .07);
 }
 
+.miniapp-messages__conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.miniapp-messages__conversation--active {
+  border-color: #d9845d;
+}
+
 .miniapp-messages__conversation::after {
   border: 0;
 }
