@@ -74,10 +74,6 @@
   height: 80rpx;
 }
 
-.miniapp-tab--active .miniapp-tab__icon {
-  transform: translateY(-4rpx) scale(1.05);
-}
-
 .miniapp-tab--paw {
   flex: 1;
   align-self: stretch;
@@ -88,13 +84,15 @@
 
 .miniapp-tab__paw {
   position: absolute;
-  bottom: 10rpx;
+  bottom: 22rpx;
   left: 50%;
   display: block;
-  width: 108rpx;
-  height: 108rpx;
+  width: 116rpx;
+  height: 116rpx;
   transform: translateX(-50%);
   padding: 0;
+  background: #fff9e9;
+  border-radius: 50%;
   pointer-events: none;
 }
 
