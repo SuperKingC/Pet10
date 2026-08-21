@@ -14,3 +14,4 @@ server/.env
 Thumbs.db
 .codex/
 .deploy-state/
+miniapp/project.private.config.json
