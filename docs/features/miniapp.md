@@ -30,11 +30,13 @@ flowchart LR
 - 我的页面支持 MBTI 选择并通过资料接口保存。
 - 我的页面复用 PWA `avatarConfig` 合同，支持头像预览、编辑、恢复和保存。
 - 爪印菜单中的足迹地图使用 `/api/social/rooms/:roomId/map` 读取和点亮足迹。
+- 五子棋复用服务端同一状态机，通过 `/api/games/gobang` HTTP 轮询支持邀请、接受、落子、认输和结果同步。
 - 记忆和地图面板使用底部抽屉，不阻断主页面导航。
 
 ### 当前未完成
 
-- 塔罗和五子棋仍需微信端独立适配；现有 PWA 实现依赖浏览器 DOM 或 Socket.IO，不能直接复制到 Taro。
+- 塔罗仍需按视觉基线逐阶段迁移和验收；现有 PWA 动画依赖浏览器 DOM，不能直接复制到 Taro。
+- 小程序端头像编辑器、MBTI 测试和完整运势详情仍待迁移。
 
 - Taro + React + TypeScript 微信小程序骨架；
 - 仅使用微信登录，服务端通过 `jscode2session` 创建或恢复 Pet10 身份；
@@ -100,7 +102,7 @@ API 域名必须使用 HTTPS，并添加到微信小程序后台的“开发管�
 | `action-clean.png` | 448×474 | 25 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
 
-图片均为 PNG，保留原尺寸与透明通道并采用 256 色优化；运行时使用固定容器尺寸和 `aspectFit`，避免布局跳动。每张小程序图片控制在 200 KB 以内，它们分别与 `public/pet/xiaoduoli.png`、`public/nest/action-feed.png`、`public/nest/action-play.png`、`public/nest/action-clean.png` 和 `public/nest/action-sleep.png` 保持相同源文件；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
+图片均为 PNG，保留原尺寸与透明通道并采用 256 色优化；运行时使用固定容器尺寸和 `aspectFit`，避免布局跳动。每张小程序图片控制在 200 KB 以内，并为开发者工具扫描保留 180 KB 安全线；房间背景 WebP 压缩至约 150 KB。它们分别与 `public/pet/xiaoduoli.png`、`public/nest/action-feed.png`、`public/nest/action-play.png`、`public/nest/action-clean.png` 和 `public/nest/action-sleep.png` 保持相同源文件；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
 
 ## 开发命令
 

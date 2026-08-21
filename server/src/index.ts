@@ -24,51 +24,51 @@ const uploads = createUploadService({
 })
 let emitToRoom: (roomId: string, event: string, payload: unknown) => void = () => undefined
 let emitToUser: (userId: string, event: string, payload: unknown) => void = () => undefined
-let gobang: GobangService | undefined
+const gobang: GobangService = createGobangService({ repositories, emit: (...args) => emitToRoom(...args), emitUser: (...args) => emitToUser(...args) })
 const app = createApp({
   config,
   repositories,
   ai,
   uploads,
   emit: (roomId, event, payload) => emitToRoom(roomId, event, payload),
-  emitUser: (userId, event, payload) => emitToUser(userId, event, payload)
+  emitUser: (userId, event, payload) => emitToUser(userId, event, payload),
+  gobang
 })
 const server = createServer(app)
 const sockets = createSocketServer(server, config.appOrigin, config.jwtSecret, config.allowedEmails, repositories, (socket, userId) => {
   const read = (payload: unknown) => (typeof payload === 'object' && payload !== null ? payload as Record<string, unknown> : {})
   socket.on('game:invite', (payload) => {
     const data = read(payload)
-    try { gobang?.invite(userId, String(data.toUserId ?? ''), String(data.roomId ?? '')) } catch { /* 忽略非法邀请 */ }
+    try { gobang.invite(userId, String(data.toUserId ?? ''), String(data.roomId ?? '')) } catch { /* 忽略非法邀请 */ }
   })
   socket.on('game:accept', (payload) => {
     const data = read(payload)
-    gobang?.accept(userId, String(data.inviteId ?? '')).catch(() => undefined)
+    gobang.accept(userId, String(data.inviteId ?? '')).catch(() => undefined)
   })
   socket.on('game:decline', (payload) => {
     const data = read(payload)
-    gobang?.decline(userId, String(data.inviteId ?? ''))
+    gobang.decline(userId, String(data.inviteId ?? ''))
   })
   socket.on('game:move', (payload) => {
     const data = read(payload)
-    gobang?.move(userId, String(data.gameId ?? ''), Number(data.x), Number(data.y)).catch(() => undefined)
+    gobang.move(userId, String(data.gameId ?? ''), Number(data.x), Number(data.y)).catch(() => undefined)
   })
   socket.on('game:resign', (payload) => {
     const data = read(payload)
-    gobang?.resign(userId, String(data.gameId ?? '')).catch(() => undefined)
+    gobang.resign(userId, String(data.gameId ?? '')).catch(() => undefined)
   })
   socket.on('game:cancel', (payload) => {
     const data = read(payload)
-    gobang?.cancel(userId, String(data.gameId ?? ''))
+    gobang.cancel(userId, String(data.gameId ?? ''))
   })
   socket.on('game:sync', (_payload, ack?: (state: unknown) => void) => {
-    const state = gobang?.sync(userId) ?? null
+    const state = gobang.sync(userId)
     if (typeof ack === 'function') ack(state)
     socket.emit('game:sync', state)
   })
 })
 emitToRoom = sockets.emit
 emitToUser = sockets.emitUser
-gobang = createGobangService({ repositories, emit: sockets.emit, emitUser: sockets.emitUser })
 
 async function start() {
   await ensureRuntimeMigrations(pool)

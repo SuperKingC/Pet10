@@ -25,6 +25,8 @@ import { createSocialService } from './services/socialService.js'
 import type { AiService } from './services/aiService.js'
 import type { createUploadService } from './services/uploadService.js'
 import { createReminderService } from './services/reminderService.js'
+import { createGobangRoutes } from './http/gobangRoutes.js'
+import type { GobangService } from './services/gobangService.js'
 
 export interface AppDependencies {
   config: ServerConfig
@@ -33,9 +35,10 @@ export interface AppDependencies {
   uploads: ReturnType<typeof createUploadService>
   emit?: (roomId: string, event: string, payload: unknown) => void
   emitUser?: (userId: string, event: string, payload: unknown) => void
+  gobang?: GobangService
 }
 
-export function createApp({ config, repositories, ai, uploads, emit = () => undefined, emitUser = () => undefined }: AppDependencies) {
+export function createApp({ config, repositories, ai, uploads, emit = () => undefined, emitUser = () => undefined, gobang }: AppDependencies) {
   const app = express()
   app.disable('x-powered-by')
   app.use(cors({ origin: config.appOrigin, credentials: true }))
@@ -124,6 +127,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     pets: petService,
     emit
   }))
+  if (gobang) app.use('/api/games/gobang', authenticate, createGobangRoutes(gobang))
   app.use('/api/uploads', authenticate, createUploadRoutes({
     isRoomMember: (roomId, userId) => repositories.rooms.isMember(roomId, userId),
     createImageUpload: (roomId, fileName, contentType, size) =>

@@ -9,9 +9,10 @@ interface MiniappPawMenuProps {
   roomId: string
   onClose(): void
   onOpenMap(): void
+  onOpenGobang(): void
 }
 
-export function MiniappPawMenu({ open, roomId, onClose, onOpenMap }: MiniappPawMenuProps) {
+export function MiniappPawMenu({ open, roomId, onClose, onOpenMap, onOpenGobang }: MiniappPawMenuProps) {
   const [codeword, setCodeword] = useState<MiniappCodeword | null>(null)
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -69,7 +70,7 @@ export function MiniappPawMenu({ open, roomId, onClose, onOpenMap }: MiniappPawM
           </View>}
         </View>
         <View className="miniapp-paw-menu__grid">
-          <Button disabled={!roomId} onClick={() => Taro.showToast({ title: '五子棋即将接入', icon: 'none' })}>
+          <Button disabled={!roomId} onClick={onOpenGobang}>
             <Text>游戏</Text>
             <Text>和好友下一盘五子棋</Text>
           </Button>

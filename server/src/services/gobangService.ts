@@ -71,6 +71,7 @@ export function createGobangService({ repositories, emit, emitUser }: GobangDeps
   const invites = new Map<string, PendingInvite>()
   /** userId -> 正在进行的对局 id */
   const activeByUser = new Map<string, string>()
+  const completedByUser = new Map<string, ReturnType<typeof publicState>>()
 
   function publicState(game: GobangGame) {
     return {
@@ -114,6 +115,9 @@ export function createGobangService({ repositories, emit, emitUser }: GobangDeps
     game.status = 'finished'
     game.winnerUserId = winnerUserId
     game.reason = reason
+    const completed = publicState(game)
+    completedByUser.set(game.blackUserId, completed)
+    completedByUser.set(game.whiteUserId, completed)
     games.delete(game.id)
     activeByUser.delete(game.blackUserId)
     activeByUser.delete(game.whiteUserId)
@@ -140,6 +144,7 @@ export function createGobangService({ repositories, emit, emitUser }: GobangDeps
     invite(fromUserId: string, toUserId: string, roomId: string) {
       if (fromUserId === toUserId) throw new Error('invalid_invite')
       if (activeByUser.has(fromUserId)) throw new Error('already_in_game')
+      completedByUser.delete(fromUserId)
       const invite: PendingInvite = { id: createId('invite'), fromUserId, toUserId, roomId, createdAt: Date.now() }
       invites.set(invite.id, invite)
       emitUser(toUserId, 'game:invite', { inviteId: invite.id, fromUserId, roomId })
@@ -148,6 +153,13 @@ export function createGobangService({ repositories, emit, emitUser }: GobangDeps
         payload: { text: '有人邀请你下五子棋，快去应战！' }, read: false, createdAt: new Date().toISOString()
       })
       return { inviteId: invite.id }
+    },
+
+    pending(userId: string) {
+      const now = Date.now()
+      return [...invites.values()]
+        .filter((invite) => invite.toUserId === userId && now - invite.createdAt <= INVITE_TTL_MS)
+        .map(({ id, fromUserId, roomId, createdAt }) => ({ inviteId: id, fromUserId, roomId, createdAt }))
     },
 
     async accept(toUserId: string, inviteId: string) {
@@ -171,6 +183,8 @@ export function createGobangService({ repositories, emit, emitUser }: GobangDeps
       games.set(game.id, game)
       activeByUser.set(game.blackUserId, game.id)
       activeByUser.set(game.whiteUserId, game.id)
+      completedByUser.delete(game.blackUserId)
+      completedByUser.delete(game.whiteUserId)
       emit(game.roomId, 'game:accepted', { ...publicState(game), inviteId })
       return publicState(game)
     },
@@ -225,9 +239,9 @@ export function createGobangService({ repositories, emit, emitUser }: GobangDeps
     /** 断线重连：返回该用户当前进行中的对局完整状态 */
     sync(userId: string) {
       const gameId = activeByUser.get(userId)
-      if (!gameId) return null
+      if (!gameId) return completedByUser.get(userId) ?? null
       const game = games.get(gameId)
-      if (!game || game.status !== 'playing') return null
+      if (!game) return completedByUser.get(userId) ?? null
       return publicState(game)
     }
   }

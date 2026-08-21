@@ -21,6 +21,7 @@ import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappMapPanel } from '../../features/main/MiniappMapPanel'
+import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -48,6 +49,7 @@ export default function Index() {
   const [memories, setMemories] = useState<RoomMemory[]>([])
   const [memoryBusy, setMemoryBusy] = useState(false)
   const [mapPanelOpen, setMapPanelOpen] = useState(false)
+  const [gobangOpen, setGobangOpen] = useState(false)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -250,6 +252,7 @@ export default function Index() {
       roomId={roomId}
       onClose={() => setPawMenuOpen(false)}
       onOpenMap={() => { setPawMenuOpen(false); setMapPanelOpen(true) }}
+      onOpenGobang={() => { setPawMenuOpen(false); setGobangOpen(true) }}
     />
     {memoryPanelOpen && (
       <MiniappMemoryPanel
@@ -260,6 +263,15 @@ export default function Index() {
       />
     )}
     {mapPanelOpen && <MiniappMapPanel roomId={roomId} onClose={() => setMapPanelOpen(false)} />}
+    {gobangOpen && context && roomId && (
+      <MiniappGobangPanel
+        roomId={roomId}
+        myUserId={context.user.id}
+        friendId={context.rooms.find((room) => room.id === roomId)?.partner.id || ''}
+        friendName={context.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
+        onClose={() => setGobangOpen(false)}
+      />
+    )}
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && <Button
       className="share-button"
       openType="share"
