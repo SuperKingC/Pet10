@@ -34,6 +34,35 @@ describe('miniapp tarot question flow', () => {
       question: '我该如何面对这段关系？',
       spread: 'single',
     })
-    expect(tarotFlowReducer(spread, { type: 'continue' })).toBe(spread)
+    expect(tarotFlowReducer(spread, {
+      type: 'set-question',
+      question: '不应覆盖',
+    })).toBe(spread)
+  })
+
+  it('selects a spread and enters only the shuffle stage', () => {
+    const question = tarotFlowReducer(createInitialTarotFlow(), {
+      type: 'set-question',
+      question: '这段关系接下来会怎样？',
+    })
+    const spread = tarotFlowReducer(question, { type: 'continue' })
+    const selected = tarotFlowReducer(spread, {
+      type: 'set-spread',
+      spread: 'relationship',
+    })
+    const shuffle = tarotFlowReducer(selected, { type: 'continue' })
+
+    expect(selected).toEqual({
+      stage: 'spread',
+      question: '这段关系接下来会怎样？',
+      spread: 'relationship',
+    })
+    expect(shuffle).toEqual({
+      stage: 'shuffle',
+      question: '这段关系接下来会怎样？',
+      spread: 'relationship',
+      progress: 0,
+    })
+    expect(tarotFlowReducer(shuffle, { type: 'continue' })).toBe(shuffle)
   })
 })

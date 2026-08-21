@@ -1,6 +1,8 @@
 import { useReducer } from 'react'
 import { Button, Text, View } from '@tarojs/components'
 import { MiniappTarotQuestionStage } from './MiniappTarotQuestionStage'
+import { MiniappTarotSpreadStage } from './MiniappTarotSpreadStage'
+import { findTarotSpread } from './tarotSpreads'
 import { createInitialTarotFlow, tarotFlowReducer } from './tarotFlow'
 import './MiniappTarotFlow.scss'
 
@@ -21,8 +23,8 @@ export function MiniappTarotFlow({ onClose }: MiniappTarotFlowProps) {
       </View>
       <View className="miniapp-tarot__progress" aria-hidden>
         <View className="miniapp-tarot__progress-active" />
-        <View className={state.stage === 'spread' ? 'miniapp-tarot__progress-active' : ''} />
-        <View />
+        <View className={state.stage !== 'question' ? 'miniapp-tarot__progress-active' : ''} />
+        <View className={state.stage === 'shuffle' ? 'miniapp-tarot__progress-active' : ''} />
         <View />
         <View />
         <View />
@@ -34,12 +36,18 @@ export function MiniappTarotFlow({ onClose }: MiniappTarotFlowProps) {
           onQuestionChange={(question) => dispatch({ type: 'set-question', question })}
           onContinue={() => dispatch({ type: 'continue' })}
         />
+      ) : state.stage === 'spread' ? (
+        <MiniappTarotSpreadStage
+          spread={state.spread}
+          onSpreadChange={(spread) => dispatch({ type: 'set-spread', spread })}
+          onContinue={() => dispatch({ type: 'continue' })}
+        />
       ) : (
         <View className="miniapp-tarot__stage miniapp-tarot__stage--boundary">
-          <Text className="miniapp-tarot__eyebrow">问题已记录</Text>
-          <Text className="miniapp-tarot__title">{state.question}</Text>
+          <Text className="miniapp-tarot__eyebrow">牌阵已确认</Text>
+          <Text className="miniapp-tarot__title">{findTarotSpread(state.spread).label}</Text>
           <Text className="miniapp-tarot__boundary-copy">
-            下一阶段将接入与 PWA 一致的牌阵选择。
+            洗牌仪式将在下一阶段接入，当前不会提前运行任何动画。
           </Text>
           <Button
             className="miniapp-tarot__secondary"

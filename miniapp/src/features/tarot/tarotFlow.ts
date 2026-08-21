@@ -1,4 +1,4 @@
-export type MiniappTarotSpread = 'single' | 'three'
+import type { MiniappTarotSpread } from './tarotSpreads'
 
 interface QuestionState {
   stage: 'question'
@@ -13,7 +13,14 @@ interface SpreadState {
   spread: MiniappTarotSpread
 }
 
-export type MiniappTarotFlowState = QuestionState | SpreadState
+interface ShuffleState {
+  stage: 'shuffle'
+  question: string
+  spread: MiniappTarotSpread
+  progress: number
+}
+
+export type MiniappTarotFlowState = QuestionState | SpreadState | ShuffleState
 
 export type MiniappTarotFlowEvent =
   | { type: 'set-question'; question: string }
@@ -36,15 +43,32 @@ export function tarotFlowReducer(
 ): MiniappTarotFlowState {
   if (event.type === 'restart') return createInitialTarotFlow()
 
-  if (state.stage !== 'question') return state
-  if (event.type === 'set-question') return { ...state, question: event.question }
-  if (event.type === 'set-spread') return { ...state, spread: event.spread }
-  if (event.type === 'continue' && state.question.trim()) {
-    return {
-      stage: 'spread',
-      question: state.question.trim(),
-      spread: state.spread,
-    }
+  switch (state.stage) {
+    case 'question':
+      if (event.type === 'set-question') return { ...state, question: event.question }
+      if (event.type === 'set-spread') return { ...state, spread: event.spread }
+      if (event.type === 'continue' && state.question.trim()) {
+        return {
+          stage: 'spread',
+          question: state.question.trim(),
+          spread: state.spread,
+        }
+      }
+      return state
+
+    case 'spread':
+      if (event.type === 'set-spread') return { ...state, spread: event.spread }
+      if (event.type === 'continue') {
+        return {
+          stage: 'shuffle',
+          question: state.question,
+          spread: state.spread,
+          progress: 0,
+        }
+      }
+      return state
+
+    case 'shuffle':
+      return state
   }
-  return state
 }
