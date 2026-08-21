@@ -11,4 +11,13 @@ describe('miniapp API build config', () => {
       "process.env.TARO_API_BASE_URL?.trim() || 'https://api.pet10kk.com'"
     )
   })
+
+  it('defines a production tarot asset base URL', () => {
+    const configSource = readFileSync(resolve(miniappRoot(), 'config/index.ts'), 'utf8')
+
+    expect(configSource).toContain(
+      "process.env.TARO_TAROT_ASSET_BASE_URL?.trim() || 'https://pet10kk.com'"
+    )
+    expect(configSource).toContain('TARO_TAROT_ASSET_BASE_URL:')
+  })
 })

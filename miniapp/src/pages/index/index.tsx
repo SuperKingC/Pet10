@@ -282,7 +282,9 @@ export default function Index() {
         onClose={() => setGobangOpen(false)}
       />
     )}
-    {tarotOpen && <MiniappTarotFlow onClose={() => setTarotOpen(false)} />}
+    {tarotOpen && (
+      <MiniappTarotFlow roomId={roomId} onClose={() => setTarotOpen(false)} />
+    )}
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (invitationButton.shareReady ? (
       <Button className="share-button" openType="share">
         {invitationButton.label}

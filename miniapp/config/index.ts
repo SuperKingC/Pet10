@@ -1,6 +1,7 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 
 const apiBaseUrl = process.env.TARO_API_BASE_URL?.trim() || 'https://api.pet10kk.com'
+const tarotAssetBaseUrl = process.env.TARO_TAROT_ASSET_BASE_URL?.trim() || 'https://pet10kk.com'
 
 const config: UserConfigExport = defineConfig({
   projectName: 'pet10-miniapp',
@@ -16,6 +17,7 @@ const config: UserConfigExport = defineConfig({
   plugins: ['@tarojs/plugin-framework-react'],
   defineConstants: {
     TARO_API_BASE_URL: JSON.stringify(apiBaseUrl),
+    TARO_TAROT_ASSET_BASE_URL: JSON.stringify(tarotAssetBaseUrl),
   },
   copy: {
     patterns: [],
