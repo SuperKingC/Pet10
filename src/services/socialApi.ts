@@ -47,6 +47,7 @@ export interface SocialApi {
     displayName?: string | null
     birthday?: string | null
     mbti?: string | null
+    gender?: UserProfile['gender']
   }): Promise<UserProfile>
   // 心情
   listMoods(roomId: string, fromDay: string, toDay: string): Promise<MoodEntry[]>

@@ -1,5 +1,5 @@
 import { apiRequest } from './httpClient'
-import type { Message, PetMemory, PetState } from '../domain/types'
+import type { Gender, Message, PetMemory, PetState } from '../domain/types'
 import { mapServerMessage, type ServerMessage } from './messageMapper'
 
 export interface ServerUser {
@@ -12,6 +12,7 @@ export interface ServerUser {
   avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
+  gender?: Gender
 }
 
 export interface ServerFriend {
@@ -24,6 +25,7 @@ export interface ServerFriend {
   avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
+  gender?: Gender
 }
 
 export interface ServerRelationship {

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Button, Text, View } from '@tarojs/components'
+import { Button, Image, Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
 import { hasAuthenticatedSession } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
+import { normalizeWechatProfile } from '../../domain/wechatProfile'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
 import { roomApi, type RoomMemory } from '../../services/roomApi'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
@@ -34,6 +35,17 @@ const actionMessages: Record<PetAction, string> = {
   sleep: '小多利休息了一会儿',
 }
 
+function readWechatAvatar(filePath: string) {
+  return new Promise<string>((resolve, reject) => {
+    Taro.getFileSystemManager().readFile({
+      filePath,
+      encoding: 'base64',
+      success: (result) => resolve(`data:image/jpeg;base64,${result.data as string}`),
+      fail: reject
+    })
+  })
+}
+
 export default function Index() {
   const [context, setContext] = useState<LaunchContext | null>(null)
   const [pet, setPet] = useState<PetState | null>(null)
@@ -52,6 +64,8 @@ export default function Index() {
   const [mapPanelOpen, setMapPanelOpen] = useState(false)
   const [gobangOpen, setGobangOpen] = useState(false)
   const [tarotOpen, setTarotOpen] = useState(false)
+  const [wechatName, setWechatName] = useState('')
+  const [wechatAvatar, setWechatAvatar] = useState('')
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -130,7 +144,13 @@ export default function Index() {
   const loginWithWechat = async () => {
     setLoading(true)
     try {
-      await authApi.loginWithWechat()
+      const avatarUrl = wechatAvatar && !wechatAvatar.startsWith('http')
+        ? await readWechatAvatar(wechatAvatar)
+        : wechatAvatar
+      await authApi.loginWithWechat(normalizeWechatProfile({
+        displayName: wechatName,
+        avatarUrl
+      }))
       setAccessToken(getAccessToken())
       await loadContext()
     } catch (error) {
@@ -199,6 +219,22 @@ export default function Index() {
   if (!hasAuthenticatedSession(accessToken)) {
     return <View className="home-page home-page--login">
       <View className="login-panel">
+        <View className="login-profile">
+          <Button
+            className="login-avatar-button"
+            openType="chooseAvatar"
+            onChooseAvatar={(event) => setWechatAvatar(event.detail.avatarUrl)}
+          >
+            {wechatAvatar ? <Image className="login-avatar" src={wechatAvatar} mode="aspectFill" /> : <Text>选择头像</Text>}
+          </Button>
+          <Input
+            className="login-name-input"
+            type="nickname"
+            value={wechatName}
+            placeholder="填写微信昵称（可选）"
+            onInput={(event) => setWechatName(event.detail.value)}
+          />
+        </View>
         <Text className="panel-title">欢迎来到 Pet10</Text>
         <Text className="login-caption">微信登录后，和重要的人一起照顾一只小多利。</Text>
         <Button className="wechat-button" loading={loading} onClick={loginWithWechat}>微信登录</Button>

@@ -4,6 +4,23 @@ import { createFriendshipService } from './friendshipService.js'
 import { createSessionService } from './sessionService.js'
 
 describe('session service', () => {
+  it('updates and returns the user gender', async () => {
+    const repositories = createMemoryRepositories()
+    const user = await repositories.users.create({
+      email: 'profile@example.com',
+      username: 'profile',
+      displayName: 'Profile'
+    })
+    const service = createSessionService(repositories)
+
+    const updated = await service.updateProfile(user.id, { gender: 'female' })
+
+    expect(updated.gender).toBe('female')
+    await expect(repositories.users.findById(user.id)).resolves.toMatchObject({
+      gender: 'female'
+    })
+  })
+
   it('returns an unbound state for a user without relationships', async () => {
     const repositories = createMemoryRepositories()
     const user = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })

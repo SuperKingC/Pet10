@@ -3,6 +3,7 @@ export type UserId = 'you' | 'friend'
 export type PetMood = 'happy' | 'sleepy' | 'hungry' | 'clingy'
 
 export type MessageKind = 'text' | 'image' | 'pet'
+export type Gender = 'female' | 'male' | 'private'
 
 export interface Message {
   id: string
@@ -56,6 +57,7 @@ export interface UserProfile {
   avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
+  gender?: Gender
 }
 
 /** 捏脸配置：每项为选项 id，空/null 表示不佩戴 */

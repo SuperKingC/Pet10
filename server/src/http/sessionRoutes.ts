@@ -36,14 +36,19 @@ export function createSessionRoutes(service: {
   router.patch('/profile', async (request: AuthenticatedRequest, response, next) => {
     try {
       const patch = z.object({
-        avatarUrl: z.url().nullable().optional(),
+        avatarUrl: avatarUrlSchema.nullable().optional(),
         avatarConfig: z.string().max(2000).nullable().optional(),
         displayName: z.string().max(30).nullable().optional(),
         birthday: z.string().max(30).nullable().optional(),
-        mbti: z.string().max(4).nullable().optional()
+        mbti: z.string().max(4).nullable().optional(),
+        gender: z.enum(['female', 'male', 'private']).optional()
       }).parse(request.body)
       response.json(await service.updateProfile(request.userId!, patch))
     } catch (error) { next(error) }
   })
   return router
 }
+const avatarUrlSchema = z.union([
+  z.url(),
+  z.string().regex(/^data:image\/(?:png|jpeg|webp);base64,/).max(700_000)
+])

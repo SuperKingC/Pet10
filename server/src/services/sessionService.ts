@@ -128,6 +128,9 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
       if (patch.mbti !== undefined && patch.mbti !== null && !/^[IE][SN][TF][JP]$/.test(patch.mbti)) {
         throw new Error('invalid_mbti')
       }
+      if (patch.gender !== undefined && !['female', 'male', 'private'].includes(patch.gender)) {
+        throw new Error('invalid_gender')
+      }
       if (patch.displayName !== undefined && patch.displayName !== null) {
         const trimmed = patch.displayName.trim()
         if (trimmed.length < 2 || trimmed.length > 12) throw new Error('invalid_display_name')

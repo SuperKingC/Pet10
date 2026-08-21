@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { getFortuneAvailability, getInvitationButtonState, getProfilePresentation, shouldShowNestFeedback } from './miniappViewModel'
+import {
+  getFortuneAvailability,
+  getGenderLabel,
+  getInvitationButtonState,
+  getProfilePresentation,
+  shouldShowNestFeedback
+} from './miniappViewModel'
 
 describe('miniapp view model', () => {
   it('shows only active loading or actionable Pet10 feedback on the nest tab', () => {
@@ -24,6 +30,13 @@ describe('miniapp view model', () => {
       displayName: '微信用户',
       avatarUrl: null,
     })
+  })
+
+  it('shows readable gender labels and defaults to private', () => {
+    expect(getGenderLabel('female')).toBe('女')
+    expect(getGenderLabel('male')).toBe('男')
+    expect(getGenderLabel('private')).toBe('保密')
+    expect(getGenderLabel(undefined)).toBe('保密')
   })
 
   it('offers a retry instead of leaving invitation permanently disabled', () => {

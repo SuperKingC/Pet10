@@ -14,7 +14,7 @@ export function createAuthRoutes(service: {
         code: z.string().min(1),
         profile: z.object({
           displayName: z.string().max(40).optional(),
-          avatarUrl: z.string().url().optional()
+          avatarUrl: avatarUrlSchema.optional()
         }).default({})
       }).parse(request.body)
       response.json(await service.loginWithWechat(input.code, input.profile))
@@ -34,3 +34,7 @@ export function createAuthRoutes(service: {
   })
   return router
 }
+const avatarUrlSchema = z.union([
+  z.url(),
+  z.string().regex(/^data:image\/(?:png|jpeg|webp);base64,/).max(700_000)
+])

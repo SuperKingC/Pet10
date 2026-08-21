@@ -212,7 +212,24 @@
 
 .miniapp-me__item text:last-child {
   color: #a89489;
-  font-size: 22rpx;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.miniapp-me__value {
+  flex: 0 0 auto;
+  max-width: 47%;
+  color: #b27a61 !important;
+  font-size: 25rpx !important;
+  text-align: right;
+}
+
+.miniapp-me__picker-value {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+  color: #8e776a;
+  font-size: 15px;
 }
 
 .miniapp-me__logout {

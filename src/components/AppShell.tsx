@@ -91,7 +91,8 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         avatarUrl: session.user.avatarUrl ?? null,
         avatarConfig: session.user.avatarConfig ?? null,
         birthday: session.user.birthday ?? null,
-        mbti: session.user.mbti ?? null
+        mbti: session.user.mbti ?? null,
+        gender: session.user.gender ?? 'private'
       }
     : MOCK_PROFILE)
   const [activeTab, setActiveTab] = useState<TabKey>(() => readUiState().tab ?? 'messages')

@@ -131,3 +131,9 @@
   color: #765c47;
   font-size: 24px;
 }
+
+.login-profile { display: flex; align-items: center; gap: 14px; margin: 22px 0 16px; }
+.login-avatar-button { display: flex; width: 72px; height: 72px; align-items: center; justify-content: center; padding: 0; overflow: hidden; color: #b27a61; background: #fff5e9; border: 2px dashed #e3b79b; border-radius: 50%; font-size: 11px; }
+.login-avatar-button::after { border: 0; }
+.login-avatar { width: 100%; height: 100%; }
+.login-name-input { flex: 1; min-height: 44px; padding: 0 14px; color: #5e3b1d; background: #fffaf6; border: 1px solid #ead5c2; border-radius: 14px; font-size: 14px; }

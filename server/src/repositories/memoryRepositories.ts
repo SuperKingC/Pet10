@@ -62,7 +62,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     async findByUsername(username: string) { return [...users.values()].find((user) => user.username === username) },
     async findByPublicCode(code: string) { return [...users.values()].find((user) => user.publicCode === code.toUpperCase()) },
     async create(input: Pick<User, 'email' | 'username' | 'displayName'>) {
-      const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), publicCode: makePublicCode(), createdAt: now() }
+      const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), publicCode: makePublicCode(), gender: 'private' as const, createdAt: now() }
       users.set(user.id, user)
       return user
     },
@@ -72,7 +72,7 @@ export function createMemoryRepositories(): RepositoryBundle {
       user.username = username
       return user
     },
-    async updateProfile(id: string, patch: { avatarUrl?: string | null; avatarConfig?: string | null; displayName?: string | null; birthday?: string | null; mbti?: string | null }) {
+    async updateProfile(id: string, patch: { avatarUrl?: string | null; avatarConfig?: string | null; displayName?: string | null; birthday?: string | null; mbti?: string | null; gender?: User['gender'] }) {
       const user = users.get(id)
       if (!user) throw new Error('user_not_found')
       if (patch.avatarUrl !== undefined) user.avatarUrl = patch.avatarUrl
@@ -80,6 +80,7 @@ export function createMemoryRepositories(): RepositoryBundle {
       if (patch.displayName !== undefined && patch.displayName) user.displayName = patch.displayName
       if (patch.birthday !== undefined) user.birthday = patch.birthday
       if (patch.mbti !== undefined) user.mbti = patch.mbti
+      if (patch.gender !== undefined) user.gender = patch.gender
       return user
     }
   }

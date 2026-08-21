@@ -21,6 +21,8 @@ describe('runtime migrations', () => {
     expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS pet_tasks')
     expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS pet_tasks_due_idx')
     expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS wechat_identities')
+    expect(executedSql).toContain('ADD COLUMN IF NOT EXISTS gender')
+    expect(executedSql).toContain("DEFAULT 'private'")
     expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS relationships_pair_unique')
     expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS rooms_relationship_unique')
     expect(executedSql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS pets_relationship_unique')

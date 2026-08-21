@@ -4,6 +4,7 @@ export type MessageSenderType = 'user' | 'pet'
 export type MessageKind = 'text' | 'image' | 'pet'
 export type PetAction = 'feed' | 'play' | 'clean' | 'sleep'
 export type RoomType = 'pair' | 'pet_dm'
+export type Gender = 'female' | 'male' | 'private'
 
 export interface User {
   id: Id
@@ -15,6 +16,7 @@ export interface User {
   avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
+  gender?: Gender
   createdAt: Date
 }
 

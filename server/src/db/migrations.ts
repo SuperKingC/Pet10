@@ -16,6 +16,9 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
     CREATE INDEX IF NOT EXISTS personal_fortunes_user_day_idx
       ON personal_fortunes (user_id, day DESC);
 
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS gender text NOT NULL DEFAULT 'private';
+
     ALTER TABLE pet_memories
       ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT 'other',
       ADD COLUMN IF NOT EXISTS importance smallint NOT NULL DEFAULT 1,

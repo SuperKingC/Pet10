@@ -75,6 +75,7 @@ export interface MiniappProfile {
   avatarConfig?: string | null
   birthday?: string | null
   mbti?: string | null
+  gender?: 'female' | 'male' | 'private'
 }
 
 export const socialApi = {
@@ -105,7 +106,14 @@ export const socialApi = {
       method: 'POST',
     })
   },
-  updateProfile(patch: { displayName?: string; birthday?: string | null; mbti?: string | null; avatarConfig?: string | null }) {
+  updateProfile(patch: {
+    displayName?: string
+    birthday?: string | null
+    mbti?: string | null
+    avatarConfig?: string | null
+    avatarUrl?: string | null
+    gender?: MiniappProfile['gender']
+  }) {
     return apiRequest<MiniappProfile>('/api/session/profile', {
       method: 'PATCH',
       body: patch,

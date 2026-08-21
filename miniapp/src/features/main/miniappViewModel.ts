@@ -11,6 +11,12 @@ export function getProfilePresentation(user: { displayName?: string | null; avat
   }
 }
 
+export function getGenderLabel(gender: 'female' | 'male' | 'private' | null | undefined) {
+  if (gender === 'female') return '女'
+  if (gender === 'male') return '男'
+  return '保密'
+}
+
 export function getInvitationButtonState(shareReady: boolean, preparing: boolean) {
   if (preparing) {
     return { label: '正在准备邀请…', disabled: true, shareReady: false }

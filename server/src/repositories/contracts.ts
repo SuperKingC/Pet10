@@ -25,6 +25,7 @@ export interface UserProfilePatch {
   displayName?: string | null
   birthday?: string | null
   mbti?: string | null
+  gender?: User['gender']
 }
 
 export interface UserRepository {

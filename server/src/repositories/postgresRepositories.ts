@@ -56,7 +56,8 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
           birthday = CASE WHEN $4 THEN $5 ELSE birthday END,
           mbti = CASE WHEN $6 THEN $7 ELSE mbti END,
           display_name = CASE WHEN $8 THEN $9 ELSE display_name END,
-          avatar_config = CASE WHEN $10 THEN $11 ELSE avatar_config END
+          avatar_config = CASE WHEN $10 THEN $11 ELSE avatar_config END,
+          gender = CASE WHEN $12 THEN $13 ELSE gender END
         WHERE id=$1 RETURNING *`,
         [
           id,
@@ -64,7 +65,8 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
           patch.birthday !== undefined, patch.birthday,
           patch.mbti !== undefined, patch.mbti,
           patch.displayName !== undefined, patch.displayName,
-          patch.avatarConfig !== undefined, patch.avatarConfig
+          patch.avatarConfig !== undefined, patch.avatarConfig,
+          patch.gender !== undefined, patch.gender
         ]
       )
     },
