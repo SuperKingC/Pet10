@@ -79,7 +79,7 @@ flowchart LR
 
 ## 配置与微信体验
 
-构建时通过环境变量提供 API 基地址，不得把令牌、AppSecret 或其他密钥写进小程序：
+默认构建使用正式 API `https://api.pet10kk.com`，避免普通构建覆盖开发者工具中的可登录版本。需要连接其他环境时可通过环境变量覆盖 API 基地址；不得把令牌、AppSecret 或其他密钥写进小程序：
 
 ```powershell
 $env:TARO_API_BASE_URL = "https://你的-api-域名"

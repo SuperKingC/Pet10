@@ -1,5 +1,7 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 
+const apiBaseUrl = process.env.TARO_API_BASE_URL?.trim() || 'https://api.pet10kk.com'
+
 const config: UserConfigExport = defineConfig({
   projectName: 'pet10-miniapp',
   date: '2026-08-18',
@@ -13,7 +15,7 @@ const config: UserConfigExport = defineConfig({
   outputRoot: 'dist',
   plugins: ['@tarojs/plugin-framework-react'],
   defineConstants: {
-    TARO_API_BASE_URL: JSON.stringify(process.env.TARO_API_BASE_URL ?? ''),
+    TARO_API_BASE_URL: JSON.stringify(apiBaseUrl),
   },
   copy: {
     patterns: [],

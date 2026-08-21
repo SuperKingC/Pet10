@@ -22,6 +22,7 @@ import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappMapPanel } from '../../features/main/MiniappMapPanel'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
+import { shouldShowNestFeedback } from '../../features/main/miniappViewModel'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -194,6 +195,17 @@ export default function Index() {
     setShareInvitation(null)
   }
 
+  if (!hasAuthenticatedSession(accessToken)) {
+    return <View className="home-page home-page--login">
+      <View className="login-panel">
+        <Text className="panel-title">欢迎来到 Pet10</Text>
+        <Text className="login-caption">微信登录后，和重要的人一起照顾一只小多利。</Text>
+        <Button className="wechat-button" loading={loading} onClick={loginWithWechat}>微信登录</Button>
+      </View>
+      {message && <View className="feedback"><Text>{loading ? '正在登录…' : message}</Text></View>}
+    </View>
+  }
+
   const entry = context
     ? resolveMiniappLaunchState(context, invitationToken)
     : 'waiting-room'
@@ -226,13 +238,7 @@ export default function Index() {
   }
 
   return <View className="home-page">
-    {!hasAuthenticatedSession(accessToken) && <View className="login-panel">
-      <Text className="panel-title">欢迎来到 Pet10</Text>
-      <Text className="login-caption">微信登录后，和重要的人一起照顾一只小多利。</Text>
-      <Button className="wechat-button" onClick={loginWithWechat}>微信登录</Button>
-    </View>}
-
-    <View className="page-heading">
+    {activeTab === 'nest' && <View className="page-heading">
       <Text className="eyebrow">PET10 · 共同小窝</Text>
       <Text className="page-title">{entry === 'waiting-room' ? '小多利正在等你' : '照顾你们的小多利'}</Text>
       <Text className="page-description">
@@ -242,11 +248,11 @@ export default function Index() {
             ? '这是一份好友邀请，接受后会创建新的共同小窝。'
             : '每一段关系，都有一只只属于你们的小多利。'}
       </Text>
-    </View>
+    </View>}
 
     {renderMainContent()}
 
-    <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>
+    {shouldShowNestFeedback(activeTab) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
     <MiniappPawMenu
       open={pawMenuOpen}
       roomId={roomId}
