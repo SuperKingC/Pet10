@@ -1,129 +1,24 @@
-.miniapp-calendar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 0 14px;
-}
-
-.miniapp-calendar__header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 2px;
-}
-
-.miniapp-calendar__title {
-  color: #382b23;
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.miniapp-calendar__caption {
-  color: #a89489;
-  font-size: 11px;
-}
-
-.miniapp-calendar__month {
-  padding: 12px 16px;
-  color: #8a4f37;
-  background: #fff0dc;
-  border: 1px solid #e8bd91;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.miniapp-calendar__grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-}
-
-.miniapp-calendar__day {
-  display: flex;
-  min-height: 44px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: #8e776a;
-  background: #fff;
-  border: 1px solid #eee5df;
-  border-radius: 12px;
-  font-size: 12px;
-}
-
-.miniapp-calendar__day--today {
-  color: #fff;
-  background: #d9845d;
-  border-color: #d9845d;
-}
-
-.miniapp-calendar__dot {
-  width: 4px;
-  height: 4px;
-  background: currentColor;
-  border-radius: 50%;
-  opacity: .65;
-}
-
-.miniapp-calendar__fortune {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px;
-  background: #fffaf6;
-  border: 1px solid #ead5c2;
-  border-radius: 18px;
-}
-
-.miniapp-calendar__fortune-label {
-  color: #a89489;
-  font-size: 11px;
-}
-
-.miniapp-calendar__fortune-title {
-  color: #5e3b1d;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.miniapp-calendar__fortune-meta {
-  color: #a89489;
-  font-size: 11px;
-}
-
-.miniapp-calendar__mood {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #ead5c2;
-  border-radius: 18px;
-}
-
-.miniapp-calendar__mood-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.miniapp-calendar__mood-button {
-  padding: 8px 4px;
-  color: #8a6250;
-  background: #fffaf6;
-  border: 1px solid #ead5c2;
-  border-radius: 999px;
-  font-size: 11px;
-}
-
-.miniapp-calendar__mood-button::after {
-  border: 0;
-}
-
-.miniapp-calendar__mood-button--active {
-  color: #fff;
-  background: #d9845d;
-  border-color: #d9845d;
-}
+.miniapp-calendar { display: flex; flex-direction: column; gap: 16px; padding: 0 14px; }
+.miniapp-calendar__header { display: flex; flex-direction: column; gap: 4px; padding: 8px 2px; }
+.miniapp-calendar__title { color: #382b23; font-size: 22px; font-weight: 800; }
+.miniapp-calendar__caption { color: #a89489; font-size: 11px; }
+.miniapp-calendar__month-bar { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px 5px 16px; color: #8a4f37; background: #fff0dc; border: 1px solid #e8bd91; border-radius: 16px; font-size: 13px; font-weight: 800; }
+.miniapp-calendar__month-bar button, .miniapp-calendar__fortune-header button { min-width: 32px; padding: 4px 9px; color: #8a4f37; background: #fff; border: 0; border-radius: 999px; font-size: 16px; }
+.miniapp-calendar__month-bar button::after, .miniapp-calendar__fortune-header button::after, .miniapp-calendar__mood-button::after { border: 0; }
+.miniapp-calendar__weekdays, .miniapp-calendar__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.miniapp-calendar__weekdays { color: #b49a8d; text-align: center; font-size: 10px; }
+.miniapp-calendar__day { display: flex; min-height: 44px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #8e776a; background: #fff; border: 1px solid #eee5df; border-radius: 12px; font-size: 12px; }
+.miniapp-calendar__day--today { color: #fff; background: #d9845d; border-color: #d9845d; }
+.miniapp-calendar__dot { width: 4px; height: 4px; background: currentColor; border-radius: 50%; opacity: .65; }
+.miniapp-calendar__fortune, .miniapp-calendar__mood { padding: 16px; background: #fff; border: 1px solid #ead5c2; border-radius: 20px; box-shadow: 0 7px 20px rgba(70,48,37,.05); }
+.miniapp-calendar__fortune-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.miniapp-calendar__fortune-label { display: block; color: #b18c79; font-size: 11px; }
+.miniapp-calendar__fortune-title { display: block; margin-top: 6px; color: #5e3b1d; font-size: 16px; font-weight: 800; }
+.miniapp-calendar__fortune-meta { display: block; margin-top: 8px; color: #a89489; font-size: 11px; }
+.miniapp-calendar__fortune-details { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f0e8e2; }
+.miniapp-calendar__fortune-detail { padding: 10px; background: #fffaf6; border-radius: 12px; }
+.miniapp-calendar__fortune-detail view { display: flex; justify-content: space-between; margin-bottom: 5px; color: #8a4f37; font-size: 11px; font-weight: 800; }
+.miniapp-calendar__fortune-detail > text:last-child { display: block; color: #8e776a; font-size: 11px; line-height: 1.6; }
+.miniapp-calendar__mood-row { display: flex; gap: 8px; margin-top: 10px; }
+.miniapp-calendar__mood-button { flex: 1; padding: 8px 2px; color: #8e776a; background: #fffaf6; border: 1px solid #ead5c2; border-radius: 999px; font-size: 11px; }
+.miniapp-calendar__mood-button--active { color: #fff; background: #d9845d; border-color: #d9845d; }

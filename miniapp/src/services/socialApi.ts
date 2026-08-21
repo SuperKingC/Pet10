@@ -14,7 +14,12 @@ export interface MiniappFortune {
   day: string
   content: {
     zodiac: string
-    overall: { rating: number; summary: string }
+    overall: { rating: number; summary: string; text?: string }
+    love?: { rating: number; single?: string; partnered: string }
+    study?: { rating: number; text: string }
+    work?: { rating: number; text: string }
+    wealth?: { rating: number; text: string }
+    health?: { rating: number; text: string }
     luckyColor: { name: string; hex: string }
     luckyNumber: number
   }
@@ -87,7 +92,7 @@ export const socialApi = {
       method: 'POST',
     })
   },
-  updateProfile(patch: { displayName?: string; birthday?: string | null }) {
+  updateProfile(patch: { displayName?: string; birthday?: string | null; mbti?: string | null }) {
     return apiRequest<{ displayName: string; birthday?: string | null }>('/api/session/profile', {
       method: 'PATCH',
       body: patch,

@@ -9,6 +9,7 @@ const notificationIcon = require('../../assets/me/notification.png')
 const contactIcon = require('../../assets/me/contact.png')
 const aboutIcon = require('../../assets/me/about.png')
 const logoutIcon = require('../../assets/me/logout.png')
+const mbtiOptions = ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP']
 interface MiniappMeViewProps {
   context: LaunchContext | null
   onLogout(): void
@@ -18,6 +19,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
   const displayName = context?.user.displayName || '微信用户'
   const [nameDraft, setNameDraft] = useState(displayName)
   const [birthday, setBirthday] = useState('')
+  const [mbti, setMbti] = useState('')
   const [notifications, setNotifications] = useState<MiniappNotification[]>([])
   const [notificationUnread, setNotificationUnread] = useState(0)
   const [editing, setEditing] = useState(false)
@@ -42,7 +44,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     if (!nameDraft.trim() || busy) return
     setBusy(true)
     try {
-      await socialApi.updateProfile({ displayName: nameDraft.trim(), birthday: birthday || null })
+      await socialApi.updateProfile({ displayName: nameDraft.trim(), birthday: birthday || null, mbti: mbti || null })
       setNotice('资料已保存')
       setEditing(false)
     } catch {
@@ -73,6 +75,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
       </View>
       <View className="miniapp-me__list">
         <View className="miniapp-me__item" onClick={() => setEditing(true)}><Image src={birthdayIcon} mode="aspectFit" /><Text>生日</Text><Text>设置</Text></View>
+        <View className="miniapp-me__item" onClick={() => setEditing(true)}><Text className="miniapp-me__mbti-icon">MBTI</Text><Text>性格类型</Text><Text>{mbti || '设置'}</Text></View>
         <View className="miniapp-me__item" onClick={() => void loadNotifications()}><Image src={notificationIcon} mode="aspectFit" /><Text>消息通知</Text><Text>{notificationUnread > 0 ? `${notificationUnread} 条未读` : '查看'}</Text></View>
         <View className="miniapp-me__item"><Image src={contactIcon} mode="aspectFit" /><Text>联系我们</Text><Text>›</Text></View>
         <View className="miniapp-me__item"><Image src={aboutIcon} mode="aspectFit" /><Text>关于小多利</Text><Text>›</Text></View>
@@ -82,6 +85,18 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         <Text className="miniapp-me__editor-title">编辑资料</Text>
         <Input value={nameDraft} maxlength={20} placeholder="昵称" onInput={(event) => setNameDraft(event.detail.value)} />
         <Input value={birthday} type="text" placeholder="生日，例如 1990-01-01" onInput={(event) => setBirthday(event.detail.value)} />
+        <Text className="miniapp-me__field-label">性格类型（可选）</Text>
+        <View className="miniapp-me__mbti-grid">
+          {mbtiOptions.map((option) => (
+            <Button
+              key={option}
+              className={mbti === option ? 'miniapp-me__mbti-option miniapp-me__mbti-option--active' : 'miniapp-me__mbti-option'}
+              onClick={() => setMbti(option)}
+            >
+              {option}
+            </Button>
+          ))}
+        </View>
         <View className="miniapp-me__editor-actions">
           <Button onClick={() => setEditing(false)}>取消</Button>
           <Button loading={busy} onClick={() => void saveProfile()}>保存</Button>

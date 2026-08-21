@@ -61,6 +61,47 @@
   font-size: 13px;
 }
 
+.miniapp-me__field-label {
+  display: block;
+  margin: 4px 0 8px;
+  color: #a89489;
+  font-size: 11px;
+}
+
+.miniapp-me__mbti-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.miniapp-me__mbti-option {
+  min-width: 0;
+  padding: 6px 2px;
+  color: #8e776a;
+  background: #fffaf6;
+  border: 1px solid #ead5c2;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.miniapp-me__mbti-option--active {
+  color: #fff;
+  background: #d9845d;
+  border-color: #d9845d;
+}
+
+.miniapp-me__mbti-option::after {
+  border: 0;
+}
+
+.miniapp-me__mbti-icon {
+  min-width: 26px;
+  color: #d9845d;
+  font-size: 9px;
+  font-weight: 800;
+}
+
 .miniapp-me__editor-actions,
 .miniapp-me__notifications-header {
   display: flex;
