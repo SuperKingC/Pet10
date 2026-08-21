@@ -22,6 +22,7 @@ import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappMapPanel } from '../../features/main/MiniappMapPanel'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
+import { MiniappTarotFlow } from '../../features/tarot/MiniappTarotFlow'
 import { getInvitationButtonState, shouldShowNestFeedback } from '../../features/main/miniappViewModel'
 import './index.scss'
 
@@ -51,6 +52,7 @@ export default function Index() {
   const [memoryBusy, setMemoryBusy] = useState(false)
   const [mapPanelOpen, setMapPanelOpen] = useState(false)
   const [gobangOpen, setGobangOpen] = useState(false)
+  const [tarotOpen, setTarotOpen] = useState(false)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -260,6 +262,7 @@ export default function Index() {
       onClose={() => setPawMenuOpen(false)}
       onOpenMap={() => { setPawMenuOpen(false); setMapPanelOpen(true) }}
       onOpenGobang={() => { setPawMenuOpen(false); setGobangOpen(true) }}
+      onOpenTarot={() => { setPawMenuOpen(false); setTarotOpen(true) }}
     />
     {memoryPanelOpen && (
       <MiniappMemoryPanel
@@ -279,6 +282,7 @@ export default function Index() {
         onClose={() => setGobangOpen(false)}
       />
     )}
+    {tarotOpen && <MiniappTarotFlow onClose={() => setTarotOpen(false)} />}
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (invitationButton.shareReady ? (
       <Button className="share-button" openType="share">
         {invitationButton.label}

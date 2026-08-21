@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Button, Input, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
 import { socialApi, type MiniappCodeword } from '../../services/socialApi'
 import './MiniappPawMenu.scss'
 
@@ -10,9 +9,17 @@ interface MiniappPawMenuProps {
   onClose(): void
   onOpenMap(): void
   onOpenGobang(): void
+  onOpenTarot(): void
 }
 
-export function MiniappPawMenu({ open, roomId, onClose, onOpenMap, onOpenGobang }: MiniappPawMenuProps) {
+export function MiniappPawMenu({
+  open,
+  roomId,
+  onClose,
+  onOpenMap,
+  onOpenGobang,
+  onOpenTarot,
+}: MiniappPawMenuProps) {
   const [codeword, setCodeword] = useState<MiniappCodeword | null>(null)
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -78,7 +85,7 @@ export function MiniappPawMenu({ open, roomId, onClose, onOpenMap, onOpenGobang 
             <Text>足迹地图</Text>
             <Text>点亮一起去过的地方</Text>
           </Button>
-          <Button onClick={() => Taro.showToast({ title: '塔罗占卜即将接入', icon: 'none' })}>
+          <Button onClick={onOpenTarot}>
             <Text>塔罗占卜</Text>
             <Text>问一问今天的心事</Text>
           </Button>

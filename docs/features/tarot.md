@@ -21,6 +21,15 @@ flowchart LR
 - `src/games/tarot/useTarotFlow.ts`
 - `src/games/tarot/tarotAssets.ts`
 - `src/games/tarot/tarotRitual.css`
+- `miniapp/src/features/tarot/MiniappTarotFlow.tsx`
+- `miniapp/src/features/tarot/tarotFlow.ts`
+
+## 小程序接入
+
+- 小程序从主页爪印菜单进入塔罗密室，不再显示占位提示。
+- 当前已实现 `question → spread` 的第一阶段边界：输入问题、切换推荐问题、空问题拦截、问题去除首尾空白，以及进入牌阵阶段。
+- 小程序状态机位于 feature 目录，保持与 PWA 问题阶段相同的确定性规则，但不依赖 Web React 组件或 DOM API。
+- `spread → shuffle → cut → fan → reveal → reading` 的小程序界面、资源加载与动画仍按独立阶段逐步接入，不在问题阶段中伪造完成状态。
 
 ## 数据
 
@@ -57,6 +66,8 @@ flowchart LR
 
 - [ ] 每个阶段按顺序进入。
 - [ ] 快速连续点击不会跳过阶段。
+- [ ] 小程序从爪印菜单进入问题页，空问题不能继续，推荐问题可直接填入。
+- [ ] 小程序问题进入 `spread` 后不会因重复点击跳过牌阵阶段。
 - [ ] 洗牌直达验收页进度从 0 开始，长按牌堆时持续增长。
 - [ ] 图片不闪烁，窄屏不横向滚动。
 - [ ] 清空浏览器缓存后，正常网络首次下载 24 项资源的目标时间不超过 10 秒。
