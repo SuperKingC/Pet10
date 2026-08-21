@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { miniappRoot } from './testPaths'
 
 const assetsRoot = resolve(miniappRoot(), 'src/assets')
-const maxAssetBytes = 200 * 1024
+const maxAssetBytes = 180 * 1024
 
 function collectFiles(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {

@@ -33,19 +33,21 @@ export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu
           <View
             key={tab.key}
             className={active === tab.key ? 'miniapp-tab miniapp-tab--active' : 'miniapp-tab'}
+            hoverClass="none"
             onClick={() => onChange(tab.key)}
           >
             <Image className="miniapp-tab__icon" src={tab.icon} mode="aspectFit" />
             <Text>{tab.label}</Text>
           </View>
         ))}
-        <View className="miniapp-tab miniapp-tab--paw" onClick={onOpenPawMenu}>
+        <View className="miniapp-tab miniapp-tab--paw" hoverClass="none" onClick={onOpenPawMenu}>
           <Image className="miniapp-tab__paw" src={pawIcon} mode="aspectFit" />
         </View>
         {tabs.slice(2).map((tab) => (
           <View
             key={tab.key}
             className={active === tab.key ? 'miniapp-tab miniapp-tab--active' : 'miniapp-tab'}
+            hoverClass="none"
             onClick={() => onChange(tab.key)}
           >
             <Image className="miniapp-tab__icon" src={tab.icon} mode="aspectFit" />

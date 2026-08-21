@@ -101,8 +101,9 @@ API 域名必须使用 HTTPS，并添加到微信小程序后台的“开发管�
 | `action-play.png` | 449×474 | 24 KB | 玩耍动作 |
 | `action-clean.png` | 448×474 | 25 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
+| `room-background.webp` | 1280×1280 | 158 KB | 小窝宠物场景背景 |
 
-图片均为 PNG，保留原尺寸与透明通道并采用 256 色优化；运行时使用固定容器尺寸和 `aspectFit`，避免布局跳动。每张小程序图片控制在 200 KB 以内，并为开发者工具扫描保留 180 KB 安全线；房间背景 WebP 压缩至约 150 KB。它们分别与 `public/pet/xiaoduoli.png`、`public/nest/action-feed.png`、`public/nest/action-play.png`、`public/nest/action-clean.png` 和 `public/nest/action-sleep.png` 保持相同源文件；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
+PNG 保留原尺寸与透明通道并采用 256 色优化；房间背景保留 1280×1280 构图并重新编码为 WebP。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内。它们与 `public/pet/xiaoduoli.png`、`public/nest/room-background.webp` 及四张动作图保持同源视觉；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
 
 ## 开发命令
 

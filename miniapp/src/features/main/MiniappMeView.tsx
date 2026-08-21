@@ -116,7 +116,6 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         {avatarUrl ? <Image className="miniapp-me__avatar-image" src={avatarUrl} mode="aspectFill" /> : <MiniappAvatarPreview config={avatarConfig} compact />}
         <View>
           <Text className="miniapp-me__name">{nameDraft || displayName}</Text>
-          <Text className="miniapp-me__id">微信用户</Text>
         </View>
       </View>
       <View className="miniapp-me__list">

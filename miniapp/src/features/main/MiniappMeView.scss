@@ -1,7 +1,7 @@
 .miniapp-me {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding: 0 14px;
 }
 
@@ -9,26 +9,26 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 2px;
+  padding: 16px 2px;
 }
 
 .miniapp-me__title {
   color: #382b23;
-  font-size: 30px;
+  font-size: 44rpx;
   font-weight: 800;
 }
 
 .miniapp-me__caption,
 .miniapp-me__id {
   color: #a89489;
-  font-size: 14px;
+  font-size: 24rpx;
 }
 
 .miniapp-me__profile {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 22px;
+  gap: 24px;
+  padding: 28px;
   background: #fff;
   border: 1px solid #ead5c2;
   border-radius: 20px;
@@ -36,16 +36,16 @@
 
 .miniapp-me__avatar-image {
   display: block;
-  width: 88px;
-  height: 88px;
-  border: 3px solid #fff;
+  width: 112px;
+  height: 112px;
+  border: 4px solid #fff;
   border-radius: 50%;
   box-shadow: 0 8px 24px rgba(88,57,39,.12);
 }
 
 .miniapp-me__editor,
 .miniapp-me__notifications {
-  padding: 20px;
+  padding: 24px;
   background: #fff;
   border: 1px solid #ead5c2;
   border-radius: 20px;
@@ -55,7 +55,7 @@
   display: block;
   margin-bottom: 12px;
   color: #5e3b1d;
-  font-size: 18px;
+  font-size: 30rpx;
   font-weight: 800;
 }
 
@@ -74,7 +74,7 @@
   display: block;
   margin: 4px 0 8px;
   color: #a89489;
-  font-size: 14px;
+  font-size: 24rpx;
 }
 
 .miniapp-me__mbti-grid {
@@ -167,7 +167,7 @@
 .miniapp-me__name {
   margin-bottom: 5px;
   color: #5e3b1d;
-  font-size: 17px;
+  font-size: 32rpx;
   font-weight: 800;
 }
 
@@ -181,28 +181,28 @@
 .miniapp-me__item,
 .miniapp-me__logout {
   display: flex;
-  min-height: 78px;
+  min-height: 112rpx;
   align-items: center;
-  gap: 18px;
-  padding: 0 20px;
+  gap: 22px;
+  padding: 0 24px;
   color: #765c47;
   background: transparent;
   border: 0;
   border-bottom: 1px solid #f0e8e2;
-  font-size: 18px;
+  font-size: 30rpx;
   text-align: left;
 }
 
 .miniapp-me__item image,
 .miniapp-me__logout image {
-  width: 44px;
-  height: 44px;
+  width: 64rpx;
+  height: 64rpx;
 }
 
 .miniapp-me__birthday-value {
   flex: 1;
   color: #a89489;
-  font-size: 15px;
+  font-size: 24rpx;
   text-align: right;
 }
 
@@ -212,7 +212,7 @@
 
 .miniapp-me__item text:last-child {
   color: #a89489;
-  font-size: 11px;
+  font-size: 22rpx;
 }
 
 .miniapp-me__logout {
