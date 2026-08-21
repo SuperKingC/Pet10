@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { miniappRoot } from './testPaths'
 
 describe('WeChat developer tools project config', () => {
   it('imports the Taro project root and serves the dist directory', () => {
     const config = JSON.parse(
-      readFileSync(resolve(process.cwd(), 'project.config.json'), 'utf8'),
+      readFileSync(resolve(miniappRoot(), 'project.config.json'), 'utf8'),
     ) as {
       compileType?: string
       miniprogramRoot?: string

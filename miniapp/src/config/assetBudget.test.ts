@@ -1,8 +1,9 @@
 import { readdirSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { miniappRoot } from './testPaths'
 
-const assetsRoot = resolve(process.cwd(), 'src/assets')
+const assetsRoot = resolve(miniappRoot(), 'src/assets')
 const maxAssetBytes = 200 * 1024
 
 function collectFiles(directory: string): string[] {
