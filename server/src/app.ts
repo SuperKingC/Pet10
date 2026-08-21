@@ -3,6 +3,7 @@ import express, { type ErrorRequestHandler } from 'express'
 import type { ServerConfig } from './config.js'
 import type { RepositoryBundle } from './repositories/contracts.js'
 import { createAuthMiddleware } from './http/authMiddleware.js'
+import { resolveErrorResponse } from './http/errorResponse.js'
 import { createAuthRoutes } from './http/authRoutes.js'
 import { createFriendshipRoutes } from './http/friendshipRoutes.js'
 import { createInvitationRoutes } from './http/invitationRoutes.js'
@@ -131,12 +132,8 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
 
   const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
     console.error(error)
-    const message = error instanceof Error ? error.message : 'internal_server_error'
-    const status = message.includes('not_found') ? 404 :
-      message.includes('forbidden') || message.includes('not_allowed') ? 403 :
-      message.includes('unauthorized') ? 401 :
-      message.includes('invalid') || message.includes('limit') || message.includes('exists') || message === 'birthday_required' ? 400 : 500
-    response.status(status).json({ error: status === 500 ? 'internal_server_error' : message })
+    const result = resolveErrorResponse(error)
+    response.status(result.status).json({ error: result.error })
   }
   app.use(errorHandler)
   return app

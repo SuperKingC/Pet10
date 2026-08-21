@@ -3,37 +3,75 @@ import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
+import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
+import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
 import { resolveMiniappLaunchState } from '../../domain/launchState'
+import { hasAuthenticatedSession } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
+import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
 import { launchContextApi, type LaunchContext } from '../../services/launchContextApi'
 import { petApi } from '../../services/petApi'
 import { mapRoomPet } from '../../services/petMapper'
+import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
 const invitationKey = 'pet10_invitation_token'
 const actionMessages: Record<PetAction, string> = {
-  feed: '小多利吃饱了一点。',
-  play: '小多利玩得很开心。',
-  clean: '小多利变得干净了。',
-  sleep: '小多利休息了一会儿。',
+  feed: '小多利吃饱了一点',
+  play: '小多利玩得很开心',
+  clean: '小多利变得干净了',
+  sleep: '小多利休息了一会儿',
 }
 
 export default function Index() {
   const [context, setContext] = useState<LaunchContext | null>(null)
   const [pet, setPet] = useState<PetState | null>(null)
+  const [accessToken, setAccessToken] = useState(() => getAccessToken())
   const [roomId, setRoomId] = useState(Taro.getStorageSync<string>(activeRoomKey) || '')
-  const [invitationToken, setInvitationToken] = useState(Taro.getStorageSync<string>(invitationKey) || '')
+  const [invitationToken, setInvitationToken] = useState('')
+  const [shareInvitation, setShareInvitation] = useState<InvitationSummary | null>(null)
+  const [preparingShare, setPreparingShare] = useState(false)
   const [message, setMessage] = useState('请使用微信登录')
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<MiniappTab>('nest')
+  const [pawMenuOpen, setPawMenuOpen] = useState(false)
 
   Taro.useLoad((options) => {
-    const token = typeof options?.token === 'string' ? options.token : ''
+    const token = resolveInvitationLaunchToken(options)
     if (token) {
       Taro.setStorageSync(invitationKey, token)
       setInvitationToken(token)
+    }
+  })
+
+  const prepareInvitation = async () => {
+    if (!getAccessToken() || preparingShare) return
+    setPreparingShare(true)
+    try {
+      setShareInvitation(await invitationApi.create())
+    } catch (error) {
+      setShareInvitation(null)
+      setMessage(error instanceof Error ? error.message : '邀请准备失败，请重试')
+    } finally {
+      setPreparingShare(false)
+    }
+  }
+
+  Taro.useShareAppMessage(() => {
+    if (!shareInvitation) {
+      return {
+        title: '来 Pet10 和我一起养一只小多利',
+        path: '/pages/index/index',
+      }
+    }
+    return {
+      ...buildInvitationShare(shareInvitation.token, context?.user.displayName || '好友'),
+      success: () => {
+        void prepareInvitation()
+      },
     }
   })
 
@@ -53,6 +91,7 @@ export default function Index() {
       } else {
         setPet(null)
       }
+      if (!shareInvitation) void prepareInvitation()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '读取 Pet10 状态失败')
     } finally {
@@ -64,6 +103,10 @@ export default function Index() {
     if (getAccessToken()) void loadContext()
   }, [])
 
+  Taro.useDidShow(() => {
+    setAccessToken(getAccessToken())
+  })
+
   useEffect(() => {
     if (invitationToken) {
       Taro.redirectTo({ url: `/pages/invite/invite?token=${encodeURIComponent(invitationToken)}` })
@@ -74,6 +117,7 @@ export default function Index() {
     setLoading(true)
     try {
       await authApi.loginWithWechat()
+      setAccessToken(getAccessToken())
       await loadContext()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '微信登录失败')
@@ -103,18 +147,67 @@ export default function Index() {
 
   const logout = () => {
     clearAccessToken()
+    setAccessToken('')
     setContext(null)
     setPet(null)
     setRoomId('')
     setMessage('请使用微信登录')
+    setShareInvitation(null)
   }
 
   const entry = context
     ? resolveMiniappLaunchState(context, invitationToken)
     : 'waiting-room'
 
+  const renderMainContent = () => {
+    if (activeTab === 'messages') {
+      return <View className="miniapp-panel">
+        <Text className="panel-title">消息</Text>
+        <Text className="panel-copy">
+          {roomId ? '进入共享房间查看你们的聊天记录。' : '接受好友邀请后，这里会显示你们的聊天。'}
+        </Text>
+        {roomId && <Button className="room-button" onClick={() => Taro.navigateTo({ url: `/pages/room/room?roomId=${encodeURIComponent(roomId)}` })}>
+          打开聊天
+        </Button>}
+      </View>
+    }
+    if (activeTab === 'calendar') {
+      return <View className="miniapp-panel">
+        <Text className="panel-title">小记</Text>
+        <Text className="panel-copy">记录你们和小多利一起度过的每一天。</Text>
+        <Button className="room-button" onClick={() => Taro.navigateTo({ url: '/pages/pet/pet' })}>查看宠物动态</Button>
+      </View>
+    }
+    if (activeTab === 'me') {
+      return <View className="miniapp-panel">
+        <Text className="panel-title">我的</Text>
+        <Text className="panel-copy">{context?.user.displayName || '微信用户'}</Text>
+        <Button className="secondary-button" onClick={logout}>退出登录</Button>
+      </View>
+    }
+    return <>
+      {context && entry === 'waiting-room' && <View className="waiting-panel">
+        <Text className="panel-title">准备中的小窝</Text>
+        <Text className="panel-copy">你可以先认识小多利，正式成长会在好友加入后开始。</Text>
+      </View>}
+
+      {context && context.rooms.length > 0 && <View className="rooms-panel">
+        <Text className="panel-title">我的小窝</Text>
+        {context.rooms.map((room) => <Button
+          key={room.id}
+          className={room.id === roomId ? 'room-item room-item-active' : 'room-item'}
+          onClick={() => selectRoom(room.id)}
+        >
+          和 {room.partner.displayName} · 小多利 Lv.{room.pet.level}
+        </Button>)}
+      </View>}
+
+      {pet && <><PetStatusCard pet={pet} /><PetActionBar onAction={handleAction} /></>}
+    </>
+  }
+
   return <View className="home-page">
-    {!getAccessToken() && <View className="login-panel">
+    {!hasAuthenticatedSession(accessToken) && <View className="login-panel">
       <Text className="panel-title">欢迎来到 Pet10</Text>
       <Text className="login-caption">微信登录后，和重要的人一起照顾一只小多利。</Text>
       <Button className="wechat-button" onClick={loginWithWechat}>微信登录</Button>
@@ -132,27 +225,26 @@ export default function Index() {
       </Text>
     </View>
 
-    {context && entry === 'waiting-room' && <View className="waiting-panel">
-      <Text className="panel-title">准备中的小窝</Text>
-      <Text className="panel-copy">你可以先认识小多利，正式成长会在好友加入后开始。</Text>
-      <Button className="room-button" onClick={() => setMessage('邀请分享将在下一阶段接入')}>邀请好友一起养</Button>
-    </View>}
-
-    {context && context.rooms.length > 0 && <View className="rooms-panel">
-      <Text className="panel-title">我的小窝</Text>
-      {context.rooms.map((room) => <Button
-        key={room.id}
-        className={room.id === roomId ? 'room-item room-item-active' : 'room-item'}
-        onClick={() => selectRoom(room.id)}
-      >
-        和{room.partner.displayName} · 小多利 Lv.{room.pet.level}
-      </Button>)}
-    </View>}
-
-    {pet && <><PetStatusCard pet={pet} /><PetActionBar onAction={handleAction} /></>}
+    {renderMainContent()}
 
     <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>
-    {getAccessToken() && <Button className="secondary-button" onClick={logout}>退出登录</Button>}
-    {getAccessToken() && <Button className="room-button" onClick={() => Taro.navigateTo({ url: '/pages/room/room' })}>进入共享房间</Button>}
+    {pawMenuOpen && <View className="paw-menu">
+      <Text className="panel-title">功能</Text>
+      <Button className="room-button" onClick={() => { setPawMenuOpen(false); setActiveTab('calendar') }}>打开小记</Button>
+      <Button className="room-button" onClick={() => { setPawMenuOpen(false); Taro.navigateTo({ url: '/pages/room/room' }) }}>共享房间</Button>
+    </View>}
+    {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && <Button
+      className="share-button"
+      openType="share"
+      disabled={!shareInvitation || preparingShare}
+    >
+      {preparingShare ? '正在准备邀请…' : '邀请好友一起养'}
+    </Button>}
+    {hasAuthenticatedSession(accessToken) && <MiniappTabBar
+      active={activeTab}
+      onChange={(tab) => { setPawMenuOpen(false); setActiveTab(tab) }}
+      onOpenPawMenu={() => setPawMenuOpen((open) => !open)}
+      unreadCount={context?.rooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0)}
+    />}
   </View>
 }

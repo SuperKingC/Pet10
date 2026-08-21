@@ -16,6 +16,9 @@ export function createRoomRoutes(dependencies: {
   router.get('/:roomId', async (request: AuthenticatedRequest, response, next) => {
     try { response.json(await dependencies.rooms.bootstrap(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }
   })
+  router.get('/:roomId/messages', async (request: AuthenticatedRequest, response, next) => {
+    try { response.json(await dependencies.rooms.listMessages(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }
+  })
   router.post('/:roomId/messages', async (request: AuthenticatedRequest, response, next) => {
     try {
       const input = z.object({ text: z.string().max(4000), imageUrl: z.url().optional() }).parse(request.body)

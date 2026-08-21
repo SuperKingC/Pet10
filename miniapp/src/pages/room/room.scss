@@ -1,39 +1,134 @@
 .room-page {
+  box-sizing: border-box;
   min-height: 100vh;
-  padding: 48px 32px;
+  padding: 36px 28px 48px;
+  background: #fff8ee;
+}
+
+.room-heading {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.room-eyebrow {
+  color: #d36d3d;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .room-title {
   color: #382b23;
-  font-size: 48px;
+  font-size: 42px;
   font-weight: 800;
 }
 
-.room-caption {
+.room-caption, .room-status {
   color: #9a806b;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.5;
 }
 
-.room-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 20px;
-  padding: 28px;
+.message-list {
+  box-sizing: border-box;
+  height: 760px;
+  padding: 24px;
+  border: 1px solid #ead5c2;
   border-radius: 24px;
   background: #fff;
 }
 
-.room-card-title {
-  font-size: 32px;
-  font-weight: 700;
-}
-
-.room-card-detail {
+.empty-message {
+  padding: 100px 24px;
   color: #9a806b;
   font-size: 24px;
+  text-align: center;
+}
+
+.message-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.message-row-mine {
+  align-items: flex-end;
+}
+
+.message-sender {
+  margin: 0 10px 6px;
+  color: #9a806b;
+  font-size: 20px;
+}
+
+.message-bubble {
+  max-width: 78%;
+  padding: 18px 22px;
+  border-radius: 20px 20px 20px 6px;
+  background: #f2e8de;
+  color: #503a2b;
+  font-size: 26px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.message-bubble-mine {
+  border-radius: 20px 20px 6px;
+  background: #d36d3d;
+  color: #fff;
+}
+
+.message-bubble-pet {
+  border: 1px solid #f1c88e;
+  background: #fff4cf;
+}
+
+.composer {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.message-input {
+  box-sizing: border-box;
+  flex: 1;
+  height: 84px;
+  padding: 0 22px;
+  border: 1px solid #dfc9b6;
+  border-radius: 18px;
+  background: #fff;
+  color: #382b23;
+  font-size: 25px;
+}
+
+.send-button {
+  width: 150px;
+  height: 84px;
+  border: 0;
+  border-radius: 18px;
+  background: #d36d3d;
+  color: #fff;
+  font-size: 26px;
+  line-height: 84px;
+}
+
+.pet-reply-button {
+  margin-top: 14px;
+  border: 1px solid #d9b99c;
+  border-radius: 18px;
+  background: #fffaf6;
+  color: #765c47;
+  font-size: 25px;
+}
+
+.send-button::after, .pet-reply-button::after {
+  border: 0;
+}
+
+.room-status {
+  display: block;
+  margin-top: 14px;
+  text-align: center;
 }
