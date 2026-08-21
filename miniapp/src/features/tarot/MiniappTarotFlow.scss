@@ -403,6 +403,149 @@
   background: transparent;
 }
 
+.miniapp-tarot__shuffle-deck::before {
+  content: '';
+  position: absolute;
+  top: 16rpx;
+  left: 50%;
+  width: 520rpx;
+  height: 420rpx;
+  border: 3rpx solid rgba(225, 183, 92, .7);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(139, 56, 221, .34), transparent 68%);
+  box-shadow: 0 0 44rpx 14rpx rgba(126, 47, 221, .48), inset 0 0 36rpx rgba(255, 211, 105, .26);
+  opacity: .82;
+  transform: translateX(-50%) rotate(-18deg);
+  pointer-events: none;
+}
+
+.miniapp-tarot__shuffle-deck::after {
+  content: '✦  ·  ✧  ·  ✦';
+  position: absolute;
+  top: 196rpx;
+  left: 50%;
+  z-index: 4;
+  width: 430rpx;
+  color: #ffe39b;
+  font-size: 25rpx;
+  letter-spacing: 12rpx;
+  text-align: center;
+  text-shadow: 0 0 12rpx #fff, 0 0 28rpx #ae52ff, 0 0 44rpx #7023c9;
+  opacity: .86;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.miniapp-tarot__shuffle-deck--active::before {
+  animation: miniapp-tarot-orbit-spin 2.2s linear infinite;
+  opacity: 1;
+  box-shadow: 0 0 72rpx 20rpx rgba(157, 61, 255, .78), inset 0 0 48rpx rgba(255, 217, 112, .42);
+}
+
+.miniapp-tarot__shuffle-deck--active::after {
+  animation: miniapp-tarot-rune-charge 1.2s ease-in-out infinite;
+  opacity: 1;
+}
+
+.miniapp-tarot__shuffle-orbit {
+  position: absolute;
+  top: 196rpx;
+  left: 50%;
+  z-index: 3;
+  border: 3rpx solid rgba(232, 194, 106, .86);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(24deg);
+  box-shadow: 0 0 26rpx rgba(163, 69, 255, .56), inset 0 0 18rpx rgba(255, 223, 139, .24);
+}
+
+.miniapp-tarot__shuffle-orbit::after {
+  content: '';
+  position: absolute;
+  top: -9rpx;
+  left: 50%;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #ffe59c;
+  box-shadow: 0 0 26rpx 9rpx #a94dff;
+  transform: translateX(-50%);
+}
+
+.miniapp-tarot__shuffle-orbit--outer {
+  width: 480rpx;
+  height: 330rpx;
+}
+
+.miniapp-tarot__shuffle-orbit--inner {
+  width: 360rpx;
+  height: 250rpx;
+  border-color: rgba(190, 121, 255, .92);
+  transform: translate(-50%, -50%) rotate(-42deg);
+}
+
+.miniapp-tarot__shuffle-rune {
+  position: absolute;
+  top: 196rpx;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90rpx;
+  height: 90rpx;
+  border: 3rpx solid rgba(255, 222, 137, .95);
+  border-radius: 50%;
+  color: #ffe7a4;
+  font-size: 40rpx;
+  text-shadow: 0 0 14rpx #fff, 0 0 30rpx #a94dff;
+  opacity: .9;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 42rpx 12rpx rgba(158, 60, 255, .72), inset 0 0 28rpx rgba(255, 221, 132, .32);
+  pointer-events: none;
+}
+
+.miniapp-tarot__shuffle-rune::before,
+.miniapp-tarot__shuffle-rune::after {
+  content: '';
+  position: absolute;
+  width: 64rpx;
+  height: 64rpx;
+  border: 2rpx solid rgba(203, 137, 255, .8);
+  transform: rotate(45deg);
+}
+
+.miniapp-tarot__shuffle-rune::after {
+  border-radius: 50%;
+  transform: rotate(0);
+}
+
+.miniapp-tarot__shuffle-deck--active .miniapp-tarot__shuffle-orbit {
+  animation: miniapp-tarot-orbit-spin 2.2s linear infinite;
+}
+
+.miniapp-tarot__shuffle-deck--active .miniapp-tarot__shuffle-rune {
+  animation: miniapp-tarot-rune-charge 1s ease-in-out infinite;
+}
+
+.miniapp-tarot__shuffle-burst {
+  position: absolute;
+  top: 196rpx;
+  left: 50%;
+  z-index: 6;
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid #ffe39b;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.3);
+  pointer-events: none;
+}
+
+.miniapp-tarot__shuffle-deck--complete .miniapp-tarot__shuffle-burst {
+  animation: miniapp-tarot-shuffle-burst .8s cubic-bezier(.18, .84, .25, 1) both;
+}
+
 .miniapp-tarot__deck-card {
   position: absolute;
   top: 18rpx;
@@ -451,6 +594,22 @@
   to {
     transform: translateX(-24%) translateY(8rpx) rotate(7deg);
   }
+}
+
+@keyframes miniapp-tarot-orbit-spin {
+  from { transform: translate(-50%, -50%) rotate(0); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes miniapp-tarot-rune-charge {
+  0%, 100% { opacity: .62; transform: translate(-50%, -50%) scale(.88); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+}
+
+@keyframes miniapp-tarot-shuffle-burst {
+  0% { opacity: .98; transform: translate(-50%, -50%) scale(.3); box-shadow: 0 0 0 rgba(255, 222, 137, 0); }
+  70% { opacity: .72; transform: translate(-50%, -50%) scale(12); box-shadow: 0 0 32rpx 8rpx rgba(255, 222, 137, .68); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(15); box-shadow: 0 0 0 rgba(255, 222, 137, 0); }
 }
 
 .miniapp-tarot__shuffle-bar {
