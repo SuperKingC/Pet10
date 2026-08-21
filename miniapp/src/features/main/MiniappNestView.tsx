@@ -42,9 +42,9 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
   )
   return (
     <View className="miniapp-nest">
-      <View className="miniapp-nest__header">
-        <Text className="miniapp-nest__title">小窝</Text>
-        <Text className="miniapp-nest__greeting">记录你们和小多利的共同生活。</Text>
+      <View className="miniapp-page-header miniapp-nest__header">
+        <Text className="miniapp-page-title miniapp-nest__title">小窝</Text>
+        <Text className="miniapp-page-caption miniapp-nest__greeting">记录你们和小多利的共同生活。</Text>
       </View>
 
       {context && context.rooms.length > 0 && (
@@ -64,7 +64,7 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
       <View className="miniapp-nest__scene">
         {pet
           ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} />
-          : <View className="miniapp-nest__empty" style={{ backgroundImage: `url(${roomBackground})` }} />}
+          : <Image className="miniapp-nest__empty" src={roomBackground} mode="aspectFill" fadeIn={false} />}
 
         <View className="miniapp-nest__shortcuts">
           <View className="miniapp-nest__shortcut">

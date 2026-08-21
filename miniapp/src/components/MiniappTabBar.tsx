@@ -1,7 +1,6 @@
 import { Image, Text, View } from '@tarojs/components'
 import './MiniappTabBar.scss'
 
-const tabBarBackground = require('../assets/navigation/tab-bar-background.png')
 const journalIcon = require('../assets/navigation/journal.png')
 const meIcon = require('../assets/navigation/me.png')
 const messagesIcon = require('../assets/navigation/messages.png')
@@ -27,10 +26,7 @@ const tabs: Array<{ key: MiniappTab; label: string; icon: string }> = [
 export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu }: MiniappTabBarProps) {
   return (
     <View className="miniapp-tab-bar">
-      <View
-        className="miniapp-tab-bar__background"
-        style={{ backgroundImage: `url(${tabBarBackground})` }}
-      />
+      <View className="miniapp-tab-bar__background" />
       <View className="miniapp-tab-bar__items">
         {tabs.slice(0, 2).map((tab) => (
           <View

@@ -75,9 +75,9 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
 
   return (
     <View className="miniapp-messages">
-      <View className="miniapp-messages__header">
-        <Text className="miniapp-messages__title">消息</Text>
-        <Text className="miniapp-messages__caption">你们的每一句话都会被小多利记住。</Text>
+      <View className="miniapp-page-header miniapp-messages__header">
+        <Text className="miniapp-page-title miniapp-messages__title">消息</Text>
+        <Text className="miniapp-page-caption miniapp-messages__caption">你们的每一句话都会被小多利记住。</Text>
       </View>
       {roomId ? (
         <>

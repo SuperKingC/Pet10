@@ -108,9 +108,9 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
 
   return (
     <View className="miniapp-me">
-      <View className="miniapp-me__header">
-        <Text className="miniapp-me__title">我的</Text>
-        <Text className="miniapp-me__caption">管理你的 Pet10 资料和偏好。</Text>
+      <View className="miniapp-page-header miniapp-me__header">
+        <Text className="miniapp-page-title miniapp-me__title">我的</Text>
+        <Text className="miniapp-page-caption miniapp-me__caption">管理你的 Pet10 资料和偏好。</Text>
       </View>
       <View className="miniapp-me__profile" onClick={() => setAvatarEditing(true)}>
         {avatarUrl ? <Image className="miniapp-me__avatar-image" src={avatarUrl} mode="aspectFill" /> : <MiniappAvatarPreview config={avatarConfig} compact />}

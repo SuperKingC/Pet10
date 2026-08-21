@@ -9,11 +9,9 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   margin: 0 -14px;
-  padding: 8px 16px 6px;
+  padding-right: 16px;
+  padding-left: 16px;
   background: #fffaf6;
 }
 
@@ -59,11 +57,10 @@
 }
 
 .miniapp-nest__empty {
-  min-height: 560rpx;
+  display: block;
+  width: 100%;
+  height: 560rpx;
   overflow: hidden;
-  background-position: center 68%;
-  background-repeat: no-repeat;
-  background-size: cover;
   border: 1px solid rgba(208, 144, 80, .2);
   border-radius: 27px;
   box-shadow: 0 14px 28px rgba(137, 87, 50, .12);
@@ -76,7 +73,7 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 12px;
   transform: translateY(-50%);
 }
 

@@ -7,9 +7,10 @@ const root = path.resolve(__dirname, '..')
 describe('miniapp tab bar rendering', () => {
   it('keeps the background static and disables image fade-in', () => {
     const source = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.tsx'), 'utf8')
+    const styles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
     expect(source).toContain('className="miniapp-tab-bar__background"')
-    expect(source).toContain('backgroundImage')
+    expect(styles).toContain('background-image')
     expect(source).not.toContain('src={tabBarBackground}')
   })
 
