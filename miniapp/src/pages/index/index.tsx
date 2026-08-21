@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { PetActionBar } from '../../components/PetActionBar'
-import { PetStatusCard } from '../../components/PetStatusCard'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
@@ -15,6 +13,10 @@ import { launchContextApi, type LaunchContext } from '../../services/launchConte
 import { petApi } from '../../services/petApi'
 import { mapRoomPet } from '../../services/petMapper'
 import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
+import { MiniappNestView } from '../../features/main/MiniappNestView'
+import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
+import { MiniappCalendarView } from '../../features/main/MiniappCalendarView'
+import { MiniappMeView } from '../../features/main/MiniappMeView'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -161,49 +163,24 @@ export default function Index() {
 
   const renderMainContent = () => {
     if (activeTab === 'messages') {
-      return <View className="miniapp-panel">
-        <Text className="panel-title">消息</Text>
-        <Text className="panel-copy">
-          {roomId ? '进入共享房间查看你们的聊天记录。' : '接受好友邀请后，这里会显示你们的聊天。'}
-        </Text>
-        {roomId && <Button className="room-button" onClick={() => Taro.navigateTo({ url: `/pages/room/room?roomId=${encodeURIComponent(roomId)}` })}>
-          打开聊天
-        </Button>}
-      </View>
+      return <MiniappMessagesView
+        roomId={roomId}
+        onOpenRoom={() => Taro.navigateTo({ url: `/pages/room/room?roomId=${encodeURIComponent(roomId)}` })}
+      />
     }
     if (activeTab === 'calendar') {
-      return <View className="miniapp-panel">
-        <Text className="panel-title">小记</Text>
-        <Text className="panel-copy">记录你们和小多利一起度过的每一天。</Text>
-        <Button className="room-button" onClick={() => Taro.navigateTo({ url: '/pages/pet/pet' })}>查看宠物动态</Button>
-      </View>
+      return <MiniappCalendarView />
     }
     if (activeTab === 'me') {
-      return <View className="miniapp-panel">
-        <Text className="panel-title">我的</Text>
-        <Text className="panel-copy">{context?.user.displayName || '微信用户'}</Text>
-        <Button className="secondary-button" onClick={logout}>退出登录</Button>
-      </View>
+      return <MiniappMeView context={context} onLogout={logout} />
     }
-    return <>
-      {context && entry === 'waiting-room' && <View className="waiting-panel">
-        <Text className="panel-title">准备中的小窝</Text>
-        <Text className="panel-copy">你可以先认识小多利，正式成长会在好友加入后开始。</Text>
-      </View>}
-
-      {context && context.rooms.length > 0 && <View className="rooms-panel">
-        <Text className="panel-title">我的小窝</Text>
-        {context.rooms.map((room) => <Button
-          key={room.id}
-          className={room.id === roomId ? 'room-item room-item-active' : 'room-item'}
-          onClick={() => selectRoom(room.id)}
-        >
-          和 {room.partner.displayName} · 小多利 Lv.{room.pet.level}
-        </Button>)}
-      </View>}
-
-      {pet && <><PetStatusCard pet={pet} /><PetActionBar onAction={handleAction} /></>}
-    </>
+    return <MiniappNestView
+      context={context}
+      pet={pet}
+      roomId={roomId}
+      onAction={handleAction}
+      onSelectRoom={selectRoom}
+    />
   }
 
   return <View className="home-page">

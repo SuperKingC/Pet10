@@ -1,0 +1,89 @@
+.miniapp-nest {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 14px;
+}
+
+.miniapp-nest__header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 -14px;
+  padding: 8px 16px 6px;
+  background: #fffaf6;
+}
+
+.miniapp-nest__title {
+  color: #382b23;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.miniapp-nest__greeting {
+  color: #a89489;
+  font-size: 11px;
+}
+
+.miniapp-nest__rooms {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.miniapp-room-chip {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  color: #8a6250;
+  background: #fff0dc;
+  border: 1px solid #e8bd91;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.miniapp-room-chip::after {
+  border: 0;
+}
+
+.miniapp-room-chip--active {
+  color: #fff;
+  background: #d9845d;
+}
+
+.miniapp-nest__empty {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #aa9790;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.miniapp-nest__shortcuts {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.miniapp-nest__shortcut {
+  display: flex;
+  width: 56px;
+  flex-direction: column;
+  align-items: center;
+  color: #8a4f37;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.miniapp-nest__shortcut image {
+  width: 56px;
+  height: 58px;
+}

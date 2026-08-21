@@ -1,0 +1,151 @@
+.miniapp-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 14px;
+}
+
+.miniapp-messages__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 2px;
+}
+
+.miniapp-messages__title {
+  color: #382b23;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.miniapp-messages__caption,
+.miniapp-messages__conversation-copy {
+  color: #a89489;
+  font-size: 11px;
+}
+
+.miniapp-messages__conversation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 18px;
+  box-shadow: 0 7px 20px rgba(70, 48, 37, .07);
+}
+
+.miniapp-messages__conversation::after {
+  border: 0;
+}
+
+.miniapp-messages__conversation-title {
+  display: block;
+  margin-bottom: 5px;
+  color: #5e3b1d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.miniapp-messages__arrow {
+  color: #d9845d;
+  font-size: 24px;
+}
+
+.miniapp-messages__empty {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #aa9790;
+  font-size: 13px;
+}
+
+.miniapp-messages__list {
+  height: 390px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+
+.miniapp-message {
+  display: flex;
+  max-width: 82%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 10px 0;
+}
+
+.miniapp-message--mine {
+  margin-left: auto;
+  align-items: flex-end;
+}
+
+.miniapp-message__sender {
+  color: #a89489;
+  font-size: 10px;
+}
+
+.miniapp-message__bubble {
+  padding: 10px 13px;
+  color: #5e3b1d;
+  background: #fff;
+  border-radius: 8px 18px 18px 18px;
+  box-shadow: 0 7px 20px rgba(70, 48, 37, .07);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.miniapp-message--mine .miniapp-message__bubble {
+  color: #fff;
+  background: #e59a73;
+  border-radius: 18px 8px 18px 18px;
+}
+
+.miniapp-messages__composer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.miniapp-messages__input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  color: #5e3b1d;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.miniapp-messages__send,
+.miniapp-messages__pet-reply {
+  padding: 8px 14px;
+  color: #fff;
+  background: #d9845d;
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.miniapp-messages__send::after,
+.miniapp-messages__pet-reply::after {
+  border: 0;
+}
+
+.miniapp-messages__pet-reply {
+  align-self: flex-start;
+  margin-top: 8px;
+  color: #925e43;
+  background: #fff0dc;
+}
+
+.miniapp-messages__error {
+  color: #c55f50;
+  font-size: 11px;
+}
