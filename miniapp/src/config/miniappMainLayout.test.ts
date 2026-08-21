@@ -62,4 +62,13 @@ describe('miniapp main layout', () => {
     expect(tabSource).not.toContain('style={{ backgroundImage')
     expect(tabStyles).toContain("url('../assets/navigation/tab-bar-background.png')")
   })
+
+  it('keeps the page shell and bottom safe area on one background color', () => {
+    const indexStyles = fs.readFileSync(path.join(root, 'pages', 'index', 'index.scss'), 'utf8')
+    const tabStyles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
+
+    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*background:\s*#fff8ee;/)
+    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*48px 32px 184px;/)
+    expect(tabStyles).toMatch(/\.miniapp-tab-bar\s*\{[\s\S]*background:\s*#fff8ee;/)
+  })
 })
