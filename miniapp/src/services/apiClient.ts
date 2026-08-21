@@ -16,7 +16,7 @@ export function clearAccessToken() {
 }
 
 export async function apiRequest<T>(path: string, options: {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: Record<string, unknown>
   auth?: boolean
 } = {}): Promise<T> {

@@ -17,6 +17,7 @@ import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
 import { MiniappCalendarView } from '../../features/main/MiniappCalendarView'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
+import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -169,7 +170,7 @@ export default function Index() {
       />
     }
     if (activeTab === 'calendar') {
-      return <MiniappCalendarView />
+      return <MiniappCalendarView roomId={roomId} />
     }
     if (activeTab === 'me') {
       return <MiniappMeView context={context} onLogout={logout} />
@@ -205,11 +206,7 @@ export default function Index() {
     {renderMainContent()}
 
     <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>
-    {pawMenuOpen && <View className="paw-menu">
-      <Text className="panel-title">功能</Text>
-      <Button className="room-button" onClick={() => { setPawMenuOpen(false); setActiveTab('calendar') }}>打开小记</Button>
-      <Button className="room-button" onClick={() => { setPawMenuOpen(false); Taro.navigateTo({ url: '/pages/room/room' }) }}>共享房间</Button>
-    </View>}
+    <MiniappPawMenu open={pawMenuOpen} roomId={roomId} onClose={() => setPawMenuOpen(false)} />
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && <Button
       className="share-button"
       openType="share"
