@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Image, Text, View } from '@tarojs/components'
 import './MiniappTabBar.scss'
 
@@ -25,27 +24,34 @@ const tabs: Array<{ key: MiniappTab; label: string; icon: string }> = [
   { key: 'me', label: '我的', icon: meIcon },
 ]
 
-const MiniappTabBarBackground = memo(function MiniappTabBarBackground() {
-  return <Image className="miniapp-tab-bar__background" src={tabBarBackground} mode="widthFix" fadeIn={false} />
-})
-
 export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu }: MiniappTabBarProps) {
   return (
     <View className="miniapp-tab-bar">
-      <MiniappTabBarBackground />
+      <View
+        className="miniapp-tab-bar__background"
+        style={{ backgroundImage: `url(${tabBarBackground})` }}
+      />
       <View className="miniapp-tab-bar__items">
         {tabs.slice(0, 2).map((tab) => (
           <View
             key={tab.key}
             className={active === tab.key ? 'miniapp-tab miniapp-tab--active' : 'miniapp-tab'}
             hoverClass="none"
+            hoverStartTime={0}
+            hoverStayTime={0}
             onClick={() => onChange(tab.key)}
           >
             <Image className="miniapp-tab__icon" src={tab.icon} mode="aspectFit" fadeIn={false} />
             <Text>{tab.label}</Text>
           </View>
         ))}
-        <View className="miniapp-tab miniapp-tab--paw" hoverClass="none" onClick={onOpenPawMenu}>
+        <View
+          className="miniapp-tab miniapp-tab--paw"
+          hoverClass="none"
+          hoverStartTime={0}
+          hoverStayTime={0}
+          onClick={onOpenPawMenu}
+        >
           <Image className="miniapp-tab__paw" src={pawIcon} mode="aspectFit" fadeIn={false} />
         </View>
         {tabs.slice(2).map((tab) => (
@@ -53,6 +59,8 @@ export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu
             key={tab.key}
             className={active === tab.key ? 'miniapp-tab miniapp-tab--active' : 'miniapp-tab'}
             hoverClass="none"
+            hoverStartTime={0}
+            hoverStayTime={0}
             onClick={() => onChange(tab.key)}
           >
             <Image className="miniapp-tab__icon" src={tab.icon} mode="aspectFit" fadeIn={false} />

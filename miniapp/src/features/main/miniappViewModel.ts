@@ -1,7 +1,7 @@
 import type { MiniappTab } from '../../components/MiniappTabBar'
 
-export function shouldShowNestFeedback(activeTab: MiniappTab) {
-  return activeTab === 'nest'
+export function shouldShowNestFeedback(activeTab: MiniappTab, loading: boolean, message: string) {
+  return activeTab === 'nest' && (loading || Boolean(message))
 }
 
 export function getProfilePresentation(user: { displayName?: string | null; avatarUrl?: string | null } | null) {

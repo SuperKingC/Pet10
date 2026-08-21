@@ -23,7 +23,10 @@
   left: 8rpx;
   z-index: 0;
   width: calc(100% - 16rpx);
-  height: auto;
+  height: 155rpx;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
   pointer-events: none;
 }
 
@@ -74,6 +77,10 @@
   height: 80rpx;
 }
 
+.miniapp-tab--active .miniapp-tab__icon {
+  transform: scale(1.12);
+}
+
 .miniapp-tab--paw {
   flex: 1;
   align-self: stretch;
@@ -84,8 +91,8 @@
 
 .miniapp-tab__paw {
   position: absolute;
-  bottom: 22rpx;
-  left: 50%;
+  bottom: 18rpx;
+  left: calc(50% - 4rpx);
   display: block;
   width: 116rpx;
   height: 116rpx;

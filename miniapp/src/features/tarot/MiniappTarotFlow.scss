@@ -1029,9 +1029,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .miniapp-tarot *,
-  .miniapp-tarot *::before,
-  .miniapp-tarot *::after {
+  .miniapp-tarot view,
+  .miniapp-tarot text,
+  .miniapp-tarot image,
+  .miniapp-tarot button,
+  .miniapp-tarot input,
+  .miniapp-tarot::before,
+  .miniapp-tarot::after {
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
   }
