@@ -34,6 +34,81 @@
   border-radius: 20px;
 }
 
+.miniapp-me__editor,
+.miniapp-me__notifications {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 20px;
+}
+
+.miniapp-me__editor-title {
+  display: block;
+  margin-bottom: 12px;
+  color: #5e3b1d;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.miniapp-me__editor input {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border: 1px solid #ead5c2;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.miniapp-me__editor-actions,
+.miniapp-me__notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.miniapp-me__editor-actions button,
+.miniapp-me__notifications-header button {
+  padding: 8px 12px;
+  color: #8a4f37;
+  background: #fff0dc;
+  border: 0;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.miniapp-me__editor-actions button::after,
+.miniapp-me__notifications-header button::after {
+  border: 0;
+}
+
+.miniapp-me__notifications-header {
+  margin-bottom: 8px;
+  color: #5e3b1d;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.miniapp-me__notification {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  color: #a89489;
+  border-top: 1px solid #f0e8e2;
+  font-size: 11px;
+}
+
+.miniapp-me__notification--unread {
+  color: #5e3b1d;
+  font-weight: 700;
+}
+
+.miniapp-me__notice {
+  color: #c55f50;
+  font-size: 11px;
+}
+
 .miniapp-me__avatar {
   display: flex;
   width: 64px;

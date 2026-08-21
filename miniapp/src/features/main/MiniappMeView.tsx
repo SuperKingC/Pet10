@@ -1,5 +1,7 @@
-import { Button, Image, Text, View } from '@tarojs/components'
+import { useEffect, useState } from 'react'
+import { Button, Input, Image, Text, View } from '@tarojs/components'
 import type { LaunchContext } from '../../services/launchContextApi'
+import { socialApi, type MiniappNotification } from '../../services/socialApi'
 import './MiniappMeView.scss'
 
 const birthdayIcon = require('../../assets/me/birthday.png')
@@ -14,13 +16,55 @@ interface MiniappMeViewProps {
 
 export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
   const displayName = context?.user.displayName || '微信用户'
+  const [nameDraft, setNameDraft] = useState(displayName)
+  const [birthday, setBirthday] = useState('')
+  const [notifications, setNotifications] = useState<MiniappNotification[]>([])
+  const [notificationUnread, setNotificationUnread] = useState(0)
+  const [editing, setEditing] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    setNameDraft(displayName)
+  }, [displayName])
+
+  const loadNotifications = async () => {
+    try {
+      const result = await socialApi.listNotifications()
+      setNotifications(result.items)
+      setNotificationUnread(result.unread)
+    } catch {
+      setNotice('通知暂时无法加载')
+    }
+  }
+
+  const saveProfile = async () => {
+    if (!nameDraft.trim() || busy) return
+    setBusy(true)
+    try {
+      await socialApi.updateProfile({ displayName: nameDraft.trim(), birthday: birthday || null })
+      setNotice('资料已保存')
+      setEditing(false)
+    } catch {
+      setNotice('资料保存失败')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const markNotificationsRead = async () => {
+    await socialApi.markNotificationsRead()
+    setNotificationUnread(0)
+    setNotifications((items) => items.map((item) => ({ ...item, read: true })))
+  }
+
   return (
     <View className="miniapp-me">
       <View className="miniapp-me__header">
         <Text className="miniapp-me__title">我的</Text>
         <Text className="miniapp-me__caption">管理你的 Pet10 资料和偏好。</Text>
       </View>
-      <View className="miniapp-me__profile">
+      <View className="miniapp-me__profile" onClick={() => setEditing(true)}>
         <View className="miniapp-me__avatar"><Text>{displayName.slice(0, 1)}</Text></View>
         <View>
           <Text className="miniapp-me__name">{displayName}</Text>
@@ -28,12 +72,34 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         </View>
       </View>
       <View className="miniapp-me__list">
-        <View className="miniapp-me__item"><Image src={birthdayIcon} mode="aspectFit" /><Text>生日</Text><Text>设置</Text></View>
-        <View className="miniapp-me__item"><Image src={notificationIcon} mode="aspectFit" /><Text>消息通知</Text><Text>已开启</Text></View>
+        <View className="miniapp-me__item" onClick={() => setEditing(true)}><Image src={birthdayIcon} mode="aspectFit" /><Text>生日</Text><Text>设置</Text></View>
+        <View className="miniapp-me__item" onClick={() => void loadNotifications()}><Image src={notificationIcon} mode="aspectFit" /><Text>消息通知</Text><Text>{notificationUnread > 0 ? `${notificationUnread} 条未读` : '查看'}</Text></View>
         <View className="miniapp-me__item"><Image src={contactIcon} mode="aspectFit" /><Text>联系我们</Text><Text>›</Text></View>
         <View className="miniapp-me__item"><Image src={aboutIcon} mode="aspectFit" /><Text>关于小多利</Text><Text>›</Text></View>
         <Button className="miniapp-me__logout" onClick={onLogout}><Image src={logoutIcon} mode="aspectFit" /><Text>退出登录</Text></Button>
       </View>
+      {editing && <View className="miniapp-me__editor">
+        <Text className="miniapp-me__editor-title">编辑资料</Text>
+        <Input value={nameDraft} maxlength={20} placeholder="昵称" onInput={(event) => setNameDraft(event.detail.value)} />
+        <Input value={birthday} type="text" placeholder="生日，例如 1990-01-01" onInput={(event) => setBirthday(event.detail.value)} />
+        <View className="miniapp-me__editor-actions">
+          <Button onClick={() => setEditing(false)}>取消</Button>
+          <Button loading={busy} onClick={() => void saveProfile()}>保存</Button>
+        </View>
+      </View>}
+      {notifications.length > 0 && <View className="miniapp-me__notifications">
+        <View className="miniapp-me__notifications-header">
+          <Text>通知</Text>
+          {notificationUnread > 0 && <Button onClick={() => void markNotificationsRead()}>全部已读</Button>}
+        </View>
+        {notifications.slice(0, 8).map((item) => (
+          <View key={item.id} className={item.read ? 'miniapp-me__notification' : 'miniapp-me__notification miniapp-me__notification--unread'}>
+            <Text>{String(item.payload?.title || item.type || '新通知')}</Text>
+            <Text>{new Date(item.createdAt).toLocaleDateString()}</Text>
+          </View>
+        ))}
+      </View>}
+      {notice && <Text className="miniapp-me__notice">{notice}</Text>}
     </View>
   )
 }
