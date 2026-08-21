@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Button, Input, Image, Text, View } from '@tarojs/components'
+import { Button, Input, Image, Picker, Text, View } from '@tarojs/components'
 import type { LaunchContext } from '../../services/launchContextApi'
 import { socialApi, type MiniappNotification } from '../../services/socialApi'
 import { defaultAvatarConfig, parseAvatarConfig, type MiniappAvatarConfig } from '../../domain/avatarConfig'
 import { MiniappAvatarEditor } from './MiniappAvatarEditor'
 import { MiniappAvatarPreview } from './MiniappAvatarPreview'
+import { getProfilePresentation } from './miniappViewModel'
 import './MiniappMeView.scss'
 
 const birthdayIcon = require('../../assets/me/birthday.png')
@@ -19,11 +20,13 @@ interface MiniappMeViewProps {
 }
 
 export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
-  const displayName = context?.user.displayName || '微信用户'
+  const profilePresentation = getProfilePresentation(context?.user || null)
+  const displayName = profilePresentation.displayName
   const [nameDraft, setNameDraft] = useState(displayName)
   const [birthday, setBirthday] = useState('')
   const [mbti, setMbti] = useState('')
   const [avatarConfig, setAvatarConfig] = useState<MiniappAvatarConfig>(defaultAvatarConfig)
+  const [avatarUrl, setAvatarUrl] = useState(profilePresentation.avatarUrl)
   const [avatarEditing, setAvatarEditing] = useState(false)
   const [notifications, setNotifications] = useState<MiniappNotification[]>([])
   const [notificationUnread, setNotificationUnread] = useState(0)
@@ -41,6 +44,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
       setBirthday(profile.birthday || '')
       setMbti(profile.mbti || '')
       setAvatarConfig(parseAvatarConfig(profile.avatarConfig))
+      setAvatarUrl(profile.avatarUrl || profilePresentation.avatarUrl)
     }).catch(() => undefined)
   }, [displayName])
 
@@ -74,6 +78,20 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     setNotifications((items) => items.map((item) => ({ ...item, read: true })))
   }
 
+  const updateBirthday = async (value: string) => {
+    if (busy) return
+    setBirthday(value)
+    setBusy(true)
+    try {
+      await socialApi.updateProfile({ birthday: value || null })
+      setNotice('生日已保存')
+    } catch {
+      setNotice('生日保存失败')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const saveAvatar = async () => {
     if (busy) return
     setBusy(true)
@@ -95,14 +113,16 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         <Text className="miniapp-me__caption">管理你的 Pet10 资料和偏好。</Text>
       </View>
       <View className="miniapp-me__profile" onClick={() => setAvatarEditing(true)}>
-        <MiniappAvatarPreview config={avatarConfig} compact />
+        {avatarUrl ? <Image className="miniapp-me__avatar-image" src={avatarUrl} mode="aspectFill" /> : <MiniappAvatarPreview config={avatarConfig} compact />}
         <View>
-          <Text className="miniapp-me__name">{displayName}</Text>
+          <Text className="miniapp-me__name">{nameDraft || displayName}</Text>
           <Text className="miniapp-me__id">微信用户</Text>
         </View>
       </View>
       <View className="miniapp-me__list">
-        <View className="miniapp-me__item" onClick={() => setEditing(true)}><Image src={birthdayIcon} mode="aspectFit" /><Text>生日</Text><Text>设置</Text></View>
+        <Picker mode="date" value={birthday || '2000-01-01'} onChange={(event) => void updateBirthday(event.detail.value)}>
+        <View className="miniapp-me__item"><Image src={birthdayIcon} mode="aspectFit" /><Text>生日</Text><Text className="miniapp-me__birthday-value">{birthday || '设置'}</Text></View>
+        </Picker>
         <View className="miniapp-me__item" onClick={() => setEditing(true)}><Text className="miniapp-me__mbti-icon">MBTI</Text><Text>性格类型</Text><Text>{mbti || '设置'}</Text></View>
         <View className="miniapp-me__item" onClick={() => void loadNotifications()}><Image src={notificationIcon} mode="aspectFit" /><Text>消息通知</Text><Text>{notificationUnread > 0 ? `${notificationUnread} 条未读` : '查看'}</Text></View>
         <View className="miniapp-me__item"><Image src={contactIcon} mode="aspectFit" /><Text>联系我们</Text><Text>›</Text></View>

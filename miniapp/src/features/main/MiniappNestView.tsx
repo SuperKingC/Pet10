@@ -84,15 +84,12 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
       <View className="miniapp-nest__shortcuts">
         <View className="miniapp-nest__shortcut">
           <Image src={wardrobe} mode="aspectFit" />
-          <Text>衣柜</Text>
         </View>
         <View className="miniapp-nest__shortcut">
           <Image src={photoWall} mode="aspectFit" />
-          <Text>照片墙</Text>
         </View>
         <View className="miniapp-nest__shortcut">
           <Image src={tasks} mode="aspectFit" />
-          <Text>任务</Text>
         </View>
       </View>
     </View>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button, Text, View } from '@tarojs/components'
 import { socialApi, type MiniappFortune, type MiniappMood } from '../../services/socialApi'
 import { getCalendarMonth, localDayKey, shiftMonth } from './calendarModel'
+import { getFortuneAvailability } from './miniappViewModel'
 import './MiniappCalendarView.scss'
 
 interface MiniappCalendarViewProps {
@@ -24,6 +25,7 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
   const [fortune, setFortune] = useState<MiniappFortune | null>(null)
   const [selectedMood, setSelectedMood] = useState(0)
   const [fortuneOpen, setFortuneOpen] = useState(false)
+  const [fortuneMessage, setFortuneMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const month = useMemo(() => getCalendarMonth(cursor), [cursor])
   const today = new Date()
@@ -33,7 +35,38 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
   const moodDays = new Set(moods.map((mood) => mood.day.slice(0, 10)))
 
   useEffect(() => {
-    void socialApi.getFortune().then(setFortune).catch(() => setFortune(null))
+    let cancelled = false
+    void socialApi.getProfile()
+      .then((profile) => {
+        const availability = getFortuneAvailability(profile.birthday)
+        if (!availability.ready) {
+          if (!cancelled) {
+            setFortune(null)
+            setFortuneMessage(availability.message)
+          }
+          return
+        }
+        return socialApi.getFortune()
+          .then((result) => {
+            if (!cancelled) {
+              setFortune(result)
+              setFortuneMessage('')
+            }
+          })
+          .catch(() => {
+            if (!cancelled) {
+              setFortune(null)
+              setFortuneMessage('今日运势暂时无法加载')
+            }
+          })
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFortune(null)
+          setFortuneMessage('今日运势暂时无法加载')
+        }
+      })
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
@@ -99,7 +132,7 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
           <View>
             <Text className="miniapp-calendar__fortune-label">今日运势</Text>
             <Text className="miniapp-calendar__fortune-title">
-              {fortune ? `${fortune.content.overall.summary} ${'★'.repeat(fortune.content.overall.rating)}` : '今日运势加载中'}
+              {fortune ? `${fortune.content.overall.summary} ${'★'.repeat(fortune.content.overall.rating)}` : (fortuneMessage || '今日运势加载中')}
             </Text>
           </View>
           {fortune && <Button onClick={() => setFortuneOpen((value) => !value)}>{fortuneOpen ? '收起' : '详情'}</Button>}

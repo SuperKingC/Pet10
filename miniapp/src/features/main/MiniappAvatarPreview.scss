@@ -1,5 +1,5 @@
 .miniapp-avatar { position: relative; display: flex; width: 128px; height: 128px; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #fff; border-radius: 50%; box-shadow: 0 8px 24px rgba(88,57,39,.12); }
-.miniapp-avatar--compact { width: 64px; height: 64px; border-width: 2px; }
+.miniapp-avatar--compact { width: 88px; height: 88px; border-width: 3px; }
 .miniapp-avatar__face { position: relative; width: 72%; height: 72%; border-radius: 46% 46% 48% 48%; }
 .miniapp-avatar__face--square { border-radius: 36%; }
 .miniapp-avatar__face--oval { width: 64%; height: 78%; }
@@ -10,7 +10,7 @@
 .miniapp-avatar__hair--curly { height: 46%; border-radius: 48% 48% 36% 36%; }
 .miniapp-avatar__eyes { position: absolute; z-index: 3; top: 44%; right: 22%; left: 22%; display: flex; justify-content: space-between; }
 .miniapp-avatar__eyes view { width: 9px; height: 11px; background: #523b30; border-radius: 50%; }
-.miniapp-avatar--compact .miniapp-avatar__eyes view { width: 5px; height: 6px; }
+.miniapp-avatar--compact .miniapp-avatar__eyes view { width: 7px; height: 8px; }
 .miniapp-avatar__eyes--happy view { height: 5px; background: transparent; border-top: 2px solid #523b30; }
 .miniapp-avatar__eyes--sleepy view { height: 2px; border-radius: 99px; }
 .miniapp-avatar__eyes--wink view:last-child { height: 2px; border-radius: 99px; }

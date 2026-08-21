@@ -4,11 +4,11 @@
   bottom: 0;
   z-index: 20;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   width: 100%;
   max-width: 860rpx;
-  min-height: 184rpx;
-  padding: 10rpx 10rpx calc(18rpx + env(safe-area-inset-bottom));
+  min-height: 220rpx;
+  padding: 12rpx 10rpx calc(18rpx + env(safe-area-inset-bottom));
   background: transparent;
   border-top: 0;
   transform: translateX(-50%);
@@ -18,7 +18,7 @@
 .miniapp-tab-bar__background {
   position: absolute;
   right: 8rpx;
-  bottom: env(safe-area-inset-bottom, 0rpx);
+  bottom: calc(10rpx + env(safe-area-inset-bottom, 0rpx));
   left: 8rpx;
   z-index: 0;
   width: calc(100% - 16rpx);
@@ -30,7 +30,7 @@
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   width: 100%;
 }
 
@@ -40,18 +40,18 @@
   display: flex;
   flex: 1;
   min-width: 0;
-  min-height: 116rpx;
+  min-height: 156rpx;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0;
   margin: 0;
-  padding: 4rpx 0 6rpx;
+  padding: 4rpx 0 8rpx;
   color: #80695c;
   background: transparent;
   border: 0;
   border-radius: 13px;
-  font-size: 20rpx;
+  font-size: 28rpx;
   line-height: 1.1;
   box-sizing: border-box;
 }
@@ -67,13 +67,12 @@
 
 .miniapp-tab__icon {
   display: block;
-  width: 84rpx;
-  height: 84rpx;
-  transition: transform .16s ease;
+  width: 112rpx;
+  height: 112rpx;
 }
 
 .miniapp-tab--active .miniapp-tab__icon {
-  transform: translateY(-4px) scale(1.12);
+  transform: translateY(-6rpx) scale(1.06);
 }
 
 .miniapp-tab--paw {
@@ -81,15 +80,16 @@
   align-self: stretch;
   min-height: 0;
   padding: 0;
+  overflow: visible;
 }
 
 .miniapp-tab__paw {
   position: absolute;
-  bottom: 22rpx;
+  bottom: 12rpx;
   left: 50%;
   display: block;
-  width: 116rpx;
-  height: 116rpx;
+  width: 164rpx;
+  height: 164rpx;
   transform: translateX(-50%);
   padding: 0;
   border-radius: 50%;

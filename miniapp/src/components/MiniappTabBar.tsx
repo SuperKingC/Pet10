@@ -1,4 +1,4 @@
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Image, Text, View } from '@tarojs/components'
 import './MiniappTabBar.scss'
 
 const tabBarBackground = require('../assets/navigation/tab-bar-background.png')
@@ -30,20 +30,20 @@ export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu
       <Image className="miniapp-tab-bar__background" src={tabBarBackground} mode="widthFix" />
       <View className="miniapp-tab-bar__items">
         {tabs.slice(0, 2).map((tab) => (
-          <Button
+          <View
             key={tab.key}
             className={active === tab.key ? 'miniapp-tab miniapp-tab--active' : 'miniapp-tab'}
             onClick={() => onChange(tab.key)}
           >
             <Image className="miniapp-tab__icon" src={tab.icon} mode="aspectFit" />
             <Text>{tab.label}</Text>
-          </Button>
+          </View>
         ))}
-        <Button className="miniapp-tab miniapp-tab--paw" onClick={onOpenPawMenu}>
+        <View className="miniapp-tab miniapp-tab--paw" onClick={onOpenPawMenu}>
           <Image className="miniapp-tab__paw" src={pawIcon} mode="aspectFit" />
-        </Button>
+        </View>
         {tabs.slice(2).map((tab) => (
-          <Button
+          <View
             key={tab.key}
             className={active === tab.key ? 'miniapp-tab miniapp-tab--active' : 'miniapp-tab'}
             onClick={() => onChange(tab.key)}
@@ -51,7 +51,7 @@ export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu
             <Image className="miniapp-tab__icon" src={tab.icon} mode="aspectFit" />
             <Text>{tab.label}</Text>
             {tab.key === 'messages' && unreadCount > 0 && <Text className="miniapp-tab__badge">{unreadCount}</Text>}
-          </Button>
+          </View>
         ))}
       </View>
     </View>

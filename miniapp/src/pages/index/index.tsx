@@ -22,7 +22,7 @@ import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappMapPanel } from '../../features/main/MiniappMapPanel'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
-import { shouldShowNestFeedback } from '../../features/main/miniappViewModel'
+import { getInvitationButtonState, shouldShowNestFeedback } from '../../features/main/miniappViewModel'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -209,6 +209,7 @@ export default function Index() {
   const entry = context
     ? resolveMiniappLaunchState(context, invitationToken)
     : 'waiting-room'
+  const invitationButton = getInvitationButtonState(Boolean(shareInvitation), preparingShare)
 
   const renderMainContent = () => {
     if (activeTab === 'messages') {
@@ -278,13 +279,15 @@ export default function Index() {
         onClose={() => setGobangOpen(false)}
       />
     )}
-    {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && <Button
-      className="share-button"
-      openType="share"
-      disabled={!shareInvitation || preparingShare}
-    >
-      {preparingShare ? '正在准备邀请…' : '邀请好友一起养'}
-    </Button>}
+    {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (invitationButton.shareReady ? (
+      <Button className="share-button" openType="share">
+        {invitationButton.label}
+      </Button>
+    ) : (
+      <Button className="share-button" disabled={invitationButton.disabled} onClick={() => void prepareInvitation()}>
+        {invitationButton.label}
+      </Button>
+    ))}
     {hasAuthenticatedSession(accessToken) && <MiniappTabBar
       active={activeTab}
       onChange={(tab) => { setPawMenuOpen(false); setActiveTab(tab) }}

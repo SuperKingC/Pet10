@@ -1,7 +1,7 @@
 .miniapp-me {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   padding: 0 14px;
 }
 
@@ -9,34 +9,43 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 8px 2px;
+  padding: 12px 2px;
 }
 
 .miniapp-me__title {
   color: #382b23;
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 800;
 }
 
 .miniapp-me__caption,
 .miniapp-me__id {
   color: #a89489;
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .miniapp-me__profile {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px;
+  gap: 20px;
+  padding: 22px;
   background: #fff;
   border: 1px solid #ead5c2;
   border-radius: 20px;
 }
 
+.miniapp-me__avatar-image {
+  display: block;
+  width: 88px;
+  height: 88px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(88,57,39,.12);
+}
+
 .miniapp-me__editor,
 .miniapp-me__notifications {
-  padding: 16px;
+  padding: 20px;
   background: #fff;
   border: 1px solid #ead5c2;
   border-radius: 20px;
@@ -46,7 +55,7 @@
   display: block;
   margin-bottom: 12px;
   color: #5e3b1d;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
 }
 
@@ -65,7 +74,7 @@
   display: block;
   margin: 4px 0 8px;
   color: #a89489;
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .miniapp-me__mbti-grid {
@@ -96,9 +105,9 @@
 }
 
 .miniapp-me__mbti-icon {
-  min-width: 26px;
+  min-width: 54px;
   color: #d9845d;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -172,22 +181,29 @@
 .miniapp-me__item,
 .miniapp-me__logout {
   display: flex;
-  min-height: 54px;
+  min-height: 78px;
   align-items: center;
-  gap: 10px;
-  padding: 0 16px;
+  gap: 18px;
+  padding: 0 20px;
   color: #765c47;
   background: transparent;
   border: 0;
   border-bottom: 1px solid #f0e8e2;
-  font-size: 13px;
+  font-size: 18px;
   text-align: left;
 }
 
 .miniapp-me__item image,
 .miniapp-me__logout image {
-  width: 26px;
-  height: 26px;
+  width: 44px;
+  height: 44px;
+}
+
+.miniapp-me__birthday-value {
+  flex: 1;
+  color: #a89489;
+  font-size: 15px;
+  text-align: right;
 }
 
 .miniapp-me__item text:nth-child(2) {

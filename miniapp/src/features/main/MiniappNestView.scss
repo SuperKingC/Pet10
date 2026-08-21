@@ -70,20 +70,17 @@
 .miniapp-nest__shortcuts {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 14px;
 }
 
 .miniapp-nest__shortcut {
   display: flex;
-  width: 56px;
+  width: 68px;
   flex-direction: column;
   align-items: center;
-  color: #8a4f37;
-  font-size: 10px;
-  font-weight: 800;
 }
 
 .miniapp-nest__shortcut image {
-  width: 56px;
-  height: 58px;
+  width: 68px;
+  height: 70px;
 }
