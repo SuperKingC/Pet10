@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { Button, Input, Image, Text, View } from '@tarojs/components'
 import type { LaunchContext } from '../../services/launchContextApi'
 import { socialApi, type MiniappNotification } from '../../services/socialApi'
+import { defaultAvatarConfig, parseAvatarConfig, type MiniappAvatarConfig } from '../../domain/avatarConfig'
+import { MiniappAvatarEditor } from './MiniappAvatarEditor'
+import { MiniappAvatarPreview } from './MiniappAvatarPreview'
 import './MiniappMeView.scss'
 
 const birthdayIcon = require('../../assets/me/birthday.png')
@@ -20,6 +23,8 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
   const [nameDraft, setNameDraft] = useState(displayName)
   const [birthday, setBirthday] = useState('')
   const [mbti, setMbti] = useState('')
+  const [avatarConfig, setAvatarConfig] = useState<MiniappAvatarConfig>(defaultAvatarConfig)
+  const [avatarEditing, setAvatarEditing] = useState(false)
   const [notifications, setNotifications] = useState<MiniappNotification[]>([])
   const [notificationUnread, setNotificationUnread] = useState(0)
   const [editing, setEditing] = useState(false)
@@ -28,6 +33,15 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
 
   useEffect(() => {
     setNameDraft(displayName)
+  }, [displayName])
+
+  useEffect(() => {
+    void socialApi.getProfile().then((profile) => {
+      setNameDraft(profile.displayName || displayName)
+      setBirthday(profile.birthday || '')
+      setMbti(profile.mbti || '')
+      setAvatarConfig(parseAvatarConfig(profile.avatarConfig))
+    }).catch(() => undefined)
   }, [displayName])
 
   const loadNotifications = async () => {
@@ -60,14 +74,28 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     setNotifications((items) => items.map((item) => ({ ...item, read: true })))
   }
 
+  const saveAvatar = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await socialApi.updateProfile({ avatarConfig: JSON.stringify(avatarConfig) })
+      setAvatarEditing(false)
+      setNotice('头像已保存')
+    } catch {
+      setNotice('头像保存失败')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <View className="miniapp-me">
       <View className="miniapp-me__header">
         <Text className="miniapp-me__title">我的</Text>
         <Text className="miniapp-me__caption">管理你的 Pet10 资料和偏好。</Text>
       </View>
-      <View className="miniapp-me__profile" onClick={() => setEditing(true)}>
-        <View className="miniapp-me__avatar"><Text>{displayName.slice(0, 1)}</Text></View>
+      <View className="miniapp-me__profile" onClick={() => setAvatarEditing(true)}>
+        <MiniappAvatarPreview config={avatarConfig} compact />
         <View>
           <Text className="miniapp-me__name">{displayName}</Text>
           <Text className="miniapp-me__id">微信用户</Text>
@@ -114,6 +142,15 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
           </View>
         ))}
       </View>}
+      {avatarEditing && (
+        <MiniappAvatarEditor
+          config={avatarConfig}
+          busy={busy}
+          onChange={setAvatarConfig}
+          onSave={() => void saveAvatar()}
+          onClose={() => setAvatarEditing(false)}
+        />
+      )}
       {notice && <Text className="miniapp-me__notice">{notice}</Text>}
     </View>
   )

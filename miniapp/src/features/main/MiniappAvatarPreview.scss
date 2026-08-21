@@ -1,0 +1,29 @@
+.miniapp-avatar { position: relative; display: flex; width: 128px; height: 128px; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #fff; border-radius: 50%; box-shadow: 0 8px 24px rgba(88,57,39,.12); }
+.miniapp-avatar--compact { width: 64px; height: 64px; border-width: 2px; }
+.miniapp-avatar__face { position: relative; width: 72%; height: 72%; border-radius: 46% 46% 48% 48%; }
+.miniapp-avatar__face--square { border-radius: 36%; }
+.miniapp-avatar__face--oval { width: 64%; height: 78%; }
+.miniapp-avatar__hair { position: absolute; z-index: 2; top: -8%; right: -5%; left: -5%; height: 42%; border-radius: 55% 55% 30% 30%; }
+.miniapp-avatar__hair--short { right: 2%; left: 2%; height: 30%; }
+.miniapp-avatar__hair--twin::before, .miniapp-avatar__hair--twin::after { position: absolute; top: 55%; width: 28%; height: 70%; background: inherit; border-radius: 50%; content: ''; }
+.miniapp-avatar__hair--twin::before { left: -20%; }.miniapp-avatar__hair--twin::after { right: -20%; }
+.miniapp-avatar__hair--curly { height: 46%; border-radius: 48% 48% 36% 36%; }
+.miniapp-avatar__eyes { position: absolute; z-index: 3; top: 44%; right: 22%; left: 22%; display: flex; justify-content: space-between; }
+.miniapp-avatar__eyes view { width: 9px; height: 11px; background: #523b30; border-radius: 50%; }
+.miniapp-avatar--compact .miniapp-avatar__eyes view { width: 5px; height: 6px; }
+.miniapp-avatar__eyes--happy view { height: 5px; background: transparent; border-top: 2px solid #523b30; }
+.miniapp-avatar__eyes--sleepy view { height: 2px; border-radius: 99px; }
+.miniapp-avatar__eyes--wink view:last-child { height: 2px; border-radius: 99px; }
+.miniapp-avatar__eyes--star view { background: #8f6bbb; transform: rotate(45deg); border-radius: 2px; }
+.miniapp-avatar__blush { position: absolute; z-index: 2; top: 58%; right: 11%; left: 11%; display: flex; justify-content: space-between; }
+.miniapp-avatar__blush view { width: 14px; height: 7px; background: rgba(239,126,154,.35); border-radius: 50%; }
+.miniapp-avatar__mouth { position: absolute; z-index: 3; bottom: 20%; left: 50%; width: 18px; height: 9px; border-bottom: 3px solid #9a5c55; border-radius: 0 0 50% 50%; transform: translateX(-50%); }
+.miniapp-avatar__mouth--open { width: 12px; height: 12px; background: #9a5c55; border: 0; border-radius: 50%; }
+.miniapp-avatar__mouth--cat { width: 18px; height: 7px; border-right: 2px solid #9a5c55; border-bottom: 2px solid #9a5c55; border-left: 2px solid #9a5c55; }
+.miniapp-avatar__mouth--flat { height: 2px; border: 0; background: #9a5c55; border-radius: 99px; }
+.miniapp-avatar__glasses { position: absolute; z-index: 4; top: 38%; right: 13%; left: 13%; display: flex; justify-content: space-between; }
+.miniapp-avatar__glasses view { width: 24px; height: 19px; border: 2px solid #6f5143; border-radius: 50%; }
+.miniapp-avatar__glasses--square view { border-radius: 5px; }.miniapp-avatar__glasses--sun view { background: rgba(67,60,57,.55); }
+.miniapp-avatar__hat { position: absolute; z-index: 5; top: -20%; left: 50%; width: 52%; height: 25%; background: #d9845d; border-radius: 50% 50% 20% 20%; transform: translateX(-50%); }
+.miniapp-avatar__hat--bow { width: 26%; height: 20%; border-radius: 60% 10% 60% 10%; transform: translateX(-50%) rotate(45deg); }
+.miniapp-avatar__hat--beanie { top: -16%; height: 32%; background: #79a9a3; }

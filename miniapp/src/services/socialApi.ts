@@ -68,7 +68,20 @@ export interface MiniappMapLight {
   createdAt: string
 }
 
+export interface MiniappProfile {
+  id: string
+  displayName: string
+  avatarUrl?: string | null
+  avatarConfig?: string | null
+  birthday?: string | null
+  mbti?: string | null
+}
+
 export const socialApi = {
+  async getProfile() {
+    const session = await apiRequest<{ user: MiniappProfile }>('/api/session')
+    return session.user
+  },
   listConversations() {
     return apiRequest<MiniappConversation[]>('/api/social/conversations')
   },
@@ -92,8 +105,8 @@ export const socialApi = {
       method: 'POST',
     })
   },
-  updateProfile(patch: { displayName?: string; birthday?: string | null; mbti?: string | null }) {
-    return apiRequest<{ displayName: string; birthday?: string | null }>('/api/session/profile', {
+  updateProfile(patch: { displayName?: string; birthday?: string | null; mbti?: string | null; avatarConfig?: string | null }) {
+    return apiRequest<MiniappProfile>('/api/session/profile', {
       method: 'PATCH',
       body: patch,
     })
