@@ -60,13 +60,24 @@ describe('tarot ritual interaction', () => {
     expect(css).toContain('@keyframes tarot-shuffle-interleave-right')
     expect(css).toContain('tarot-shuffle-deck:active::before')
     expect(css).toMatch(/\.tarot-shuffle-deck\s*\{[^}]*--shuffle-x:\s*92px;[^}]*--shuffle-y:\s*-34px;[^}]*--shuffle-z:\s*28px;/s)
-    expect(css).toMatch(/\.tarot-shuffle-deck:active \.tarot-shuffle-deck__slot:nth-child\(odd\)[^{]*\{[^}]*animation:tarot-shuffle-interleave-left 2\.4s/s)
-    expect(css).toMatch(/\.tarot-shuffle-deck:active \.tarot-shuffle-deck__slot:nth-child\(even\)[^{]*\{[^}]*animation:tarot-shuffle-interleave-right 2\.4s/s)
+    expect(css).toMatch(/\.tarot-shuffle-deck:active \.tarot-shuffle-deck__slot--odd[^{]*\{[^}]*animation:tarot-shuffle-interleave-left 2\.4s/s)
+    expect(css).toMatch(/\.tarot-shuffle-deck:active \.tarot-shuffle-deck__slot--even[^{]*\{[^}]*animation:tarot-shuffle-interleave-right 2\.4s/s)
     expect(css).toMatch(/@keyframes tarot-shuffle-interleave-left[\s\S]*?translate3d\(calc\(var\(--shuffle-x\) \* -1\),var\(--shuffle-y\),var\(--shuffle-z\)\)/s)
     expect(css).toMatch(/@keyframes tarot-shuffle-interleave-right[\s\S]*?translate3d\(var\(--shuffle-x\),var\(--shuffle-y\),var\(--shuffle-z\)\)/s)
-    expect(css).toContain('nth-child(odd)')
-    expect(css).toContain('nth-child(even)')
+    expect(shuffleStage).toContain('tarot-shuffle-deck__slot--${index % 2 ?')
     expect(css).toContain('animation-delay:-.08s')
+  })
+
+  it('builds a layered arcane ritual around the held shuffle deck', () => {
+    expect(shuffleStage).toContain('tarot-shuffle-deck__orbit')
+    expect(shuffleStage).toContain('tarot-shuffle-deck__rune')
+    expect(shuffleStage).toContain('tarot-shuffle-deck__burst')
+    expect(css).toMatch(/\.tarot-shuffle-deck__orbit\s*\{[^}]*border:1px solid/s)
+    expect(css).toContain('@keyframes tarot-shuffle-orbit')
+    expect(css).toContain('@keyframes tarot-shuffle-charge')
+    expect(css).toContain('@keyframes tarot-shuffle-burst')
+    expect(css).toContain('.tarot-shuffle-deck--complete')
+    expect(css).toMatch(/@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.tarot-shuffle-deck__orbit\{animation:none/s)
   })
 
   it('keeps shuffle progress off the interval-driven render loop', () => {
