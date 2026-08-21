@@ -9,11 +9,9 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   margin: 0 -14px;
-  padding: 8px 16px 6px;
+  padding-right: 16px;
+  padding-left: 16px;
   background: #fffaf6;
 }
 
@@ -54,33 +52,39 @@
   background: #d9845d;
 }
 
+.miniapp-nest__scene {
+  position: relative;
+}
+
 .miniapp-nest__empty {
-  display: flex;
-  min-height: 220px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #aa9790;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.7;
+  display: block;
+  width: 100%;
+  height: 560rpx;
+  overflow: hidden;
+  border: 1px solid rgba(208, 144, 80, .2);
+  border-radius: 27px;
+  box-shadow: 0 14px 28px rgba(137, 87, 50, .12);
 }
 
 .miniapp-nest__shortcuts {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  z-index: 2;
   display: flex;
-  justify-content: flex-end;
-  gap: 14px;
+  flex-direction: column;
+  gap: 12px;
+  transform: translateY(-50%);
 }
 
 .miniapp-nest__shortcut {
   display: flex;
-  width: 68px;
+  width: 100px;
   flex-direction: column;
   align-items: center;
 }
 
 .miniapp-nest__shortcut image {
-  width: 68px;
-  height: 70px;
+  width: 100px;
+  height: 104px;
 }

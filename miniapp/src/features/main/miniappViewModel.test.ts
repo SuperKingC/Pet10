@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { getFortuneAvailability, getInvitationButtonState, getProfilePresentation, shouldShowNestFeedback } from './miniappViewModel'
 
 describe('miniapp view model', () => {
-  it('only shows Pet10 status feedback on the nest tab', () => {
-    expect(shouldShowNestFeedback('nest')).toBe(true)
-    expect(shouldShowNestFeedback('calendar')).toBe(false)
-    expect(shouldShowNestFeedback('messages')).toBe(false)
-    expect(shouldShowNestFeedback('me')).toBe(false)
+  it('shows only active loading or actionable Pet10 feedback on the nest tab', () => {
+    expect(shouldShowNestFeedback('nest', true, '')).toBe(true)
+    expect(shouldShowNestFeedback('nest', false, '读取 Pet10 状态失败')).toBe(true)
+    expect(shouldShowNestFeedback('nest', false, '')).toBe(false)
+    expect(shouldShowNestFeedback('calendar', true, '读取 Pet10 状态失败')).toBe(false)
   })
 
   it('prefers the authenticated profile name and avatar', () => {

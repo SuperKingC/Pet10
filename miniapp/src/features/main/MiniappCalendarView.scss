@@ -1,5 +1,5 @@
 .miniapp-calendar { display: flex; flex-direction: column; gap: 16px; padding: 0 14px; }
-.miniapp-calendar__header { display: flex; flex-direction: column; gap: 4px; padding: 8px 2px; }
+.miniapp-calendar__header { display: flex; flex-direction: column; gap: 4px; padding: 8px 2px 6px; }
 .miniapp-calendar__title { color: #382b23; font-size: 44rpx; font-weight: 800; }
 .miniapp-calendar__caption { color: #a89489; font-size: 24rpx; }
 .miniapp-calendar__month-bar { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px 5px 16px; color: #8a4f37; background: #fff0dc; border: 1px solid #e8bd91; border-radius: 16px; font-size: 13px; font-weight: 800; }

@@ -4,7 +4,6 @@ import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
-import { resolveMiniappLaunchState } from '../../domain/launchState'
 import { hasAuthenticatedSession } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
@@ -99,7 +98,7 @@ export default function Index() {
       setContext(nextContext)
       setRoomId(nextRoomId)
       if (nextRoomId) Taro.setStorageSync(activeRoomKey, nextRoomId)
-      setMessage(invitationToken ? '收到一份好友邀请，请确认加入' : '已恢复你的 Pet10 小窝')
+      setMessage(invitationToken ? '收到一份好友邀请，请确认加入' : '')
       if (nextRoomId) {
         const result = await petApi.getRoom(nextRoomId)
         setPet(result.pet ? mapRoomPet(result.pet) : null)
@@ -208,9 +207,6 @@ export default function Index() {
     </View>
   }
 
-  const entry = context
-    ? resolveMiniappLaunchState(context, invitationToken)
-    : 'waiting-room'
   const invitationButton = getInvitationButtonState(Boolean(shareInvitation), preparingShare)
 
   const renderMainContent = () => {
@@ -241,21 +237,9 @@ export default function Index() {
   }
 
   return <View className="home-page">
-    {activeTab === 'nest' && <View className="page-heading">
-      <Text className="eyebrow">PET10 · 共同小窝</Text>
-      <Text className="page-title">{entry === 'waiting-room' ? '小多利正在等你' : '照顾你们的小多利'}</Text>
-      <Text className="page-description">
-        {entry === 'waiting-room'
-          ? '邀请一位好友，建立一个只属于你们的共同小窝。'
-          : invitationToken
-            ? '这是一份好友邀请，接受后会创建新的共同小窝。'
-            : '每一段关系，都有一只只属于你们的小多利。'}
-      </Text>
-    </View>}
-
     {renderMainContent()}
 
-    {shouldShowNestFeedback(activeTab) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
+    {shouldShowNestFeedback(activeTab, loading, message) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
     <MiniappPawMenu
       open={pawMenuOpen}
       roomId={roomId}
@@ -282,7 +266,9 @@ export default function Index() {
         onClose={() => setGobangOpen(false)}
       />
     )}
-    {tarotOpen && <MiniappTarotFlow onClose={() => setTarotOpen(false)} />}
+    {tarotOpen && (
+      <MiniappTarotFlow roomId={roomId} onClose={() => setTarotOpen(false)} />
+    )}
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (invitationButton.shareReady ? (
       <Button className="share-button" openType="share">
         {invitationButton.label}

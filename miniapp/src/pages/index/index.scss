@@ -3,6 +3,26 @@
   padding: 48px 32px 184px;
 }
 
+.miniapp-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 2px 6px;
+}
+
+.miniapp-page-title {
+  color: #382b23;
+  font-size: 44rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.miniapp-page-caption {
+  color: #a89489;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
 .miniapp-panel {
   margin-bottom: 24px;
   padding: 24px;
