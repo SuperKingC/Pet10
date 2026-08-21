@@ -19,4 +19,16 @@ describe('WeChat developer tools project config', () => {
     expect(config.miniprogramRoot).toBe('./dist')
     expect(config.setting?.minified).toBe(true)
   })
+
+  it('also supports importing the repository root', () => {
+    const config = JSON.parse(
+      readFileSync(resolve(miniappRoot(), '../project.config.json'), 'utf8'),
+    ) as {
+      compileType?: string
+      miniprogramRoot?: string
+    }
+
+    expect(config.compileType).toBe('miniprogram')
+    expect(config.miniprogramRoot).toBe('./miniapp/dist')
+  })
 })

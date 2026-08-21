@@ -1,0 +1,15 @@
+{
+  "miniprogramRoot": "./miniapp/dist",
+  "projectname": "pet10-miniapp",
+  "description": "Pet10 微信小程序",
+  "appid": "wxac30484c45f51f1e",
+  "setting": {
+    "urlCheck": false,
+    "es6": false,
+    "enhance": true,
+    "compileHotReLoad": false,
+    "postcss": false,
+    "minified": true
+  },
+  "compileType": "miniprogram"
+}

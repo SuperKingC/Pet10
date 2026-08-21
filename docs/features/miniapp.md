@@ -114,10 +114,10 @@ npm test --prefix miniapp
 npm run build:weapp --prefix miniapp
 ```
 
-微信开发者工具导入目录：
+微信开发者工具可直接导入仓库根目录：
 
 ```text
-D:\Pet10\miniapp
+D:\Pet10
 ```
 
 构建输出目录：
@@ -126,7 +126,7 @@ D:\Pet10\miniapp
 D:\Pet10\miniapp\dist
 ```
 
-根目录的 `project.config.json` 通过 `miniprogramRoot` 指向 `dist`。微信开发者工具应导入项目根目录，不应直接导入构建输出目录。
+仓库根目录的 `project.config.json` 通过 `miniprogramRoot` 指向 `miniapp/dist`；`miniapp/project.config.json` 仍支持单独导入小程序目录。不要直接导入构建输出目录。
 
 ## 白屏排查
 
