@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getCalendarMonth, localDayKey, shiftMonth } from './calendarModel'
+import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, shiftMonth } from './calendarModel'
 
 describe('miniapp calendar model', () => {
   it('calculates month metadata without timezone drift', () => {
@@ -16,5 +16,40 @@ describe('miniapp calendar model', () => {
     const next = shiftMonth(new Date(2026, 11, 1), 1)
     expect(next.getFullYear()).toBe(2027)
     expect(next.getMonth()).toBe(0)
+  })
+})
+
+describe('miniapp calendar monday lead', () => {
+  it('calculates monday-first leading blanks', () => {
+    // 2026-08-01 周六 → 前置 5 格
+    expect(getMondayLead(new Date(2026, 7, 1))).toBe(5)
+    // 2026-02-01 周日 → 前置 6 格
+    expect(getMondayLead(new Date(2026, 1, 1))).toBe(6)
+    // 2026-06-01 周一 → 前置 0 格
+    expect(getMondayLead(new Date(2026, 5, 1))).toBe(0)
+  })
+})
+
+describe('miniapp calendar mood mapping', () => {
+  it('splits moods into mine and friend per day', () => {
+    const moods = [
+      { userId: 'me', day: '2026-08-17', level: 4 },
+      { userId: 'friend', day: '2026-08-17', level: 3 },
+      { userId: 'me', day: '2026-08-18', level: 2 },
+    ]
+    const map = buildMoodByDay(moods, 'me')
+    expect(map.get('2026-08-17')?.mine?.level).toBe(4)
+    expect(map.get('2026-08-17')?.friend?.level).toBe(3)
+    expect(map.get('2026-08-18')?.mine?.level).toBe(2)
+    expect(map.get('2026-08-18')?.friend).toBeUndefined()
+  })
+
+  it('keeps the latest entry per person per day', () => {
+    const moods = [
+      { userId: 'me', day: '2026-08-17T08:00:00Z', level: 2 },
+      { userId: 'me', day: '2026-08-17T20:00:00Z', level: 4 },
+    ]
+    const map = buildMoodByDay(moods, 'me')
+    expect(map.get('2026-08-17')?.mine?.level).toBe(4)
   })
 })
