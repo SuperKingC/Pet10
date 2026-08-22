@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Button, Image, Input, Text, View } from '@tarojs/components'
+import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
 import { hasAuthenticatedSession } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
+import { MiniappLoginScreen } from '../../features/auth/MiniappLoginScreen'
+import { MiniappLaunchLoading } from '../../features/auth/MiniappLaunchLoading'
+import { authenticatedLaunchAssets, loginAssets, prepareLaunchAssets } from '../../services/launchAssetLoader'
 import { normalizeWechatProfile } from '../../domain/wechatProfile'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
 import { roomApi, type RoomMemory } from '../../services/roomApi'
@@ -19,6 +22,7 @@ import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
 import { MiniappCalendarView } from '../../features/main/MiniappCalendarView'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
+import { MiniappCodewordModal } from '../../features/main/MiniappCodewordModal'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappGamesModal } from '../../features/main/MiniappGamesModal'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
@@ -35,16 +39,7 @@ const actionMessages: Record<PetAction, string> = {
   sleep: '小多利休息了一会儿',
 }
 
-function readWechatAvatar(filePath: string) {
-  return new Promise<string>((resolve, reject) => {
-    Taro.getFileSystemManager().readFile({
-      filePath,
-      encoding: 'base64',
-      success: (result) => resolve(`data:image/jpeg;base64,${result.data as string}`),
-      fail: reject
-    })
-  })
-}
+type LaunchPhase = 'login' | 'preparing' | 'ready'
 
 export default function Index() {
   const [context, setContext] = useState<LaunchContext | null>(null)
@@ -54,18 +49,24 @@ export default function Index() {
   const [invitationToken, setInvitationToken] = useState('')
   const [shareInvitation, setShareInvitation] = useState<InvitationSummary | null>(null)
   const [preparingShare, setPreparingShare] = useState(false)
-  const [message, setMessage] = useState('请使用微信登录')
+  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [launchPhase, setLaunchPhase] = useState<LaunchPhase>(() => hasAuthenticatedSession(getAccessToken()) ? 'preparing' : 'login')
+  const [launchProgress, setLaunchProgress] = useState(() => hasAuthenticatedSession(getAccessToken()) ? 0 : 1)
+  const [launchError, setLaunchError] = useState('')
   const [activeTab, setActiveTab] = useState<MiniappTab>('nest')
   const [pawMenuOpen, setPawMenuOpen] = useState(false)
+  const [codewordOpen, setCodewordOpen] = useState(false)
   const [memoryPanelOpen, setMemoryPanelOpen] = useState(false)
   const [memories, setMemories] = useState<RoomMemory[]>([])
   const [memoryBusy, setMemoryBusy] = useState(false)
   const [gamesOpen, setGamesOpen] = useState(false)
   const [gobangOpen, setGobangOpen] = useState(false)
   const [tarotOpen, setTarotOpen] = useState(false)
+  const [tarotShareTitle, setTarotShareTitle] = useState('')
   const [wechatName, setWechatName] = useState('')
   const [wechatAvatar, setWechatAvatar] = useState('')
+  const [profileLoading, setProfileLoading] = useState(false)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -89,6 +90,18 @@ export default function Index() {
   }
 
   Taro.useShareAppMessage(() => {
+    const invitationPath = shareInvitation
+      ? buildInvitationShare(shareInvitation.token, context?.user.displayName || '好友').path
+      : '/pages/index/index'
+    if (tarotShareTitle) {
+      return {
+        title: tarotShareTitle,
+        path: invitationPath,
+        success: () => {
+          void prepareInvitation()
+        },
+      }
+    }
     if (!shareInvitation) {
       return {
         title: '来 Pet10 和我一起养一只小多利',
@@ -127,8 +140,34 @@ export default function Index() {
     }
   }
 
+  const prepareLaunch = async (): Promise<boolean> => {
+    if (!getAccessToken()) return false
+    setLaunchPhase('preparing')
+    setLaunchError('')
+    setLaunchProgress(0)
+    setLoading(true)
+    try {
+      await Promise.all([
+        prepareLaunchAssets(authenticatedLaunchAssets, setLaunchProgress),
+        loadContext(),
+      ])
+      setLaunchProgress(1)
+      setLaunchPhase('ready')
+      return true
+    } catch (error) {
+      setLaunchError(error instanceof Error ? error.message : '资源准备失败，请重试')
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    if (getAccessToken()) void loadContext()
+    if (getAccessToken()) {
+      void prepareLaunch()
+    } else {
+      void prepareLaunchAssets(loginAssets, undefined).catch(() => undefined)
+    }
   }, [])
 
   Taro.useDidShow(() => {
@@ -141,23 +180,48 @@ export default function Index() {
     }
   }, [invitationToken])
 
+  const loadWechatProfile = async () => {
+    if (profileLoading || wechatName) return
+    setProfileLoading(true)
+    setMessage('')
+    try {
+      const profile = await authApi.getWechatProfile()
+      setWechatName(profile.displayName)
+      setWechatAvatar(profile.avatarUrl)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '无法读取微信资料，请重试')
+    } finally {
+      setProfileLoading(false)
+    }
+  }
+
   const loginWithWechat = async () => {
     setLoading(true)
+    setMessage('')
+    setLaunchPhase('preparing')
+    setLaunchProgress(0)
+    setLaunchError('')
     try {
-      const avatarUrl = wechatAvatar && !wechatAvatar.startsWith('http')
-        ? await readWechatAvatar(wechatAvatar)
-        : wechatAvatar
       await authApi.loginWithWechat(normalizeWechatProfile({
         displayName: wechatName,
-        avatarUrl
+        avatarUrl: wechatAvatar
       }))
-      setAccessToken(getAccessToken())
-      await loadContext()
+      const ready = await prepareLaunch()
+      if (ready) setAccessToken(getAccessToken())
     } catch (error) {
+      if (!getAccessToken()) {
+        setLaunchPhase('login')
+        setLaunchError('')
+      }
       setMessage(error instanceof Error ? error.message : '微信登录失败')
     } finally {
       setLoading(false)
     }
+  }
+
+  const retryLaunch = async () => {
+    const ready = await prepareLaunch()
+    if (ready) setAccessToken(getAccessToken())
   }
 
   const selectRoom = (nextRoomId: string) => {
@@ -212,35 +276,37 @@ export default function Index() {
     setContext(null)
     setPet(null)
     setRoomId('')
-    setMessage('请使用微信登录')
+    setMessage('')
+    setLaunchPhase('login')
+    setLaunchProgress(1)
+    setLaunchError('')
+    setWechatName('')
+    setWechatAvatar('')
     setShareInvitation(null)
   }
 
   if (!hasAuthenticatedSession(accessToken)) {
-    return <View className="home-page home-page--login">
-      <View className="login-panel">
-        <View className="login-profile">
-          <Button
-            className="login-avatar-button"
-            openType="chooseAvatar"
-            onChooseAvatar={(event) => setWechatAvatar(event.detail.avatarUrl)}
-          >
-            {wechatAvatar ? <Image className="login-avatar" src={wechatAvatar} mode="aspectFill" /> : <Text>选择头像</Text>}
-          </Button>
-          <Input
-            className="login-name-input"
-            type="nickname"
-            value={wechatName}
-            placeholder="填写微信昵称（可选）"
-            onInput={(event) => setWechatName(event.detail.value)}
-          />
-        </View>
-        <Text className="panel-title">欢迎来到 Pet10</Text>
-        <Text className="login-caption">微信登录后，和重要的人一起照顾一只小多利。</Text>
-        <Button className="wechat-button" loading={loading} onClick={loginWithWechat}>微信登录</Button>
-      </View>
-      {message && <View className="feedback"><Text>{loading ? '正在登录…' : message}</Text></View>}
-    </View>
+    return <MiniappLoginScreen
+      busy={loading}
+      message={message}
+      wechatName={wechatName}
+      wechatAvatar={wechatAvatar}
+      launchPhase={launchPhase === 'ready' ? 'login' : launchPhase}
+      launchProgress={launchProgress}
+      launchError={launchError}
+      profileLoading={profileLoading}
+      onOpenWechatLogin={() => void loadWechatProfile()}
+      onWechatLogin={() => void loginWithWechat()}
+      onRetryLaunch={() => void retryLaunch()}
+    />
+  }
+
+  if (launchPhase !== 'ready') {
+    return <MiniappLaunchLoading
+      progress={launchProgress}
+      error={launchError}
+      onRetry={() => void prepareLaunch()}
+    />
   }
 
   const invitationButton = getInvitationButtonState(Boolean(shareInvitation), preparingShare)
@@ -284,11 +350,17 @@ export default function Index() {
     {shouldShowNestFeedback(activeTab, loading, message) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
     <MiniappPawMenu
       open={pawMenuOpen}
-      roomId={roomId}
       onClose={() => setPawMenuOpen(false)}
+      onOpenCodeword={() => { setPawMenuOpen(false); setCodewordOpen(true) }}
       onOpenGames={() => { setPawMenuOpen(false); setGamesOpen(true) }}
       onOpenTarot={() => { setPawMenuOpen(false); setTarotOpen(true) }}
     />
+    {codewordOpen && (
+      <MiniappCodewordModal
+        roomId={roomId}
+        onClose={() => setCodewordOpen(false)}
+      />
+    )}
     {memoryPanelOpen && (
       <MiniappMemoryPanel
         memories={memories}
@@ -313,7 +385,11 @@ export default function Index() {
       />
     )}
     {tarotOpen && (
-      <MiniappTarotFlow roomId={roomId} onClose={() => setTarotOpen(false)} />
+      <MiniappTarotFlow
+        roomId={roomId}
+        onClose={() => { setTarotOpen(false); setTarotShareTitle('') }}
+        onShareTitleChange={setTarotShareTitle}
+      />
     )}
     {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (invitationButton.shareReady ? (
       <Button className="share-button" openType="share">

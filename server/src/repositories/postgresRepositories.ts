@@ -68,7 +68,8 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
           patch.avatarConfig !== undefined, patch.avatarConfig,
           patch.gender !== undefined, patch.gender
         ]
-      )
+      ),
+      deleteById: async (id) => { await database.query('DELETE FROM users WHERE id=$1', [id]) }
     },
     invites: {
       findByCode: (code) => one('SELECT * FROM invite_codes WHERE code=$1', [code.toUpperCase()]),

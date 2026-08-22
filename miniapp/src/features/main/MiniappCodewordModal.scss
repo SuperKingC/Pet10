@@ -1,0 +1,59 @@
+.codeword-modal__title,
+.codeword-modal__question,
+.codeword-modal__answer,
+.codeword-modal__hint {
+  display: block;
+}
+
+.codeword-modal__title {
+  color: #8a4f37;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.codeword-modal__question {
+  margin-top: 20rpx;
+  color: #5e3b1d;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.codeword-modal__answer {
+  margin-top: 16rpx;
+  color: #925e43;
+  font-size: var(--font-size-secondary);
+}
+
+.codeword-modal__answer-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.codeword-modal__answer-row input {
+  flex: 1;
+  padding: 16rpx 20rpx;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 999px;
+  font-size: var(--font-size-body);
+}
+
+.codeword-modal__answer-row button {
+  padding: 0 28rpx;
+  color: #fff;
+  background: #d9845d;
+  border: 0;
+  border-radius: 14px;
+  font-size: var(--font-size-body);
+}
+
+.codeword-modal__answer-row button::after {
+  border: 0;
+}
+
+.codeword-modal__hint {
+  margin-top: 16rpx;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}

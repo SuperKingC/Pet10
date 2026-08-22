@@ -6,14 +6,12 @@ import {
 
 interface MiniappTarotSpreadStageProps {
   spread: MiniappTarotSpread
-  onSpreadChange(spread: MiniappTarotSpread): void
-  onContinue(): void
+  onSelect(spread: MiniappTarotSpread): void
 }
 
 export function MiniappTarotSpreadStage({
   spread,
-  onSpreadChange,
-  onContinue,
+  onSelect,
 }: MiniappTarotSpreadStageProps) {
   return (
     <View className="miniapp-tarot__stage miniapp-tarot__stage--spread">
@@ -26,7 +24,7 @@ export function MiniappTarotSpreadStage({
               'miniapp-tarot__spread',
               spread === option.key ? 'miniapp-tarot__spread--active' : '',
             ].filter(Boolean).join(' ')}
-            onClick={() => onSpreadChange(option.key)}
+            onClick={() => onSelect(option.key)}
           >
             <View
               className={`miniapp-tarot__spread-layout miniapp-tarot__spread-layout--${option.count}`}
@@ -47,9 +45,6 @@ export function MiniappTarotSpreadStage({
           </Button>
         ))}
       </View>
-      <Button className="miniapp-tarot__next" onClick={onContinue}>
-        下一步 · 洗牌
-      </Button>
     </View>
   )
 }

@@ -12,7 +12,7 @@
   margin: 0 -14px;
   padding-right: 16px;
   padding-left: 16px;
-  background: #fffaf6;
+  background: #fff8ee;
 }
 
 .miniapp-nest__title {
@@ -56,14 +56,13 @@
   position: relative;
 }
 
-.miniapp-nest__empty {
+.miniapp-nest__loading {
   display: block;
   width: 100%;
   height: 560rpx;
   overflow: hidden;
-  border: 1px solid rgba(208, 144, 80, .2);
   border-radius: 27px;
-  box-shadow: 0 14px 28px rgba(137, 87, 50, .12);
+  background: #fff8ee;
 }
 
 .miniapp-nest__shortcuts {

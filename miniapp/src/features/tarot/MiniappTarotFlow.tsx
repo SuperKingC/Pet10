@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Button, Image, Text, View } from '@tarojs/components'
 import { roomApi } from '../../services/roomApi'
@@ -14,25 +14,53 @@ import { TAROT_SANCTUARY_BACKGROUND } from './tarotAssets'
 import { createTarotCandidates } from './tarotCards'
 import { createInitialTarotFlow, tarotFlowReducer } from './tarotFlow'
 import { listTarotHistory, saveTarotReading } from './tarotHistory'
-import { buildShareText, buildTarotReading } from './tarotReading'
-import { findTarotSpread } from './tarotSpreads'
+import { buildShareText, buildTarotReading, buildTarotShareTitle } from './tarotReading'
+import { findTarotSpread, type MiniappTarotSpread } from './tarotSpreads'
 import './MiniappTarotFlow.scss'
 
 interface MiniappTarotFlowProps {
   roomId: string
   onClose(): void
+  onShareTitleChange?(title: string): void
 }
 
 const stageOrder = ['question', 'spread', 'shuffle', 'cut', 'fan', 'reveal', 'reading'] as const
 
-export function MiniappTarotFlow({ roomId, onClose }: MiniappTarotFlowProps) {
+export function MiniappTarotFlow({ roomId, onClose, onShareTitleChange }: MiniappTarotFlowProps) {
   const [state, dispatch] = useReducer(tarotFlowReducer, undefined, createInitialTarotFlow)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [sharing, setSharing] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const leaveTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const history = useMemo(() => historyOpen ? listTarotHistory() : [], [historyOpen, state.stage])
   const activeStageIndex = stageOrder.indexOf(state.stage)
 
+  useEffect(() => () => {
+    leaveTimersRef.current.forEach((timer) => clearTimeout(timer))
+    leaveTimersRef.current = []
+  }, [])
+
+  // while the reading is on screen, register a tarot-flavored share title so
+  // the page-level useShareAppMessage can invite friends with the result card
+  useEffect(() => {
+    if (state.stage !== 'reading' || !state.reading) return
+    onShareTitleChange?.(buildTarotShareTitle(state.reading))
+    return () => onShareTitleChange?.('')
+  }, [state.stage, state.reading, onShareTitleChange])
+
   const createCandidates = () => createTarotCandidates(10)
+
+  const selectSpread = (spread: MiniappTarotSpread) => {
+    if (leaving || state.stage !== 'spread') return
+    dispatch({ type: 'set-spread', spread })
+    leaveTimersRef.current.push(
+      setTimeout(() => setLeaving(true), 220),
+      setTimeout(() => {
+        dispatch({ type: 'continue' })
+        setLeaving(false)
+      }, 660),
+    )
+  }
 
   const finishReading = () => {
     if (state.stage !== 'reveal' || !state.flipped.every(Boolean)) return
@@ -56,13 +84,16 @@ export function MiniappTarotFlow({ roomId, onClose }: MiniappTarotFlowProps) {
   }
 
   const restart = () => {
+    leaveTimersRef.current.forEach((timer) => clearTimeout(timer))
+    leaveTimersRef.current = []
     setSharing(false)
     setHistoryOpen(false)
+    setLeaving(false)
     dispatch({ type: 'restart' })
   }
 
   return (
-    <View className="miniapp-tarot">
+    <View className={['miniapp-tarot', leaving ? 'miniapp-tarot--leaving' : ''].filter(Boolean).join(' ')}>
       <Image
         className="miniapp-tarot__background"
         src={TAROT_SANCTUARY_BACKGROUND}
@@ -71,6 +102,7 @@ export function MiniappTarotFlow({ roomId, onClose }: MiniappTarotFlowProps) {
       />
       <View className="miniapp-tarot__veil" />
       <View className="miniapp-tarot__stars" />
+      <View className="miniapp-tarot__fade" />
       <View className="miniapp-tarot__header">
         <Button aria-label="退出塔罗占卜" onClick={onClose}>×</Button>
         <View className="miniapp-tarot__header-title">
@@ -98,8 +130,7 @@ export function MiniappTarotFlow({ roomId, onClose }: MiniappTarotFlowProps) {
       {state.stage === 'spread' && (
         <MiniappTarotSpreadStage
           spread={state.spread}
-          onSpreadChange={(spread) => dispatch({ type: 'set-spread', spread })}
-          onContinue={() => dispatch({ type: 'continue' })}
+          onSelect={selectSpread}
         />
       )}
       {state.stage === 'shuffle' && (

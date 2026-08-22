@@ -150,7 +150,7 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
     <View className="miniapp-calendar">
       <View className="miniapp-page-header miniapp-calendar__header">
         <Text className="miniapp-page-title miniapp-calendar__title">小记</Text>
-        <Text className="miniapp-page-caption miniapp-calendar__caption">记录你们一起度过的每一天</Text>
+        <Text className="miniapp-page-caption miniapp-calendar__caption">记录你们一起度过的每一天。</Text>
       </View>
 
       <View className="miniapp-calendar__month-bar">

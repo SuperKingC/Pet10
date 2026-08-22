@@ -9,7 +9,7 @@ interface MiniappTarotShuffleStageProps {
   onSkip(): void
 }
 
-const shuffleDurationMs = 4000
+const shuffleDurationMs = 3000
 
 export function MiniappTarotShuffleStage({
   progress,
@@ -45,6 +45,7 @@ export function MiniappTarotShuffleStage({
   return (
     <View className="miniapp-tarot__stage miniapp-tarot__stage--ritual miniapp-tarot__stage--shuffle">
       <Text className="miniapp-tarot__title">长按牌堆洗牌，让心意融进牌里</Text>
+      <View className="miniapp-tarot__spacer" />
       <Button
         className={`miniapp-tarot__shuffle-deck${isShuffling ? ' miniapp-tarot__shuffle-deck--active' : ''}${progress >= 100 && !isShuffling ? ' miniapp-tarot__shuffle-deck--complete' : ''}`}
         aria-label="长按洗牌"
@@ -62,6 +63,7 @@ export function MiniappTarotShuffleStage({
         <View className="miniapp-tarot__shuffle-rune">✦</View>
         <View className="miniapp-tarot__shuffle-burst" />
       </Button>
+      <View className="miniapp-tarot__spacer" />
       <View className="miniapp-tarot__shuffle-bar">
         <View style={{ width: `${progress}%` }} />
       </View>

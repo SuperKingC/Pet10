@@ -73,9 +73,13 @@ export function MiniappTarotReadingStage({
         {reading.misreadings.map((item) => <Text key={item}>· {item}</Text>)}
       </View>
       <View className="miniapp-tarot__reading-actions">
-        <Button disabled={!canShare || sharing || shared} onClick={onShare}>
-          {!canShare ? '绑定好友后可分享' : shared ? '已分享到聊天室 ✓' : sharing ? '分享中…' : '分享到聊天室'}
-        </Button>
+        {canShare ? (
+          <Button disabled={sharing || shared} onClick={onShare}>
+            {shared ? '已分享到聊天室 ✓' : sharing ? '分享中…' : '分享到聊天室'}
+          </Button>
+        ) : (
+          <Button openType="share">分享塔罗结果 · 邀请好友</Button>
+        )}
         <Button onClick={onRestart}>再占一次</Button>
         <Button onClick={onClose}>退出</Button>
       </View>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAJOR_ARCANA } from './tarotCards'
-import { buildShareText, buildTarotReading } from './tarotReading'
+import { buildShareText, buildTarotReading, buildTarotShareTitle } from './tarotReading'
 
 describe('miniapp tarot reading', () => {
   it('builds actionable reading content for selected cards', () => {
@@ -16,5 +16,8 @@ describe('miniapp tarot reading', () => {
     expect(reading.next24Hours).toContain('出发')
     expect(reading.createdAt).toBe('2026-08-21T05:00:00.000Z')
     expect(buildShareText(reading)).toContain('愚者')
+    // invite-friend share card title names the drawn cards
+    expect(buildTarotShareTitle(reading)).toContain('愚者')
+    expect(buildTarotShareTitle(reading)).toContain('邀请好友')
   })
 })

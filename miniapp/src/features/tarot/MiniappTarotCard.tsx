@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Image, Text, View } from '@tarojs/components'
 import type { DrawnTarotCard } from './tarotCards'
 import { getTarotArtworkUrl, TAROT_CARD_BACK } from './tarotAssets'
@@ -11,12 +11,26 @@ interface MiniappTarotCardProps {
 
 export function MiniappTarotCard({ drawn, flipped, compact = false }: MiniappTarotCardProps) {
   const [artFailed, setArtFailed] = useState(false)
+  const [settled, setSettled] = useState(false)
+
+  // once the flip transition finishes, drop the 3D context so the renderer
+  // rasterizes the artwork at full device resolution instead of a blurry
+  // perspective layer
+  useEffect(() => {
+    if (!flipped) {
+      setSettled(false)
+      return
+    }
+    const timer = setTimeout(() => setSettled(true), 820)
+    return () => clearTimeout(timer)
+  }, [flipped])
 
   return (
     <View
       className={[
         'miniapp-tarot-card',
         flipped ? 'miniapp-tarot-card--flipped' : '',
+        settled ? 'miniapp-tarot-card--settled' : '',
         compact ? 'miniapp-tarot-card--compact' : '',
       ].filter(Boolean).join(' ')}
     >

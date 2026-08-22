@@ -62,7 +62,9 @@ flowchart TD
 
 微信登录只负责确认用户身份，不再要求邮箱、验证码、邀请码或房间 ID。服务端通过微信登录凭证完成身份识别，并返回 Pet10 会话令牌；客户端不能伪造用户身份或直接生成服务端令牌。
 
-首次登录可以使用用户主动确认的微信昵称和头像作为默认资料，同时允许用户设置小窝内的称呼。小程序通过 `type="nickname"` 和 `open-type="chooseAvatar"` 采集资料；头像临时文件转为受限大小的图片数据后保存，不能静默读取或强制覆盖用户后续修改的资料。资料补充应是轻量步骤，不能阻塞用户进入产品。
+小程序登录页使用整页启动场景承接小多利形象，点击主按钮后打开居中的登录方式弹窗。正式流程只提供微信一键登录；“暂时不登录”仅关闭弹窗，不创建游客会话，避免出现无法保存关系和进度的伪登录状态。系统读取微信资料后在弹窗内只读展示头像和昵称，登录后沿用服务端返回的资料，不提供玩家修改入口。点击微信登录后弹窗关闭，原登录按钮位置直接显示启动资源进度，准备完成后才进入主界面。
+
+系统读取到的微信头像和昵称会作为登录资料，并在弹窗内只读展示。登录页不提供头像选择器、昵称输入框或修改入口；用户拒绝资料授权时停留在弹窗内，可以重新发起读取。资料读取是登录前的轻量确认，不会在登录后重复弹窗。
 
 ### 无邀请进入
 
@@ -193,7 +195,7 @@ type LaunchContext = {
 - 基础样式；
 - 小尺寸的小多利占位图。
 
-不能在微信登录前下载全部宠物动作、塔罗牌或其他大型功能资源。
+登录页可以非阻塞预热基础小多利图，保证点击登录后不再重复等待；仍不能在微信登录前下载塔罗、五子棋或其他大型功能资源。
 
 ### 登录后按入口准备
 
@@ -233,6 +235,9 @@ type LaunchContext = {
 - `miniapp/src/services/authApi.ts`
 - `miniapp/src/services/apiClient.ts`
 - `miniapp/src/pages/index/index.tsx`
+- `miniapp/src/services/launchAssetLoader.ts`
+- `miniapp/src/features/auth/MiniappLoginScreen.tsx`
+- `miniapp/src/features/auth/MiniappLaunchLoading.tsx`
 - `miniapp/src/pages/room/room.tsx`
 - `miniapp/src/pages/settings/settings.tsx`
 - `docs/features/miniapp.md`

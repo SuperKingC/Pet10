@@ -31,6 +31,7 @@ export function MiniappTarotRevealStage({
   return (
     <View className="miniapp-tarot__stage miniapp-tarot__stage--reveal">
       <Text className="miniapp-tarot__title">{allFlipped ? '牌已全部翻开' : '逐张点开，翻开你的牌'}</Text>
+      <View className="miniapp-tarot__spacer" />
       <View className="miniapp-tarot__reveal-row">
         {drawn.map((item, index) => (
           <Button
@@ -43,6 +44,7 @@ export function MiniappTarotRevealStage({
           </Button>
         ))}
       </View>
+      <View className="miniapp-tarot__spacer" />
       <Button className="miniapp-tarot__next" disabled={!ready} onClick={onContinue}>
         {allFlipped ? '查看解读' : `已翻开 ${flipped.filter(Boolean).length}/${drawn.length}`}
       </Button>

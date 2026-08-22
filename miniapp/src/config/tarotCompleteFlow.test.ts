@@ -29,6 +29,6 @@ describe('miniapp complete tarot flow', () => {
       'utf8',
     )
 
-    expect(pageSource).toContain('<MiniappTarotFlow roomId={roomId}')
+    expect(pageSource).toMatch(/<MiniappTarotFlow\s+roomId=\{roomId\}/)
   })
 })

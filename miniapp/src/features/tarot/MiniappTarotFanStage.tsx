@@ -31,6 +31,7 @@ export function MiniappTarotFanStage({
   return (
     <View className="miniapp-tarot__stage miniapp-tarot__stage--fan">
       <Text className="miniapp-tarot__title">心中默念问题，选出 {needCount} 张牌</Text>
+      <View className="miniapp-tarot__spacer" />
       <View className={`miniapp-tarot__picked-row miniapp-tarot__picked-row--${needCount}`}>
         {Array.from({ length: needCount }, (_, order) => (
           <View
@@ -40,36 +41,31 @@ export function MiniappTarotFanStage({
               : 'miniapp-tarot__picked-slot'}
           >
             {picked[order] !== undefined && (
-              <>
-                <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
-                <Text>{order + 1}</Text>
-              </>
+              <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
             )}
           </View>
         ))}
       </View>
-      <View className="miniapp-tarot__fan">
-        {candidates.map((candidate, index) => {
-          const offset = index - (candidates.length - 1) / 2
-          return (
-            <Button
-              key={candidate.card.id}
-              className={[
-                'miniapp-tarot__fan-card',
-                flyingCard === index ? 'miniapp-tarot__fan-card--flying' : '',
-                picked.includes(index) ? 'miniapp-tarot__fan-card--picked' : '',
-              ].filter(Boolean).join(' ')}
-              style={{
-                transform: `translateX(${offset * 32}rpx) translateY(${Math.abs(offset) * 7}rpx) rotate(${offset * 5}deg)`,
-              }}
-              disabled={picked.includes(index) || flyingCard !== undefined}
-              onClick={() => onPick(index)}
-            >
-              <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
-            </Button>
-          )
-        })}
+      <View className={`miniapp-tarot__fan miniapp-tarot__fan--${needCount}`}>
+        {candidates.map((candidate, index) => (
+          <Button
+            key={candidate.card.id}
+            className={[
+              'miniapp-tarot__fan-card',
+              flyingCard === index ? 'miniapp-tarot__fan-card--flying' : '',
+              picked.includes(index) ? 'miniapp-tarot__fan-card--picked' : '',
+            ].filter(Boolean).join(' ')}
+            style={flyingCard === index
+              ? { '--fly-x': `${(picked.length - (needCount - 1) / 2) * (needCount === 5 ? 94 : 158)}rpx` }
+              : undefined}
+            disabled={picked.includes(index) || flyingCard !== undefined}
+            onClick={() => onPick(index)}
+          >
+            <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
+          </Button>
+        ))}
       </View>
+      <View className="miniapp-tarot__spacer" />
       <Text className="miniapp-tarot__hint">已选 {picked.length}/{needCount}</Text>
       <Button
         className="miniapp-tarot__next"

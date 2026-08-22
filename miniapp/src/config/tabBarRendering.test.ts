@@ -17,7 +17,7 @@ describe('miniapp tab bar rendering', () => {
   it('centers the paw circle inside the background arc with an even gap', () => {
     const styles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
-    expect(styles).toMatch(/\.miniapp-tab__paw\s*\{[\s\S]*bottom:\s*18rpx;/)
+    expect(styles).toMatch(/\.miniapp-tab__paw\s*\{[\s\S]*bottom:\s*14rpx;/)
     expect(styles).toMatch(/\.miniapp-tab__paw\s*\{[\s\S]*width:\s*116rpx;/)
     expect(styles).toMatch(/\.miniapp-tab__paw\s*\{[\s\S]*height:\s*116rpx;/)
     expect(styles).toMatch(/\.miniapp-tab__paw\s*\{[\s\S]*background:\s*#fff9e9;/)

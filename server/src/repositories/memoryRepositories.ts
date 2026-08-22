@@ -82,7 +82,8 @@ export function createMemoryRepositories(): RepositoryBundle {
       if (patch.mbti !== undefined) user.mbti = patch.mbti
       if (patch.gender !== undefined) user.gender = patch.gender
       return user
-    }
+    },
+    async deleteById(id: string) { users.delete(id) }
   }
 
   const inviteRepo = {

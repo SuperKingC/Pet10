@@ -5,21 +5,21 @@ import { describe, expect, it } from 'vitest'
 const root = path.resolve(__dirname, '..')
 
 describe('miniapp main layout', () => {
-  it('uses the nest title and an empty room background without invitation copy', () => {
+  it('uses the nest title and a neutral loading placeholder without the room background flash', () => {
     const pageSource = fs.readFileSync(path.join(root, 'pages', 'index', 'index.tsx'), 'utf8')
     const nestSource = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.tsx'), 'utf8')
     const nestStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.scss'), 'utf8')
 
     expect(pageSource).not.toContain('className="page-heading"')
-    expect(nestSource).toContain("require('../../assets/room-background.jpg')")
     expect(nestSource).toContain('记录你们和小多利的共同生活。')
-    expect(nestSource).toContain('className="miniapp-nest__empty"')
-    expect(nestSource).toContain('mode="aspectFill"')
+    expect(nestSource).toContain('className="miniapp-nest__loading"')
+    expect(nestSource).not.toContain("require('../../assets/room-background.jpg')")
     expect(nestSource).not.toContain('style={{ backgroundImage')
     expect(nestSource).not.toContain('小多利正在赶来')
     expect(nestSource).not.toContain('邀请一位好友，建立属于你们的共同小窝。')
-    expect(nestStyles).toMatch(/\.miniapp-nest__empty\s*\{[\s\S]*width:\s*100%;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__empty\s*\{[\s\S]*height:\s*560rpx;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__loading\s*\{[\s\S]*width:\s*100%;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__loading\s*\{[\s\S]*height:\s*560rpx;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__loading\s*\{[\s\S]*background:\s*#fff8ee;/)
   })
 
   it('makes nest shortcuts and profile list icons easier to see', () => {
@@ -68,7 +68,7 @@ describe('miniapp main layout', () => {
     const tabStyles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
     expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*background:\s*#fff8ee;/)
-    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*48px 32px 184px;/)
+    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*48px 32px 220px;/)
     expect(tabStyles).toMatch(/\.miniapp-tab-bar\s*\{[\s\S]*background:\s*#fff8ee;/)
   })
 })

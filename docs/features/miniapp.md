@@ -112,8 +112,11 @@ API 域名必须使用 HTTPS，并添加到微信小程序后台的“开发管�
 | `action-clean.png` | 448×474 | 25 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
 | `room-background.webp` | 1280×1280 | 158 KB | 小窝宠物场景背景 |
-| `navigation/game.png` | 256×256 | 146 KB | 爪印菜单与游戏弹窗的游戏入口图标 |
-| `navigation/tarot.png` | 256×256 | 158 KB | 爪印菜单塔罗占卜入口图标 |
+| `navigation/game.png` | 256×256 | 97 KB | 爪印菜单游戏入口图标 |
+| `navigation/tarot.png` | 256×256 | 99 KB | 爪印菜单塔罗占卜入口图标 |
+| `navigation/gobang.png` | 256×256 | 94 KB | 游戏弹窗五子棋入口图标 |
+| `navigation/codeword.png` | 256×256 | 93 KB | 爪印菜单每日暗号图标 |
+| `me/mbti.png` | 128×128 | 30 KB | 我的页性格类型入口图标 |
 
 PNG 保留原尺寸与透明通道并采用 256 色优化；房间背景保留 1280×1280 构图并重新编码为 WebP。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内。它们与 `public/pet/xiaoduoli.png`、`public/nest/room-background.webp` 及四张动作图保持同源视觉；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
 

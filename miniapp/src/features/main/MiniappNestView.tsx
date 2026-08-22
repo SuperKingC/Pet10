@@ -14,7 +14,6 @@ import './MiniappNestView.scss'
 const wardrobe = require('../../assets/nest/wardrobe.png')
 const photoWall = require('../../assets/nest/photo-wall.png')
 const tasks = require('../../assets/nest/tasks.png')
-const roomBackground = require('../../assets/room-background.jpg')
 interface MiniappNestViewProps {
   context: LaunchContext | null
   pet: PetState | null
@@ -69,7 +68,7 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
           ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} />
           : sceneMode === 'empty'
             ? <MiniappNestLetter />
-            : <Image className="miniapp-nest__empty" src={roomBackground} mode="aspectFill" fadeIn={false} />}
+            : <View className="miniapp-nest__loading" />}
 
         {sceneMode === 'active' && (
           <View className="miniapp-nest__shortcuts">

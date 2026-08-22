@@ -16,6 +16,7 @@ import { getProfilePresentation } from './miniappViewModel'
 import './MiniappMeView.scss'
 
 const birthdayIcon = require('../../assets/me/birthday.png')
+const mbtiIcon = require('../../assets/me/mbti.png')
 const notificationIcon = require('../../assets/me/notification.png')
 const contactIcon = require('../../assets/me/contact.png')
 const aboutIcon = require('../../assets/me/about.png')
@@ -48,7 +49,6 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
   const [deactivateOpen, setDeactivateOpen] = useState(false)
   const [deactivateBusy, setDeactivateBusy] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [notice, setNotice] = useState('')
 
   useEffect(() => {
     setNameDraft(displayName)
@@ -70,7 +70,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
       setNotifications(result.items)
       setNotificationUnread(result.unread)
     } catch {
-      setNotice('通知暂时无法加载')
+      void showInfo('通知暂时无法加载')
     }
   }
 
@@ -81,9 +81,8 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     try {
       await socialApi.updateProfile({ displayName: trimmed })
       setNameEditing(false)
-      setNotice('昵称已保存')
     } catch {
-      setNotice('昵称保存失败')
+      void showInfo('昵称保存失败')
     } finally {
       setBusy(false)
     }
@@ -101,9 +100,8 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     setBusy(true)
     try {
       await socialApi.updateProfile({ birthday: value || null })
-      setNotice('生日已保存')
     } catch {
-      setNotice('生日保存失败')
+      void showInfo('生日保存失败')
     } finally {
       setBusy(false)
     }
@@ -115,9 +113,8 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     try {
       await socialApi.updateProfile({ avatarConfig: JSON.stringify(avatarConfig) })
       setAvatarEditing(false)
-      setNotice('头像已保存')
     } catch {
-      setNotice('头像保存失败')
+      void showInfo('头像保存失败')
     } finally {
       setBusy(false)
     }
@@ -126,7 +123,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
   const copyContactEmail = () => {
     Taro.setClipboardData({ data: CONTACT_EMAIL })
       .then(() => void showInfo('邮箱已复制'))
-      .catch(() => setNotice('复制失败，请手动记录邮箱'))
+      .catch(() => void showInfo('复制失败，请手动记录邮箱'))
   }
 
   const addGmFriends = async () => {
@@ -152,7 +149,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
       setDeactivateOpen(false)
       onLogout()
     } catch {
-      setNotice('注销失败，请稍后再试')
+      void showInfo('注销失败，请稍后再试')
     } finally {
       setDeactivateBusy(false)
     }
@@ -162,7 +159,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     <View className="miniapp-me">
       <View className="miniapp-page-header miniapp-me__header">
         <Text className="miniapp-page-title miniapp-me__title">我的</Text>
-        <Text className="miniapp-page-caption miniapp-me__caption">管理你的 Pet10 资料和偏好。</Text>
+        <Text className="miniapp-page-caption miniapp-me__caption">管理你的资料和偏好。</Text>
       </View>
       <View className="miniapp-me__profile">
         <View className="miniapp-me__avatar" onClick={() => setAvatarEditing(true)}>
@@ -170,17 +167,17 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         </View>
         <View className="miniapp-me__name-row" onClick={() => setNameEditing(true)}>
           <Text className="miniapp-me__name">{nameDraft || displayName}</Text>
-          <Text className="miniapp-me__name-hint">修改 ›</Text>
+          <Text className="miniapp-me__name-hint">修改 <Text className="miniapp-me__arrow">›</Text></Text>
         </View>
       </View>
       <View className="miniapp-me__list">
         <Picker mode="date" value={birthday || '2000-01-01'} onChange={(event) => void updateBirthday(event.detail.value)}>
         <View className="miniapp-me__item"><Image src={birthdayIcon} mode="aspectFit" /><Text>生日</Text><Text className="miniapp-me__birthday-value">{birthday || '设置'}</Text></View>
         </Picker>
-        <View className="miniapp-me__item" onClick={() => setMbtiTesting(true)}><Text className="miniapp-me__mbti-icon">测</Text><Text>性格类型</Text><Text className="miniapp-me__value">{mbti ? `${mbti} · 重新测试` : '开始测试'}</Text></View>
+        <View className="miniapp-me__item" onClick={() => setMbtiTesting(true)}><Image src={mbtiIcon} mode="aspectFit" fadeIn={false} /><Text>性格类型</Text><Text className="miniapp-me__value">{mbti ? `${mbti} · 重新测试` : '开始测试'}</Text></View>
         <View className="miniapp-me__item" onClick={() => void loadNotifications()}><Image src={notificationIcon} mode="aspectFit" /><Text>消息通知</Text><Text>{notificationUnread > 0 ? `${notificationUnread} 条未读` : '查看'}</Text></View>
-        <View className="miniapp-me__item" onClick={() => setContactOpen(true)}><Image src={contactIcon} mode="aspectFit" /><Text>联系我们</Text><Text>›</Text></View>
-        <View className="miniapp-me__item" onClick={() => setAboutOpen(true)}><Image src={aboutIcon} mode="aspectFit" /><Text>关于小多利</Text><Text>›</Text></View>
+        <View className="miniapp-me__item" onClick={() => setContactOpen(true)}><Image src={contactIcon} mode="aspectFit" /><Text>联系我们</Text><Text className="miniapp-me__arrow">›</Text></View>
+        <View className="miniapp-me__item" onClick={() => setAboutOpen(true)}><Image src={aboutIcon} mode="aspectFit" /><Text>关于小多利</Text><Text className="miniapp-me__arrow">›</Text></View>
         <Button className="miniapp-me__logout" onClick={onLogout}><Image src={logoutIcon} mode="aspectFit" /><Text>退出登录</Text></Button>
         <Button className="miniapp-me__deactivate" onClick={() => setDeactivateOpen(true)}><Text>注销账号</Text></Button>
       </View>
@@ -225,7 +222,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
           onComplete={(result) => {
             setMbti(result)
             setMbtiTesting(false)
-            void socialApi.updateProfile({ mbti: result }).then(() => setNotice(`性格测试完成：${result}`)).catch(() => setNotice('性格结果保存失败'))
+            void socialApi.updateProfile({ mbti: result }).catch(() => void showInfo('性格结果保存失败'))
           }}
         />
       )}
@@ -283,7 +280,6 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
           </View>
         </MiniappModal>
       )}
-      {notice && <Text className="miniapp-me__notice">{notice}</Text>}
     </View>
   )
 }

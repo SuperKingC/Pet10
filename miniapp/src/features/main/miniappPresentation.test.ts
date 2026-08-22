@@ -11,6 +11,7 @@ const meViewPath = path.resolve(__dirname, 'MiniappMeView.tsx')
 const mbtiPath = path.resolve(__dirname, 'MiniappMbtiTest.tsx')
 const avatarEditorPath = path.resolve(__dirname, 'MiniappAvatarEditor.tsx')
 const memoryPanelPath = path.resolve(__dirname, 'MiniappMemoryPanel.tsx')
+const codewordModalPath = path.resolve(__dirname, 'MiniappCodewordModal.tsx')
 const tarotFlowStylesPath = path.resolve(__dirname, '../tarot/MiniappTarotFlow.scss')
 
 describe('miniapp ui presentation rules', () => {
@@ -61,17 +62,36 @@ describe('miniapp ui presentation rules', () => {
 
     expect(gamesModal).toContain('<MiniappModal')
     expect(gamesModal).toContain('五子棋')
+    expect(gamesModal).toContain('gobang.png')
     expect(gamesModal).toContain('敬请期待')
   })
 
-  it('shows game and tarot icons in the paw menu and removes the footprint map entry', () => {
+  it('shows codeword, game and tarot icon entries in the paw menu and removes the footprint map entry', () => {
     const menu = fs.readFileSync(pawMenuPath, 'utf8')
 
+    expect(menu).toContain('codeword.png')
     expect(menu).toContain('game.png')
     expect(menu).toContain('tarot.png')
+    expect(menu).toContain('onOpenCodeword(): void')
     expect(menu).toContain('onOpenGames(): void')
     expect(menu).not.toContain('足迹地图')
     expect(menu).not.toContain('onOpenMap')
+    expect(menu).not.toContain('entry-caption')
+  })
+
+  it('uses a hand-painted MBTI icon in the personal settings list', () => {
+    const meView = fs.readFileSync(meViewPath, 'utf8')
+
+    expect(meView).toContain('mbti.png')
+    expect(meView).not.toContain('miniapp-me__mbti-icon')
+  })
+
+  it('presents the daily codeword through the shared centered modal', () => {
+    const modal = fs.readFileSync(codewordModalPath, 'utf8')
+
+    expect(modal).toContain('<MiniappModal')
+    expect(modal).toContain('每日暗号')
+    expect(modal).toContain('answerCodeword')
   })
 
   it('keeps tarot history as a centered themed panel instead of a bottom drawer', () => {

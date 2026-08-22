@@ -1,3 +1,9 @@
+.miniapp-games-modal {
+  display: flex;
+  flex-direction: column;
+  min-height: 520rpx;
+}
+
 .miniapp-games-modal__title {
   display: block;
   color: #382b23;
@@ -12,47 +18,59 @@
   font-size: var(--font-size-aux);
 }
 
+.miniapp-games-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32rpx;
+  margin-top: 40rpx;
+}
+
 .miniapp-games-modal__entry {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 28rpx;
-  padding: 28rpx 20rpx 24rpx;
-  background: #fff;
-  border: 1px solid #ead5c2;
-  border-radius: 18px;
+  padding: 0;
+  background: transparent;
+  border: 0;
 }
 
 .miniapp-games-modal__entry::after {
   border: 0;
 }
 
+.miniapp-games-modal__entry-base {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 152rpx;
+  height: 152rpx;
+  background: radial-gradient(circle at 35% 30%, #fffdf7 0%, #fbe9d2 78%);
+  border: 1px solid rgba(214, 178, 140, .45);
+  border-radius: 50%;
+  box-shadow: 0 6rpx 16rpx rgba(70, 48, 37, .12);
+}
+
 .miniapp-games-modal__entry-icon {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: 16px;
+  width: 136rpx;
+  height: 136rpx;
 }
 
 .miniapp-games-modal__entry-name {
   display: block;
   margin-top: 12rpx;
-  color: #5e3b1d;
-  font-size: var(--font-size-card-title);
-  font-weight: var(--font-weight-semibold);
+  color: #8a6250;
+  font-size: 26rpx;
 }
 
-.miniapp-games-modal__entry-caption {
-  display: block;
-  margin-top: 6rpx;
-  color: #a89489;
-  font-size: var(--font-size-aux);
+.miniapp-games-modal__slot {
+  min-height: 152rpx;
 }
 
 .miniapp-games-modal__more {
   display: block;
-  margin-top: 28rpx;
+  margin-top: auto;
+  padding-top: 48rpx;
   color: #b8a091;
   text-align: center;
-  font-size: var(--font-size-secondary);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-aux);
 }

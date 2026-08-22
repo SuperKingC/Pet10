@@ -1,0 +1,115 @@
+.miniapp-launch-loading {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  flex-direction: column;
+  padding: 120rpx 56rpx 80rpx;
+  background: #fff8ee;
+  color: #453a32;
+}
+
+.miniapp-launch-loading__pet-wrap {
+  position: relative;
+  display: flex;
+  width: 370rpx;
+  height: 370rpx;
+  align-items: center;
+  justify-content: center;
+  margin: 48rpx 0 54rpx;
+}
+
+.miniapp-launch-loading__ring {
+  position: absolute;
+  width: 310rpx;
+  height: 310rpx;
+  border: 1px solid rgba(217, 132, 93, .22);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24rpx rgba(217, 132, 93, .055);
+  animation: miniapp-launch-ring 2.8s ease-in-out infinite;
+}
+
+.miniapp-launch-loading__pet {
+  position: relative;
+  z-index: 1;
+  width: 290rpx;
+  height: 330rpx;
+  animation: miniapp-launch-pet 2.6s ease-in-out infinite;
+}
+
+.miniapp-launch-loading__kicker {
+  color: #d9845d;
+  font-size: 24rpx;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 1rpx;
+}
+
+.miniapp-launch-loading__title {
+  margin-top: 14rpx;
+  color: #453a32;
+  font-size: 40rpx;
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.miniapp-launch-loading__copy {
+  max-width: 530rpx;
+  margin-top: 14rpx;
+  color: #927d6d;
+  font-size: 26rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.miniapp-launch-loading__bar {
+  width: 100%;
+  height: 14rpx;
+  margin-top: 60rpx;
+  overflow: hidden;
+  border-radius: 99rpx;
+  background: #f1e1d0;
+}
+
+.miniapp-launch-loading__bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #d9845d;
+  transition: width .25s ease-out;
+}
+
+.miniapp-launch-loading__meta {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 16rpx;
+  color: #b09a8a;
+  font-size: 22rpx;
+}
+
+.miniapp-launch-loading__retry {
+  height: 76rpx;
+  margin-top: 38rpx;
+  padding: 0 52rpx;
+  border: 1px solid #d9b99c;
+  border-radius: 18rpx;
+  color: #765c47;
+  background: transparent;
+  font-size: 28rpx;
+  line-height: 76rpx;
+}
+
+.miniapp-launch-loading__retry::after { border: 0; }
+
+@keyframes miniapp-launch-pet {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12rpx); }
+}
+
+@keyframes miniapp-launch-ring {
+  0%, 100% { transform: scale(.95); opacity: .65; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .miniapp-launch-loading__pet,
+  .miniapp-launch-loading__ring { animation: none; }
+}

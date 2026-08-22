@@ -32,13 +32,14 @@ export function MiniappTarotCutStage({
 }: MiniappTarotCutStageProps) {
   useEffect(() => {
     if (!cutting) return
-    const timer = setTimeout(onFinishCut, 760)
+    const timer = setTimeout(onFinishCut, 520)
     return () => clearTimeout(timer)
   }, [cutting, onFinishCut])
 
   return (
-    <View className="miniapp-tarot__stage miniapp-tarot__stage--ritual">
+    <View className="miniapp-tarot__stage miniapp-tarot__stage--ritual miniapp-tarot__stage--cut">
       <Text className="miniapp-tarot__title">凭直觉切一下牌</Text>
+      <View className="miniapp-tarot__spacer" />
       <Button
         className={[
           'miniapp-tarot__cut-deck',
@@ -51,6 +52,7 @@ export function MiniappTarotCutStage({
         <View className="miniapp-tarot__cut-half miniapp-tarot__cut-half--left"><CutPile /></View>
         <View className="miniapp-tarot__cut-half miniapp-tarot__cut-half--right"><CutPile /></View>
       </Button>
+      <View className="miniapp-tarot__spacer" />
       <Text className="miniapp-tarot__hint">
         {cutCount > 0 ? `已切 ${cutCount} 次，还可以继续切牌` : '点击牌堆，每次完成一次切牌'}
       </Text>

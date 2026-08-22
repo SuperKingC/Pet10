@@ -93,3 +93,9 @@ export function buildShareText(reading: TarotReading): string {
     .join('  ')
   return `🔮 我刚完成塔罗占卜：${cards}。${reading.closing}`
 }
+
+// short WeChat share-card title used when inviting a friend via the result page
+export function buildTarotShareTitle(reading: TarotReading): string {
+  const cards = reading.drawn.map((item) => item.card.name).join('·')
+  return `我在小多利抽到了${cards}，邀请好友一起解读`
+}

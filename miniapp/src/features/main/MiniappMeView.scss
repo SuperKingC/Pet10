@@ -123,13 +123,6 @@
   border: 0;
 }
 
-.miniapp-me__mbti-icon {
-  min-width: 54px;
-  color: #d9845d;
-  font-size: var(--font-size-aux);
-  font-weight: var(--font-weight-bold);
-}
-
 .miniapp-me__notifications-header {
   display: flex;
   align-items: center;
@@ -168,11 +161,6 @@
 .miniapp-me__notification--unread {
   color: #5e3b1d;
   font-weight: var(--font-weight-bold);
-}
-
-.miniapp-me__notice {
-  color: #c55f50;
-  font-size: var(--font-size-aux);
 }
 
 .miniapp-me__name,
@@ -230,6 +218,14 @@
   color: #a89489;
   font-size: var(--font-size-secondary);
   font-weight: var(--font-weight-bold);
+}
+
+.miniapp-me__item text.miniapp-me__arrow,
+.miniapp-me__arrow {
+  color: #a89489;
+  font-size: 40rpx;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
 }
 
 .miniapp-me__value {

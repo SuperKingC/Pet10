@@ -36,6 +36,7 @@ export interface UserRepository {
   create(input: Pick<User, 'email' | 'username' | 'displayName'>): Promise<User>
   updateUsername(id: string, username: string): Promise<User>
   updateProfile(id: string, patch: UserProfilePatch): Promise<User>
+  deleteById(id: string): Promise<void>
 }
 
 export interface InviteRepository {

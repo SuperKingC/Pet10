@@ -5,6 +5,7 @@ import type { RepositoryBundle } from './repositories/contracts.js'
 import { createAuthMiddleware } from './http/authMiddleware.js'
 import { resolveErrorResponse } from './http/errorResponse.js'
 import { createAuthRoutes } from './http/authRoutes.js'
+import { createAccountRoutes } from './http/accountRoutes.js'
 import { createFriendshipRoutes } from './http/friendshipRoutes.js'
 import { createGmRoutes } from './http/gmRoutes.js'
 import { createInvitationRoutes } from './http/invitationRoutes.js'
@@ -14,6 +15,7 @@ import { createSocialRoutes } from './http/socialRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
 import { createImageRoutes } from './http/imageRoutes.js'
 import { createAuthService } from './services/authService.js'
+import { createAccountService } from './services/accountService.js'
 import { createWechatAuthService } from './services/wechatAuthService.js'
 import { createFriendshipService } from './services/friendshipService.js'
 import { createGmService } from './services/gmService.js'
@@ -122,6 +124,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
       : undefined
   }))
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
+  app.use('/api/account', authenticate, createAccountRoutes(createAccountService(repositories)))
   app.use('/api/friendships', authenticate, createFriendshipRoutes(friendshipService))
   app.use('/api/gm', authenticate, createGmRoutes(gmService))
   app.use('/api/invitations', authenticate, createInvitationRoutes(invitationService))
