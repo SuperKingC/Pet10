@@ -51,6 +51,7 @@ export function MiniappPawMenu({
       <View className="miniapp-paw-menu__backdrop" onClick={onClose} />
       <View className="miniapp-paw-menu__sheet">
         <View className="miniapp-paw-menu__handle" />
+        <View className="miniapp-paw-menu__body">
         <View className="miniapp-paw-menu__header">
           <View>
             <Text className="miniapp-paw-menu__title">一起留下今天的脚印</Text>
@@ -88,6 +89,7 @@ export function MiniappPawMenu({
             <Text className="miniapp-paw-menu__entry-title">塔罗占卜</Text>
             <Text className="miniapp-paw-menu__entry-caption">问一问今天的心事</Text>
           </Button>
+        </View>
         </View>
       </View>
     </View>
