@@ -3,9 +3,12 @@ import {
   getFortuneAvailability,
   getGenderLabel,
   getInvitationButtonState,
+  getNestSceneMode,
   getProfilePresentation,
   shouldShowNestFeedback
 } from './miniappViewModel'
+import type { LaunchContext } from '../../services/launchContextApi'
+import type { PetState } from '../../domain/types'
 
 describe('miniapp view model', () => {
   it('shows only active loading or actionable Pet10 feedback on the nest tab', () => {
@@ -51,7 +54,7 @@ describe('miniapp view model', () => {
       shareReady: false,
     })
     expect(getInvitationButtonState(true, false)).toEqual({
-      label: '邀请好友一起养',
+      label: '邀请好友一起养一只小多利吧~',
       disabled: false,
       shareReady: true,
     })
@@ -66,5 +69,16 @@ describe('miniapp view model', () => {
       ready: true,
       message: '',
     })
+  })
+
+  it('derives the nest scene mode from context and pet', () => {
+    const emptyContext = { rooms: [] } as unknown as LaunchContext
+    const roomContext = { rooms: [{ id: 'room-1' }] } as unknown as LaunchContext
+    const pet = {} as PetState
+
+    expect(getNestSceneMode(null, null)).toBe('loading')
+    expect(getNestSceneMode(emptyContext, null)).toBe('empty')
+    expect(getNestSceneMode(roomContext, null)).toBe('loading')
+    expect(getNestSceneMode(roomContext, pet)).toBe('active')
   })
 })

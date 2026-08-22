@@ -1,4 +1,6 @@
 import type { MiniappTab } from '../../components/MiniappTabBar'
+import type { LaunchContext } from '../../services/launchContextApi'
+import type { PetState } from '../../domain/types'
 
 export function shouldShowNestFeedback(activeTab: MiniappTab, loading: boolean, message: string) {
   return activeTab === 'nest' && (loading || Boolean(message))
@@ -22,7 +24,7 @@ export function getInvitationButtonState(shareReady: boolean, preparing: boolean
     return { label: '正在准备邀请…', disabled: true, shareReady: false }
   }
   if (shareReady) {
-    return { label: '邀请好友一起养', disabled: false, shareReady: true }
+    return { label: '邀请好友一起养一只小多利吧~', disabled: false, shareReady: true }
   }
   return { label: '重新准备邀请', disabled: false, shareReady: false }
 }
@@ -31,4 +33,12 @@ export function getFortuneAvailability(birthday: string | null | undefined) {
   return birthday
     ? { ready: true, message: '' }
     : { ready: false, message: '请先在“我的”中设置生日' }
+}
+
+export type NestSceneMode = 'loading' | 'empty' | 'active'
+
+export function getNestSceneMode(context: LaunchContext | null, pet: PetState | null): NestSceneMode {
+  if (!context) return 'loading'
+  if (context.rooms.length === 0) return 'empty'
+  return pet ? 'active' : 'loading'
 }
