@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { Button, Input, Image, Picker, Text, View } from '@tarojs/components'
 import type { LaunchContext } from '../../services/launchContextApi'
 import { socialApi, type MiniappNotification } from '../../services/socialApi'
+import { gmApi } from '../../services/gmApi'
 import { showInfo } from '../../services/feedback'
 import { defaultAvatarConfig, parseAvatarConfig, type MiniappAvatarConfig } from '../../domain/avatarConfig'
 import { MiniappAvatarEditor } from './MiniappAvatarEditor'
@@ -40,6 +41,9 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
   const [mbtiTesting, setMbtiTesting] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [gmOpen, setGmOpen] = useState(false)
+  const [gmCount, setGmCount] = useState(1)
+  const [gmBusy, setGmBusy] = useState(false)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
 
@@ -120,6 +124,20 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     Taro.setClipboardData({ data: CONTACT_EMAIL })
       .then(() => void showInfo('邮箱已复制'))
       .catch(() => setNotice('复制失败，请手动记录邮箱'))
+  }
+
+  const addGmFriends = async () => {
+    if (gmBusy) return
+    setGmBusy(true)
+    try {
+      const result = await gmApi.addFriends(gmCount)
+      setGmOpen(false)
+      Taro.showToast({ title: `已添加 ${result.added.length} 个好友`, icon: 'success' })
+    } catch {
+      Taro.showToast({ title: '添加失败', icon: 'none' })
+    } finally {
+      setGmBusy(false)
+    }
   }
 
   return (
@@ -207,7 +225,27 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
             <Text className="miniapp-about__line">爱好：出去玩，吃东西</Text>
             <Text className="miniapp-about__line">工作经验：等妈妈回家。全年无休，从不迟到，表现优异，多次获得“第一个冲到门口”奖。</Text>
           </View>
-          <Text className="miniapp-about__version">小多利 v2.0</Text>
+          <Text className="miniapp-about__version" onLongPress={() => setGmOpen(true)}>小多利 v2.0</Text>
+        </MiniappModal>
+      )}
+      {gmOpen && (
+        <MiniappModal onClose={() => { if (!gmBusy) setGmOpen(false) }}>
+          <Text className="miniapp-gm__title">GM 工具</Text>
+          <Text className="miniapp-gm__intro">为当前账号添加测试好友，用于模拟一个或多个好友的场景。</Text>
+          <View className="miniapp-gm__counts">
+            {[1, 3, 5].map((value) => (
+              <Button
+                key={value}
+                className={`miniapp-gm__count${gmCount === value ? ' miniapp-gm__count--active' : ''}`}
+                onClick={() => setGmCount(value)}
+              >
+                {value} 个
+              </Button>
+            ))}
+          </View>
+          <Button className="miniapp-gm__submit" disabled={gmBusy} onClick={() => void addGmFriends()}>
+            {gmBusy ? '添加中…' : '添加好友'}
+          </Button>
         </MiniappModal>
       )}
       {notice && <Text className="miniapp-me__notice">{notice}</Text>}
