@@ -1,33 +1,68 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Button, Text, View } from '@tarojs/components'
+import { Button, Image, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { MiniappModal } from '../../components/MiniappModal'
 import { socialApi, type MiniappFortune, type MiniappMood } from '../../services/socialApi'
-import { getCalendarMonth, localDayKey, shiftMonth } from './calendarModel'
+import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, shiftMonth, type DayMoods } from './calendarModel'
 import { getFortuneAvailability } from './miniappViewModel'
 import { MiniappFortuneView } from './MiniappFortuneView'
 import './MiniappCalendarView.scss'
 
 interface MiniappCalendarViewProps {
   roomId: string
+  myUserId: string
+  friendId: string
+  friendName: string
 }
 
+const moodIcons = [
+  require('../../assets/moods/mood-1.png'),
+  require('../../assets/moods/mood-2.png'),
+  require('../../assets/moods/mood-3.png'),
+  require('../../assets/moods/mood-4.png'),
+]
 const moodLabels = ['低落', '一般', '不错', '特别好']
-const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+const weekdays = ['一', '二', '三', '四', '五', '六', '日']
 
-export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
+type MoodModalState = { mode: 'pick' } | { mode: 'view'; day: string } | null
+
+function MoodDayRows({ dayMoods, friendName }: { dayMoods?: DayMoods; friendName: string }) {
+  if (!dayMoods?.mine && !dayMoods?.friend) {
+    return <Text className="mood-modal__empty">这天还没有心情记录</Text>
+  }
+  return (
+    <View className="mood-modal__rows">
+      <View className="mood-modal__row">
+        <Text className="mood-modal__who">我</Text>
+        {dayMoods?.mine
+          ? <><Image className="mood-modal__row-icon" src={moodIcons[dayMoods.mine.level - 1]} mode="aspectFill" /><Text className="mood-modal__row-label">{moodLabels[dayMoods.mine.level - 1]}</Text></>
+          : <Text className="mood-modal__row-label mood-modal__row-label--none">未记录</Text>}
+      </View>
+      <View className="mood-modal__row">
+        <Text className="mood-modal__who">{friendName || '好友'}</Text>
+        {dayMoods?.friend
+          ? <><Image className="mood-modal__row-icon" src={moodIcons[dayMoods.friend.level - 1]} mode="aspectFill" /><Text className="mood-modal__row-label">{moodLabels[dayMoods.friend.level - 1]}</Text></>
+          : <Text className="mood-modal__row-label mood-modal__row-label--none">未记录</Text>}
+      </View>
+    </View>
+  )
+}
+
+export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: MiniappCalendarViewProps) {
   const [cursor, setCursor] = useState(() => new Date())
   const [moods, setMoods] = useState<MiniappMood[]>([])
   const [fortune, setFortune] = useState<MiniappFortune | null>(null)
-  const [selectedMood, setSelectedMood] = useState(0)
   const [fortuneOverlayOpen, setFortuneOverlayOpen] = useState(false)
   const [fortuneMessage, setFortuneMessage] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [modal, setModal] = useState<MoodModalState>(null)
   const month = useMemo(() => getCalendarMonth(cursor), [cursor])
+  const lead = useMemo(() => getMondayLead(cursor), [cursor])
   const today = new Date()
   const currentDay = localDayKey(today.getFullYear(), today.getMonth(), today.getDate())
   const from = localDayKey(month.year, month.month, 1)
   const to = localDayKey(month.year, month.month, month.days)
-  const moodDays = new Set(moods.map((mood) => mood.day.slice(0, 10)))
+  const moodByDay = useMemo(() => buildMoodByDay(moods, myUserId), [moods, myUserId])
 
   useEffect(() => {
     let cancelled = false
@@ -71,25 +106,30 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
     }
     void socialApi.listMoods(roomId, from, to).then((items) => {
       setMoods(items)
-      const todayMood = items.find((item) => item.day.slice(0, 10) === currentDay)
-      if (todayMood) setSelectedMood(todayMood.level)
     }).catch(() => setMoods([]))
-  }, [currentDay, from, roomId, to])
+  }, [from, roomId, to])
 
   const saveMood = async (level: number) => {
-    if (!roomId || loading) return
-    setLoading(true)
+    if (!roomId || saving) return
+    setSaving(true)
     try {
       const entry = await socialApi.setMood(roomId, level)
       setMoods((current) => [...current.filter((item) => item.id !== entry.id), entry])
-      setSelectedMood(level)
+      setModal(null)
+    } catch (error) {
+      Taro.showToast({ title: error instanceof Error ? error.message : '记录失败', icon: 'none' })
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  const cells = [
-    ...Array.from({ length: month.firstWeekday }, () => null),
+  const openDay = (key: string) => {
+    if (key === currentDay) setModal({ mode: 'pick' })
+    else if (key < currentDay) setModal({ mode: 'view', day: key })
+  }
+
+  const cells: Array<number | null> = [
+    ...Array.from({ length: lead }, () => null),
     ...Array.from({ length: month.days }, (_, index) => index + 1),
   ]
 
@@ -102,24 +142,45 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
 
       <View className="miniapp-calendar__month-bar">
         <Button onClick={() => setCursor((value) => shiftMonth(value, -1))}>‹</Button>
-        <Text>{month.year}年 {month.month + 1}月</Text>
+        <Text className="miniapp-calendar__month-text">{month.year}年 {month.month + 1}月</Text>
         <Button onClick={() => setCursor((value) => shiftMonth(value, 1))}>›</Button>
       </View>
 
       <View className="miniapp-calendar__weekdays">
         {weekdays.map((weekday) => <Text key={weekday}>{weekday}</Text>)}
       </View>
+
       <View className="miniapp-calendar__grid">
         {cells.map((day, index) => {
-          const key = day ? localDayKey(month.year, month.month, day) : `empty-${index}`
+          if (!day) return <View key={`empty-${index}`} className="miniapp-calendar__cell" />
+          const key = localDayKey(month.year, month.month, day)
           const isToday = key === currentDay
+          const dayMoods = moodByDay.get(key)
           return (
-            <View key={key} className={isToday ? 'miniapp-calendar__day miniapp-calendar__day--today' : 'miniapp-calendar__day'}>
-              {day && <Text>{day}</Text>}
-              {day && moodDays.has(key) && <View className="miniapp-calendar__dot" />}
+            <View key={key} className="miniapp-calendar__cell" onClick={() => openDay(key)}>
+              {isToday
+                ? <Text className="miniapp-calendar__num miniapp-calendar__num--today">今天</Text>
+                : <Text className="miniapp-calendar__num">{day}</Text>}
+              <View className="miniapp-calendar__slot">
+                {dayMoods?.mine && <Image className="miniapp-calendar__mood-icon" src={moodIcons[dayMoods.mine.level - 1]} mode="aspectFill" />}
+              </View>
+              <View className="miniapp-calendar__slot">
+                {dayMoods?.friend && friendId && <Image className="miniapp-calendar__mood-icon" src={moodIcons[dayMoods.friend.level - 1]} mode="aspectFill" />}
+              </View>
             </View>
           )
         })}
+      </View>
+
+      <View className="miniapp-calendar__legend">
+        <View className="miniapp-calendar__legend-item">
+          <Image className="miniapp-calendar__legend-icon" src={moodIcons[3]} mode="aspectFill" />
+          <Text>我</Text>
+        </View>
+        <View className="miniapp-calendar__legend-item">
+          <Image className="miniapp-calendar__legend-icon" src={moodIcons[2]} mode="aspectFill" />
+          <Text>{friendName || '好友'}</Text>
+        </View>
       </View>
 
       <View className="miniapp-calendar__fortune">
@@ -141,25 +202,33 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
         <MiniappFortuneView fortune={fortune} onClose={() => setFortuneOverlayOpen(false)} />
       )}
 
-      {roomId && (
-        <View className="miniapp-calendar__mood">
-          <Text className="miniapp-calendar__fortune-label">今天的心情</Text>
-          <View className="miniapp-calendar__mood-row">
-            {moodLabels.map((label, index) => {
-              const level = index + 1
-              return (
-                <Button
-                  key={label}
-                  className={selectedMood === level ? 'miniapp-calendar__mood-button miniapp-calendar__mood-button--active' : 'miniapp-calendar__mood-button'}
-                  loading={loading && selectedMood === level}
-                  onClick={() => void saveMood(level)}
-                >
-                  {label}
-                </Button>
-              )
-            })}
-          </View>
-        </View>
+      {modal && (
+        <MiniappModal onClose={() => setModal(null)}>
+          {modal.mode === 'pick' ? (
+            <View className="mood-modal">
+              <Text className="mood-modal__title">今天的心情</Text>
+              <View className="mood-modal__grid">
+                {moodLabels.map((label, index) => (
+                  <Button
+                    key={label}
+                    className="mood-modal__item"
+                    disabled={saving}
+                    onClick={() => void saveMood(index + 1)}
+                  >
+                    <Image className="mood-modal__icon" src={moodIcons[index]} mode="aspectFill" />
+                    <Text className="mood-modal__label">{label}</Text>
+                  </Button>
+                ))}
+              </View>
+              <Text className="mood-modal__tip">记录后，{friendName || '好友'}也能在日历上看到你的心情</Text>
+            </View>
+          ) : (
+            <View className="mood-modal">
+              <Text className="mood-modal__title">{Number(modal.day.slice(5, 7))}月{Number(modal.day.slice(8, 10))}日的心情</Text>
+              <MoodDayRows dayMoods={moodByDay.get(modal.day)} friendName={friendName} />
+            </View>
+          )}
+        </MiniappModal>
       )}
     </View>
   )
