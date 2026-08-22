@@ -6,6 +6,8 @@ import type { PetState } from '../../domain/types'
 import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
 import { MiniappContributionBoard } from './MiniappContributionBoard'
+import { MiniappNestLetter } from './MiniappNestLetter'
+import { getNestSceneMode } from './miniappViewModel'
 import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import './MiniappNestView.scss'
 
@@ -40,6 +42,7 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
   const names = Object.fromEntries(
     (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
   )
+  const sceneMode = getNestSceneMode(context, pet)
   return (
     <View className="miniapp-nest">
       <View className="miniapp-page-header miniapp-nest__header">
@@ -62,21 +65,25 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
       )}
 
       <View className="miniapp-nest__scene">
-        {pet
+        {sceneMode === 'active' && pet
           ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} />
-          : <Image className="miniapp-nest__empty" src={roomBackground} mode="aspectFill" fadeIn={false} />}
+          : sceneMode === 'empty'
+            ? <MiniappNestLetter />
+            : <Image className="miniapp-nest__empty" src={roomBackground} mode="aspectFill" fadeIn={false} />}
 
-        <View className="miniapp-nest__shortcuts">
-          <View className="miniapp-nest__shortcut">
-            <Image src={wardrobe} mode="aspectFit" />
+        {sceneMode === 'active' && (
+          <View className="miniapp-nest__shortcuts">
+            <View className="miniapp-nest__shortcut">
+              <Image src={wardrobe} mode="aspectFit" />
+            </View>
+            <View className="miniapp-nest__shortcut">
+              <Image src={photoWall} mode="aspectFit" />
+            </View>
+            <View className="miniapp-nest__shortcut">
+              <Image src={tasks} mode="aspectFit" />
+            </View>
           </View>
-          <View className="miniapp-nest__shortcut">
-            <Image src={photoWall} mode="aspectFit" />
-          </View>
-          <View className="miniapp-nest__shortcut">
-            <Image src={tasks} mode="aspectFit" />
-          </View>
-        </View>
+        )}
       </View>
 
       {pet && <PetActionBar onAction={onAction} />}
