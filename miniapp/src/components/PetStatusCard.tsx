@@ -3,7 +3,7 @@ import type { PetState } from '../domain/types'
 import './PetStatusCard.scss'
 
 type Props = { pet: PetState; onOpenMemories?: () => void }
-const roomBackground = require('../assets/room-background.webp')
+const roomBackground = require('../assets/room-background.jpg')
 const statuses = [
   ['饱食', 'hunger', '#f3a85d'],
   ['心情', 'mood', '#ed7e9a'],

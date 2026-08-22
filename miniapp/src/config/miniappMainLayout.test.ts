@@ -11,7 +11,7 @@ describe('miniapp main layout', () => {
     const nestStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.scss'), 'utf8')
 
     expect(pageSource).not.toContain('className="page-heading"')
-    expect(nestSource).toContain("require('../../assets/room-background.webp')")
+    expect(nestSource).toContain("require('../../assets/room-background.jpg')")
     expect(nestSource).toContain('记录你们和小多利的共同生活。')
     expect(nestSource).toContain('className="miniapp-nest__empty"')
     expect(nestSource).toContain('mode="aspectFill"')

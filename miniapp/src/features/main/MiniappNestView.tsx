@@ -12,7 +12,7 @@ import './MiniappNestView.scss'
 const wardrobe = require('../../assets/nest/wardrobe.png')
 const photoWall = require('../../assets/nest/photo-wall.png')
 const tasks = require('../../assets/nest/tasks.png')
-const roomBackground = require('../../assets/room-background.webp')
+const roomBackground = require('../../assets/room-background.jpg')
 interface MiniappNestViewProps {
   context: LaunchContext | null
   pet: PetState | null

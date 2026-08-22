@@ -5,7 +5,7 @@ import { miniappRoot } from './testPaths'
 
 describe('miniapp pet scene assets', () => {
   it('bundles the PWA room background within the miniapp image budget', () => {
-    const backgroundPath = resolve(miniappRoot(), 'src/assets/room-background.webp')
+    const backgroundPath = resolve(miniappRoot(), 'src/assets/room-background.jpg')
     const componentSource = readFileSync(
       resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'),
       'utf8',
@@ -13,6 +13,6 @@ describe('miniapp pet scene assets', () => {
 
     expect(existsSync(backgroundPath)).toBe(true)
     expect(statSync(backgroundPath).size).toBeLessThanOrEqual(180 * 1024)
-    expect(componentSource).toContain("require('../assets/room-background.webp')")
+    expect(componentSource).toContain("require('../assets/room-background.jpg')")
   })
 })
