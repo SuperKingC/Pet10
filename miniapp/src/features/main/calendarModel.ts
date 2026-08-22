@@ -50,3 +50,14 @@ export function buildMoodByDay(moods: CalendarMoodEntry[], myUserId: string): Ma
   }
   return map
 }
+
+export interface MoodRoomCandidate {
+  roomId: string
+  type: string
+}
+
+/** 没有好友（无双人房）时，回退到个人 pet_dm 房间记录心情 */
+export function resolveMoodRoomId(pairRoomId: string, conversations: MoodRoomCandidate[]): string {
+  if (pairRoomId) return pairRoomId
+  return conversations.find((conversation) => conversation.type === 'pet_dm')?.roomId ?? ''
+}

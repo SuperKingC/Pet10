@@ -3,7 +3,7 @@ import { Button, Image, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { MiniappModal } from '../../components/MiniappModal'
 import { socialApi, type MiniappFortune, type MiniappMood } from '../../services/socialApi'
-import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, shiftMonth, type DayMoods } from './calendarModel'
+import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, resolveMoodRoomId, shiftMonth, type DayMoods } from './calendarModel'
 import { getFortuneAvailability } from './miniappViewModel'
 import { MiniappFortuneView } from './MiniappFortuneView'
 import './MiniappCalendarView.scss'
@@ -56,6 +56,7 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
   const [fortuneMessage, setFortuneMessage] = useState('')
   const [saving, setSaving] = useState(false)
   const [modal, setModal] = useState<MoodModalState>(null)
+  const [soloRoomId, setSoloRoomId] = useState('')
   const month = useMemo(() => getCalendarMonth(cursor), [cursor])
   const lead = useMemo(() => getMondayLead(cursor), [cursor])
   const today = new Date()
@@ -63,6 +64,18 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
   const from = localDayKey(month.year, month.month, 1)
   const to = localDayKey(month.year, month.month, month.days)
   const moodByDay = useMemo(() => buildMoodByDay(moods, myUserId), [moods, myUserId])
+  const moodRoomId = roomId || soloRoomId
+
+  useEffect(() => {
+    if (roomId) return
+    let cancelled = false
+    void socialApi.listConversations()
+      .then((conversations) => {
+        if (!cancelled) setSoloRoomId(resolveMoodRoomId('', conversations))
+      })
+      .catch(() => undefined)
+    return () => { cancelled = true }
+  }, [roomId])
 
   useEffect(() => {
     let cancelled = false
@@ -100,20 +113,20 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
   }, [])
 
   useEffect(() => {
-    if (!roomId) {
+    if (!moodRoomId) {
       setMoods([])
       return
     }
-    void socialApi.listMoods(roomId, from, to).then((items) => {
+    void socialApi.listMoods(moodRoomId, from, to).then((items) => {
       setMoods(items)
     }).catch(() => setMoods([]))
-  }, [from, roomId, to])
+  }, [from, moodRoomId, to])
 
   const saveMood = async (level: number) => {
-    if (!roomId || saving) return
+    if (!moodRoomId || saving) return
     setSaving(true)
     try {
-      const entry = await socialApi.setMood(roomId, level)
+      const entry = await socialApi.setMood(moodRoomId, level)
       setMoods((current) => [...current.filter((item) => item.id !== entry.id), entry])
       setModal(null)
     } catch (error) {

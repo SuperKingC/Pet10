@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, shiftMonth } from './calendarModel'
+import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, resolveMoodRoomId, shiftMonth } from './calendarModel'
 
 describe('miniapp calendar model', () => {
   it('calculates month metadata without timezone drift', () => {
@@ -16,6 +16,24 @@ describe('miniapp calendar model', () => {
     const next = shiftMonth(new Date(2026, 11, 1), 1)
     expect(next.getFullYear()).toBe(2027)
     expect(next.getMonth()).toBe(0)
+  })
+})
+
+describe('miniapp calendar mood room fallback', () => {
+  it('keeps the pair room when it exists', () => {
+    expect(resolveMoodRoomId('room-pair', [{ roomId: 'room-dm', type: 'pet_dm' }])).toBe('room-pair')
+  })
+
+  it('falls back to the personal pet_dm room without a friend', () => {
+    expect(resolveMoodRoomId('', [
+      { roomId: 'room-a', type: 'pair' },
+      { roomId: 'room-dm', type: 'pet_dm' },
+    ])).toBe('room-dm')
+  })
+
+  it('returns empty string when nothing is available', () => {
+    expect(resolveMoodRoomId('', [])).toBe('')
+    expect(resolveMoodRoomId('', [{ roomId: 'room-a', type: 'pair' }])).toBe('')
   })
 })
 
