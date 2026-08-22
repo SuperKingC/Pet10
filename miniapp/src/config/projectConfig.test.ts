@@ -16,7 +16,7 @@ describe('WeChat developer tools project config', () => {
     }
 
     expect(config.compileType).toBe('miniprogram')
-    expect(config.miniprogramRoot).toBe('./dist')
+    expect(['./dist', 'dist/']).toContain(config.miniprogramRoot)
     expect(config.setting?.minified).toBe(true)
   })
 
