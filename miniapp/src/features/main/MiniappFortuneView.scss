@@ -1,0 +1,65 @@
+.miniapp-fortune-view {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: #fff8ee;
+}
+
+.miniapp-fortune-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(12px + env(safe-area-inset-top)) 14px 10px;
+  background: #fffaf6;
+  border-bottom: 1px solid rgba(96, 67, 50, .08);
+}
+
+.miniapp-fortune-view__back {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #80685d;
+  background: #f3eae4;
+  border: 0;
+  border-radius: 13px;
+  font-size: 20px;
+}
+
+.miniapp-fortune-view__back::after { border: 0; }
+
+.miniapp-fortune-view__title {
+  color: #382b23;
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-fortune-view__header-spacer { width: 36px; }
+
+.miniapp-fortune-view__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 16px 14px calc(24px + env(safe-area-inset-bottom));
+}
+
+.miniapp-fortune-view__overall {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 20px;
+  box-shadow: 0 7px 20px rgba(70, 48, 37, .05);
+}
+
+.miniapp-fortune-view__label { display: block; color: #b18c79; font-size: var(--font-size-aux); }
+.miniapp-fortune-view__summary { display: block; margin-top: 6px; color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.miniapp-fortune-view__stars { display: block; margin-top: 4px; color: #e89264; font-size: var(--font-size-body); }
+.miniapp-fortune-view__text { display: block; margin-top: 8px; color: #8e776a; font-size: var(--font-size-aux); line-height: 1.55; }
+.miniapp-fortune-view__meta { display: block; margin-top: 8px; color: #a89489; font-size: var(--font-size-aux); }
+
+.miniapp-fortune-view__section { padding: 12px; background: #fff; border: 1px solid #f0e8e2; border-radius: 16px; }
+.miniapp-fortune-view__section-head { display: flex; justify-content: space-between; margin-bottom: 6px; color: #8a4f37; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
+.miniapp-fortune-view__section-body { display: block; color: #8e776a; font-size: var(--font-size-aux); line-height: 1.55; }

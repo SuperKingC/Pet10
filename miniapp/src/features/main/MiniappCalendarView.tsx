@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button, Text, View } from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import { socialApi, type MiniappFortune, type MiniappMood } from '../../services/socialApi'
 import { getCalendarMonth, localDayKey, shiftMonth } from './calendarModel'
 import { getFortuneAvailability } from './miniappViewModel'
+import { MiniappFortuneView } from './MiniappFortuneView'
 import './MiniappCalendarView.scss'
 
 interface MiniappCalendarViewProps {
@@ -11,20 +13,13 @@ interface MiniappCalendarViewProps {
 
 const moodLabels = ['低落', '一般', '不错', '特别好']
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
-const fortuneSections = [
-  ['love', '感情'],
-  ['study', '学习'],
-  ['work', '工作'],
-  ['wealth', '财富'],
-  ['health', '健康'],
-] as const
 
 export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
   const [cursor, setCursor] = useState(() => new Date())
   const [moods, setMoods] = useState<MiniappMood[]>([])
   const [fortune, setFortune] = useState<MiniappFortune | null>(null)
   const [selectedMood, setSelectedMood] = useState(0)
-  const [fortuneOpen, setFortuneOpen] = useState(false)
+  const [fortuneOverlayOpen, setFortuneOverlayOpen] = useState(false)
   const [fortuneMessage, setFortuneMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const month = useMemo(() => getCalendarMonth(cursor), [cursor])
@@ -135,27 +130,16 @@ export function MiniappCalendarView({ roomId }: MiniappCalendarViewProps) {
               {fortune ? `${fortune.content.overall.summary} ${'★'.repeat(fortune.content.overall.rating)}` : (fortuneMessage || '今日运势加载中')}
             </Text>
           </View>
-          {fortune && <Button onClick={() => setFortuneOpen((value) => !value)}>{fortuneOpen ? '收起' : '详情'}</Button>}
+          <Button onClick={() => {
+            if (fortune) setFortuneOverlayOpen(true)
+            else Taro.showToast({ title: fortuneMessage || '今日运势暂时无法加载', icon: 'none' })
+          }}>查看详情 ›</Button>
         </View>
         {fortune && <Text className="miniapp-calendar__fortune-meta">幸运色：{fortune.content.luckyColor.name} · 幸运数字：{fortune.content.luckyNumber}</Text>}
-        {fortuneOpen && fortune && (
-          <View className="miniapp-calendar__fortune-details">
-            {fortuneSections.map(([key, label]) => {
-              const section = fortune.content[key]
-              if (!section) return null
-              return (
-                <View key={key} className="miniapp-calendar__fortune-detail">
-                  <View>
-                    <Text>{label}</Text>
-                    <Text>{'★'.repeat(section.rating)}</Text>
-                  </View>
-                  <Text>{'text' in section ? section.text : section.partnered}</Text>
-                </View>
-              )
-            })}
-          </View>
-        )}
       </View>
+      {fortuneOverlayOpen && fortune && (
+        <MiniappFortuneView fortune={fortune} onClose={() => setFortuneOverlayOpen(false)} />
+      )}
 
       {roomId && (
         <View className="miniapp-calendar__mood">
