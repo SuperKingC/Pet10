@@ -291,3 +291,42 @@
 .miniapp-contact__copy::after {
   border: 0;
 }
+
+.miniapp-about__title {
+  display: block;
+  padding-right: 76rpx;
+  color: #382b23;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-about__card {
+  margin: 20rpx 0 24rpx;
+  padding: 24rpx 28rpx;
+  background: #fff;
+  border: 2px solid #f0ded1;
+  border-radius: 16px;
+}
+
+.miniapp-about__name {
+  display: block;
+  margin-bottom: 16rpx;
+  color: #765847;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-about__line {
+  display: block;
+  margin-top: 12rpx;
+  color: #8e776a;
+  font-size: var(--font-size-secondary);
+  line-height: 1.6;
+}
+
+.miniapp-about__version {
+  display: block;
+  color: #b9a598;
+  text-align: right;
+  font-size: var(--font-size-secondary);
+}

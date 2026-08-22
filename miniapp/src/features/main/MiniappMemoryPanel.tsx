@@ -1,4 +1,5 @@
 import { Button, Text, View } from '@tarojs/components'
+import { MiniappModal } from '../../components/MiniappModal'
 import type { RoomMemory } from '../../services/roomApi'
 import './MiniappMemoryPanel.scss'
 
@@ -11,11 +12,8 @@ interface MiniappMemoryPanelProps {
 
 export function MiniappMemoryPanel({ memories, busy, onClose, onRemove }: MiniappMemoryPanelProps) {
   return (
-    <View className="miniapp-memory-panel">
-      <View className="miniapp-memory-panel__backdrop" onClick={onClose} />
-      <View className="miniapp-memory-panel__sheet">
-        <View className="miniapp-memory-panel__handle" />
-        <View className="miniapp-memory-panel__header">
+    <MiniappModal onClose={onClose}>
+      <View className="miniapp-memory-panel__header">
           <View>
             <Text className="miniapp-memory-panel__eyebrow">共同记忆</Text>
             <Text className="miniapp-memory-panel__title">小多利记住的事</Text>
@@ -39,7 +37,6 @@ export function MiniappMemoryPanel({ memories, busy, onClose, onRemove }: Miniap
             </View>
           ))}
         </View>
-      </View>
-    </View>
+    </MiniappModal>
   )
 }

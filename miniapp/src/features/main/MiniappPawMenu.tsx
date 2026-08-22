@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Button, Input, Text, View } from '@tarojs/components'
+import { Button, Image, Input, Text, View } from '@tarojs/components'
 import { socialApi, type MiniappCodeword } from '../../services/socialApi'
 import './MiniappPawMenu.scss'
+
+const gameIcon = require('../../assets/navigation/game.png')
+const tarotIcon = require('../../assets/navigation/tarot.png')
 
 interface MiniappPawMenuProps {
   open: boolean
   roomId: string
   onClose(): void
-  onOpenMap(): void
-  onOpenGobang(): void
+  onOpenGames(): void
   onOpenTarot(): void
 }
 
@@ -16,8 +18,7 @@ export function MiniappPawMenu({
   open,
   roomId,
   onClose,
-  onOpenMap,
-  onOpenGobang,
+  onOpenGames,
   onOpenTarot,
 }: MiniappPawMenuProps) {
   const [codeword, setCodeword] = useState<MiniappCodeword | null>(null)
@@ -77,17 +78,15 @@ export function MiniappPawMenu({
           </View>}
         </View>
         <View className="miniapp-paw-menu__grid">
-          <Button disabled={!roomId} onClick={onOpenGobang}>
-            <Text>游戏</Text>
-            <Text>和好友下一盘五子棋</Text>
-          </Button>
-          <Button disabled={!roomId} onClick={onOpenMap}>
-            <Text>足迹地图</Text>
-            <Text>点亮一起去过的地方</Text>
+          <Button disabled={!roomId} onClick={onOpenGames}>
+            <Image className="miniapp-paw-menu__entry-icon" src={gameIcon} mode="aspectFit" fadeIn={false} />
+            <Text className="miniapp-paw-menu__entry-title">游戏</Text>
+            <Text className="miniapp-paw-menu__entry-caption">{roomId ? '五子棋和更多玩法' : '绑定好友后开启'}</Text>
           </Button>
           <Button onClick={onOpenTarot}>
-            <Text>塔罗占卜</Text>
-            <Text>问一问今天的心事</Text>
+            <Image className="miniapp-paw-menu__entry-icon" src={tarotIcon} mode="aspectFit" fadeIn={false} />
+            <Text className="miniapp-paw-menu__entry-title">塔罗占卜</Text>
+            <Text className="miniapp-paw-menu__entry-caption">问一问今天的心事</Text>
           </Button>
         </View>
       </View>

@@ -1,5 +1,6 @@
 import { Button, Text, View } from '@tarojs/components'
 import type { MiniappAvatarConfig } from '../../domain/avatarConfig'
+import { MiniappModal } from '../../components/MiniappModal'
 import { MiniappAvatarPreview } from './MiniappAvatarPreview'
 import { avatarBackgroundOptions, avatarEyeOptions, avatarHairColorOptions, avatarHairOptions, avatarSkinOptions } from './avatarEditorOptions'
 import './MiniappAvatarEditor.scss'
@@ -13,11 +14,8 @@ export function MiniappAvatarEditor({ config, busy, onChange, onSave, onClose }:
 }) {
   const patch = (value: Partial<MiniappAvatarConfig>) => onChange({ ...config, ...value })
   return (
-    <View className="miniapp-avatar-editor">
-      <View className="miniapp-avatar-editor__backdrop" onClick={onClose} />
-      <View className="miniapp-avatar-editor__sheet">
-        <View className="miniapp-avatar-editor__handle" />
-        <View className="miniapp-avatar-editor__preview"><MiniappAvatarPreview config={config} /></View>
+    <MiniappModal onClose={onClose}>
+      <View className="miniapp-avatar-editor__preview"><MiniappAvatarPreview config={config} /></View>
         <Text className="miniapp-avatar-editor__title">设计你的 Pet10 头像</Text>
         <View className="miniapp-avatar-editor__section">
           <Text>肤色</Text><View>{avatarSkinOptions.map((option) => <Button key={option.value} className={config.skin === option.value ? 'active text' : 'text'} style={{ backgroundColor: option.color }} onClick={() => patch({ skin: option.value })}>{option.label}</Button>)}</View>
@@ -38,7 +36,6 @@ export function MiniappAvatarEditor({ config, busy, onChange, onSave, onClose }:
           <Button onClick={onClose}>取消</Button>
           <Button loading={busy} onClick={onSave}>保存头像</Button>
         </View>
-      </View>
-    </View>
+    </MiniappModal>
   )
 }

@@ -20,7 +20,7 @@ import { MiniappCalendarView } from '../../features/main/MiniappCalendarView'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
-import { MiniappMapPanel } from '../../features/main/MiniappMapPanel'
+import { MiniappGamesModal } from '../../features/main/MiniappGamesModal'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
 import { MiniappTarotFlow } from '../../features/tarot/MiniappTarotFlow'
 import { getInvitationButtonState, shouldShowNestFeedback } from '../../features/main/miniappViewModel'
@@ -61,7 +61,7 @@ export default function Index() {
   const [memoryPanelOpen, setMemoryPanelOpen] = useState(false)
   const [memories, setMemories] = useState<RoomMemory[]>([])
   const [memoryBusy, setMemoryBusy] = useState(false)
-  const [mapPanelOpen, setMapPanelOpen] = useState(false)
+  const [gamesOpen, setGamesOpen] = useState(false)
   const [gobangOpen, setGobangOpen] = useState(false)
   const [tarotOpen, setTarotOpen] = useState(false)
   const [wechatName, setWechatName] = useState('')
@@ -280,8 +280,7 @@ export default function Index() {
       open={pawMenuOpen}
       roomId={roomId}
       onClose={() => setPawMenuOpen(false)}
-      onOpenMap={() => { setPawMenuOpen(false); setMapPanelOpen(true) }}
-      onOpenGobang={() => { setPawMenuOpen(false); setGobangOpen(true) }}
+      onOpenGames={() => { setPawMenuOpen(false); setGamesOpen(true) }}
       onOpenTarot={() => { setPawMenuOpen(false); setTarotOpen(true) }}
     />
     {memoryPanelOpen && (
@@ -292,7 +291,12 @@ export default function Index() {
         onRemove={(memoryId) => void removeMemory(memoryId)}
       />
     )}
-    {mapPanelOpen && <MiniappMapPanel roomId={roomId} onClose={() => setMapPanelOpen(false)} />}
+    {gamesOpen && (
+      <MiniappGamesModal
+        onClose={() => setGamesOpen(false)}
+        onOpenGobang={() => { setGamesOpen(false); setGobangOpen(true) }}
+      />
+    )}
     {gobangOpen && context && roomId && (
       <MiniappGobangPanel
         roomId={roomId}

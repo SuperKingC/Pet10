@@ -1,0 +1,58 @@
+.miniapp-games-modal__title {
+  display: block;
+  color: #382b23;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-games-modal__caption {
+  display: block;
+  margin-top: 6rpx;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+.miniapp-games-modal__entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 28rpx;
+  padding: 28rpx 20rpx 24rpx;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 18px;
+}
+
+.miniapp-games-modal__entry::after {
+  border: 0;
+}
+
+.miniapp-games-modal__entry-icon {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 16px;
+}
+
+.miniapp-games-modal__entry-name {
+  display: block;
+  margin-top: 12rpx;
+  color: #5e3b1d;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.miniapp-games-modal__entry-caption {
+  display: block;
+  margin-top: 6rpx;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+.miniapp-games-modal__more {
+  display: block;
+  margin-top: 28rpx;
+  color: #b8a091;
+  text-align: center;
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-semibold);
+}

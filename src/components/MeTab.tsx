@@ -5,6 +5,8 @@ import { socialApi } from '../services/socialApi'
 import { disableWebPush, enableWebPush } from '../services/pushClient'
 import { AvatarView } from './AvatarView'
 
+const CONTACT_EMAIL = 'pet10-support@example.com'
+
 interface MeTabProps {
   user: UserProfile
   onProfileUpdated(user: UserProfile): void
@@ -15,6 +17,8 @@ interface MeTabProps {
 
 export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogout }: MeTabProps) {
   const [renameOpen, setRenameOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const [contactCopied, setContactCopied] = useState(false)
   const [nameDraft, setNameDraft] = useState(user.displayName)
   const [birthdayDraft, setBirthdayDraft] = useState(user.birthday?.slice(0, 10) ?? '')
   const [busy, setBusy] = useState('')
@@ -68,6 +72,15 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
     }
   }
 
+  function openContact() {
+    setContactCopied(false)
+    setContactOpen(true)
+  }
+
+  function copyContactEmail() {
+    void navigator.clipboard?.writeText(CONTACT_EMAIL).then(() => setContactCopied(true)).catch(() => setContactCopied(false))
+  }
+
   return (
     <section className="me-tab">
       <header className="me-tab__header"><h2>我的</h2></header>
@@ -117,10 +130,10 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
             aria-label="消息通知开关"
           />
         </label>
-        <a className="me-list__item" href="mailto:pet10-support@example.com">
+        <button className="me-list__item" onClick={openContact}>
           <span><img className="me-list__icon" src="/me/contact.png" alt="" />联系我们</span>
           <em>›</em>
-        </a>
+        </button>
         <button className="me-list__item" onClick={() => setNotice('小多利 v2.0：两位好友共养的 AI 小狗，水彩手账风社交小窝。')}>
           <span><img className="me-list__icon" src="/me/about.png" alt="" />关于小多利</span>
           <em>›</em>
@@ -146,6 +159,25 @@ export function MeTab({ user, onProfileUpdated, onOpenAvatar, onOpenMbti, onLogo
               <button className="sheet__confirm" disabled={busy === 'rename'} onClick={() => void saveDisplayName()}>
                 {busy === 'rename' ? '保存中…' : '保存'}
               </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {contactOpen && createPortal(
+        <div className="modal-overlay" onClick={() => setContactOpen(false)}>
+          <div className="modal" onClick={(event) => event.stopPropagation()}>
+            <h3>联系我们</h3>
+            <p>遇到问题、想提建议，或者只是想聊聊，都可以通过邮箱找到我们。</p>
+            <div className="modal__email-row">
+              <span className="modal__email">{CONTACT_EMAIL}</span>
+              <button className="modal__copy" onClick={copyContactEmail}>复制</button>
+            </div>
+            {contactCopied && <p className="modal__notice">邮箱已复制，去邮箱里找我们吧～</p>}
+            <div className="modal__actions">
+              <button className="modal__cancel" onClick={() => setContactOpen(false)}>关闭</button>
+              <a className="modal__confirm" href={`mailto:${CONTACT_EMAIL}`}>去发邮件</a>
             </div>
           </div>
         </div>,

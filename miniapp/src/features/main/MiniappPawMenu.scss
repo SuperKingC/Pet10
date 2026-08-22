@@ -127,12 +127,15 @@
 
 .miniapp-paw-menu__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-top: 14px;
 }
 
 .miniapp-paw-menu__grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   min-height: 96px;
   padding: 10px 6px;
   color: #5e3b1d;
@@ -144,13 +147,20 @@
   border: 0;
 }
 
-.miniapp-paw-menu__grid button text:first-child {
+.miniapp-paw-menu__entry-icon {
+  width: 108rpx;
+  height: 108rpx;
+  margin-bottom: 8rpx;
+  border-radius: 16px;
+}
+
+.miniapp-paw-menu__entry-title {
   margin-bottom: 6px;
   font-size: var(--font-size-card-title);
   font-weight: var(--font-weight-semibold);
 }
 
-.miniapp-paw-menu__grid button text:last-child {
+.miniapp-paw-menu__entry-caption {
   color: #a89489;
   font-size: var(--font-size-aux);
   line-height: 1.4;

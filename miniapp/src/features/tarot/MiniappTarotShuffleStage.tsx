@@ -9,7 +9,7 @@ interface MiniappTarotShuffleStageProps {
   onSkip(): void
 }
 
-const shuffleDurationMs = 2000
+const shuffleDurationMs = 4000
 
 export function MiniappTarotShuffleStage({
   progress,
@@ -29,7 +29,7 @@ export function MiniappTarotShuffleStage({
   }
 
   const start = () => {
-    if (progress >= 100 || timerRef.current) return
+    if (timerRef.current) return
     setIsShuffling(true)
     startTimeRef.current = Date.now()
     startProgressRef.current = progress
@@ -37,17 +37,16 @@ export function MiniappTarotShuffleStage({
       const elapsed = Date.now() - startTimeRef.current
       const next = Math.min(100, startProgressRef.current + (elapsed / shuffleDurationMs) * 100)
       onProgress(next)
-      if (next >= 100) stop()
     }, 40)
   }
 
   useEffect(() => stop, [])
 
   return (
-    <View className="miniapp-tarot__stage miniapp-tarot__stage--ritual">
+    <View className="miniapp-tarot__stage miniapp-tarot__stage--ritual miniapp-tarot__stage--shuffle">
       <Text className="miniapp-tarot__title">长按牌堆洗牌，让心意融进牌里</Text>
       <Button
-        className={`miniapp-tarot__shuffle-deck${isShuffling ? ' miniapp-tarot__shuffle-deck--active' : ''}${progress >= 100 ? ' miniapp-tarot__shuffle-deck--complete' : ''}`}
+        className={`miniapp-tarot__shuffle-deck${isShuffling ? ' miniapp-tarot__shuffle-deck--active' : ''}${progress >= 100 && !isShuffling ? ' miniapp-tarot__shuffle-deck--complete' : ''}`}
         aria-label="长按洗牌"
         onTouchStart={start}
         onTouchEnd={stop}

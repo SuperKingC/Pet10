@@ -62,12 +62,6 @@ export interface MiniappContribution {
   count: number
 }
 
-export interface MiniappMapLight {
-  spotId: number
-  litBy: string
-  createdAt: string
-}
-
 export interface MiniappProfile {
   id: string
   displayName: string
@@ -130,14 +124,5 @@ export const socialApi = {
   },
   listContributions(roomId: string) {
     return apiRequest<MiniappContribution[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/contributions`)
-  },
-  listMapLights(roomId: string) {
-    return apiRequest<MiniappMapLight[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/map`)
-  },
-  lightMapSpot(roomId: string, spotId: number) {
-    return apiRequest<MiniappMapLight>(`/api/social/rooms/${encodeURIComponent(roomId)}/map`, {
-      method: 'POST',
-      body: { spotId },
-    })
   },
 }

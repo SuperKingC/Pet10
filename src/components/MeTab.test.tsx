@@ -38,4 +38,24 @@ describe('MeTab', () => {
     expect(container.querySelectorAll('.me-list__icon[alt=""]')).toHaveLength(5)
     expect(container.querySelector('.me-list')?.textContent).not.toMatch(/[🎂🔔💌🐾🚪]/u)
   })
+
+  it('opens the contact entry as a modal trigger instead of a mailto link', () => {
+    const markup = renderToStaticMarkup(
+      <MeTab
+        user={user}
+        onProfileUpdated={vi.fn()}
+        onOpenAvatar={vi.fn()}
+        onOpenMbti={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    )
+    const container = document.createElement('div')
+    container.innerHTML = markup
+
+    const contactItem = [...container.querySelectorAll('.me-list__item')].find((item) => item.textContent?.includes('联系我们'))
+    expect(contactItem).toBeDefined()
+    expect(contactItem?.tagName).toBe('BUTTON')
+    expect(contactItem?.getAttribute('href')).toBeNull()
+    expect(markup).not.toContain('mailto:')
+  })
 })

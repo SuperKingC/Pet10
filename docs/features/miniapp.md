@@ -39,9 +39,9 @@ flowchart LR
 - 我的页面支持 MBTI 选择并通过资料接口保存。
 - 我的页面复用 PWA `avatarConfig` 合同，支持头像预览、编辑、恢复和保存。
 - 小程序主页面壳层、底部安全区和底部导航使用统一的 `#fff8ee` 背景，避免切换到底部页面时出现白色露底。
-- 爪印菜单中的足迹地图使用 `/api/social/rooms/:roomId/map` 读取和点亮足迹。
-- 五子棋复用服务端同一状态机，通过 `/api/games/gobang` HTTP 轮询支持邀请、接受、落子、认输和结果同步。
-- 记忆和地图面板使用底部抽屉，不阻断主页面导航。
+- 爪印菜单提供“游戏”和“塔罗占卜”两个带图标入口；小程序端不再提供足迹地图功能和入口。
+- “游戏”入口打开居中弹窗，弹窗内当前提供五子棋入口，底部固定展示“敬请期待😈”；五子棋复用服务端同一状态机，通过 `/api/games/gobang` HTTP 轮询支持邀请、接受、落子、认输和结果同步。
+- 记忆面板使用居中弹窗，不阻断主页面导航。
 
 ### 当前未完成
 
@@ -112,6 +112,8 @@ API 域名必须使用 HTTPS，并添加到微信小程序后台的“开发管�
 | `action-clean.png` | 448×474 | 25 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
 | `room-background.webp` | 1280×1280 | 158 KB | 小窝宠物场景背景 |
+| `navigation/game.png` | 256×256 | 146 KB | 爪印菜单与游戏弹窗的游戏入口图标 |
+| `navigation/tarot.png` | 256×256 | 158 KB | 爪印菜单塔罗占卜入口图标 |
 
 PNG 保留原尺寸与透明通道并采用 256 色优化；房间背景保留 1280×1280 构图并重新编码为 WebP。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内。它们与 `public/pet/xiaoduoli.png`、`public/nest/room-background.webp` 及四张动作图保持同源视觉；PWA 图片仍在 `docs/assets/asset-manifest.json` 中登记，小程序副本随 `miniapp` 构建产物分发。
 

@@ -1,5 +1,3 @@
-@use 'sass:list';
-
 .miniapp-tarot {
   position: fixed;
   inset: 0;
@@ -571,19 +569,13 @@
 }
 
 .miniapp-tarot__shuffle-deck--complete .miniapp-tarot__deck-card {
-  animation: miniapp-tarot-shuffle-settle .72s cubic-bezier(.22, .86, .3, 1) both;
+  animation: miniapp-tarot-shuffle-settle .9s cubic-bezier(.3, .1, .3, 1) both;
 }
 
-$settle-x: (-26rpx, 18rpx, -10rpx, 30rpx, -34rpx, 8rpx, -18rpx, 26rpx, -6rpx, 14rpx);
-$settle-y: (-6rpx, 8rpx, -12rpx, -4rpx, 6rpx, 10rpx, -8rpx, 4rpx, 12rpx, -10rpx);
-$settle-r: (-7deg, 5deg, -3deg, 8deg, -9deg, 2deg, -5deg, 7deg, -2deg, 4deg);
-
+// top card (index 10) lifts first, deeper cards follow: reads as reordering the pile
 @for $index from 1 through 10 {
   .miniapp-tarot__shuffle-deck--complete .miniapp-tarot__deck-card--#{$index} {
-    --settle-x: #{list.nth($settle-x, $index)};
-    --settle-y: #{list.nth($settle-y, $index)};
-    --settle-r: #{list.nth($settle-r, $index)};
-    animation-delay: #{($index - 1) * 0.03}s;
+    animation-delay: #{(10 - $index) * 0.06}s;
   }
 }
 
@@ -618,61 +610,99 @@ $settle-r: (-7deg, 5deg, -3deg, 8deg, -9deg, 2deg, -5deg, 7deg, -2deg, 4deg);
 }
 
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(odd) {
-  animation: miniapp-tarot-shuffle-left 2.8s cubic-bezier(.3, .08, .26, 1) infinite;
+  animation: miniapp-tarot-shuffle-left 5.6s cubic-bezier(.3, .08, .26, 1) infinite;
 }
 
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(even) {
-  animation: miniapp-tarot-shuffle-right 2.8s cubic-bezier(.3, .08, .26, 1) infinite;
+  animation: miniapp-tarot-shuffle-right 5.6s cubic-bezier(.3, .08, .26, 1) infinite;
 }
 
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(3),
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(8) {
-  animation-delay: -.35s;
+  animation-delay: -.7s;
 }
 
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(4),
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(9) {
-  animation-delay: -.7s;
+  animation-delay: -1.4s;
 }
 
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(5),
 .miniapp-tarot__shuffle-deck--active .miniapp-tarot__deck-card:nth-child(10) {
-  animation-delay: -1.05s;
+  animation-delay: -2.1s;
 }
 
+// odd cards: fly left, land in the other slot each round trip (slot A -> B -> A)
 @keyframes miniapp-tarot-shuffle-left {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+  0% {
+    transform: translateX(-40%) translateY(0) rotate(0deg) scale(1);
   }
-  18% {
+  9% {
     transform: translateX(-74%) translateY(-26rpx) rotate(-8deg) scale(1.03);
   }
-  44% {
+  22% {
     transform: translateX(-138%) translateY(-46rpx) rotate(-17deg) scale(1.08);
   }
-  67% {
+  34% {
     transform: translateX(-88%) translateY(16rpx) rotate(9deg) scale(1.02);
   }
+  42% {
+    transform: translateX(-64%) translateY(-8rpx) rotate(-4deg) scale(1);
+  }
+  50% {
+    transform: translateX(-60%) translateY(0) rotate(0deg) scale(1);
+  }
+  59% {
+    transform: translateX(-74%) translateY(-26rpx) rotate(-8deg) scale(1.03);
+  }
+  72% {
+    transform: translateX(-138%) translateY(-46rpx) rotate(-17deg) scale(1.08);
+  }
   84% {
-    transform: translateX(-60%) translateY(-8rpx) rotate(-4deg) scale(1);
+    transform: translateX(-88%) translateY(16rpx) rotate(9deg) scale(1.02);
+  }
+  92% {
+    transform: translateX(-64%) translateY(-8rpx) rotate(-4deg) scale(1);
+  }
+  100% {
+    transform: translateX(-40%) translateY(0) rotate(0deg) scale(1);
   }
 }
 
+// even cards: fly right, land in the other slot each round trip (slot B -> A -> B)
 @keyframes miniapp-tarot-shuffle-right {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+  0% {
+    transform: translateX(-60%) translateY(0) rotate(0deg) scale(1);
   }
-  18% {
+  9% {
     transform: translateX(-26%) translateY(-26rpx) rotate(8deg) scale(1.03);
   }
-  44% {
+  22% {
     transform: translateX(38%) translateY(-46rpx) rotate(17deg) scale(1.08);
   }
-  67% {
+  34% {
     transform: translateX(-12%) translateY(16rpx) rotate(-9deg) scale(1.02);
   }
+  42% {
+    transform: translateX(-36%) translateY(-8rpx) rotate(4deg) scale(1);
+  }
+  50% {
+    transform: translateX(-40%) translateY(0) rotate(0deg) scale(1);
+  }
+  59% {
+    transform: translateX(-26%) translateY(-26rpx) rotate(8deg) scale(1.03);
+  }
+  72% {
+    transform: translateX(38%) translateY(-46rpx) rotate(17deg) scale(1.08);
+  }
   84% {
-    transform: translateX(-40%) translateY(-8rpx) rotate(4deg) scale(1);
+    transform: translateX(-12%) translateY(16rpx) rotate(-9deg) scale(1.02);
+  }
+  92% {
+    transform: translateX(-36%) translateY(-8rpx) rotate(4deg) scale(1);
+  }
+  100% {
+    transform: translateX(-60%) translateY(0) rotate(0deg) scale(1);
   }
 }
 
@@ -728,13 +758,20 @@ $settle-r: (-7deg, 5deg, -3deg, 8deg, -9deg, 2deg, -5deg, 7deg, -2deg, 4deg);
 
 @keyframes miniapp-tarot-shuffle-settle {
   0% {
-    transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+    z-index: 1;
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+  }
+  28% {
+    z-index: 30;
+    transform: translateX(-50%) translateY(-150rpx) rotate(-6deg);
   }
   58% {
-    transform: translateX(calc(-50% + var(--settle-x) * 1.15)) translateY(calc(var(--settle-y) * 1.4)) rotate(calc(var(--settle-r) * 1.3)) scale(1.04);
+    z-index: 30;
+    transform: translateX(calc(-50% + 96rpx)) translateY(-64rpx) rotate(7deg);
   }
   100% {
-    transform: translateX(calc(-50% + var(--settle-x))) translateY(var(--settle-y)) rotate(var(--settle-r)) scale(1);
+    z-index: 1;
+    transform: translateX(-50%) translateY(0) rotate(0deg);
   }
 }
 

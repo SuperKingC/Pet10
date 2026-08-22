@@ -16,7 +16,7 @@ export function MiniappTarotHistoryPanel({ history, onClose }: MiniappTarotHisto
   return (
     <View className="miniapp-tarot-history">
       <View className="miniapp-tarot-history__backdrop" onClick={onClose} />
-      <View className="miniapp-tarot-history__sheet">
+      <View className="miniapp-tarot-history__panel">
         <Text className="miniapp-tarot-history__title">我的占卜记录</Text>
         {history.length === 0 && <Text className="miniapp-tarot__hint">还没有占卜记录。</Text>}
         {history.map((item) => (
