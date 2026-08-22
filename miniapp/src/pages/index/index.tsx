@@ -257,7 +257,13 @@ export default function Index() {
       />
     }
     if (activeTab === 'calendar') {
-      return <MiniappCalendarView roomId={roomId} />
+      const activeRoom = context?.rooms.find((room) => room.id === roomId)
+      return <MiniappCalendarView
+        roomId={roomId}
+        myUserId={context?.user.id || ''}
+        friendId={activeRoom?.partner.id || ''}
+        friendName={activeRoom?.partner.displayName || '好友'}
+      />
     }
     if (activeTab === 'me') {
       return <MiniappMeView context={context} onLogout={logout} />
