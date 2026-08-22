@@ -16,3 +16,9 @@
 .miniapp-gobang__stone--white { background: radial-gradient(circle at 35% 30%, #fff, #ddd 70%); }
 .miniapp-gobang__resign { display: block; margin: 14px auto 0; color: #b15f52; }
 .miniapp-gobang__notice { display: block; margin-top: 10px; color: #c55f50; text-align: center; font-size: var(--font-size-aux); }
+.miniapp-gobang__modes { display: flex; flex-direction: column; gap: 14px; margin: 24px 0; }
+.miniapp-gobang__mode { display: block; padding: 20px 18px; background: #fff; border: 1px solid #ead5c2; border-radius: 18px; text-align: left; }
+.miniapp-gobang__mode::after { border: 0; }
+.miniapp-gobang__mode[disabled] { opacity: .55; }
+.miniapp-gobang__mode-title { display: block; color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.miniapp-gobang__mode-caption { display: block; margin-top: 6px; color: #a89489; font-size: var(--font-size-aux); }

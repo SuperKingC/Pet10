@@ -79,10 +79,10 @@ export function MiniappPawMenu({
           </View>}
         </View>
         <View className="miniapp-paw-menu__grid">
-          <Button disabled={!roomId} onClick={onOpenGames}>
+          <Button onClick={onOpenGames}>
             <Image className="miniapp-paw-menu__entry-icon" src={gameIcon} mode="aspectFit" fadeIn={false} />
             <Text className="miniapp-paw-menu__entry-title">游戏</Text>
-            <Text className="miniapp-paw-menu__entry-caption">{roomId ? '五子棋和更多玩法' : '绑定好友后开启'}</Text>
+            <Text className="miniapp-paw-menu__entry-caption">五子棋和更多玩法</Text>
           </Button>
           <Button onClick={onOpenTarot}>
             <Image className="miniapp-paw-menu__entry-icon" src={tarotIcon} mode="aspectFit" fadeIn={false} />

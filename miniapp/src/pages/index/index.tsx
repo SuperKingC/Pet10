@@ -297,7 +297,7 @@ export default function Index() {
         onOpenGobang={() => { setGamesOpen(false); setGobangOpen(true) }}
       />
     )}
-    {gobangOpen && context && roomId && (
+    {gobangOpen && context && (
       <MiniappGobangPanel
         roomId={roomId}
         myUserId={context.user.id}
