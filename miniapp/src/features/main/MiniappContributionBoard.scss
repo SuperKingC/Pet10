@@ -16,13 +16,13 @@
 
 .miniapp-contribution-board__title {
   color: #5e3b1d;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
 }
 
 .miniapp-contribution-board__caption {
   color: #b49a8d;
-  font-size: 10px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-contribution-board__row {
@@ -34,24 +34,24 @@
 }
 
 .miniapp-contribution-board__rank {
-  width: 22px;
-  height: 22px;
+  width: 40rpx;
+  height: 40rpx;
   color: #fff;
   background: #d9845d;
   border-radius: 50%;
-  font-size: 11px;
-  line-height: 22px;
+  font-size: var(--font-size-aux);
+  line-height: 40rpx;
   text-align: center;
 }
 
 .miniapp-contribution-board__name {
   flex: 1;
   color: #6f5143;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
 }
 
 .miniapp-contribution-board__count {
   color: #a89489;
-  font-size: 11px;
+  font-size: var(--font-size-aux);
 }

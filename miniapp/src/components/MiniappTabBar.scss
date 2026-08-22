@@ -56,8 +56,9 @@
   background: transparent;
   border: 0;
   border-radius: 13px;
-  font-size: 22rpx;
-  line-height: 1.1;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -69,7 +70,7 @@
 
 .miniapp-tab--active {
   color: #d9845d;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-tab__icon {
@@ -108,11 +109,11 @@
   position: absolute;
   top: 2px;
   right: 18%;
-  min-width: 24px;
-  padding: 2px 6px;
+  min-width: 36rpx;
+  padding: 2rpx 8rpx;
   color: #fff;
   background: #d36d3d;
   border-radius: 999px;
-  font-size: 16px;
-  line-height: 20px;
+  font-size: var(--font-size-aux);
+  line-height: 1.4;
 }

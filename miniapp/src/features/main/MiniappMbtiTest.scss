@@ -1,12 +1,7 @@
-.miniapp-mbti { position: fixed; inset: 0; z-index: 45; }
-.miniapp-mbti__backdrop { position: absolute; inset: 0; background: rgba(48,34,27,.5); }
-.miniapp-mbti__sheet { position: absolute; inset: auto 0 0; padding: 18px 22px calc(30px + env(safe-area-inset-bottom)); background: #fffaf6; border-radius: 28px 28px 0 0; }
-.miniapp-mbti__top { display: flex; align-items: center; justify-content: space-between; color: #8e776a; font-size: 12px; }
-.miniapp-mbti__close { margin: 0; padding: 0; color: #765847; background: transparent; border: 0; font-size: 28px; line-height: 1; }
-.miniapp-mbti__close::after { border: 0; }
+.miniapp-mbti__top { display: flex; align-items: center; justify-content: space-between; padding-right: 76rpx; color: #8e776a; font-size: var(--font-size-aux); }
 .miniapp-mbti__progress { height: 7px; margin: 18px 0 30px; overflow: hidden; background: #f1dfd2; border-radius: 99px; }
 .miniapp-mbti__progress view { height: 100%; background: #d9845d; border-radius: inherit; transition: width .2s ease; }
-.miniapp-mbti__eyebrow { display: block; margin-bottom: 14px; color: #d9845d; font-size: 12px; font-weight: 700; }
-.miniapp-mbti__question { display: block; min-height: 92px; color: #382b23; font-size: 24px; font-weight: 800; line-height: 1.5; }
-.miniapp-mbti__option { width: 100%; margin-top: 14px; padding: 17px 16px; color: #765847; background: #fff; border: 2px solid #f0ded1; border-radius: 16px; font-size: 15px; text-align: left; }
+.miniapp-mbti__eyebrow { display: block; margin-bottom: 14px; color: #d9845d; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
+.miniapp-mbti__question { display: block; min-height: 92px; color: #382b23; font-size: var(--font-size-section-title); font-weight: var(--font-weight-bold); line-height: 1.4; }
+.miniapp-mbti__option { width: 100%; margin-top: 14px; padding: 17px 16px; color: #765847; background: #fff; border: 2px solid #f0ded1; border-radius: 16px; font-size: var(--font-size-body); text-align: left; }
 .miniapp-mbti__option::after { border: 0; }

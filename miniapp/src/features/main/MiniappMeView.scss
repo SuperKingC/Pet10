@@ -14,14 +14,14 @@
 
 .miniapp-me__title {
   color: #382b23;
-  font-size: 44rpx;
-  font-weight: 800;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-me__caption,
 .miniapp-me__id {
   color: #a89489;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-me__profile {
@@ -55,8 +55,8 @@
   display: block;
   margin-bottom: 12px;
   color: #5e3b1d;
-  font-size: 30rpx;
-  font-weight: 800;
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-me__editor input {
@@ -67,14 +67,14 @@
   box-sizing: border-box;
   border: 1px solid #ead5c2;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-me__field-label {
   display: block;
   margin: 4px 0 8px;
   color: #a89489;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-me__mbti-grid {
@@ -91,7 +91,7 @@
   background: #fffaf6;
   border: 1px solid #ead5c2;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-me__mbti-option--active {
@@ -107,8 +107,8 @@
 .miniapp-me__mbti-icon {
   min-width: 54px;
   color: #d9845d;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-me__editor-actions,
@@ -125,7 +125,7 @@
   background: #fff0dc;
   border: 0;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-me__editor-actions button::after,
@@ -136,8 +136,8 @@
 .miniapp-me__notifications-header {
   margin-bottom: 8px;
   color: #5e3b1d;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-me__notification {
@@ -146,17 +146,17 @@
   padding: 10px 0;
   color: #a89489;
   border-top: 1px solid #f0e8e2;
-  font-size: 11px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-me__notification--unread {
   color: #5e3b1d;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-me__notice {
   color: #c55f50;
-  font-size: 11px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-me__name,
@@ -167,8 +167,8 @@
 .miniapp-me__name {
   margin-bottom: 5px;
   color: #5e3b1d;
-  font-size: 32rpx;
-  font-weight: 800;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
 }
 
 .miniapp-me__list {
@@ -189,7 +189,7 @@
   background: transparent;
   border: 0;
   border-bottom: 1px solid #f0e8e2;
-  font-size: 30rpx;
+  font-size: var(--font-size-body);
   text-align: left;
 }
 
@@ -202,7 +202,7 @@
 .miniapp-me__birthday-value {
   flex: 1;
   color: #a89489;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
   text-align: right;
 }
 
@@ -212,15 +212,15 @@
 
 .miniapp-me__item text:last-child {
   color: #a89489;
-  font-size: 27rpx;
-  font-weight: 700;
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-me__value {
   flex: 0 0 auto;
   max-width: 47%;
   color: #b27a61 !important;
-  font-size: 25rpx !important;
+  font-size: var(--font-size-secondary) !important;
   text-align: right;
 }
 
@@ -229,7 +229,7 @@
   justify-content: space-between;
   padding: 16px 0;
   color: #8e776a;
-  font-size: 15px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-me__logout {
@@ -239,5 +239,55 @@
 }
 
 .miniapp-me__logout::after {
+  border: 0;
+}
+
+.miniapp-contact__title {
+  display: block;
+  padding-right: 76rpx;
+  color: #382b23;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-contact__intro {
+  display: block;
+  margin: 20rpx 0 28rpx;
+  color: #8e776a;
+  font-size: var(--font-size-secondary);
+  line-height: 1.6;
+}
+
+.miniapp-contact__email-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 24rpx 28rpx;
+  background: #fff;
+  border: 2px solid #f0ded1;
+  border-radius: 16px;
+}
+
+.miniapp-contact__email {
+  color: #765847;
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-bold);
+  word-break: break-all;
+}
+
+.miniapp-contact__copy {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 12rpx 32rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #dc895f, #c97655);
+  border: 0;
+  border-radius: 999px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.miniapp-contact__copy::after {
   border: 0;
 }

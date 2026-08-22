@@ -8,12 +8,13 @@
 
 .pet-page-title {
   color: #382b23;
-  font-size: 48px;
-  font-weight: 800;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
 }
 
 .pet-page-caption {
   color: #9a806b;
-  font-size: 26px;
+  font-size: var(--font-size-secondary);
   line-height: 1.5;
 }

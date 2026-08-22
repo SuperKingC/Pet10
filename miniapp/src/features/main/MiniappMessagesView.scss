@@ -14,14 +14,14 @@
 
 .miniapp-messages__title {
   color: #382b23;
-  font-size: 44rpx;
-  font-weight: 800;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-messages__caption,
 .miniapp-messages__conversation-copy {
   color: #a89489;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-messages__conversation {
@@ -55,8 +55,8 @@
   display: block;
   margin-bottom: 5px;
   color: #5e3b1d;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
 }
 
 .miniapp-messages__arrow {
@@ -72,7 +72,7 @@
   justify-content: center;
   gap: 8px;
   color: #aa9790;
-  font-size: 13px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-messages__list {
@@ -97,7 +97,7 @@
 
 .miniapp-message__sender {
   color: #a89489;
-  font-size: 10px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-message__bubble {
@@ -106,8 +106,8 @@
   background: #fff;
   border-radius: 8px 18px 18px 18px;
   box-shadow: 0 7px 20px rgba(70, 48, 37, .07);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--font-size-body);
+  line-height: 1.65;
 }
 
 .miniapp-message--mine .miniapp-message__bubble {
@@ -130,7 +130,7 @@
   background: #fff;
   border: 1px solid #ead5c2;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-messages__send,
@@ -140,7 +140,7 @@
   background: #d9845d;
   border: 0;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-messages__send::after,
@@ -157,5 +157,5 @@
 
 .miniapp-messages__error {
   color: #c55f50;
-  font-size: 11px;
+  font-size: var(--font-size-aux);
 }

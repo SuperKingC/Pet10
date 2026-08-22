@@ -48,15 +48,15 @@
 
 .miniapp-paw-menu__title {
   color: #382b23;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-paw-menu__caption,
 .miniapp-paw-menu__hint {
   margin-top: 4px;
   color: #a89489;
-  font-size: 11px;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-paw-menu__close {
@@ -64,7 +64,7 @@
   color: #8a6250;
   background: transparent;
   border: 0;
-  font-size: 26px;
+  font-size: 26rpx;
 }
 
 .miniapp-paw-menu__close::after {
@@ -80,21 +80,21 @@
 
 .miniapp-paw-menu__section-title {
   color: #8a4f37;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-paw-menu__question {
   margin-top: 10px;
   color: #5e3b1d;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
 }
 
 .miniapp-paw-menu__answer {
   margin-top: 8px;
   color: #925e43;
-  font-size: 12px;
+  font-size: var(--font-size-secondary);
 }
 
 .miniapp-paw-menu__answer-row {
@@ -109,7 +109,7 @@
   background: #fff;
   border: 1px solid #ead5c2;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-paw-menu__answer-row button,
@@ -122,7 +122,7 @@
   padding: 0 14px;
   color: #fff;
   background: #d9845d;
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-paw-menu__grid {
@@ -133,7 +133,7 @@
 }
 
 .miniapp-paw-menu__grid button {
-  min-height: 82px;
+  min-height: 96px;
   padding: 10px 6px;
   color: #5e3b1d;
   background: #fff;
@@ -146,12 +146,12 @@
 
 .miniapp-paw-menu__grid button text:first-child {
   margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
 }
 
 .miniapp-paw-menu__grid button text:last-child {
   color: #a89489;
-  font-size: 10px;
+  font-size: var(--font-size-aux);
   line-height: 1.4;
 }

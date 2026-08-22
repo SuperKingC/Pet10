@@ -14,19 +14,20 @@
 
 .room-eyebrow {
   color: #d36d3d;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
 }
 
 .room-title {
   color: #382b23;
-  font-size: 42px;
-  font-weight: 800;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
 }
 
 .room-caption, .room-status {
   color: #9a806b;
-  font-size: 24px;
+  font-size: var(--font-size-aux);
   line-height: 1.5;
 }
 
@@ -42,7 +43,7 @@
 .empty-message {
   padding: 100px 24px;
   color: #9a806b;
-  font-size: 24px;
+  font-size: var(--font-size-aux);
   text-align: center;
 }
 
@@ -60,7 +61,7 @@
 .message-sender {
   margin: 0 10px 6px;
   color: #9a806b;
-  font-size: 20px;
+  font-size: var(--font-size-aux);
 }
 
 .message-bubble {
@@ -69,8 +70,8 @@
   border-radius: 20px 20px 20px 6px;
   background: #f2e8de;
   color: #503a2b;
-  font-size: 26px;
-  line-height: 1.5;
+  font-size: var(--font-size-body);
+  line-height: 1.65;
   word-break: break-word;
 }
 
@@ -100,7 +101,7 @@
   border-radius: 18px;
   background: #fff;
   color: #382b23;
-  font-size: 25px;
+  font-size: var(--font-size-body);
 }
 
 .send-button {
@@ -110,7 +111,7 @@
   border-radius: 18px;
   background: #d36d3d;
   color: #fff;
-  font-size: 26px;
+  font-size: var(--font-size-body);
   line-height: 84px;
 }
 
@@ -120,7 +121,7 @@
   border-radius: 18px;
   background: #fffaf6;
   color: #765c47;
-  font-size: 25px;
+  font-size: var(--font-size-body);
 }
 
 .send-button::after, .pet-reply-button::after {

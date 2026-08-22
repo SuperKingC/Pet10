@@ -12,13 +12,13 @@
 }
 
 .eyebrow, .invite-title, .invite-copy, .feedback { display: block; }
-.eyebrow { color: #d36d3d; font-size: 22px; font-weight: 700; }
-.invite-title { margin-top: 18px; color: #382b23; font-size: 42px; font-weight: 800; line-height: 1.25; }
-.invite-copy { margin-top: 20px; color: #765c47; font-size: 25px; line-height: 1.55; }
+.eyebrow { color: #d36d3d; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
+.invite-title { margin-top: 18px; color: #382b23; font-size: var(--font-size-display); font-weight: var(--font-weight-bold); line-height: 1.2; }
+.invite-copy { margin-top: 20px; color: #765c47; font-size: var(--font-size-body); line-height: 1.55; }
 .action-row { display: flex; gap: 16px; margin-top: 28px; }
-.self-invite-notice { margin-top: 28px; padding: 20px; border-radius: 18px; background: #f4e5d7; color: #765c47; font-size: 24px; line-height: 1.5; }
-.wechat-button, .accept-button, .decline-button { flex: 1; border: 0; border-radius: 18px; font-size: 27px; }
+.self-invite-notice { margin-top: 28px; padding: 20px; border-radius: 18px; background: #f4e5d7; color: #765c47; font-size: var(--font-size-secondary); line-height: 1.5; }
+.wechat-button, .accept-button, .decline-button { flex: 1; border: 0; border-radius: 18px; font-size: var(--font-size-body); }
 .wechat-button, .accept-button { margin-top: 28px; background: #35a35c; color: #fff; }
 .decline-button { background: #f4e5d7; color: #765c47; }
 .wechat-button::after, .accept-button::after, .decline-button::after { border: 0; }
-.feedback { margin-top: 24px; color: #9a806b; font-size: 23px; line-height: 1.5; }
+.feedback { margin-top: 24px; color: #9a806b; font-size: var(--font-size-aux); line-height: 1.5; }

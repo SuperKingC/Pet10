@@ -1,4 +1,18 @@
 page {
+  /* 字体规范语义字号阶梯（.agents/rules/typography.md） */
+  --font-size-display: 56rpx;
+  --font-size-page-title: 44rpx;
+  --font-size-overlay-title: 40rpx;
+  --font-size-section-title: 34rpx;
+  --font-size-card-title: 32rpx;
+  --font-size-body: 30rpx;
+  --font-size-secondary: 28rpx;
+  --font-size-aux: 26rpx;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
   background: #fff8ee;
   color: #382b23;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;

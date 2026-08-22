@@ -13,14 +13,14 @@
 
 .miniapp-page-title {
   color: #382b23;
-  font-size: 44rpx;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
 }
 
 .miniapp-page-caption {
   color: #a89489;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
   line-height: 1.4;
 }
 
@@ -46,9 +46,9 @@
 }
 
 .login-panel, .room-panel, .waiting-panel, .rooms-panel { margin-bottom: 24px; padding: 24px; border: 1px solid #ead5c2; border-radius: 22px; background: #fffaf6; }
-.panel-title { display: block; margin-bottom: 16px; color: #5e3b1d; font-size: 28px; font-weight: 700; }
-.login-caption, .panel-copy { display: block; margin-bottom: 20px; color: #765c47; font-size: 24px; line-height: 1.5; }
-.wechat-button { border: 0; border-radius: 18px; background: #35a35c; color: #fff; font-size: 28px; }
+.panel-title { display: block; margin-bottom: 16px; color: #5e3b1d; font-size: var(--font-size-section-title); font-weight: var(--font-weight-bold); }
+.login-caption, .panel-copy { display: block; margin-bottom: 20px; color: #765c47; font-size: var(--font-size-secondary); line-height: 1.6; }
+.wechat-button { border: 0; border-radius: 18px; background: #35a35c; color: #fff; font-size: var(--font-size-body); }
 .wechat-button::after, .room-item::after, .room-button::after, .share-button::after, .secondary-button::after { border: 0; }
 
 .page-heading {
@@ -60,27 +60,27 @@
 
 .eyebrow {
   color: #d36d3d;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
 }
 
 .page-title {
   color: #382b23;
-  font-size: 48px;
-  font-weight: 800;
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-bold);
 }
 
 .page-description {
   color: #9a806b;
-  font-size: 25px;
-  line-height: 1.5;
+  font-size: var(--font-size-secondary);
+  line-height: 1.6;
 }
 
 .feedback {
   margin: 24px 4px;
   color: #765c47;
-  font-size: 25px;
-  line-height: 1.5;
+  font-size: var(--font-size-aux);
+  line-height: 1.55;
 }
 
 .room-button {
@@ -89,7 +89,7 @@
   border-radius: 18px;
   background: #5e3b1d;
   color: #fff;
-  font-size: 28px;
+  font-size: var(--font-size-body);
 }
 
 .share-button {
@@ -98,7 +98,7 @@
   border-radius: 18px;
   background: #35a35c;
   color: #fff;
-  font-size: 28px;
+  font-size: var(--font-size-body);
 }
 
 .share-button[disabled], .room-button[disabled] {
@@ -114,7 +114,7 @@
   border-radius: 16px;
   background: #fff;
   color: #5e3b1d;
-  font-size: 25px;
+  font-size: var(--font-size-body);
   text-align: left;
 }
 
@@ -129,11 +129,11 @@
   border-radius: 18px;
   background: transparent;
   color: #765c47;
-  font-size: 24px;
+  font-size: var(--font-size-body);
 }
 
 .login-profile { display: flex; align-items: center; gap: 14px; margin: 22px 0 16px; }
-.login-avatar-button { display: flex; width: 72px; height: 72px; align-items: center; justify-content: center; padding: 0; overflow: hidden; color: #b27a61; background: #fff5e9; border: 2px dashed #e3b79b; border-radius: 50%; font-size: 11px; }
+.login-avatar-button { display: flex; width: 72px; height: 72px; align-items: center; justify-content: center; padding: 0; overflow: hidden; color: #b27a61; background: #fff5e9; border: 2px dashed #e3b79b; border-radius: 50%; font-size: var(--font-size-aux); }
 .login-avatar-button::after { border: 0; }
 .login-avatar { width: 100%; height: 100%; }
-.login-name-input { flex: 1; min-height: 44px; padding: 0 14px; color: #5e3b1d; background: #fffaf6; border: 1px solid #ead5c2; border-radius: 14px; font-size: 14px; }
+.login-name-input { flex: 1; min-height: 44px; padding: 0 14px; color: #5e3b1d; background: #fffaf6; border: 1px solid #ead5c2; border-radius: 14px; font-size: var(--font-size-body); }

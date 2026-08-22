@@ -52,7 +52,7 @@ describe('miniapp main layout', () => {
       expect(source).toContain('miniapp-page-title')
     }
     expect(indexStyles).toMatch(/\.miniapp-page-header\s*\{[\s\S]*padding:\s*8px 2px 6px;/)
-    expect(indexStyles).toMatch(/\.miniapp-page-title\s*\{[\s\S]*font-size:\s*44rpx;[\s\S]*font-weight:\s*800;/)
+    expect(indexStyles).toMatch(/\.miniapp-page-title\s*\{[\s\S]*font-size:\s*var\(--font-size-page-title\);[\s\S]*font-weight:\s*var\(--font-weight-bold\);/)
   })
 
   it('loads backgrounds from compiled assets instead of runtime inline styles', () => {

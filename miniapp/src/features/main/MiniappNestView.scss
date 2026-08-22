@@ -17,13 +17,13 @@
 
 .miniapp-nest__title {
   color: #382b23;
-  font-size: 44rpx;
-  font-weight: 800;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-nest__greeting {
   color: #a89489;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
 }
 
 .miniapp-nest__rooms {
@@ -40,7 +40,7 @@
   background: #fff0dc;
   border: 1px solid #e8bd91;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 .miniapp-room-chip::after {
