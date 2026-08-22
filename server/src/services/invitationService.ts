@@ -6,6 +6,28 @@ interface InvitationServiceOptions {
   ttlSeconds?: number
 }
 
+async function writeFirstMeetingMemory(
+  repositories: RepositoryBundle,
+  roomId: string,
+  inviterId: string,
+  accepterId: string
+) {
+  const [inviter, accepter] = await Promise.all([
+    repositories.users.findById(inviterId),
+    repositories.users.findById(accepterId)
+  ])
+  const inviterName = inviter?.displayName?.trim() || '好友'
+  const accepterName = accepter?.displayName?.trim() || '好友'
+  await repositories.memories.create({
+    roomId,
+    text: `小多利见证了 ${accepterName} 和 ${inviterName} 的初次见面，从今天起一起住在这个小窝里。`,
+    canMention: true,
+    category: 'relationship',
+    importance: 3,
+    source: 'explicit'
+  })
+}
+
 export function createInvitationService(
   repositories: RepositoryBundle,
   options: InvitationServiceOptions = {}
@@ -48,14 +70,17 @@ export function createInvitationService(
       if (await repositories.relationships.findBetweenUsers(invitation.inviterId, accepterId)) {
         throw new Error('relationship_already_exists')
       }
-      if (repositories.invitations.acceptPair) {
-        return repositories.invitations.acceptPair(token, accepterId)
-      }
-      const relationship = await repositories.relationships.create(invitation.inviterId, accepterId)
-      const room = await repositories.rooms.createForRelationship(relationship.id)
-      const pet = await repositories.pets.createForRelationship(relationship.id, room.id)
-      await repositories.invitations.accept(token, accepterId)
-      return { invitation, relationship, room, pet }
+      const accepted = repositories.invitations.acceptPair
+        ? await repositories.invitations.acceptPair(token, accepterId)
+        : await (async () => {
+            const relationship = await repositories.relationships.create(invitation.inviterId, accepterId)
+            const room = await repositories.rooms.createForRelationship(relationship.id)
+            const pet = await repositories.pets.createForRelationship(relationship.id, room.id)
+            await repositories.invitations.accept(token, accepterId)
+            return { invitation, relationship, room, pet }
+          })()
+      await writeFirstMeetingMemory(repositories, accepted.room.id, invitation.inviterId, accepterId)
+      return accepted
     },
     async decline(token: string, userId: string) {
       const invitation = await repositories.invitations.findByToken(token)

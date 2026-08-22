@@ -60,4 +60,21 @@ describe('invitation service', () => {
     })
     expect((await repositories.relationships.listAcceptedForUser(inviter.id))).toHaveLength(1)
   })
+
+  it('writes a first-meeting memory when the invitation is accepted', async () => {
+    const repositories = createMemoryRepositories()
+    const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: '小A' })
+    const invitee = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: '小B' })
+    const service = createInvitationService(repositories, { ttlSeconds: 3600 })
+    const invitation = await service.create(inviter.id)
+
+    const accepted = await service.accept(invitation.token, invitee.id)
+    const memories = await repositories.memories.listByRoom(accepted.room.id)
+
+    expect(memories).toHaveLength(1)
+    expect(memories[0].text).toBe('小多利见证了 小B 和 小A 的初次见面，从今天起一起住在这个小窝里。')
+    expect(memories[0].category).toBe('relationship')
+    expect(memories[0].source).toBe('explicit')
+    expect(memories[0].importance).toBe(3)
+  })
 })
