@@ -1,4 +1,4 @@
-import type { ChatMessage, User } from '../domain/models.js'
+import type { Anniversary, ChatMessage, User } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import { sortConversationsByLatest } from './conversationOrder.js'
@@ -171,6 +171,39 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
     async listMoods(roomId: string, userId: string, fromDay: string, toDay: string) {
       await assertMember(roomId, userId)
       return repositories.moods.listForRange(roomId, fromDay, toDay)
+    },
+
+    // ---------- 纪念日 ----------
+    async listAnniversaries(roomId: string, userId: string) {
+      await assertMember(roomId, userId)
+      return repositories.anniversaries.listByRoom(roomId)
+    },
+
+    async createAnniversary(
+      roomId: string,
+      userId: string,
+      input: Pick<Anniversary, 'name' | 'icon' | 'note' | 'day' | 'repeatRule'>
+    ) {
+      await assertMember(roomId, userId)
+      return repositories.anniversaries.create({ ...input, roomId, userId })
+    },
+
+    async updateAnniversary(
+      roomId: string,
+      userId: string,
+      id: string,
+      patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule'] }
+    ) {
+      await assertMember(roomId, userId)
+      const updated = await repositories.anniversaries.update(id, patch)
+      if (!updated) throw new Error('anniversary_not_found')
+      return updated
+    },
+
+    async deleteAnniversary(roomId: string, userId: string, id: string) {
+      await assertMember(roomId, userId)
+      await repositories.anniversaries.deleteById(roomId, id)
+      return { ok: true }
     },
 
     // ---------- 动态（小多利圈） ----------

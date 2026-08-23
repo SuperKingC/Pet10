@@ -120,3 +120,60 @@ describe('personal daily fortune', () => {
     expect(fortune.content.love.partnered.length).toBeGreaterThanOrEqual(70)
   })
 })
+
+describe('room anniversaries', () => {
+  async function createPairRoom(repositories: ReturnType<typeof createMemoryRepositories>) {
+    const me = await repositories.users.create({ email: 'me@example.com', username: 'me', displayName: '我' })
+    const friend = await repositories.users.create({ email: 'friend@example.com', username: 'friend', displayName: '好友' })
+    const relationship = await repositories.relationships.create(me.id, friend.id)
+    await repositories.relationships.accept(relationship.id)
+    const room = await repositories.rooms.createForRelationship(relationship.id)
+    return { me, friend, room }
+  }
+
+  const input = { name: '恋爱纪念日', icon: 'heart', note: '在一起', day: '2025-02-14', repeatRule: 'yearly' as const }
+
+  it('creates and lists anniversaries for room members', async () => {
+    const { repositories, social } = createService()
+    const { me, room } = await createPairRoom(repositories)
+
+    const created = await social.createAnniversary(room.id, me.id, input)
+    const list = await social.listAnniversaries(room.id, me.id)
+
+    expect(created.name).toBe('恋爱纪念日')
+    expect(created.repeatRule).toBe('yearly')
+    expect(list).toHaveLength(1)
+    expect(list[0].id).toBe(created.id)
+  })
+
+  it('updates an anniversary', async () => {
+    const { repositories, social } = createService()
+    const { me, room } = await createPairRoom(repositories)
+    const created = await social.createAnniversary(room.id, me.id, input)
+
+    const updated = await social.updateAnniversary(room.id, me.id, created.id, { icon: 'star', note: '' })
+
+    expect(updated?.icon).toBe('star')
+    expect(updated?.note).toBe('')
+    expect(updated?.name).toBe('恋爱纪念日')
+  })
+
+  it('deletes an anniversary', async () => {
+    const { repositories, social } = createService()
+    const { me, room } = await createPairRoom(repositories)
+    const created = await social.createAnniversary(room.id, me.id, input)
+
+    await social.deleteAnniversary(room.id, me.id, created.id)
+
+    expect(await social.listAnniversaries(room.id, me.id)).toHaveLength(0)
+  })
+
+  it('rejects users outside the room', async () => {
+    const { repositories, social } = createService()
+    const { room } = await createPairRoom(repositories)
+    const stranger = await repositories.users.create({ email: 'x@example.com', username: 'x', displayName: 'X' })
+
+    await expect(social.createAnniversary(room.id, stranger.id, input)).rejects.toThrow('room_forbidden')
+    await expect(social.listAnniversaries(room.id, stranger.id)).rejects.toThrow('room_forbidden')
+  })
+})
