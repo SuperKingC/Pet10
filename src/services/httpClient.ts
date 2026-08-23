@@ -2,6 +2,16 @@ import { runtimeConfig } from './runtimeConfig'
 
 const TOKEN_KEY = 'pet10_access_token'
 
+export class HttpError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'HttpError'
+    this.status = status
+  }
+}
+
 export function getAccessToken() {
   return window.localStorage.getItem(TOKEN_KEY)
 }
@@ -22,7 +32,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   })
   if (!response.ok) {
     const body = await response.json().catch(() => ({ error: 'request_failed' })) as { error?: string }
-    throw new Error(body.error || `request_failed:${response.status}`)
+    throw new HttpError(body.error || `request_failed:${response.status}`, response.status)
   }
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>

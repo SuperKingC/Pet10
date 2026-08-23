@@ -10,6 +10,7 @@ import { ImageGenerationRoom } from './components/ImageGenerationRoom'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
 import { TarotDevEntry } from './dev/tarot/TarotDevEntry'
+import { classifySessionStartupError } from './services/sessionStartup'
 import './styles.css'
 
 const SESSION_STARTUP_TIMEOUT_MS = 8_000
@@ -48,13 +49,9 @@ function App() {
     try {
       setSession(await sessionApi.getHome({ signal: controller.signal }))
     } catch (sessionError) {
-      if (sessionError instanceof DOMException && sessionError.name === 'AbortError') {
-        setError('服务器响应超时，请检查网络后重试')
-        setSession(undefined)
-        return
-      }
-      if (getAccessToken()) window.localStorage.removeItem('pet10_access_token')
-      setError(sessionError instanceof Error ? sessionError.message : '会话加载失败')
+      const failure = classifySessionStartupError(sessionError)
+      if (failure.clearToken && getAccessToken()) window.localStorage.removeItem('pet10_access_token')
+      setError(failure.message)
       setSession(undefined)
     } finally {
       window.clearTimeout(timeoutId)
