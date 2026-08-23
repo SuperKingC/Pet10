@@ -9,6 +9,8 @@ function routeParam(value: string | string[]) {
   return Array.isArray(value) ? value[0] : value
 }
 
+const ANNIVERSARY_ICONS = ['heart', 'star', 'cake', 'paw', 'balloon'] as const
+
 export function createSocialRoutes(dependencies: {
   social: SocialService
   pets: ReturnType<typeof createPetService>
@@ -49,6 +51,39 @@ export function createSocialRoutes(dependencies: {
       const entry = await dependencies.social.setMood(routeParam(request.params.roomId), request.userId!, level)
       response.json(entry)
     } catch (error) { next(error) }
+  })
+
+  // 纪念日
+  router.get('/rooms/:roomId/anniversaries', async (request: AuthenticatedRequest, response, next) => {
+    try { response.json(await dependencies.social.listAnniversaries(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }
+  })
+  router.post('/rooms/:roomId/anniversaries', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      const input = z.object({
+        name: z.string().trim().min(1).max(20),
+        icon: z.enum(ANNIVERSARY_ICONS),
+        note: z.string().max(50).default(''),
+        day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        repeatRule: z.enum(['yearly', 'none']).default('yearly')
+      }).parse(request.body)
+      const anniversary = await dependencies.social.createAnniversary(routeParam(request.params.roomId), request.userId!, input)
+      response.status(201).json(anniversary)
+    } catch (error) { next(error) }
+  })
+  router.put('/rooms/:roomId/anniversaries/:anniversaryId', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      const patch = z.object({
+        name: z.string().trim().min(1).max(20),
+        icon: z.enum(ANNIVERSARY_ICONS),
+        note: z.string().max(50),
+        repeatRule: z.enum(['yearly', 'none'])
+      }).partial().parse(request.body)
+      const anniversary = await dependencies.social.updateAnniversary(routeParam(request.params.roomId), request.userId!, routeParam(request.params.anniversaryId), patch)
+      response.json(anniversary)
+    } catch (error) { next(error) }
+  })
+  router.delete('/rooms/:roomId/anniversaries/:anniversaryId', async (request: AuthenticatedRequest, response, next) => {
+    try { response.json(await dependencies.social.deleteAnniversary(routeParam(request.params.roomId), request.userId!, routeParam(request.params.anniversaryId))) } catch (error) { next(error) }
   })
 
   // 小多利圈（动态）

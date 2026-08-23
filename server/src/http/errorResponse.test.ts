@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { resolveErrorResponse } from './errorResponse.js'
 
 describe('resolveErrorResponse', () => {
@@ -15,5 +16,10 @@ describe('resolveErrorResponse', () => {
       status: 400,
       error: 'invitation_unavailable',
     })
+  })
+
+  it('returns 400 for zod validation failures', () => {
+    const error = z.object({ name: z.string() }).safeParse({ name: 1 }).error
+    expect(resolveErrorResponse(error)).toEqual({ status: 400, error: 'invalid_input' })
   })
 })
