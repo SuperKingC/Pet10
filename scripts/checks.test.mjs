@@ -6,7 +6,7 @@ describe('project checks', () => {
   it('keeps architecture violations at zero', async () => {
     const report = await checkArchitecture()
     expect(report.errors).toEqual([])
-    expect(report.warnings.some((warning) => warning.includes('ImageGenerationRoom'))).toBe(true)
+    expect(report.warnings).toEqual([])
   })
 
   it('keeps feature documentation linked to real files', async () => {
