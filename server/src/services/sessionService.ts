@@ -71,7 +71,7 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
         const friendId = relationship.requesterId === userId ? relationship.addresseeId : relationship.requesterId
         const friend = await repositories.users.findById(friendId)
         const pet = await repositories.pets.findByRoomId(room.id)
-        if (!friend || !pet) continue
+        if (!friend) continue
         rooms.push({
           id: room.id,
           partner: {
@@ -79,12 +79,13 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
             displayName: friend.displayName,
             avatarUrl: friend.avatarUrl
           },
-          pet: {
+          // 共养名额已满的好友关系仍展示房间，仅 pet 为 null
+          pet: pet ? {
             id: pet.id,
             name: pet.name,
             level: pet.level,
             updatedAt: pet.updatedAt.toISOString()
-          },
+          } : null,
           lastUsedAt: null,
           unreadCount: 0
         })
@@ -92,7 +93,7 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
 
       const activeRoomId = options?.activeRoomId && rooms.some((room) => room.id === options.activeRoomId)
         ? options.activeRoomId
-        : rooms[0]?.id
+        : rooms.find((room) => room.pet)?.id ?? rooms[0]?.id
       const pendingInvitations = options?.invitationToken && getInvitation
         ? [await getInvitation(options.invitationToken)]
         : []

@@ -78,6 +78,29 @@ describe('session service', () => {
     expect(context.rooms.map((room) => room.partner.displayName)).toEqual(expect.arrayContaining(['B', 'C']))
   })
 
+  it('includes pet-less rooms in launch context and prefers a pet room as active', async () => {
+    const repositories = createMemoryRepositories()
+    const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const second = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const third = await repositories.users.create({ email: 'c@example.com', username: 'c', displayName: 'C' })
+    // first 和 second 共养小多利
+    const petRelationship = await repositories.relationships.create(first.id, second.id)
+    await repositories.relationships.accept(petRelationship.id)
+    const petRoom = await repositories.rooms.createForRelationship(petRelationship.id)
+    await repositories.pets.createForRelationship(petRelationship.id, petRoom.id)
+    // first 和 third 只是好友（third 共养名额已满，不创建小多利）
+    const friendRelationship = await repositories.relationships.create(first.id, third.id)
+    await repositories.relationships.accept(friendRelationship.id)
+    const friendRoom = await repositories.rooms.createForRelationship(friendRelationship.id)
+
+    const context = await createSessionService(repositories).getLaunchContext(first.id)
+
+    expect(context.rooms).toHaveLength(2)
+    expect(context.rooms.find((room) => room.id === friendRoom.id)?.pet).toBeNull()
+    expect(context.rooms.find((room) => room.id === petRoom.id)?.pet?.name).toBe('小多利')
+    expect(context.activeRoomId).toBe(petRoom.id)
+  })
+
   it('prioritizes a valid invitation in launch context', async () => {
     const repositories = createMemoryRepositories()
     const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })

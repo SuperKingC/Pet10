@@ -49,15 +49,15 @@ export function MiniappNestView({ context, pet, roomId, onAction, onSelectRoom, 
         <Text className="miniapp-page-caption miniapp-nest__greeting">记录你们和小多利的共同生活。</Text>
       </View>
 
-      {context && context.rooms.length > 0 && (
+      {context && context.rooms.some((room) => room.pet) && (
         <View className="miniapp-nest__rooms">
-          {context.rooms.map((room) => (
+          {context.rooms.filter((room) => room.pet).map((room) => (
             <Button
               key={room.id}
               className={room.id === roomId ? 'miniapp-room-chip miniapp-room-chip--active' : 'miniapp-room-chip'}
               onClick={() => onSelectRoom(room.id)}
             >
-              {room.partner.displayName} · Lv.{room.pet.level}
+              {room.partner.displayName} · Lv.{room.pet?.level}
             </Button>
           ))}
         </View>

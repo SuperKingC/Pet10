@@ -73,11 +73,14 @@ describe('miniapp view model', () => {
 
   it('derives the nest scene mode from context and pet', () => {
     const emptyContext = { rooms: [] } as unknown as LaunchContext
-    const roomContext = { rooms: [{ id: 'room-1' }] } as unknown as LaunchContext
+    const petlessRoomContext = { rooms: [{ id: 'room-1', pet: null }] } as unknown as LaunchContext
+    const roomContext = { rooms: [{ id: 'room-1', pet: { id: 'pet-1' } }] } as unknown as LaunchContext
     const pet = {} as PetState
 
     expect(getNestSceneMode(null, null)).toBe('loading')
     expect(getNestSceneMode(emptyContext, null)).toBe('empty')
+    expect(getNestSceneMode(petlessRoomContext, null)).toBe('empty')
+    expect(getNestSceneMode(petlessRoomContext, pet)).toBe('empty')
     expect(getNestSceneMode(roomContext, null)).toBe('loading')
     expect(getNestSceneMode(roomContext, pet)).toBe('active')
   })

@@ -18,7 +18,7 @@ export interface LaunchContext {
       name: '小多利'
       level: number
       updatedAt: string
-    }
+    } | null
     lastUsedAt?: string | null
     unreadCount?: number
   }>

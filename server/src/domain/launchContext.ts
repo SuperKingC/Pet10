@@ -9,12 +9,13 @@ export interface UserSummary {
 export interface RoomSummary {
   id: string
   partner: UserSummary
+  // 小多利只能和一位好友共养：名额已满的好友关系仍有房间，但 pet 为 null
   pet: {
     id: string
     name: '小多利'
     level: number
     updatedAt: string
-  }
+  } | null
   lastUsedAt?: string | null
   unreadCount?: number
 }

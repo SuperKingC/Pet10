@@ -25,8 +25,7 @@ export function createRoomService({
       await assertMember(roomId, userId)
       const room = await repositories.rooms.findById(roomId)
       const pet = await repositories.pets.findByRoomId(roomId)
-      // 私聊房（pet_dm）没有宠物，其余房间必须有
-      if (!pet && room?.type !== 'pet_dm') throw new Error('pet_not_found')
+      // 私聊房（pet_dm）以及共养名额已满的双人房都没有宠物，仍可正常进入
       // 每日首开问候（后台触发，通过 socket 送达）
       void brain?.dailyGreeting(roomId)
       return {

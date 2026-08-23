@@ -28,6 +28,16 @@ async function writeFirstMeetingMemory(
   })
 }
 
+async function hasSharedPet(repositories: RepositoryBundle, userId: string): Promise<boolean> {
+  const relationships = await repositories.relationships.listAcceptedForUser(userId)
+  for (const relationship of relationships) {
+    const room = await repositories.rooms.findByRelationshipId(relationship.id)
+    if (!room) continue
+    if (await repositories.pets.findByRoomId(room.id)) return true
+  }
+  return false
+}
+
 export function createInvitationService(
   repositories: RepositoryBundle,
   options: InvitationServiceOptions = {}
@@ -70,16 +80,24 @@ export function createInvitationService(
       if (await repositories.relationships.findBetweenUsers(invitation.inviterId, accepterId)) {
         throw new Error('relationship_already_exists')
       }
+      // 小多利只能和一位好友共养：任一方已有小多利时，仍建立好友关系和聊天房间，但不再创建小多利
+      const createPet =
+        !(await hasSharedPet(repositories, invitation.inviterId)) &&
+        !(await hasSharedPet(repositories, accepterId))
       const accepted = repositories.invitations.acceptPair
-        ? await repositories.invitations.acceptPair(token, accepterId)
+        ? await repositories.invitations.acceptPair(token, accepterId, { createPet })
         : await (async () => {
             const relationship = await repositories.relationships.create(invitation.inviterId, accepterId)
             const room = await repositories.rooms.createForRelationship(relationship.id)
-            const pet = await repositories.pets.createForRelationship(relationship.id, room.id)
+            const pet = createPet
+              ? await repositories.pets.createForRelationship(relationship.id, room.id)
+              : null
             await repositories.invitations.accept(token, accepterId)
             return { invitation, relationship, room, pet }
           })()
-      await writeFirstMeetingMemory(repositories, accepted.room.id, invitation.inviterId, accepterId)
+      if (accepted.pet) {
+        await writeFirstMeetingMemory(repositories, accepted.room.id, invitation.inviterId, accepterId)
+      }
       return accepted
     },
     async decline(token: string, userId: string) {

@@ -61,6 +61,45 @@ describe('invitation service', () => {
     expect((await repositories.relationships.listAcceptedForUser(inviter.id))).toHaveLength(1)
   })
 
+  it('keeps friendship but skips the pet when the accepter already co-owns a pet', async () => {
+    const repositories = createMemoryRepositories()
+    const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const busy = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const other = await repositories.users.create({ email: 'c@example.com', username: 'c', displayName: 'C' })
+    const service = createInvitationService(repositories, { ttlSeconds: 3600 })
+
+    // busy 先和 other 共养了小多利
+    const first = await service.create(busy.id)
+    await service.accept(first.token, other.id)
+
+    // inviter 再邀请 busy：仍是好友、有房间，但没有新的小多利
+    const second = await service.create(inviter.id)
+    const accepted = await service.accept(second.token, busy.id)
+
+    expect(accepted.relationship.requesterId).toBe(inviter.id)
+    expect(await repositories.rooms.findByRelationshipId(accepted.relationship.id)).toBeDefined()
+    expect(accepted.pet).toBeNull()
+    expect(await repositories.pets.findByRoomId(accepted.room.id)).toBeUndefined()
+    expect(await repositories.memories.listByRoom(accepted.room.id)).toHaveLength(0)
+  })
+
+  it('keeps friendship but skips the pet when the inviter already co-owns a pet', async () => {
+    const repositories = createMemoryRepositories()
+    const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+    const partner = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+    const newcomer = await repositories.users.create({ email: 'c@example.com', username: 'c', displayName: 'C' })
+    const service = createInvitationService(repositories, { ttlSeconds: 3600 })
+
+    const first = await service.create(inviter.id)
+    await service.accept(first.token, partner.id)
+
+    const second = await service.create(inviter.id)
+    const accepted = await service.accept(second.token, newcomer.id)
+
+    expect(accepted.pet).toBeNull()
+    expect(await repositories.pets.findByRoomId(accepted.room.id)).toBeUndefined()
+  })
+
   it('writes a first-meeting memory when the invitation is accepted', async () => {
     const repositories = createMemoryRepositories()
     const inviter = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: '小A' })

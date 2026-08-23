@@ -39,6 +39,7 @@ export type NestSceneMode = 'loading' | 'empty' | 'active'
 
 export function getNestSceneMode(context: LaunchContext | null, pet: PetState | null): NestSceneMode {
   if (!context) return 'loading'
-  if (context.rooms.length === 0) return 'empty'
+  // 小多利只能和一位好友共养：没有任何带小多利的房间时，仍展示邀请信件引导邀请其他好友
+  if (!context.rooms.some((room) => room.pet)) return 'empty'
   return pet ? 'active' : 'loading'
 }
