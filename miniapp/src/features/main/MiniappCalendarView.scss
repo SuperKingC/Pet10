@@ -7,6 +7,10 @@
     repeating-linear-gradient(90deg, transparent 0 44rpx, rgba(190, 170, 140, .14) 44rpx 46rpx);
 }
 .miniapp-calendar__header { padding: 0 4px 12px; }
+.miniapp-calendar__tabs { display: flex; gap: 16rpx; justify-content: center; padding: 0 0 20rpx; }
+.miniapp-calendar__tab { min-width: 160rpx; margin: 0; padding: 10rpx 0; color: #8e776a; background: #fff; border: 1px solid #ead5c2; border-radius: 999rpx; font-size: var(--font-size-body); }
+.miniapp-calendar__tab::after { border: 0; }
+.miniapp-calendar__tab--active { color: #fff; background: #d9845d; border-color: #d9845d; font-weight: var(--font-weight-semibold); }
 .miniapp-calendar__month-bar { display: flex; align-items: center; justify-content: center; gap: 28rpx; padding: 8rpx 0 20rpx; }
 .miniapp-calendar__month-bar button { min-width: 64rpx; padding: 0 12rpx; color: #c9a284; background: transparent; border: 0; font-size: var(--font-size-section-title); }
 .miniapp-calendar__month-bar button::after, .miniapp-calendar__fortune-header button::after, .mood-modal__item::after { border: 0; }
@@ -77,3 +81,15 @@
 .day-modal__anniv-note { color: #a89489; font-size: var(--font-size-aux); }
 .day-modal__anniv-add { margin: 0; padding: 14rpx 0; color: #fff; background: #d9845d; border: 0; border-radius: 999rpx; font-size: var(--font-size-body); }
 .day-modal__anniv-add--ghost { color: #8a4f37; background: #fff; border: 1px solid #ead5c2; }
+
+.anniv-list { display: flex; flex-direction: column; gap: 20rpx; padding-top: 8rpx; }
+.anniv-list__empty { padding: 60rpx 0; color: #a89489; font-size: var(--font-size-secondary); text-align: center; }
+.anniv-list__card { display: flex; gap: 20rpx; padding: 24rpx; background: #fff; border: 1px solid #ead5c2; border-radius: 20rpx; box-shadow: 0 7px 20px rgba(70, 48, 37, .05); }
+.anniv-list__icon { width: 88rpx; height: 88rpx; }
+.anniv-list__body { display: flex; flex: 1; flex-direction: column; gap: 6rpx; }
+.anniv-list__head { display: flex; align-items: baseline; justify-content: space-between; }
+.anniv-list__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.anniv-list__day { color: #b49a8d; font-size: var(--font-size-aux); }
+.anniv-list__note { color: #a89489; font-size: var(--font-size-aux); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.anniv-list__stats { color: #d9845d; font-size: var(--font-size-secondary); font-weight: var(--font-weight-medium); }
+.anniv-list__add { margin-top: 8rpx; padding: 16rpx 0; color: #fff; background: #d9845d; border: 0; border-radius: 999rpx; font-size: var(--font-size-body); }

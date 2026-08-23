@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro'
 import { MiniappModal } from '../../components/MiniappModal'
 import { socialApi, type AnniversaryInput, type MiniappAnniversary, type MiniappFortune, type MiniappMood } from '../../services/socialApi'
 import { AnniversaryForm } from './AnniversaryForm'
+import { AnniversaryListView } from './AnniversaryListView'
 import { anniversaryIcons, type AnniversaryIconKey } from './anniversaryAssets'
 import { matchesDay } from './anniversaryModel'
 import { buildMoodByDay, getCalendarMonth, getMondayLead, localDayKey, resolveMoodRoomId, shiftMonth } from './calendarModel'
@@ -35,9 +36,10 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
   const [fortuneOverlayOpen, setFortuneOverlayOpen] = useState(false)
   const [fortuneMessage, setFortuneMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const [tab, setTab] = useState<'calendar' | 'anniversary'>('calendar')
   const [anniversaries, setAnniversaries] = useState<MiniappAnniversary[]>([])
   const [dayModal, setDayModal] = useState<string | null>(null)
-  const [annivForm, setAnnivForm] = useState<{ day: string; edit?: MiniappAnniversary } | null>(null)
+  const [annivForm, setAnnivForm] = useState<{ day: string; edit?: MiniappAnniversary; pickDay?: boolean } | null>(null)
   const [soloRoomId, setSoloRoomId] = useState('')
   const month = useMemo(() => getCalendarMonth(cursor), [cursor])
   const lead = useMemo(() => getMondayLead(cursor), [cursor])
@@ -169,6 +171,23 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
         <Text className="miniapp-page-caption miniapp-calendar__caption">记录你们一起度过的每一天。</Text>
       </View>
 
+      <View className="miniapp-calendar__tabs">
+        <Button className={tab === 'calendar' ? 'miniapp-calendar__tab miniapp-calendar__tab--active' : 'miniapp-calendar__tab'} onClick={() => setTab('calendar')}>日历</Button>
+        <Button className={tab === 'anniversary' ? 'miniapp-calendar__tab miniapp-calendar__tab--active' : 'miniapp-calendar__tab'} onClick={() => setTab('anniversary')}>纪念日</Button>
+      </View>
+
+      {tab === 'anniversary' ? (
+        <AnniversaryListView
+          items={anniversaries}
+          today={today}
+          onAdd={() => setAnnivForm({ day: currentDay, pickDay: true })}
+          onEdit={(id) => {
+            const item = anniversaries.find((entry) => entry.id === id)
+            if (item) setAnnivForm({ day: item.day, edit: item })
+          }}
+        />
+      ) : (
+        <>
       <View className="miniapp-calendar__month-bar">
         <Button onClick={() => setCursor((value) => shiftMonth(value, -1))}>‹</Button>
         <Text className="miniapp-calendar__month-text">{month.year}年 {month.month + 1}月</Text>
@@ -231,6 +250,8 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
         </View>
         {fortune && <Text className="miniapp-calendar__fortune-meta">幸运色：{fortune.content.luckyColor.name} · 幸运数字：{fortune.content.luckyNumber}</Text>}
       </View>
+        </>
+      )}
       {fortuneOverlayOpen && fortune && (
         <MiniappFortuneView fortune={fortune} onClose={() => setFortuneOverlayOpen(false)} />
       )}
@@ -253,6 +274,7 @@ export function MiniappCalendarView({ roomId, myUserId, friendId, friendName }: 
         <MiniappModal onClose={() => setAnnivForm(null)}>
           <AnniversaryForm
             defaultDay={annivForm.day}
+            withDatePicker={annivForm.pickDay}
             initial={annivForm.edit}
             saving={saving}
             onSubmit={(input) => void submitAnniversary(input)}
