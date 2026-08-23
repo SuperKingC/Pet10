@@ -15,7 +15,7 @@ import { roomApi, type RoomMemory } from '../../services/roomApi'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
 import { launchContextApi, type LaunchContext } from '../../services/launchContextApi'
 import { petApi } from '../../services/petApi'
-import { mapRoomPet } from '../../services/petMapper'
+import { prepareLaunchContext } from '../../services/launchPreparation'
 import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
 import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
@@ -120,21 +120,16 @@ export default function Index() {
     if (!getAccessToken()) return
     setLoading(true)
     try {
-      const nextContext = await launchContextApi.get(activeRoomId, invitationToken)
-      const nextRoomId = nextContext.activeRoomId || ''
-      setContext(nextContext)
-      setRoomId(nextRoomId)
-      if (nextRoomId) Taro.setStorageSync(activeRoomKey, nextRoomId)
+      const prepared = await prepareLaunchContext(
+        () => launchContextApi.get(activeRoomId, invitationToken),
+        petApi.getRoom,
+      )
+      setContext(prepared.context)
+      setRoomId(prepared.roomId)
+      if (prepared.roomId) Taro.setStorageSync(activeRoomKey, prepared.roomId)
       setMessage(invitationToken ? '收到一份好友邀请，请确认加入' : '')
-      if (nextRoomId) {
-        const result = await petApi.getRoom(nextRoomId)
-        setPet(result.pet ? mapRoomPet(result.pet) : null)
-      } else {
-        setPet(null)
-      }
+      setPet(prepared.pet)
       if (!shareInvitation) void prepareInvitation()
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '读取 Pet10 状态失败')
     } finally {
       setLoading(false)
     }
@@ -224,10 +219,14 @@ export default function Index() {
     if (ready) setAccessToken(getAccessToken())
   }
 
+  const loadRoomContext = (nextRoomId: string) => {
+    void loadContext(nextRoomId).catch((error) => {
+      setMessage(error instanceof Error ? error.message : '读取 Pet10 状态失败')
+    })
+  }
+
   const selectRoom = (nextRoomId: string) => {
-    setRoomId(nextRoomId)
-    Taro.setStorageSync(activeRoomKey, nextRoomId)
-    void loadContext(nextRoomId)
+    loadRoomContext(nextRoomId)
   }
 
   const handleAction = async (action: PetAction) => {
@@ -315,11 +314,7 @@ export default function Index() {
     if (activeTab === 'messages') {
       return <MiniappMessagesView
         roomId={roomId}
-        onOpenRoom={(nextRoomId) => {
-          setRoomId(nextRoomId)
-          Taro.setStorageSync(activeRoomKey, nextRoomId)
-          void loadContext(nextRoomId)
-        }}
+        onOpenRoom={loadRoomContext}
       />
     }
     if (activeTab === 'calendar') {

@@ -18,6 +18,9 @@
 - 用户不能接受自己发出的邀请。
 - 邀请过期、已处理、无效或两人已有关系时，页面保留错误信息，用户可返回首页。
 - 邀请 token 必须在微信登录前后保留；资源加载失败不能清除登录会话、邀请 token 或当前小窝。
+- 已登录启动时，上下文和当前小窝宠物作为一次准备事务；两者都成功后才能进入 `ready`。
+- 上下文、宠物或首屏资源加载失败时保留访问令牌并停留在准备页，由用户重新准备。
+- 主界面切换小窝失败时保留原有上下文和宠物，并在当前页面显示错误，不改变启动阶段。
 - 微信 AppSecret 仅存在服务端环境变量，绝不能进入小程序包。
 
 ## 资源加载时机
@@ -26,14 +29,14 @@
 2. 用户接受邀请或选定已有小窝后，加载该小窝的宠物首屏资源。
 3. 塔罗、五子棋、图片生成等资源只在用户进入对应功能后加载。
 
-当前版本的登录页小多利 PNG、房间背景和导航图随主包发布。启动资源流程会对主包资源直接确认可用，不会把编译后的相对路径传给微信 `getImageInfo`；只有远程或可解析的 `wxfile` / `cloud` 资源才执行图片解析。资源准备失败会保留会话并允许重试。
+当前版本的登录页小多利 PNG、房间背景和导航图随主包发布。启动资源流程会对主包资源直接确认可用，不会把编译后的相对路径传给微信 `getImageInfo`；只有远程或可解析的 `wxfile` / `cloud` 资源才执行图片解析。资源准备与启动数据准备并行执行；任一失败都会保留会话并允许重试，只有两者全部完成才显示主界面。
 
 ## 代码入口
 
 - 服务端登录：`server/src/http/authRoutes.ts`、`server/src/services/wechatAuthService.ts`
 - 启动上下文：`server/src/http/sessionRoutes.ts`、`server/src/services/sessionService.ts`
 - 邀请原子接受：`server/src/services/invitationService.ts`、`server/src/repositories/postgresRepositories.ts`
-- 小程序登录与上下文：`miniapp/src/services/authApi.ts`、`miniapp/src/services/launchContextApi.ts`
+- 小程序登录与上下文：`miniapp/src/services/authApi.ts`、`miniapp/src/services/launchContextApi.ts`、`miniapp/src/services/launchPreparation.ts`、`miniapp/src/pages/index/index.tsx`
 - 小程序邀请确认：`miniapp/src/services/invitationApi.ts`、`miniapp/src/pages/invite/invite.tsx`
 
 ## 验收清单
@@ -42,4 +45,6 @@
 - [ ] A+B 与 A+C 各自显示独立宠物。
 - [ ] 无邀请的新用户看到准备中的小窝。
 - [ ] 邀请过期、重复和自邀显示可理解失败状态。
+- [ ] 启动上下文或当前宠物加载失败时停留在准备页，保留登录状态并可重试。
+- [ ] 切换小窝失败时继续显示原小窝数据，并呈现可理解的错误。
 - [ ] 微信开发者工具与两台真机完成视觉和接口验收。
