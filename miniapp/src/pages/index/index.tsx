@@ -33,10 +33,10 @@ import './index.scss'
 const activeRoomKey = 'pet10_active_room_id'
 const invitationKey = 'pet10_invitation_token'
 const actionMessages: Record<PetAction, string> = {
-  feed: '小多利吃饱了一点',
-  play: '小多利玩得很开心',
-  clean: '小多利变得干净了',
-  sleep: '小多利休息了一会儿',
+  feed: '吃饱啦！要是有蛋黄，我会当场开口说谢谢',
+  play: '出去玩是我最喜欢的事，仅次于吃',
+  clean: '干净了，我走到哪都是人气小狗',
+  sleep: '四脚朝天——只有对着信任的人，我才这样睡',
 }
 
 type LaunchPhase = 'login' | 'preparing' | 'ready'
@@ -66,7 +66,6 @@ export default function Index() {
   const [tarotShareTitle, setTarotShareTitle] = useState('')
   const [wechatName, setWechatName] = useState('')
   const [wechatAvatar, setWechatAvatar] = useState('')
-  const [profileLoading, setProfileLoading] = useState(false)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -104,7 +103,7 @@ export default function Index() {
     }
     if (!shareInvitation) {
       return {
-        title: '来 Pet10 和我一起养一只小多利',
+        title: '我是小多利，我想认识你，顺便让你养我',
         path: '/pages/index/index',
       }
     }
@@ -175,20 +174,6 @@ export default function Index() {
     }
   }, [invitationToken])
 
-  const loadWechatProfile = async () => {
-    if (profileLoading || wechatName) return
-    setProfileLoading(true)
-    setMessage('')
-    try {
-      const profile = await authApi.getWechatProfile()
-      setWechatName(profile.displayName)
-      setWechatAvatar(profile.avatarUrl)
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '无法读取微信资料，请重试')
-    } finally {
-      setProfileLoading(false)
-    }
-  }
 
   const loginWithWechat = async () => {
     setLoading(true)
@@ -293,8 +278,8 @@ export default function Index() {
       launchPhase={launchPhase === 'ready' ? 'login' : launchPhase}
       launchProgress={launchProgress}
       launchError={launchError}
-      profileLoading={profileLoading}
-      onOpenWechatLogin={() => void loadWechatProfile()}
+      onWechatNameChange={setWechatName}
+      onWechatAvatarChange={setWechatAvatar}
       onWechatLogin={() => void loginWithWechat()}
       onRetryLaunch={() => void retryLaunch()}
     />

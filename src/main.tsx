@@ -5,7 +5,7 @@ import { FriendSetupScreen } from './components/FriendSetupScreen'
 import { LoginScreen } from './components/LoginScreen'
 import { getAccessToken } from './services/httpClient'
 import { clearAppBadge } from './services/appBadge'
-import { preloadImage } from './services/imageResourceLoader'
+import { preloadAppShellImages } from './startupAssets'
 import { ImageGenerationRoom } from './components/ImageGenerationRoom'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
@@ -15,21 +15,7 @@ import './styles.css'
 
 const SESSION_STARTUP_TIMEOUT_MS = 8_000
 
-if (window.location.pathname !== '/image' && (runtimeConfig.useMockApi || getAccessToken())) {
-  preloadImage('/pet/xiaoduoli.png')
-  preloadImage('/nest/room-background.webp')
-  preloadImage('/navigation/tab-bar-background.png')
-  preloadImage('/navigation/nest.png')
-  preloadImage('/navigation/journal.png')
-  preloadImage('/navigation/paw.png')
-  preloadImage('/navigation/messages.png')
-  preloadImage('/navigation/me.png')
-  preloadImage('/me/birthday.png')
-  preloadImage('/me/notification.png')
-  preloadImage('/me/contact.png')
-  preloadImage('/me/about.png')
-  preloadImage('/me/logout.png')
-}
+if (window.location.pathname !== '/image' && (runtimeConfig.useMockApi || getAccessToken())) preloadAppShellImages()
 
 function App() {
   if (import.meta.env.DEV && window.location.pathname === '/dev/tarot') {
@@ -63,12 +49,17 @@ function App() {
     void refreshSession()
   }, [])
 
+  const loginAndRefresh = () => {
+    preloadAppShellImages()
+    void refreshSession()
+  }
+
   if (runtimeConfig.useMockApi) return <AppShell onLogout={() => undefined} />
   if (loading) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli.png" alt="小多利" width="561" height="900" /></div><p>正在打开小多利的家…</p></main>
   if (error && getAccessToken() && !session) return <main className="loading-screen"><div className="loading-orb"><img src="/pet/xiaoduoli.png" alt="小多利" width="561" height="900" /></div><p>{error}</p><button onClick={() => void refreshSession()}>重新连接</button></main>
-  if (!getAccessToken()) return <LoginScreen onLoggedIn={() => void refreshSession()} />
-  if (error && !session) return <LoginScreen onLoggedIn={() => void refreshSession()} />
-  if (!session) return <LoginScreen onLoggedIn={() => void refreshSession()} />
+  if (!getAccessToken()) return <LoginScreen onLoggedIn={loginAndRefresh} />
+  if (error && !session) return <LoginScreen onLoggedIn={loginAndRefresh} />
+  if (!session) return <LoginScreen onLoggedIn={loginAndRefresh} />
   if (session.status !== 'accepted') return <FriendSetupScreen session={session} onChanged={() => void refreshSession()} />
   return <AppShell session={session} onLogout={() => void refreshSession()} />
 }

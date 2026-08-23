@@ -18,7 +18,7 @@ export function MiniappLaunchLoading({ progress, error, onRetry }: MiniappLaunch
         <Image className="miniapp-launch-loading__pet" src={petImage} mode="aspectFit" />
       </View>
       <Text className="miniapp-launch-loading__kicker">正在准备</Text>
-      <Text className="miniapp-launch-loading__title">小多利正在收拾小窝</Text>
+      <Text className="miniapp-launch-loading__title">我在收拾小窝，马上就好</Text>
       <Text className="miniapp-launch-loading__copy">把第一次见面需要的东西都准备好，很快就能进去啦。</Text>
       <View className="miniapp-launch-loading__bar" aria-label={`资源准备进度 ${percentage}%`}>
         <View className="miniapp-launch-loading__bar-fill" style={{ width: `${percentage}%` }} />

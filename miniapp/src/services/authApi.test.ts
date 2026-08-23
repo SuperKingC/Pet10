@@ -1,36 +1,66 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const getUserProfile = vi.hoisted(() => vi.fn())
+const login = vi.hoisted(() => vi.fn())
+const apiRequest = vi.hoisted(() => vi.fn())
+const setAccessToken = vi.hoisted(() => vi.fn())
+const readFile = vi.hoisted(() => vi.fn())
 
 vi.mock('@tarojs/taro', () => ({
-  default: { getUserProfile },
+  default: {
+    login,
+    getFileSystemManager: () => ({ readFile }),
+  },
 }))
 
 vi.mock('./apiClient', () => ({
-  setAccessToken: vi.fn(),
+  apiRequest,
+  setAccessToken,
 }))
 
 describe('wechat auth api', () => {
   beforeEach(() => {
-    getUserProfile.mockReset()
+    login.mockReset()
+    apiRequest.mockReset()
+    setAccessToken.mockReset()
+    readFile.mockReset()
   })
 
-  it('reads and maps the confirmed WeChat profile without exposing edit controls', async () => {
-    getUserProfile.mockResolvedValue({
-      userInfo: {
-        nickName: '微信昵称',
-        avatarUrl: 'https://wx.example/avatar.png',
+  it('converts a selected local avatar before sending the confirmed profile', async () => {
+    login.mockResolvedValue({ code: 'wechat-code' })
+    readFile.mockImplementation((options: { success(result: { data: string }): void }) => {
+      options.success({ data: 'encoded-avatar' })
+    })
+    apiRequest.mockResolvedValue({
+      token: 'session-token',
+      user: {
+        id: 'user-1',
+        displayName: 'current-name',
+        avatarUrl: 'data:image/jpeg;base64,encoded-avatar',
       },
     })
 
     const { authApi } = await import('./authApi')
 
-    await expect(authApi.getWechatProfile()).resolves.toEqual({
-      displayName: '微信昵称',
-      avatarUrl: 'https://wx.example/avatar.png',
+    await authApi.loginWithWechat({
+      displayName: 'current-name',
+      avatarUrl: 'wxfile://current-avatar',
     })
-    expect(getUserProfile).toHaveBeenCalledWith({
-      desc: '用于显示小窝内的头像和昵称',
+
+    expect(readFile).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'wxfile://current-avatar',
+      encoding: 'base64',
+    }))
+    expect(apiRequest).toHaveBeenCalledWith('/api/auth/wechat', {
+      method: 'POST',
+      auth: false,
+      body: {
+        code: 'wechat-code',
+        profile: {
+          displayName: 'current-name',
+          avatarUrl: 'data:image/jpeg;base64,encoded-avatar',
+        },
+      },
     })
+    expect(setAccessToken).toHaveBeenCalledWith('session-token')
   })
 })

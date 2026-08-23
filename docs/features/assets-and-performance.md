@@ -30,11 +30,11 @@ flowchart LR
 - 安装到手机主页后的独立 PWA 还会通过 Service Worker 应用壳缓存保存这些固定界面图片，避免启动或界面切换时再等待网络与首次栅格化。
 - 正式塔罗牌面位于 `public/tarot/cards/`。
 - 塔罗背景和牌背位于 `public/tarot/ui/`。
-- 原始概念图位于 `public/tarot/concepts/`，当前标记为 `source-only`。
+- 原始概念图位于 `design-assets/tarot/concepts/`，标记为 `source-only`，不属于生产静态资源。
 - 机器可读清单位于 `docs/assets/asset-manifest.json`。
 - 生产环境把构建产物 `assets/` 和运行时目录 `pet/`、`icons/`、`navigation/`、`me/`、`tarot/cards/`、`tarot/ui/` 上传到 COS。
 - 每次发布使用完整 Git 提交 SHA 作为版本目录，Caddy 只返回重定向，文件字节由 COS 直接发送。
-- `public/tarot/concepts/`、`index.html`、`sw.js`、`manifest.webmanifest` 不上传。
+- `design-assets/` 位于 Vite 的 `public/` 目录之外，不进入 Web 构建或 COS 上传；`index.html`、`sw.js`、`manifest.webmanifest` 也不上传。
 - COS SecretId、SecretKey 只保存在 GitHub Production Environment，不进入前端、服务器环境或仓库。
 - COS 版本资源使用一年不可变缓存；Web 镜像仍保留同源文件作为紧急关闭重定向时的回退。
 - “我的”页面列表图标位于 `public/me/`，使用 128×128 透明 PNG，随该页面按需加载。

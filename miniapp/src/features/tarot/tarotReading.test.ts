@@ -18,6 +18,6 @@ describe('miniapp tarot reading', () => {
     expect(buildShareText(reading)).toContain('愚者')
     // invite-friend share card title names the drawn cards
     expect(buildTarotShareTitle(reading)).toContain('愚者')
-    expect(buildTarotShareTitle(reading)).toContain('邀请好友')
+    expect(buildTarotShareTitle(reading)).toContain('想不想听听牌怎么说')
   })
 })

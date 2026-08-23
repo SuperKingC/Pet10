@@ -305,6 +305,20 @@
   font-size: 22rpx;
 }
 
+.miniapp-login__avatar-picker {
+  width: 104rpx;
+  height: 104rpx;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  line-height: normal;
+}
+
+.miniapp-login__avatar-picker::after { border: 0; }
+
 .miniapp-login__avatar { width: 100%; height: 100%; }
 .miniapp-login__avatar-placeholder { color: #b27a61; }
 
@@ -318,13 +332,12 @@
 .miniapp-login__profile-label { color: #8f7967; font-size: 22rpx; }
 
 .miniapp-login__profile-name {
+  width: 390rpx;
   max-width: 390rpx;
-  overflow: hidden;
   color: #453a32;
   font-size: 30rpx;
   font-weight: var(--font-weight-semibold);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
 }
 
 .miniapp-login__modal-message {

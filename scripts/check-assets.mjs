@@ -5,10 +5,11 @@ import { readImageMetadata } from './image-metadata.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const publicRoot = resolve(root, 'public')
+const designAssetsRoot = resolve(root, 'design-assets')
 const manifestPath = resolve(root, 'docs/assets/asset-manifest.json')
 const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.avif', '.svg', '.ico'])
 const runtimeDirectories = ['public/icons', 'public/pet', 'public/tarot/cards', 'public/tarot/ui']
-const sourceOnlyDirectories = ['public/tarot/concepts']
+const sourceOnlyDirectories = ['public/tarot/concepts', 'design-assets/tarot/concepts']
 
 function toRepoPath(path) {
   return relative(root, path).replaceAll('\\', '/')
@@ -41,12 +42,14 @@ function budgetFor(repoPath) {
 
 export async function collectAssetReport() {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-  const publicFiles = (await listFiles(publicRoot)).filter((path) => imageExtensions.has(extname(path).toLowerCase()))
+  const imageFiles = (await Promise.all(
+    [publicRoot, designAssetsRoot].map((directory) => listFiles(directory))
+  )).flat().filter((path) => imageExtensions.has(extname(path).toLowerCase()))
   const assets = []
   const errors = []
   const warnings = []
-  let sourceOnlyCount = 0
-  for (const path of publicFiles) {
+  let sourceOnlyInPublicCount = 0
+  for (const path of imageFiles) {
     const repoPath = toRepoPath(path)
     const metadata = await readImageMetadata(path)
     const category = categoryFor(path)
@@ -54,7 +57,7 @@ export async function collectAssetReport() {
     const manifestEntry = manifest.assets.find((asset) => asset.path === repoPath)
     if (!manifestEntry) errors.push(`Missing manifest entry: ${repoPath}`)
     if (category === 'source-only') {
-      sourceOnlyCount += 1
+      if (repoPath.startsWith('public/')) sourceOnlyInPublicCount += 1
     } else if (metadata.bytes > budget.error) {
       errors.push(`Asset exceeds error budget: ${repoPath} (${Math.round(metadata.bytes / 1024)} KB)`)
     } else if (metadata.bytes > budget.warning) {
@@ -63,7 +66,7 @@ export async function collectAssetReport() {
     assets.push({ path: repoPath, category, ...metadata })
   }
   const runtimeBytes = assets.filter((asset) => asset.category !== 'source-only').reduce((sum, asset) => sum + asset.bytes, 0)
-  if (sourceOnlyCount > 0) warnings.push(`${sourceOnlyCount} source-only assets remain under public and should move outside the production image path`)
+  if (sourceOnlyInPublicCount > 0) warnings.push(`${sourceOnlyInPublicCount} source-only assets remain under public and should move outside the production image path`)
   if (runtimeBytes > 12 * 1024 * 1024) errors.push(`Runtime image budget exceeded: ${Math.round(runtimeBytes / 1024 / 1024)} MB`)
   else if (runtimeBytes > 8 * 1024 * 1024) warnings.push(`Runtime image budget warning: ${Math.round(runtimeBytes / 1024 / 1024)} MB`)
   return { assets, errors, warnings, runtimeBytes }

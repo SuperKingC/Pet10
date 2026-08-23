@@ -43,7 +43,7 @@ describe('miniapp ui presentation rules', () => {
     expect(meView).toContain('联系我们')
     expect(meView).toContain('关于小多利')
     expect(meView).toContain('setAboutOpen(true)')
-    expect(meView).toContain('kk 家的小狗')
+    expect(meView).toContain('仅此一只')
     expect(meView).toContain('老实巴交')
     expect(meView).toContain('等妈妈回家')
     expect(meView).toContain('miniapp-about__version')

@@ -1,6 +1,7 @@
 import { readFileSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { APP_SHELL_IMAGE_URLS } from './startupAssets'
 
 describe('startup artwork', () => {
   it('uses the unified pet image before the app opens', () => {
@@ -48,8 +49,9 @@ describe('startup artwork', () => {
     ]
 
     for (const asset of requiredAssets) {
-      expect(main).toContain(`preloadImage('${asset}')`)
+      expect(APP_SHELL_IMAGE_URLS).toContain(asset)
     }
+    expect(main).toContain('preloadAppShellImages()')
   })
 
   it('precaches fixed interface artwork for installed PWA launches', () => {
@@ -78,5 +80,14 @@ describe('startup artwork', () => {
     expect(serviceWorker).toContain("const CACHE_NAME = 'xiaoduoli-shell-v11'")
     expect(serviceWorker).toContain("new Request(assetUrl, { cache: 'reload' })")
     expect(serviceWorker).toContain("'/navigation/tab-bar-background.png'")
+  })
+  it('centralizes shell artwork and prepares it on initial and post-login session paths', () => {
+    const root = resolve(import.meta.dirname, '..')
+    const main = readFileSync(resolve(root, 'src/main.tsx'), 'utf8')
+
+    expect(APP_SHELL_IMAGE_URLS).toContain('/pet/xiaoduoli.png')
+    expect(APP_SHELL_IMAGE_URLS).toContain('/navigation/me.png')
+    expect(main).toContain("from './startupAssets'")
+    expect(main.match(/preloadAppShellImages\(\)/g)?.length).toBeGreaterThanOrEqual(2)
   })
 })

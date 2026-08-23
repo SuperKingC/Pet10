@@ -54,7 +54,7 @@ export default function Invite() {
       setMessage(
         nextViewerType === 'invitee'
           ? '这是你发出的邀请，请让另一位微信好友打开'
-          : '确认后会创建一只只属于你们的小多利'
+          : '带我回家吧——从此这个窝，是你们俩的。'
       )
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '读取邀请失败')
@@ -113,8 +113,8 @@ export default function Invite() {
   return <View className="invite-page">
     <View className="invite-card">
       <Text className="eyebrow">PET10 · 好友邀请</Text>
-      <Text className="invite-title">{invitation ? `${invitation.inviter.displayName} 邀请你一起养小多利` : '一份共同小窝邀请'}</Text>
-      <Text className="invite-copy">每位好友都会拥有独立的小窝和一只共同照顾的小多利。</Text>
+      <Text className="invite-title">{invitation ? `${invitation.inviter.displayName} 选了你，做一起养我的人` : '请选好一起养我的人'}</Text>
+      <Text className="invite-copy">我只有这一只，选了就是一辈子。选好之后，你们一起喂我、一起玩、一起看我四脚朝天地睡。</Text>
       {!getAccessToken()
         ? <Button className="wechat-button" loading={loading} onClick={loginWithWechat}>微信登录后查看邀请</Button>
         : viewerType === 'owner'

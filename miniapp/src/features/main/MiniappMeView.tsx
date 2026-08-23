@@ -240,10 +240,11 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         <MiniappModal onClose={() => setAboutOpen(false)}>
           <Text className="miniapp-about__title">关于小多利</Text>
           <View className="miniapp-about__card">
-            <Text className="miniapp-about__name">小多利 · 男 · kk 家的小狗</Text>
-            <Text className="miniapp-about__line">性格：粘人，老实巴交</Text>
-            <Text className="miniapp-about__line">爱好：出去玩，吃东西</Text>
-            <Text className="miniapp-about__line">工作经验：等妈妈回家。全年无休，从不迟到，表现优异，多次获得“第一个冲到门口”奖。</Text>
+            <Text className="miniapp-about__name">小多利 · 男 · 仅此一只</Text>
+            <Text className="miniapp-about__line">外貌：没人知道我是什么品种。长得有点像柯基，只是腿短了点。</Text>
+            <Text className="miniapp-about__line">性格：大部分时候老实巴交，很喜欢笑。遇到莫名其妙的事，会皱着眉头斜眼看人。</Text>
+            <Text className="miniapp-about__line">爱好：喜欢出去玩，喜欢吃东西。</Text>
+            <Text className="miniapp-about__line">工作经验：等妈妈回家。全年无休，从不迟到，多次获得“第一个冲到门口”奖。</Text>
           </View>
           <Text className="miniapp-about__version" onLongPress={() => setGmOpen(true)}>小多利 v2.0</Text>
         </MiniappModal>

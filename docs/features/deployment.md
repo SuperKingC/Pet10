@@ -36,7 +36,7 @@ flowchart LR
 1. 创建允许公共读取的 COS 存储桶或公开目录。
 2. GitHub Production Environment 配置 `COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION` 和公开的 `STATIC_ASSET_BASE_URL`。
 3. `web` 或 `all` 发布将 `assets/`、`pet/`、`nest/`、`icons/`、`navigation/`、`me/`、`tarot/cards/`、`tarot/ui/` 上传到以完整提交 SHA 命名的目录；如果 `STATIC_ASSET_BASE_URL` 包含路径前缀（例如 `/pet10-web`），COS Object Key 会使用相同前缀。
-4. `public/tarot/concepts/`、`index.html`、`sw.js`、`manifest.webmanifest` 不上传。
+4. `design-assets/` 位于 Web 构建目录之外，不进入构建或上传；`index.html`、`sw.js`、`manifest.webmanifest` 也不上传。
 5. CORS 允许生产站点来源使用 `GET`、`HEAD`，允许请求头 `*`，暴露 `Content-Length`、`ETag`。
 6. 上传对象设置 `Cache-Control: public, max-age=31536000, immutable` 和 `Content-Disposition: inline`，确保 CSS 背景和页面图片由浏览器直接渲染而非被作为附件下载。
 7. Caddy 仅在静态资源公共基址和提交版本都非空时，将允许的静态路径重定向到当前提交目录；配置缺失时回退到同源 Nginx 文件，避免主 JS、CSS 和启动图被重定向到不存在的 `//` 路径。API、Socket.IO 和应用壳控制文件始终同源。
