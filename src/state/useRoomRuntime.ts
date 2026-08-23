@@ -36,12 +36,19 @@ export interface RoomRuntimeOptions {
 
 const EMPTY_RUNTIME: RoomRuntime = { loaded: false, messages: [], pet: null, memories: [], petTyping: false, friendTyping: false }
 
+function mergeMessages(snapshot: Message[], current: Message[]): Message[] {
+  const snapshotIds = new Set(snapshot.map((message) => message.id))
+  return [...snapshot, ...current.filter((message) => !snapshotIds.has(message.id))]
+}
+
 /**
  * 单 socket 多房间状态：所有房间常驻内存，切 tab/切房间不丢消息、不重连。
  */
 export function useRoomRuntime(options: RoomRuntimeOptions) {
   const [states, setStates] = useState<Record<string, RoomRuntime>>({})
   const realtimeRef = useRef<RealtimeConnection | undefined>(undefined)
+  const loadedRoomsRef = useRef(new Set<string>())
+  const loadingRoomsRef = useRef(new Map<string, Promise<void>>())
   const optionsRef = useRef(options)
   optionsRef.current = options
 
@@ -53,23 +60,31 @@ export function useRoomRuntime(options: RoomRuntimeOptions) {
     })
   }, [])
 
-  const loadRoom = useCallback(async (roomId: string) => {
-    setStates((current) => {
-      if (current[roomId]?.loaded || current[roomId]?.loading) return current
-      return { ...current, [roomId]: { ...(current[roomId] ?? EMPTY_RUNTIME), loading: true } }
-    })
-    try {
+  const loadRoom = useCallback((roomId: string) => {
+    if (loadedRoomsRef.current.has(roomId)) return Promise.resolve()
+    const existing = loadingRoomsRef.current.get(roomId)
+    if (existing) return existing
+
+    patchRoom(roomId, { loading: true })
+    const bootstrapRequest = (async () => {
       const bootstrap = await socialApi.bootstrapRoom(roomId, optionsRef.current.userId ?? '')
-      patchRoom(roomId, () => ({
+      patchRoom(roomId, (previous) => ({
         loaded: true,
-        messages: bootstrap.messages,
+        loading: false,
+        messages: mergeMessages(bootstrap.messages, previous.messages),
         pet: bootstrap.pet,
         memories: bootstrap.memories
       }))
+      loadedRoomsRef.current.add(roomId)
       realtimeRef.current?.joinRoom(roomId)
-    } catch {
-      patchRoom(roomId, () => ({ loaded: true }))
-    }
+    })()
+    const request = bootstrapRequest.catch(() => {
+      patchRoom(roomId, { loading: false })
+    }).finally(() => {
+      if (loadingRoomsRef.current.get(roomId) === request) loadingRoomsRef.current.delete(roomId)
+    })
+    loadingRoomsRef.current.set(roomId, request)
+    return request
   }, [patchRoom])
 
   const appendMessage = useCallback((roomId: string, message: Message) => {

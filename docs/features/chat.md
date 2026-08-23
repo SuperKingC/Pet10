@@ -26,6 +26,7 @@ flowchart TD
 - `src/components/ChatView.tsx`
 - `src/services/chatApi.ts`
 - `src/services/realtimeClient.ts`
+- `src/state/useRoomRuntime.ts`
 - `server/src/http/roomRoutes.ts`
 - `server/src/services/roomService.ts`
 - `server/src/services/petBrain.ts`
@@ -36,6 +37,8 @@ flowchart TD
 ## 数据
 
 Mock 模式使用 `src/state/mockStore.ts`。真实模式由服务端仓储保存。
+
+房间 bootstrap 返回时，以服务端快照顺序为基准，再追加请求期间已通过 Socket.IO 或本地发送进入状态、且快照中不存在的消息；合并按消息 ID 去重，迟到的快照不得删除实时消息。
 
 真实模式的回答规则：
 
@@ -70,6 +73,7 @@ SEARCH_API_KEY=tvly-你的真实密钥
 
 - 重复消息通常与实时事件和请求结果同时写入有关。
 - 图片上传涉及文件大小、OSS 和消息创建三个步骤。
+- bootstrap 与实时事件并发时必须保留两边消息，不能用较旧快照覆盖当前状态。
 - 外部搜索可能超时、限流或返回互相冲突的资料。
 - 关键词路由需要避免把“我今天很累”误判为实时搜索。
 - 商品价格和游戏阵容会随日期、地区、渠道和版本变化。
@@ -81,6 +85,7 @@ SEARCH_API_KEY=tvly-你的真实密钥
 - [ ] 图片有预览、发送状态和失败提示。
 - [ ] 好友或宠物消息实时出现。
 - [ ] 切换房间不会串消息。
+- [ ] 房间加载期间到达的实时消息在 bootstrap 完成后仍存在，重复 ID 只显示一次。
 - [ ] “我今天有点累”直接陪伴，不调用搜索。
 - [ ] “一个相机多少钱”先追问品牌、型号或预算。
 - [ ] 明确型号的当前价格问题自动检索并给出区间和波动因素。
