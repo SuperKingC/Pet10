@@ -22,6 +22,7 @@ export interface RoomRuntimeApi {
   getRealtime(): RealtimeConnection | undefined
   appendMessage(roomId: string, message: Message): void
   setPet(roomId: string, pet: PetState | null): void
+  patchRoom(roomId: string, patch: Partial<RoomRuntime> | ((previous: RoomRuntime) => Partial<RoomRuntime>)): void
 }
 
 export interface RoomRuntimeOptions {

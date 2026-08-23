@@ -34,6 +34,9 @@ const config: UserConfigExport = defineConfig({
         enable: false,
       },
     },
+    webpackChain(chain) {
+      chain.output.publicPath('/')
+    },
   },
   h5: {
     publicPath: '/',

@@ -1,4 +1,4 @@
-import { Button, Image, Input, Text, View } from '@tarojs/components'
+import { Button, Image, Text, View } from '@tarojs/components'
 import { useState } from 'react'
 import './MiniappLoginScreen.scss'
 
@@ -12,8 +12,9 @@ type MiniappLoginScreenProps = {
   launchPhase: 'login' | 'preparing'
   launchProgress: number
   launchError: string
-  onWechatNameChange(value: string): void
-  onWechatAvatarChange(value: string): void
+  onOpenWechatLogin(): void
+  onWechatNameChange(name: string): void
+  onWechatAvatarChange(avatar: string): void
   onWechatLogin(): void
   onRetryLaunch(): void
 }
@@ -26,33 +27,27 @@ export function MiniappLoginScreen({
   launchPhase,
   launchProgress,
   launchError,
+  onOpenWechatLogin,
   onWechatNameChange,
   onWechatAvatarChange,
   onWechatLogin,
   onRetryLaunch,
 }: MiniappLoginScreenProps) {
   const [modalOpen, setModalOpen] = useState(false)
-  const [nameNotice, setNameNotice] = useState('')
   const preparing = launchPhase === 'preparing'
   const percentage = Math.min(100, Math.max(0, Math.round(launchProgress * 100)))
+  const hasProfile = Boolean(wechatName.trim() || wechatAvatar.trim())
 
   const openWechatLogin = () => {
-    setNameNotice('')
     setModalOpen(true)
-  }
-
-  const handleNameChange = (value: string) => {
-    setNameNotice('')
-    onWechatNameChange(value)
+    onOpenWechatLogin()
   }
 
   const confirmWechatLogin = () => {
-    if (!wechatName.trim()) {
-      setNameNotice('先填一下微信昵称，我才能认出你')
-      return
+    if (hasProfile) {
+      setModalOpen(false)
+      onWechatLogin()
     }
-    setModalOpen(false)
-    onWechatLogin()
   }
 
   return (
@@ -110,41 +105,38 @@ export function MiniappLoginScreen({
             </Button>
             <Text className="miniapp-login__modal-kicker">准备好了吗</Text>
             <Text className="miniapp-login__modal-title">先让小多利认识你</Text>
-            <Text className="miniapp-login__modal-copy">确认你的微信头像和昵称，小多利马上就能认出你。</Text>
 
-            <View className="miniapp-login__profile">
+            {/* 头像 + 昵称 一体化表单 */}
+            <View className="miniapp-login__form">
+              {/* 头像：点击圆形区域直接选择 */}
               <Button
                 className="miniapp-login__avatar-picker"
                 openType="chooseAvatar"
                 onChooseAvatar={(event) => onWechatAvatarChange(event.detail.avatarUrl)}
-                aria-label="选择微信头像"
               >
-                <View className="miniapp-login__avatar-frame">
-                  {wechatAvatar
-                    ? <Image className="miniapp-login__avatar" src={wechatAvatar} mode="aspectFill" />
-                    : <Text className="miniapp-login__avatar-placeholder">选择头像</Text>}
-                </View>
+                {wechatAvatar
+                  ? <Image className="miniapp-login__avatar" src={wechatAvatar} mode="aspectFill" />
+                  : <View className="miniapp-login__avatar-default">
+                      <Text className="miniapp-login__avatar-icon"></Text>
+                    </View>}
               </Button>
-              <View className="miniapp-login__profile-copy">
-                <Text className="miniapp-login__profile-label">微信资料</Text>
-                <Input
-                  className="miniapp-login__profile-name"
-                  type="nickname"
-                  value={wechatName}
-                  maxlength={12}
-                  placeholder="填写微信昵称"
-                  onInput={(event) => handleNameChange(event.detail.value)}
-                  onBlur={(event) => handleNameChange(event.detail.value)}
-                />
-              </View>
+
+              {/* 昵称输入 */}
+              <input
+                className="miniapp-login__nickname-input"
+                type="nickname"
+                placeholder="点击输入你的昵称"
+                onInput={(event) => onWechatNameChange(event.detail.value)}
+                value={wechatName}
+              />
             </View>
 
-            {(message || nameNotice) && <Text className="miniapp-login__modal-message">{nameNotice || message}</Text>}
+            {message && <Text className="miniapp-login__modal-message">{message}</Text>}
 
             <Button
               className="miniapp-login__wechat"
               loading={busy}
-              disabled={busy}
+              disabled={busy || !hasProfile}
               onClick={confirmWechatLogin}
             >
               <Text className="miniapp-login__wechat-mark">●</Text>

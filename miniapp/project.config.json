@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "pet10-miniapp",
   "description": "Pet10 微信小程序体验版",
-  "appid": "wxac30484c45f51f1e",
+  "appid": "wxf0ba7afb8efc218d",
   "setting": {
     "urlCheck": true,
     "es6": false,
@@ -30,7 +30,36 @@
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "value": ".swc",
+        "type": "folder"
+      },
+      {
+        "value": "src",
+        "type": "folder"
+      },
+      {
+        "value": "node_modules",
+        "type": "folder"
+      },
+      {
+        "value": "package-lock.json",
+        "type": "file"
+      },
+      {
+        "value": "package.json",
+        "type": "file"
+      },
+      {
+        "value": "tsconfig.json",
+        "type": "file"
+      },
+      {
+        "value": "babel.config.js",
+        "type": "file"
+      }
+    ],
     "include": []
   },
   "editorSetting": {}

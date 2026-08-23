@@ -279,35 +279,21 @@
   line-height: 1.6;
 }
 
-.miniapp-login__profile {
+/* 一体化表单：头像 + 昵称 */
+.miniapp-login__form {
   display: flex;
   align-items: center;
-  gap: 22rpx;
-  margin: 28rpx 0 24rpx;
-  padding: 18rpx;
+  gap: 24rpx;
+  margin: 32rpx 0 24rpx;
+  padding: 24rpx;
   border: 1px solid #f0dfd0;
-  border-radius: 18rpx;
+  border-radius: 20rpx;
   background: #fff6ed;
 }
 
-.miniapp-login__avatar-frame {
-  display: flex;
-  width: 104rpx;
-  height: 104rpx;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  overflow: hidden;
-  border: 2px solid #e2b69b;
-  border-radius: 50%;
-  color: #b27a61;
-  background: #ffecdc;
-  font-size: 22rpx;
-}
-
 .miniapp-login__avatar-picker {
-  width: 104rpx;
-  height: 104rpx;
+  width: 112rpx;
+  height: 112rpx;
   flex: 0 0 auto;
   margin: 0;
   padding: 0;
@@ -315,29 +301,64 @@
   border-radius: 50%;
   background: transparent;
   line-height: normal;
+  overflow: hidden;
+  position: relative;
 }
 
 .miniapp-login__avatar-picker::after { border: 0; }
 
-.miniapp-login__avatar { width: 100%; height: 100%; }
-.miniapp-login__avatar-placeholder { color: #b27a61; }
-
-.miniapp-login__profile-copy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 10rpx;
+.miniapp-login__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
-.miniapp-login__profile-label { color: #8f7967; font-size: 22rpx; }
+.miniapp-login__avatar-default {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #ffecdc;
+  border: 2px dashed #e2b69b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-.miniapp-login__profile-name {
-  width: 390rpx;
-  max-width: 390rpx;
+.miniapp-login__avatar-icon {
+  display: block;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #e2b69b;
+  position: relative;
+}
+
+.miniapp-login__avatar-icon::after {
+  content: '';
+  position: absolute;
+  bottom: -4rpx;
+  right: -6rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: #d9845d;
+}
+
+.miniapp-login__nickname-input {
+  flex: 1;
+  min-width: 0;
+  height: 80rpx;
+  padding: 0 24rpx;
+  border: 1px solid #e8d5c4;
+  border-radius: 40rpx;
+  background: #fff;
   color: #453a32;
-  font-size: 30rpx;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.35;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.miniapp-login__nickname-input::placeholder {
+  color: #b8a696;
 }
 
 .miniapp-login__modal-message {
@@ -420,3 +441,4 @@
   .miniapp-login__halo,
   .miniapp-login__spark { animation: none; }
 }
+

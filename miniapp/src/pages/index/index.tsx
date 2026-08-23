@@ -175,6 +175,18 @@ export default function Index() {
   }, [invitationToken])
 
 
+  const openWechatLogin = () => {
+    setMessage('')
+  }
+
+  const handleWechatNameChange = (name: string) => {
+    setWechatName(name)
+  }
+
+  const handleWechatAvatarChange = (avatar: string) => {
+    setWechatAvatar(avatar)
+  }
+
   const loginWithWechat = async () => {
     setLoading(true)
     setMessage('')
@@ -278,8 +290,9 @@ export default function Index() {
       launchPhase={launchPhase === 'ready' ? 'login' : launchPhase}
       launchProgress={launchProgress}
       launchError={launchError}
-      onWechatNameChange={setWechatName}
-      onWechatAvatarChange={setWechatAvatar}
+      onOpenWechatLogin={openWechatLogin}
+      onWechatNameChange={handleWechatNameChange}
+      onWechatAvatarChange={handleWechatAvatarChange}
       onWechatLogin={() => void loginWithWechat()}
       onRetryLaunch={() => void retryLaunch()}
     />

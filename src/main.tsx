@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode, Suspense, lazy, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AppShell } from './components/AppShell'
 import { FriendSetupScreen } from './components/FriendSetupScreen'
@@ -6,12 +6,13 @@ import { LoginScreen } from './components/LoginScreen'
 import { getAccessToken } from './services/httpClient'
 import { clearAppBadge } from './services/appBadge'
 import { preloadAppShellImages } from './startupAssets'
-import { ImageGenerationRoom } from './components/ImageGenerationRoom'
 import { sessionApi, type ServerSession } from './services/sessionApi'
 import { runtimeConfig } from './services/runtimeConfig'
 import { TarotDevEntry } from './dev/tarot/TarotDevEntry'
 import { classifySessionStartupError } from './services/sessionStartup'
 import './styles.css'
+
+const ImageGenerationRoom = lazy(() => import('./components/ImageGenerationRoom').then((m) => ({ default: m.ImageGenerationRoom })))
 
 const SESSION_STARTUP_TIMEOUT_MS = 8_000
 
@@ -21,7 +22,7 @@ function App() {
   if (import.meta.env.DEV && window.location.pathname === '/dev/tarot') {
     return <TarotDevEntry />
   }
-  if (window.location.pathname === '/image') return <ImageGenerationRoom />
+  if (window.location.pathname === '/image') return <Suspense><ImageGenerationRoom /></Suspense>
   const [session, setSession] = useState<ServerSession>()
   const [loading, setLoading] = useState(!runtimeConfig.useMockApi)
   const [error, setError] = useState('')

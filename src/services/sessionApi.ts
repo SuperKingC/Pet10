@@ -15,19 +15,6 @@ export interface ServerUser {
   gender?: Gender
 }
 
-export interface ServerFriend {
-  id: string
-  email: string
-  username: string
-  displayName: string
-  publicCode?: string | null
-  avatarUrl?: string | null
-  avatarConfig?: string | null
-  birthday?: string | null
-  mbti?: string | null
-  gender?: Gender
-}
-
 export interface ServerRelationship {
   id: string
   requesterId: string
@@ -44,7 +31,7 @@ export interface ServerSession {
   status: 'unbound' | 'pending_outgoing' | 'pending_incoming' | 'accepted'
   user: ServerUser
   relationship?: ServerRelationship
-  friend?: ServerFriend
+  friend?: ServerUser
   room?: ServerRoom
   pet?: PetState
   messages?: Message[]

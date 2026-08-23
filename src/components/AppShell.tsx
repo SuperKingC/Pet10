@@ -1,43 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { applyPetAction as applyMockPetAction, type PetAction } from '../domain/petRules'
-import { parseAvatarConfig, type AvatarConfig, type Conversation, type Fortune, type Message, type UserProfile } from '../domain/types'
+import { type AvatarConfig, type Conversation, type Fortune, type Message, type UserProfile } from '../domain/types'
 import { clearAppBadge, setAppBadge } from '../services/appBadge'
 import { chatApi } from '../services/chatApi'
 import { sortConversationsByLatest } from '../services/conversationOrder'
-import { createMemoryService } from '../services/memoryService'
 import { runtimeConfig } from '../services/runtimeConfig'
 import type { ServerSession } from '../services/sessionApi'
 import { normalizePet, socialApi } from '../services/socialApi'
 import { uploadImageToOss } from '../services/uploadApi'
 import { initialSnapshot } from '../state/mockStore'
 import { useRoomRuntime } from '../state/useRoomRuntime'
-import { AvatarStudio } from './AvatarStudio'
 import { CalendarTab } from './CalendarTab'
 import { ChatView } from './ChatView'
 import { ConversationList } from './ConversationList'
-import { FeedScreen } from './FeedScreen'
 import { FloatingPet } from './FloatingPet'
-import { MbtiTestScreen } from './MbtiTestScreen'
 import { MeTab } from './MeTab'
-import { MemoryPanel } from './MemoryPanel'
 import { NestTab } from './NestTab'
-import { NotificationCenter } from './NotificationCenter'
 import { PawMenu } from './PawMenu'
 import { TabBar, type TabKey } from './TabBar'
-import { GobangGame } from '../games/gobang/GobangGame'
-import { MapScreen } from '../games/map/MapScreen'
-import { TarotGame } from '../games/tarot/TarotGame'
-import { formatTarotDownloadTitle } from '../games/tarot/tarotDownloadStatus'
-import { useTarotLauncher } from '../games/tarot/useTarotLauncher'
-import { FortuneDetail } from './FortuneDetail'
 import { mountFortuneHistory } from '../services/fortuneHistory'
+import { useTarotLauncher } from '../games/tarot/useTarotLauncher'
+import { OverlayManager, type Overlay } from './OverlayManager'
 
 interface AppShellProps {
   session?: ServerSession
   onLogout(): void
 }
-
-type Overlay = 'feed' | 'notifications' | 'mbti' | 'memory' | 'tarot' | 'gobang' | 'avatar' | 'map' | null
 
 const MOCK_PROFILE: UserProfile = {
   id: 'you',
@@ -112,7 +100,6 @@ export function AppShell({ session, onLogout }: AppShellProps) {
   const typingThrottleRef = useRef<Record<string, number>>({})
   const mockReplyTimersRef = useRef<Record<string, number>>({})
   const mockMessageBatchesRef = useRef<Record<string, Message[]>>({})
-  const studioUploadRef = useRef<HTMLInputElement>(null)
   const tarotLauncher = useTarotLauncher({ onOpen: () => setOverlay('tarot') })
 
   useEffect(() => {
@@ -127,14 +114,9 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     userId: profile.id,
     onIncomingMessage(roomId, message) {
       if (message.sender === 'you') return
-      // 会话列表最新一条消息同步
       const receivedAt = new Date().toISOString()
       setConversations((current) => sortConversationsByLatest(current.map((item) => item.roomId === roomId
-        ? {
-            ...item,
-            latestMessage: { id: message.id, text: message.text, kind: message.kind, createdAt: receivedAt },
-            updatedAt: receivedAt
-          }
+        ? { ...item, latestMessage: { id: message.id, text: message.text, kind: message.kind, createdAt: receivedAt }, updatedAt: receivedAt }
         : item)))
       const isViewing = currentRoomIdRef.current === roomId && activeTabRef.current === 'messages'
       if (!isViewing || document.hidden) {
@@ -143,28 +125,17 @@ export function AppShell({ session, onLogout }: AppShellProps) {
           setAppBadge(Object.values(next).reduce((sum, value) => sum + value, 0))
           return next
         })
-        if (document.hidden) {
-          maybeBrowserNotification(
-            message.sender === 'pet' ? '小多利' : '新消息',
-            message.kind === 'image' ? '[图片]' : message.text
-          )
-        }
+        if (document.hidden) maybeBrowserNotification(
+          message.sender === 'pet' ? '小多利' : '新消息',
+          message.kind === 'image' ? '[图片]' : message.text
+        )
       }
     },
-    onIncomingNotification() {
-      setNotificationUnread((count) => count + 1)
-    },
-    onProfileUpdated() {
-      // 好友改昵称/头像/捏脸后重拉会话列表，标题/头像/名字全刷新
-      socialApi.listConversations().then(setConversations).catch(() => undefined)
-    },
-    onMapLit() {
-      // 好友点亮地图点位 → 地图页实时刷新
-      setMapVersion((version) => version + 1)
-    }
+    onIncomingNotification() { setNotificationUnread((count) => count + 1) },
+    onProfileUpdated() { socialApi.listConversations().then(setConversations).catch(() => undefined) },
+    onMapLit() { setMapVersion((version) => version + 1) }
   })
 
-  // 会话列表加载 + 全部房间预载（切 tab 不丢消息）
   useEffect(() => {
     let cancelled = false
     socialApi.listConversations()
@@ -178,41 +149,23 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 回到前台且停留在消息页时清角标
   useEffect(() => {
-    const handleVisibility = () => {
-      if (!document.hidden) clearAppBadge()
-    }
+    const handleVisibility = () => { if (!document.hidden) clearAppBadge() }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
-  // UI 状态持久化：iOS 杀后台重载后恢复聊天页/标签
   useEffect(() => {
     window.sessionStorage.setItem('pet10_ui_state', JSON.stringify({ tab: activeTab, roomId: currentRoomId }))
   }, [activeTab, currentRoomId])
 
-  function openConversation(roomId: string) {
-    setCurrentRoomId(roomId)
-    setUnread((current) => {
-      const next = { ...current }
-      delete next[roomId]
-      setAppBadge(Object.values(next).reduce((sum, value) => sum + value, 0))
-      return next
-    })
-    void runtime.loadRoom(roomId)
-  }
-
-  async function handleSend(roomId: string, text: string, imageUrl?: string) {
+  // ---- 聊天操作 ----
+  const handleSend = useCallback(async (roomId: string, text: string, imageUrl?: string) => {
     const sent = await chatApi.sendMessage({ roomId, text, imageUrl })
     runtime.appendMessage(roomId, sent)
     const sentAt = new Date().toISOString()
     setConversations((current) => sortConversationsByLatest(current.map((item) => item.roomId === roomId
-      ? {
-          ...item,
-          latestMessage: { id: sent.id, text: sent.text, kind: sent.kind, createdAt: sentAt },
-          updatedAt: sentAt
-        }
+      ? { ...item, latestMessage: { id: sent.id, text: sent.text, kind: sent.kind, createdAt: sentAt }, updatedAt: sentAt }
       : item)))
     if (runtimeConfig.useMockApi) {
       const conversation = conversations.find((item) => item.roomId === roomId)
@@ -228,30 +181,25 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         runtime.appendMessage(roomId, reply)
         const repliedAt = new Date().toISOString()
         setConversations((current) => sortConversationsByLatest(current.map((item) => item.roomId === roomId
-          ? {
-              ...item,
-              latestMessage: { id: reply.id, text: reply.text, kind: reply.kind, createdAt: repliedAt },
-              updatedAt: repliedAt
-            }
+          ? { ...item, latestMessage: { id: reply.id, text: reply.text, kind: reply.kind, createdAt: repliedAt }, updatedAt: repliedAt }
           : item)))
       }, delay)
     }
-  }
+  }, [conversations, runtime])
 
-  function handleTyping(roomId: string) {
+  const handleTyping = useCallback((roomId: string) => {
     const last = typingThrottleRef.current[roomId] ?? 0
-    const now = Date.now()
-    if (now - last < 1500) return
-    typingThrottleRef.current[roomId] = now
+    if (Date.now() - last < 1500) return
+    typingThrottleRef.current[roomId] = Date.now()
     runtime.getRealtime()?.sendTyping(roomId)
-  }
+  }, [runtime])
 
-  async function handleUploadImage(roomId: string, file: File): Promise<string> {
+  const handleUploadImage = useCallback(async (roomId: string, file: File): Promise<string> => {
     if (runtimeConfig.useMockApi) return chatApi.uploadImage(file)
     return uploadImageToOss(roomId, file)
-  }
+  }, [])
 
-  function handlePetAction(action: PetAction) {
+  const handlePetAction = useCallback((action: PetAction) => {
     if (!pairRoom) return
     const roomId = pairRoom.roomId
     if (runtimeConfig.useMockApi) {
@@ -262,61 +210,58 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     void chatApi.applyPetAction(roomId, action)
       .then((pet) => runtime.setPet(roomId, normalizePet(pet)))
       .catch(() => undefined)
-  }
+  }, [pairRoom, runtime])
 
-  async function toggleProactive(enabled: boolean) {
+  // ---- 资料/覆盖层操作 ----
+  const handleMbtiComplete = useCallback(async (mbti: string) => {
+    try {
+      const updated = await socialApi.updateProfile({ mbti })
+      setProfile((current) => ({ ...current, mbti: updated.mbti ?? mbti }))
+    } finally { setOverlay(null) }
+  }, [])
+
+  const handleAvatarSave = useCallback(async (config: AvatarConfig) => {
+    const serialized = JSON.stringify(config)
+    const updated = await socialApi.updateProfile({ avatarConfig: serialized })
+    setProfile((current) => ({ ...current, avatarConfig: updated.avatarConfig ?? serialized }))
+    setOverlay(null)
+  }, [])
+
+  const handleStudioPhoto = useCallback(async (file?: File) => {
+    if (!file) return
+    try {
+      const roomId = pairRoom?.roomId ?? petDmRoom?.roomId
+      const avatarUrl = (!runtimeConfig.useMockApi && roomId)
+        ? await uploadImageToOss(roomId, file)
+        : await fileToAvatarDataUrl(file)
+      const updated = await socialApi.updateProfile({ avatarUrl })
+      setProfile((current) => ({ ...current, avatarUrl: updated.avatarUrl ?? avatarUrl }))
+      setOverlay(null)
+    } catch { /* 静默 */ }
+  }, [pairRoom, petDmRoom])
+
+  const shareTarotToChat = useCallback(async (text: string) => {
+    const target = pairRoom ?? conversations[0]
+    if (!target) throw new Error('no_room')
+    await chatApi.sendMessage({ roomId: target.roomId, text })
+  }, [pairRoom, conversations])
+
+  const toggleProactive = useCallback(async (enabled: boolean) => {
     if (!pairRoom) return
     try {
       await socialApi.setProactive(pairRoom.roomId, enabled)
       setConversations((current) => current.map((item) =>
         item.roomId === pairRoom.roomId ? { ...item, proactiveEnabled: enabled } : item))
     } catch { /* 静默 */ }
-  }
+  }, [pairRoom])
 
-  async function handleMbtiComplete(mbti: string) {
-    try {
-      const updated = await socialApi.updateProfile({ mbti })
-      setProfile((current) => ({ ...current, mbti: updated.mbti ?? mbti }))
-    } finally {
-      setOverlay(null)
-    }
-  }
-
-  async function handleAvatarSave(config: AvatarConfig) {
-    const serialized = JSON.stringify(config)
-    const updated = await socialApi.updateProfile({ avatarConfig: serialized })
-    setProfile((current) => ({ ...current, avatarConfig: updated.avatarConfig ?? serialized }))
-    setOverlay(null)
-  }
-
-  async function handleStudioPhoto(file?: File) {
-    if (!file) return
-    try {
-      const roomId = pairRoom?.roomId ?? petDmRoom?.roomId
-      let avatarUrl: string
-      if (!runtimeConfig.useMockApi && roomId) {
-        avatarUrl = await uploadImageToOss(roomId, file)
-      } else {
-        avatarUrl = await fileToAvatarDataUrl(file)
-      }
-      const updated = await socialApi.updateProfile({ avatarUrl })
-      setProfile((current) => ({ ...current, avatarUrl: updated.avatarUrl ?? avatarUrl }))
-      setOverlay(null)
-    } catch { /* 静默 */ }
-  }
-
-  async function shareTarotToChat(text: string) {
-    const target = pairRoom ?? conversations[0]
-    if (!target) throw new Error('no_room')
-    await chatApi.sendMessage({ roomId: target.roomId, text })
-  }
-
-  function handleLogout() {
+  const handleLogout = useCallback(() => {
     window.localStorage.removeItem('pet10_access_token')
     window.sessionStorage.removeItem('pet10_ui_state')
     onLogout()
-  }
+  }, [onLogout])
 
+  // ---- 派生值 ----
   const activeConversation = conversations.find((item) => item.roomId === currentRoomId)
   const activeRuntime = currentRoomId ? runtime.states[currentRoomId] : undefined
   const totalUnread = Object.values(unread).reduce((sum, value) => sum + value, 0) + notificationUnread
@@ -325,22 +270,24 @@ export function AppShell({ session, onLogout }: AppShellProps) {
     ...(pairRoom?.friend ? { [pairRoom.friend.id]: pairRoom.friend.displayName } : {})
   }
 
-  function openGame(game: 'tarot' | 'gobang' | 'map') {
-    if (game !== 'tarot') {
-      setOverlay(game)
-      return
-    }
-    void tarotLauncher.open()
+  function openConversation(roomId: string) {
+    setCurrentRoomId(roomId)
+    setUnread((current) => {
+      const next = { ...current }
+      delete next[roomId]
+      setAppBadge(Object.values(next).reduce((sum, value) => sum + value, 0))
+      return next
+    })
+    void runtime.loadRoom(roomId)
   }
 
-  function changeTab(tab: TabKey) {
-    setPawMenuOpen(false)
-    setActiveTab(tab)
+  function openGame(game: 'tarot' | 'gobang' | 'map') {
+    if (game !== 'tarot') { setOverlay(game); return }
+    void tarotLauncher.open()
   }
 
   return (
     <main className="app-shell-v2">
-      {/* 四面板常驻挂载（display 切换），切 tab 不丢状态 */}
       <section className={`tab-panel ${activeTab === 'messages' ? 'tab-panel--active' : ''}`}>
         <ConversationList
           conversations={conversations}
@@ -383,7 +330,6 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         />
       </section>
 
-      {/* 聊天页（全屏覆盖） */}
       {activeConversation && activeTab === 'messages' && (
         <ChatView
           conversation={activeConversation}
@@ -396,7 +342,6 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         />
       )}
 
-      {/* 悬浮小多利：消息页可见，长按切换主动说话 */}
       {activeTab === 'messages' && !currentRoomId && pairRoom && (
         <FloatingPet
           proactiveEnabled={pairRoom.proactiveEnabled}
@@ -404,107 +349,32 @@ export function AppShell({ session, onLogout }: AppShellProps) {
         />
       )}
 
-      <PawMenu
-        open={pawMenuOpen}
-        pairRoom={pairRoom}
-        onClose={() => setPawMenuOpen(false)}
-        onOpenGame={openGame}
-      />
+      <PawMenu open={pawMenuOpen} pairRoom={pairRoom} onClose={() => setPawMenuOpen(false)} onOpenGame={openGame} />
       <TabBar
         active={activeTab}
-        onChange={changeTab}
+        onChange={(tab) => { setPawMenuOpen(false); setActiveTab(tab) }}
         onTogglePawMenu={() => setPawMenuOpen((open) => !open)}
         messageBadge={totalUnread}
         pawMenuOpen={pawMenuOpen}
         hidden={activeTab === 'messages' && Boolean(currentRoomId)}
       />
 
-      {/* 全屏覆盖层 */}
-      {overlay === 'feed' && (
-        <FeedScreen
-          pairRoom={pairRoom}
-          myUserId={profile.id}
-          myName={profile.displayName}
-          myProfile={profile}
-          friendName={pairRoom?.friend?.displayName ?? ''}
-          onClose={() => setOverlay(null)}
-        />
-      )}
-      {fortuneDetail && <FortuneDetail fortune={fortuneDetail} onClose={() => setFortuneDetail(undefined)} />}
-      {overlay === 'notifications' && (
-        <NotificationCenter onClose={() => setOverlay(null)} onUnreadChange={setNotificationUnread} />
-      )}
-      {overlay === 'mbti' && (
-        <MbtiTestScreen onComplete={(mbti) => void handleMbtiComplete(mbti)} onClose={() => setOverlay(null)} />
-      )}
-      {overlay === 'memory' && pairRoom && (
-        <MemoryPanel
-          memories={runtime.states[pairRoom.roomId]?.memories ?? []}
-          onClose={() => setOverlay(null)}
-          onRemove={async (memoryId) => {
-            const service = createMemoryService(pairRoom.roomId)
-            const remaining = await service.removeMemory(runtime.states[pairRoom.roomId]?.memories ?? [], memoryId)
-            runtime.patchRoom(pairRoom.roomId, { memories: remaining })
-          }}
-        />
-      )}
-      {overlay === 'tarot' && (
-        <TarotGame onClose={() => setOverlay(null)} onShareToChat={shareTarotToChat} />
-      )}
-      {tarotLauncher.load && (
-        <section className="tarot-download" role="dialog" aria-modal="true" aria-label="塔罗资源下载">
-          <div className="tarot-download__sigil" aria-hidden="true"><span>II</span></div>
-          <h2>{tarotLauncher.load.error ? '资源尚未准备好' : formatTarotDownloadTitle(tarotLauncher.load.progress)}</h2>
-          <p>{tarotLauncher.load.error ?? '正在准备 22 张牌面与塔罗场景'}</p>
-          <div className="tarot-download__bar" aria-label={`下载进度 ${Math.round(tarotLauncher.load.progress * 100)}%`}>
-            <span style={{ width: `${tarotLauncher.load.progress * 100}%` }} />
-          </div>
-          <div className="tarot-download__actions">
-            {tarotLauncher.load.error && <button onClick={() => void tarotLauncher.open()}>重新下载</button>}
-            <button onClick={tarotLauncher.closeLoad}>关闭</button>
-          </div>
-        </section>
-      )}
-      {overlay === 'avatar' && (
-        <>
-          <AvatarStudio
-            initialConfig={parseAvatarConfig(profile.avatarConfig)}
-            onSave={(config) => void handleAvatarSave(config)}
-            onUploadPhoto={() => studioUploadRef.current?.click()}
-            onClose={() => setOverlay(null)}
-          />
-          <input
-            ref={studioUploadRef}
-            className="visually-hidden"
-            type="file"
-            accept="image/*"
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              event.target.value = ''
-              void handleStudioPhoto(file)
-            }}
-          />
-        </>
-      )}
-      {overlay === 'gobang' && pairRoom && (
-        <GobangGame
-          roomId={pairRoom.roomId}
-          myUserId={profile.id}
-          friendName={pairRoom.friend?.displayName ?? '好友'}
-          friendId={pairRoom.friend?.id}
-          getRealtime={runtime.getRealtime}
-          onClose={() => setOverlay(null)}
-        />
-      )}
-      {overlay === 'map' && pairRoom && (
-        <MapScreen
-          roomId={pairRoom.roomId}
-          myUserId={profile.id}
-          friendNames={friendNames}
-          refreshKey={mapVersion}
-          onClose={() => setOverlay(null)}
-        />
-      )}
+      <OverlayManager
+        overlay={overlay}
+        onClose={() => setOverlay(null)}
+        pairRoom={pairRoom}
+        profile={profile}
+        runtime={runtime}
+        mapVersion={mapVersion}
+        fortuneDetail={fortuneDetail}
+        onFortuneClose={() => setFortuneDetail(undefined)}
+        onMbtiComplete={handleMbtiComplete}
+        onAvatarSave={handleAvatarSave}
+        onStudioPhoto={handleStudioPhoto}
+        onShareTarotToChat={shareTarotToChat}
+        onNotificationUnreadChange={setNotificationUnread}
+        tarotLauncher={tarotLauncher}
+      />
     </main>
   )
 }
