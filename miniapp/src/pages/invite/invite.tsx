@@ -3,7 +3,7 @@ import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { authApi } from '../../services/authApi'
 import { getAccessToken } from '../../services/apiClient'
-import { resolveInvitationViewer } from '../../domain/invitationViewer'
+import { invitationViewerMessage, resolveInvitationViewer } from '../../domain/invitationViewer'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
 import { launchContextApi } from '../../services/launchContextApi'
 import { showInfo } from '../../services/feedback'
@@ -46,16 +46,12 @@ export default function Invite() {
       if (nextViewerType === 'owner') {
         setRedirecting(true)
         Taro.removeStorageSync(invitationKey)
-        void showInfo('这是你发出的邀请').then(() => {
+        void showInfo(invitationViewerMessage(nextViewerType)).then(() => {
           Taro.reLaunch({ url: '/pages/index/index' })
         })
         return
       }
-      setMessage(
-        nextViewerType === 'invitee'
-          ? '这是你发出的邀请，请让另一位微信好友打开'
-          : '带我回家吧——从此这个窝，是你们俩的。'
-      )
+      setMessage(invitationViewerMessage(nextViewerType))
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '读取邀请失败')
     } finally {
