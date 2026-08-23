@@ -56,6 +56,29 @@ export interface MiniappConversation {
   updatedAt: string
 }
 
+export type AnniversaryRepeat = 'yearly' | 'none'
+
+export interface MiniappAnniversary {
+  id: string
+  roomId: string
+  userId: string
+  name: string
+  icon: string
+  note: string
+  day: string
+  repeatRule: AnniversaryRepeat
+  createdAt: string
+  updatedAt: string
+}
+
+export type AnniversaryInput = {
+  name: string
+  icon: string
+  note: string
+  day: string
+  repeatRule: AnniversaryRepeat
+}
+
 export interface MiniappContribution {
   userId: string
   action: string
@@ -124,5 +147,25 @@ export const socialApi = {
   },
   listContributions(roomId: string) {
     return apiRequest<MiniappContribution[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/contributions`)
+  },
+  listAnniversaries(roomId: string) {
+    return apiRequest<MiniappAnniversary[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/anniversaries`)
+  },
+  createAnniversary(roomId: string, input: AnniversaryInput) {
+    return apiRequest<MiniappAnniversary>(`/api/social/rooms/${encodeURIComponent(roomId)}/anniversaries`, {
+      method: 'POST',
+      body: input,
+    })
+  },
+  updateAnniversary(roomId: string, anniversaryId: string, patch: Partial<AnniversaryInput>) {
+    return apiRequest<MiniappAnniversary>(`/api/social/rooms/${encodeURIComponent(roomId)}/anniversaries/${encodeURIComponent(anniversaryId)}`, {
+      method: 'PUT',
+      body: patch,
+    })
+  },
+  deleteAnniversary(roomId: string, anniversaryId: string) {
+    return apiRequest<{ ok: boolean }>(`/api/social/rooms/${encodeURIComponent(roomId)}/anniversaries/${encodeURIComponent(anniversaryId)}`, {
+      method: 'DELETE',
+    })
   },
 }
