@@ -1,6 +1,8 @@
 import Taro from '@tarojs/taro'
 
 const tokenKey = 'pet10_access_token'
+
+export const DEFAULT_REQUEST_TIMEOUT_MS = 15_000
 const apiBaseUrl = typeof TARO_API_BASE_URL === 'string' ? TARO_API_BASE_URL : ''
 
 export function getAccessToken() {
@@ -17,11 +19,13 @@ export function clearAccessToken() {
 
 export async function apiRequest<T>(path: string, options: {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  timeoutMs?: number
   body?: Record<string, unknown>
   auth?: boolean
 } = {}): Promise<T> {
   const response = await Taro.request<T>({
     url: `${apiBaseUrl}${path}`,
+    timeout: options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
     method: options.method ?? 'GET',
     data: options.body,
     header: {

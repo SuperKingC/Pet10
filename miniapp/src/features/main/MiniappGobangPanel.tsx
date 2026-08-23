@@ -2,6 +2,7 @@ import { Button, Text, View } from '@tarojs/components'
 import { useEffect, useMemo, useState } from 'react'
 import { gobangApi, type GobangGameState, type GobangInvitation } from '../../services/gobangApi'
 import { applyAiMove, applySoloMove, createSoloGame, SOLO_BOARD_SIZE, type SoloGame } from '../../domain/gobangSolo'
+import { startSingleFlightPolling } from '../../services/singleFlightPolling'
 import './MiniappGobangPanel.scss'
 
 const boardCells = Array.from({ length: 225 }, (_, index) => ({ x: index % 15, y: Math.floor(index / 15) }))
@@ -22,21 +23,21 @@ export function MiniappGobangPanel({ roomId, myUserId, friendId, friendName, onC
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
 
-  const refresh = async () => {
+  const refresh = async (isCurrent: () => boolean = () => true) => {
     try {
       const state = await gobangApi.getState()
+      if (!isCurrent()) return
       setGame(state.game)
       setInvitations(state.invitations.filter((invitation) => invitation.roomId === roomId))
     } catch {
+      if (!isCurrent()) return
       setNotice('棋局同步失败，正在重试')
     }
   }
 
   useEffect(() => {
     if (mode !== 'friend') return
-    void refresh()
-    const timer = setInterval(() => void refresh(), 2000)
-    return () => clearInterval(timer)
+    return startSingleFlightPolling(refresh, 2000)
   }, [roomId, mode])
 
   const stones = useMemo(() => new Map(game?.moves.map((move) => [`${move.x},${move.y}`, move.color]) ?? []), [game])

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Input, ScrollView, Text, View } from '@tarojs/components'
 import { roomApi, type RoomMessage } from '../../services/roomApi'
+import { startSingleFlightPolling } from '../../services/singleFlightPolling'
 import { socialApi, type MiniappConversation } from '../../services/socialApi'
 import './MiniappMessagesView.scss'
 
@@ -18,21 +19,17 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
 
   useEffect(() => {
     if (!roomId) return
-    let cancelled = false
-    const load = async () => {
+    const stopPolling = startSingleFlightPolling(async (isCurrent) => {
       try {
         const next = await roomApi.listMessages(roomId)
-        if (!cancelled) setMessages(next)
+        if (!isCurrent()) return
+        setMessages(next)
       } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : '消息加载失败')
+        if (!isCurrent()) return
+        setError(loadError instanceof Error ? loadError.message : '消息加载失败')
       }
-    }
-    void load()
-    const timer = setInterval(() => void load(), 3000)
-    return () => {
-      cancelled = true
-      clearInterval(timer)
-    }
+    }, 3000)
+    return stopPolling
   }, [roomId])
 
   useEffect(() => {
