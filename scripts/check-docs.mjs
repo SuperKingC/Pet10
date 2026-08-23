@@ -1,6 +1,6 @@
-import { readFile, readdir } from 'node:fs/promises'
+import { access, readFile, readdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { dirname, extname, resolve } from 'node:path'
+import { extname, resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
 const featureRoot = resolve(root, 'docs/features')
@@ -20,15 +20,10 @@ const requiredFeatures = [
 
 async function pathExists(path) {
   try {
-    await readdir(path)
+    await access(path)
     return true
   } catch {
-    try {
-      await readFile(path)
-      return true
-    } catch {
-      return false
-    }
+    return false
   }
 }
 
