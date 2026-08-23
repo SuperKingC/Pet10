@@ -135,6 +135,19 @@ export interface MoodEntry {
   updatedAt: Date
 }
 
+export interface Anniversary {
+  id: Id
+  roomId: Id
+  userId: Id
+  name: string
+  icon: string
+  note: string
+  day: string
+  repeatRule: 'yearly' | 'none'
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Post {
   id: Id
   roomId: Id

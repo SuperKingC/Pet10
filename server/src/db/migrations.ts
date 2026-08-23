@@ -86,5 +86,22 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
     CREATE INDEX IF NOT EXISTS invitations_pending_expiry_idx
       ON invitations (expires_at)
       WHERE status = 'pending';
+
+    CREATE TABLE IF NOT EXISTS anniversaries (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name text NOT NULL,
+      icon text NOT NULL,
+      note text NOT NULL DEFAULT '',
+      day date NOT NULL,
+      repeat_rule text NOT NULL DEFAULT 'yearly' CHECK (repeat_rule IN ('yearly', 'none')),
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      UNIQUE (room_id, name, day)
+    );
+
+    CREATE INDEX IF NOT EXISTS anniversaries_room_idx
+      ON anniversaries (room_id, created_at);
   `)
 }
