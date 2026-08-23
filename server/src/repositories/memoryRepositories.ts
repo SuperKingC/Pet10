@@ -1,5 +1,6 @@
 import { randomUUID, randomInt } from 'node:crypto'
 import type {
+  Anniversary,
   AppNotification,
   ChatMessage,
   CodewordAnswer,
@@ -40,6 +41,7 @@ export function createMemoryRepositories(): RepositoryBundle {
   const memories = new Map<string, PetMemory[]>()
   const tasks = new Map<string, PetTask>()
   const moods = new Map<string, MoodEntry>()
+  const anniversaries = new Map<string, Anniversary>()
   const posts = new Map<string, Post>()
   const postLikes = new Map<string, Set<string>>()
   const notifications = new Map<string, AppNotification>()
@@ -152,7 +154,7 @@ export function createMemoryRepositories(): RepositoryBundle {
       invitation.acceptedAt = now()
       return invitation
     },
-    async acceptPair(token: string, accepterId: string) {
+    async acceptPair(token: string, accepterId: string, options?: { createPet?: boolean }) {
       const invitation = invitations.get(token)
       if (!invitation || invitation.status !== 'pending') throw new Error('invitation_unavailable')
       invitation.status = 'accepted'
@@ -161,7 +163,9 @@ export function createMemoryRepositories(): RepositoryBundle {
       const relationship = await relationshipRepo.create(invitation.inviterId, accepterId)
       relationship.status = 'accepted'
       const room = await roomRepo.createForRelationship(relationship.id)
-      const pet = await petRepo.createForRelationship(relationship.id, room.id)
+      const pet = options?.createPet === false
+        ? null
+        : await petRepo.createForRelationship(relationship.id, room.id)
       return { invitation, relationship, room, pet }
     },
     async decline(token: string, userId: string) {
@@ -346,6 +350,37 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
+  const anniversaryRepo = {
+    async create(input: Pick<Anniversary, 'roomId' | 'userId' | 'name' | 'icon' | 'note' | 'day' | 'repeatRule'>) {
+      const item: Anniversary = { id: randomUUID(), ...input, createdAt: now(), updatedAt: now() }
+      anniversaries.set(item.id, item)
+      return item
+    },
+    async update(id: string, patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule'] }) {
+      const item = anniversaries.get(id)
+      if (!item) return undefined
+      const updated: Anniversary = {
+        ...item,
+        name: patch.name ?? item.name,
+        icon: patch.icon ?? item.icon,
+        note: patch.note ?? item.note,
+        repeatRule: patch.repeatRule ?? item.repeatRule,
+        updatedAt: now()
+      }
+      anniversaries.set(id, updated)
+      return updated
+    },
+    async deleteById(roomId: string, id: string) {
+      const item = anniversaries.get(id)
+      if (item?.roomId === roomId) anniversaries.delete(id)
+    },
+    async listByRoom(roomId: string) {
+      return [...anniversaries.values()]
+        .filter((item) => item.roomId === roomId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    }
+  }
+
   const postRepo = {
     async create(input: Omit<Post, 'id' | 'createdAt'>) {
       const post: Post = { ...input, id: randomUUID(), createdAt: now() }
@@ -472,6 +507,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     memories: memoryRepo,
     tasks: taskRepo,
     moods: moodRepo,
+    anniversaries: anniversaryRepo,
     posts: postRepo,
     notifications: notificationRepo,
     fortunes: fortuneRepo,

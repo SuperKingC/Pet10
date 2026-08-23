@@ -113,7 +113,7 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
          WHERE token=$1 AND status='pending' RETURNING *`,
         [token, accepterId]
       ),
-      acceptPair: async (token, accepterId) => {
+      acceptPair: async (token, accepterId, options?: { createPet?: boolean }) => {
         const client = 'connect' in database ? await (database as Pool).connect() : undefined
         const db = client ?? database
         try {
@@ -148,14 +148,16 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
              ON CONFLICT DO NOTHING`,
             [room.id, relationship.requesterId, relationship.addresseeId]
           )
-          const petResult = await db.query(
-            `INSERT INTO pets(relationship_id,room_id) VALUES($1,$2)
-             ON CONFLICT(relationship_id) DO UPDATE SET relationship_id=EXCLUDED.relationship_id
-             RETURNING *`,
-            [relationship.id, room.id]
-          )
+          const petResult = options?.createPet === false
+            ? null
+            : await db.query(
+                `INSERT INTO pets(relationship_id,room_id) VALUES($1,$2)
+                 ON CONFLICT(relationship_id) DO UPDATE SET relationship_id=EXCLUDED.relationship_id
+                 RETURNING *`,
+                [relationship.id, room.id]
+              )
           if (client) await client.query('COMMIT')
-          return { invitation, relationship, room, pet: camel(petResult.rows[0]) }
+          return { invitation, relationship, room, pet: petResult ? camel(petResult.rows[0]) : null }
         } catch (error) {
           if (client) await client.query('ROLLBACK')
           throw error
@@ -341,6 +343,27 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         'SELECT * FROM moods WHERE room_id=$1 AND day BETWEEN $2 AND $3 ORDER BY day',
         [roomId, fromDay, toDay]
       )
+    },
+    anniversaries: {
+      create: (input) => one(
+        `INSERT INTO anniversaries(room_id,user_id,name,icon,note,day,repeat_rule)
+         VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [input.roomId, input.userId, input.name, input.icon, input.note, input.day, input.repeatRule]
+      ),
+      update: (id, patch) => one(
+        `UPDATE anniversaries SET
+           name = CASE WHEN $2 THEN $3 ELSE name END,
+           icon = CASE WHEN $4 THEN $5 ELSE icon END,
+           note = CASE WHEN $6 THEN $7 ELSE note END,
+           repeat_rule = CASE WHEN $8 THEN $9 ELSE repeat_rule END,
+           updated_at = now()
+         WHERE id=$1 RETURNING *`,
+        [id, patch.name !== undefined, patch.name, patch.icon !== undefined, patch.icon, patch.note !== undefined, patch.note, patch.repeatRule !== undefined, patch.repeatRule]
+      ),
+      async deleteById(roomId, id) {
+        await database.query('DELETE FROM anniversaries WHERE room_id=$1 AND id=$2', [roomId, id])
+      },
+      listByRoom: (roomId) => many('SELECT * FROM anniversaries WHERE room_id=$1 ORDER BY created_at', [roomId])
     },
     posts: {
       create: (input) => one(

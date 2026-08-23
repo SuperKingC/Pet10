@@ -1,4 +1,5 @@
 import type {
+  Anniversary,
   AppNotification,
   ChatMessage,
   CodewordAnswer,
@@ -60,11 +61,11 @@ export interface InvitationRepository {
   create(input: Pick<Invitation, 'token' | 'inviterId' | 'expiresAt'>): Promise<Invitation>
   findByToken(token: string): Promise<Invitation | undefined>
   accept(token: string, accepterId: string): Promise<Invitation>
-  acceptPair?(token: string, accepterId: string): Promise<{
+  acceptPair?(token: string, accepterId: string, options?: { createPet?: boolean }): Promise<{
     invitation: Invitation
     relationship: Relationship
     room: Room
-    pet: Pet
+    pet: Pet | null
   }>
   decline(token: string, userId: string): Promise<Invitation>
 }
@@ -125,6 +126,13 @@ export interface TaskRepository {
 export interface MoodRepository {
   upsert(roomId: string, userId: string, day: string, level: number): Promise<MoodEntry>
   listForRange(roomId: string, fromDay: string, toDay: string): Promise<MoodEntry[]>
+}
+
+export interface AnniversaryRepository {
+  create(input: Pick<Anniversary, 'roomId' | 'userId' | 'name' | 'icon' | 'note' | 'day' | 'repeatRule'>): Promise<Anniversary>
+  update(id: string, patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule'] }): Promise<Anniversary | undefined>
+  deleteById(roomId: string, id: string): Promise<void>
+  listByRoom(roomId: string): Promise<Anniversary[]>
 }
 
 export interface PostRepository {
@@ -190,6 +198,7 @@ export interface RepositoryBundle {
   memories: MemoryRepository
   tasks: TaskRepository
   moods: MoodRepository
+  anniversaries: AnniversaryRepository
   posts: PostRepository
   notifications: NotificationRepository
   fortunes: FortuneRepository
