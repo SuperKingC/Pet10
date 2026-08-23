@@ -1,4 +1,6 @@
 import type { Message, PetState } from '../domain/types'
+import { applyPetAction as applyPetActionRule } from '../domain/petRules'
+import { initialSnapshot } from '../state/mockStore'
 import { apiRequest } from './httpClient'
 import { mapServerMessage, type ServerMessage } from './messageMapper'
 import { runtimeConfig } from './runtimeConfig'
@@ -66,9 +68,7 @@ const mockChatApi: ChatApi = {
   },
 
   async applyPetAction(_roomId, action) {
-    const { applyPetAction } = await import('../domain/petRules')
-    const { initialSnapshot } = await import('../state/mockStore')
-    return applyPetAction(initialSnapshot.pet, action)
+    return applyPetActionRule(initialSnapshot.pet, action)
   },
 
   async uploadImage(file) {
