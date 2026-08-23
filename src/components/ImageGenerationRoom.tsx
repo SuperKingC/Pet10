@@ -1,50 +1,8 @@
 import { useRef, useState, type ClipboardEvent, type DragEvent } from 'react'
+import { requestImageGeneration, type ImageGenerationResponse as ImageResult } from '../services/imageGenerationApi'
+import { readStoredImageInvite, storeImageInvite } from '../services/imageGenerationSession'
+import { prepareReferenceImage, type ReferenceImage } from '../services/imageReference'
 import './ImageGenerationRoom.css'
-
-type ImageResult = {
-  data?: Array<{ url?: string; b64_json?: string }>
-  durationMs?: number
-  error?: string
-  upstreamCode?: number
-  requestId?: string
-}
-type ReferenceImage = { name: string; dataUrl: string; bytes: number }
-
-const MAX_REFERENCE_BYTES = 2 * 1024 * 1024
-
-function dataUrlBytes(dataUrl: string) {
-  const base64 = dataUrl.split(',')[1] ?? ''
-  return Math.floor(base64.length * 3 / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0)
-}
-
-async function prepareReferenceImage(file: File): Promise<ReferenceImage> {
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('只支持 JPEG、PNG 或 WebP 图片')
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, 2048 / Math.max(bitmap.width, bitmap.height))
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale))
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale))
-  const context = canvas.getContext('2d')
-  if (!context) throw new Error('浏览器无法处理这张图片')
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
-  bitmap.close()
-  let quality = 0.9
-  let dataUrl = canvas.toDataURL('image/jpeg', quality)
-  while (dataUrlBytes(dataUrl) > MAX_REFERENCE_BYTES && quality > 0.4) {
-    quality -= 0.1
-    dataUrl = canvas.toDataURL('image/jpeg', quality)
-  }
-  const bytes = dataUrlBytes(dataUrl)
-  if (bytes > MAX_REFERENCE_BYTES) throw new Error('图片压缩后仍超过 2 MB，请换一张较小的图片')
-  return { name: file.name, dataUrl, bytes }
-}
-
-async function readImageResponse(response: Response): Promise<ImageResult> {
-  const contentType = response.headers.get('content-type') ?? ''
-  const text = await response.text()
-  if (!contentType.includes('application/json')) throw new Error(response.status === 404 ? '生图接口尚未部署，请更新并重启 API 服务' : '服务器返回了异常响应，请稍后再试')
-  try { return JSON.parse(text) as ImageResult } catch { throw new Error('服务器返回的数据格式不正确') }
-}
 
 function seconds(durationMs: number) {
   return `${(durationMs / 1000).toFixed(1)} 秒`
@@ -61,7 +19,7 @@ function generationErrorMessage(payload: ImageResult, fallbackDurationMs: number
 }
 
 export function ImageGenerationRoom() {
-  const [invite, setInvite] = useState(() => sessionStorage.getItem('pet10_image_invite') ?? '')
+  const [invite, setInvite] = useState(readStoredImageInvite)
   const [prompt, setPrompt] = useState('')
   const [size, setSize] = useState('1024x1024')
   const [result, setResult] = useState<ImageResult>()
@@ -116,23 +74,17 @@ export function ImageGenerationRoom() {
     if (!invite.trim()) return setError('请输入邀请码')
     if (!prompt.trim()) return setError('请输入图片描述')
     setLoading(true)
-    sessionStorage.setItem('pet10_image_invite', invite.trim())
+    storeImageInvite(invite)
     const startedAt = performance.now()
     try {
-      const response = await fetch('/api/images/generations', {
-        method: 'POST',
-        headers: { authorization: `Bearer ${invite.trim()}`, 'content-type': 'application/json' },
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          model: 'openai/gpt-5.4-image-2',
-          size,
-          n: 1,
-          referenceImages: references.map(reference => reference.dataUrl)
-        })
+      const payload = await requestImageGeneration({
+        invite: invite.trim(),
+        prompt: prompt.trim(),
+        size,
+        referenceImages: references.map(reference => reference.dataUrl),
       })
-      const payload = await readImageResponse(response)
       const fallbackDurationMs = Math.round(performance.now() - startedAt)
-      if (!response.ok) throw new Error(generationErrorMessage(payload, fallbackDurationMs))
+      if (payload.error) throw new Error(generationErrorMessage(payload, fallbackDurationMs))
       setResult(payload)
       setSuccess(`生成完成，耗时 ${seconds(payload.durationMs ?? fallbackDurationMs)}`)
     } catch (generationError) {

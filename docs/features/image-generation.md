@@ -10,12 +10,16 @@
 
 - `src/components/ImageGenerationRoom.tsx`
 - `src/components/ImageGenerationRoom.css`
+- `src/services/imageGenerationApi.ts`：封装请求、鉴权头和响应解析。
+- `src/services/imageGenerationSession.ts`：封装邀请码的浏览器会话存储。
+- `src/services/imageReference.ts`：封装参考图校验、缩放、压缩和大小计算。
 - `server/src/http/imageRoutes.ts`
 - `server/src/services/imageGenerationService.ts`
 - `server/src/services/imageRateLimiter.ts`
 
 ## 风险
 
+- UI 组件不得直接请求接口；网络响应解析与浏览器图片处理必须留在服务边界。
 - 参考图会增加请求体积。
 - API Key 只能在服务端环境变量中。
 - 生成服务超时或限流时必须给出可理解提示。
