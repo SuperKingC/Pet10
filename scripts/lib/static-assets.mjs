@@ -2,12 +2,6 @@ import { readdir, stat } from 'node:fs/promises'
 import { extname, join, relative, sep } from 'node:path'
 
 const RUNTIME_ROOTS = [
-  'assets',
-  'pet',
-  'nest',
-  'icons',
-  'navigation',
-  'me',
   'tarot/cards',
   'tarot/ui'
 ]

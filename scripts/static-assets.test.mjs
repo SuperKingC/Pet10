@@ -33,17 +33,15 @@ async function createFixture() {
 }
 
 describe('static asset manifest', () => {
-  it('includes runtime assets under the commit version', async () => {
+  it('includes only tarot runtime assets under the commit version', async () => {
     const distRoot = await createFixture()
 
     const entries = await collectStaticAssets(distRoot, 'commit-sha')
 
-    expect(entries.map((entry) => entry.key)).toEqual(expect.arrayContaining([
-      'commit-sha/assets/index-abc.js',
-      'commit-sha/pet/xiaoduoli.png',
-      'commit-sha/nest/action-feed.png',
-      'commit-sha/tarot/cards/the-world.jpg'
-    ]))
+    expect(entries.map((entry) => entry.key)).toEqual([
+      'commit-sha/tarot/cards/the-world.jpg',
+      'commit-sha/tarot/ui/card-back.jpg'
+    ])
   })
 
   it('adds the public URL pathname before the commit version when configured', async () => {
@@ -52,8 +50,8 @@ describe('static asset manifest', () => {
     const entries = await collectStaticAssets(distRoot, 'commit-sha', 'pet10-web')
 
     expect(entries.map((entry) => entry.key)).toEqual(expect.arrayContaining([
-      'pet10-web/commit-sha/pet/xiaoduoli.png',
-      'pet10-web/commit-sha/nest/action-feed.png'
+      'pet10-web/commit-sha/tarot/cards/the-world.jpg',
+      'pet10-web/commit-sha/tarot/ui/card-back.jpg'
     ]))
   })
 
@@ -62,7 +60,7 @@ describe('static asset manifest', () => {
     expect(normalizeAssetPrefix('https://bucket.cos-region.myqcloud.com/')).toBe('')
   })
 
-  it('excludes source-only artwork and same-origin application control files', async () => {
+  it('excludes source-only artwork, legacy web assets, and application control files', async () => {
     const distRoot = await createFixture()
 
     const entries = await collectStaticAssets(distRoot, 'commit-sha')
@@ -70,6 +68,12 @@ describe('static asset manifest', () => {
 
     expect(keys).not.toEqual(expect.arrayContaining([
       'commit-sha/tarot/concepts/the-world.png',
+      'commit-sha/assets/index-abc.js',
+      'commit-sha/pet/xiaoduoli.png',
+      'commit-sha/nest/action-feed.png',
+      'commit-sha/icons/icon-192.png',
+      'commit-sha/navigation/nest.png',
+      'commit-sha/me/about.png',
       'commit-sha/index.html',
       'commit-sha/sw.js',
       'commit-sha/manifest.webmanifest'
@@ -97,14 +101,14 @@ describe('static asset upload', () => {
       prefix: 'pet10-web'
     })
 
-    expect(uploaded).toBeGreaterThan(0)
+    expect(uploaded).toBe(2)
     expect(requests).toEqual(expect.arrayContaining([
       expect.objectContaining({
         Bucket: 'pet10-123',
         Region: 'ap-guangzhou',
-        Key: 'pet10-web/commit-sha/pet/xiaoduoli.png',
+        Key: 'pet10-web/commit-sha/tarot/cards/the-world.jpg',
         CacheControl: 'public, max-age=31536000, immutable',
-        ContentType: 'image/png',
+        ContentType: 'image/jpeg',
         ContentDisposition: 'inline'
       })
     ]))
