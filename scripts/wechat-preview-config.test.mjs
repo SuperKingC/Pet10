@@ -4,6 +4,8 @@ import { createWechatPreviewConfig } from './wechat-preview-config.mjs'
 
 describe('createWechatPreviewConfig', () => {
   it('creates a preview configuration from CI environment variables', () => {
+    const cwd = path.resolve('test-workspace')
+
     expect(
       createWechatPreviewConfig(
         {
@@ -12,20 +14,20 @@ describe('createWechatPreviewConfig', () => {
           WECHAT_PREVIEW_DESC: 'mobile test',
           GITHUB_SHA: '1234567890abcdef',
         },
-        'D:\\Pet10',
+        cwd,
       ),
     ).toEqual({
       appId: 'wxf0ba7afb8efc218d',
       privateKeyPath: 'secrets/private.key',
-      outputPath: path.resolve('D:\\Pet10', 'artifacts', 'wechat-preview.png'),
+      outputPath: path.resolve(cwd, 'artifacts', 'wechat-preview.png'),
       description: 'mobile test',
-      projectPath: path.resolve('D:\\Pet10', 'miniapp', 'dist'),
+      projectPath: path.resolve(cwd, 'miniapp', 'dist'),
     })
   })
 
   it('rejects missing credentials before invoking WeChat CI', () => {
-    expect(() => createWechatPreviewConfig({}, 'D:\\Pet10')).toThrow('WECHAT_APPID is required')
-    expect(() => createWechatPreviewConfig({ WECHAT_APPID: 'wx123' }, 'D:\\Pet10')).toThrow(
+    expect(() => createWechatPreviewConfig({}, 'test-workspace')).toThrow('WECHAT_APPID is required')
+    expect(() => createWechatPreviewConfig({ WECHAT_APPID: 'wx123' }, 'test-workspace')).toThrow(
       'WECHAT_PRIVATE_KEY_PATH is required',
     )
   })
