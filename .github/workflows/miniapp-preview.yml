@@ -53,7 +53,12 @@ jobs:
           WECHAT_PRIVATE_KEY: ${{ secrets.WECHAT_PRIVATE_KEY }}
         run: |
           mkdir -p "$RUNNER_TEMP/wechat"
-          printf '%s' "$WECHAT_PRIVATE_KEY" > "$RUNNER_TEMP/wechat/private.key"
+          printf '%s' "$WECHAT_PRIVATE_KEY" \
+            | sed 's/\\n/\n/g' \
+            | tr -d '\r' \
+            > "$RUNNER_TEMP/wechat/private.key"
+          grep -Eq -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$RUNNER_TEMP/wechat/private.key"
+          openssl pkey -in "$RUNNER_TEMP/wechat/private.key" -noout
 
       - name: Generate WeChat preview QR code
         env:
