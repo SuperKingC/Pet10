@@ -4,15 +4,7 @@
 
 ## 功能目录
 
-- [页面和导航](app-navigation.md)
-- [聊天与实时消息](chat.md)
-- [宠物系统](pet-system.md)
-- [登录、好友和会话](social-and-session.md)
-- [微信登录与多关系小窝](wechat-auth-and-multi-room.md)
-- [每日运势](daily-fortune.md)
-- [塔罗](tarot.md)
-- [图片生成](image-generation.md)
-- [五子棋](gobang.md)
+- [微信小程序](miniapp.md)
 - [图片资源与性能](assets-and-performance.md)
 - [部署与服务器更新](deployment.md)
 
@@ -20,5 +12,5 @@
 
 1. 先让 AI 阅读对应文档。
 2. 要求 AI 说明修改范围和不修改内容。
-3. 修改后要求本地验收链接。
-4. 界面和动画由你确认后再合并或部署。
+3. 修改后要求在微信开发者工具中预览最新构建。
+4. 界面和交互由你确认后再合并或部署。

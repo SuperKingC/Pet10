@@ -21,7 +21,7 @@ Record:
 
 ## Before handoff
 
-Run the smallest relevant verification first. For UI changes, run `npm run review` and provide the URL. For merge or deployment, run `npm run verify:full`.
+Run the smallest relevant verification first. For UI changes, rebuild `miniapp/dist` and preview it in WeChat DevTools. For merge or deployment, run `npm run verify:full`.
 
 Report:
 
@@ -30,7 +30,7 @@ Goal:
 Files changed:
 Behavior changed:
 Tests:
-Review URL:
+Preview entry:
 Not verified:
 Rollback:
 ```

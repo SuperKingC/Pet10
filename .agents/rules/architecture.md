@@ -2,11 +2,11 @@
 
 ## Responsibilities
 
-- `src/components`: presentation and user interaction.
-- `src/games`: feature-local UI, state, styles, and tests.
-- `src/domain`: deterministic types and business rules.
-- `src/services`: HTTP, WebSocket, storage, browser APIs, and external adapters.
-- `src/state`: cross-screen state and mock implementations.
+- `miniapp/src/pages`: miniapp pages and navigation.
+- `miniapp/src/features`: feature-local UI, state, styles, and tests.
+- `miniapp/src/components`: shared presentation components.
+- `miniapp/src/domain`: deterministic types and business rules.
+- `miniapp/src/services`: HTTP, storage, Taro APIs, and external adapters.
 - `server/src/http`: request parsing, authentication, and response mapping.
 - `server/src/services`: server-side use-case coordination.
 - `server/src/domain`: server-side models and rules.
@@ -14,8 +14,8 @@
 
 ## Required boundaries
 
-- Components do not directly call `fetch`, `localStorage`, or server-only modules.
-- Domain modules do not import React, browser globals, or services.
+- Components do not directly call `Taro.request`, storage APIs, or server-only modules.
+- Domain modules do not import React, Taro runtime globals, or services.
 - New API calls go through a service module.
 - New reusable behavior belongs in a hook or service, not a page component.
 - A feature change must not silently become a global CSS change.

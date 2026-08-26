@@ -22,15 +22,14 @@
 - Make the smallest change that solves the stated goal.
 - Add or update a focused test before changing behavior.
 - Do not combine visual changes with unrelated business or infrastructure changes.
-- Tarot animation changes must follow `.agents/rules/tarot-animation.md`.
 - Miniapp changes must follow `.agents/rules/miniapp-change.md`: all changes stay in `miniapp/`, and after each change clear caches and recompile so the latest build is always previewed.
 - Image changes must follow the image budgets in `docs/features/assets-and-performance.md`.
 
 ## Verification
 
 - Use the fastest relevant check during development.
-- UI or animation changes must provide a local review URL.
-- Do not claim completion without reporting commands, results, unverified areas, and the review URL.
+- UI or interaction changes must be previewed in WeChat DevTools with a freshly built `miniapp/dist`.
+- Do not claim completion without reporting commands, results, unverified areas, and the preview entry.
 - Run `npm run verify:full` before merging or deploying.
 - Visual changes require user acceptance before merging to `main` or deploying production.
 

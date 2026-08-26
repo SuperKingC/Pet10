@@ -6,14 +6,7 @@ const root = resolve(import.meta.dirname, '..')
 const featureRoot = resolve(root, 'docs/features')
 const requiredFeatures = [
   'README.md',
-  'app-navigation.md',
-  'chat.md',
-  'pet-system.md',
-  'social-and-session.md',
-  'daily-fortune.md',
-  'tarot.md',
-  'image-generation.md',
-  'gobang.md',
+  'miniapp.md',
   'assets-and-performance.md',
   'deployment.md',
 ]
@@ -32,17 +25,11 @@ export async function checkDocs() {
   for (const file of requiredFeatures) {
     if (!await pathExists(resolve(featureRoot, file))) errors.push(`Missing feature document: docs/features/${file}`)
   }
-  const baselineFiles = ['README.md', 'timeline.md', 'checkpoints.md', 'acceptance-criteria.md']
-  for (const file of baselineFiles) {
-    if (!await pathExists(resolve(root, 'docs/visual-baselines/tarot', file))) {
-      errors.push(`Missing tarot baseline: docs/visual-baselines/tarot/${file}`)
-    }
-  }
   const files = (await readdir(featureRoot)).filter((file) => extname(file) === '.md')
   for (const file of files) {
     const fullPath = resolve(featureRoot, file)
     const content = await readFile(fullPath, 'utf8')
-    for (const match of content.matchAll(/`((?:src|server\/src|docs|deploy|public)\/[^`\s]+)`/g)) {
+    for (const match of content.matchAll(/`((?:miniapp\/src|server\/src|docs|deploy|public)\/[^`\s]+)`/g)) {
       const target = resolve(root, match[1])
       if (!await pathExists(target)) errors.push(`${file} references missing path: ${match[1]}`)
     }

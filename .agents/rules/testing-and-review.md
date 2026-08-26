@@ -4,11 +4,11 @@
 
 ### Level 1: development
 
-Run the smallest relevant test and type check. For animation, inspect only the changed stage.
+Run the smallest relevant test and type check. For UI changes, inspect only the changed page.
 
 ### Level 2: user acceptance
 
-Run the relevant frontend/backend tests, start `npm run review`, check the browser console, and provide a clickable URL. The user validates UI and animation behavior.
+Run the relevant miniapp/server tests, rebuild `miniapp/dist`, preview it in WeChat DevTools, and check the console output. The user validates UI and interaction behavior.
 
 ### Level 3: merge or deployment
 
@@ -18,11 +18,11 @@ Run:
 npm run verify:full
 ```
 
-This includes type checking, frontend tests, server tests, production builds, architecture checks, documentation checks, and asset checks.
+This includes miniapp tests, server tests, production builds, documentation checks, and asset checks.
 
 ## User acceptance gate
 
-AI automated checks do not replace human visual acceptance. Do not merge or deploy a UI or animation change until the user confirms the review URL.
+AI automated checks do not replace human visual acceptance. Do not merge or deploy a UI change until the user confirms the DevTools preview.
 
 ## Failure handling
 

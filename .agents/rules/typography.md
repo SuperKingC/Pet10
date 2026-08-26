@@ -2,7 +2,7 @@
 
 ## Scope
 
-本规则适用于 Pet10 微信小程序（`miniapp/`），来源为已确认的字体规范（`.superpowers/brainstorm/font-spec-20260822`，方案 B 舒适可读 + 辅助文字合并决议）。PWA（`src/`）暂不适用。
+本规则适用于 Pet10 微信小程序（`miniapp/`），来源为已确认的字体规范（`.superpowers/brainstorm/font-spec-20260822`，方案 B 舒适可读 + 辅助文字合并决议）。小程序是唯一前端，本规则覆盖全部界面文字。
 
 ## 语义字号阶梯
 
