@@ -25,6 +25,13 @@ describe('resolveErrorResponse', () => {
     })
   })
 
+  it('returns 429 when a rate limit is hit', () => {
+    expect(resolveErrorResponse(new Error('rate_limit_exceeded'))).toEqual({
+      status: 429,
+      error: 'rate_limit_exceeded',
+    })
+  })
+
   it('returns 400 for zod validation failures', () => {
     const error = z.object({ name: z.string() }).safeParse({ name: 1 }).error
     expect(resolveErrorResponse(error)).toEqual({ status: 400, error: 'invalid_input' })

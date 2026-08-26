@@ -7,8 +7,8 @@ describe('server config', () => {
     expect(config.port).toBe(8787)
     expect(config.nodeEnv).toBe('development')
     expect(config.ai.enabled).toBe(false)
-    expect(config.mail.mode).toBe('console')
     expect(config.allowedEmails).toEqual([])
+    expect(config.wechat.loginRateLimitPerMinute).toBe(10)
     expect(config.oss.enabled).toBe(false)
     expect(config.search).toEqual({
       enabled: false,
@@ -78,8 +78,20 @@ describe('server config', () => {
     expect(config.wechat).toEqual({
       enabled: true,
       appId: 'wx-app-id',
-      appSecret: 'wx-app-secret'
+      appSecret: 'wx-app-secret',
+      loginRateLimitPerMinute: 10
     })
+  })
+
+  it('requires WeChat credentials in production now that email login is gone', () => {
+    expect(() => parseConfig({ NODE_ENV: 'production', JWT_SECRET: 'secret' }))
+      .toThrow(/WECHAT_APP_ID/)
+    expect(() => parseConfig({
+      NODE_ENV: 'production',
+      JWT_SECRET: 'secret',
+      WECHAT_APP_ID: 'wx-app-id',
+      WECHAT_APP_SECRET: 'wx-app-secret'
+    })).not.toThrow()
   })
 
   it('enables web search when configured', () => {

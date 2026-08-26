@@ -10,9 +10,8 @@ const environmentSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('30d'),
   WECHAT_APP_ID: z.string().optional(),
   WECHAT_APP_SECRET: z.string().optional(),
-  LOGIN_CODE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
+  WECHAT_LOGIN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(10),
   ALLOWED_EMAILS: z.string().default(''),
-  MAIL_MODE: z.enum(['console', 'smtp']).default('console'),
   AI_API_KEY: z.string().optional(),
   AI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
   AI_MODEL: z.string().default('gpt-4.1-mini'),
@@ -54,12 +53,10 @@ export interface ServerConfig {
     enabled: boolean
     appId?: string
     appSecret?: string
+    loginRateLimitPerMinute: number
   }
-  loginCodeTtlSeconds: number
+  /** 仅用于约束历史邮箱令牌，邮箱验证码登录已移除 */
   allowedEmails: string[]
-  mail: {
-    mode: 'console' | 'smtp'
-  }
   ai: {
     enabled: boolean
     apiKey?: string
@@ -111,8 +108,8 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
   if (parsed.NODE_ENV === 'production' && !parsed.JWT_SECRET) {
     throw new Error('JWT_SECRET is required in production')
   }
-  if (parsed.NODE_ENV === 'production' && allowedEmails.length === 0 && !(parsed.WECHAT_APP_ID && parsed.WECHAT_APP_SECRET)) {
-    throw new Error('ALLOWED_EMAILS or WECHAT_APP_ID/WECHAT_APP_SECRET is required in production')
+  if (parsed.NODE_ENV === 'production' && !(parsed.WECHAT_APP_ID && parsed.WECHAT_APP_SECRET)) {
+    throw new Error('WECHAT_APP_ID/WECHAT_APP_SECRET is required in production')
   }
 
   return {
@@ -126,13 +123,10 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
     wechat: {
       enabled: Boolean(parsed.WECHAT_APP_ID && parsed.WECHAT_APP_SECRET),
       appId: parsed.WECHAT_APP_ID,
-      appSecret: parsed.WECHAT_APP_SECRET
+      appSecret: parsed.WECHAT_APP_SECRET,
+      loginRateLimitPerMinute: parsed.WECHAT_LOGIN_RATE_LIMIT_PER_MINUTE
     },
-    loginCodeTtlSeconds: parsed.LOGIN_CODE_TTL_SECONDS,
     allowedEmails,
-    mail: {
-      mode: parsed.MAIL_MODE
-    },
     ai: {
       enabled: Boolean(parsed.AI_API_KEY),
       apiKey: parsed.AI_API_KEY,

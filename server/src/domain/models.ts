@@ -49,11 +49,6 @@ export interface InviteCode {
   useCount: number
 }
 
-export interface LoginCode {
-  email: string
-  codeHash: string
-  expiresAt: Date
-}
 
 export interface Relationship {
   id: Id
