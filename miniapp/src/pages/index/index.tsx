@@ -9,7 +9,6 @@ import { authApi } from '../../services/authApi'
 import { MiniappLoginScreen } from '../../features/auth/MiniappLoginScreen'
 import { MiniappLaunchLoading } from '../../features/auth/MiniappLaunchLoading'
 import { authenticatedLaunchAssets, loginAssets, prepareLaunchAssets } from '../../services/launchAssetLoader'
-import { normalizeWechatProfile } from '../../domain/wechatProfile'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
 import { roomApi, type RoomMemory } from '../../services/roomApi'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
@@ -19,7 +18,7 @@ import { prepareLaunchContext } from '../../services/launchPreparation'
 import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
 import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
-import { MiniappCalendarView } from '../../features/main/MiniappCalendarView'
+import { MiniappJournalView } from '../../features/main/MiniappJournalView'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappCodewordModal } from '../../features/main/MiniappCodewordModal'
@@ -64,8 +63,8 @@ export default function Index() {
   const [gobangOpen, setGobangOpen] = useState(false)
   const [tarotOpen, setTarotOpen] = useState(false)
   const [tarotShareTitle, setTarotShareTitle] = useState('')
-  const [wechatName, setWechatName] = useState('')
-  const [wechatAvatar, setWechatAvatar] = useState('')
+  const [journalShareTitle, setJournalShareTitle] = useState('')
+  const [journalRefreshKey, setJournalRefreshKey] = useState(0)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -92,6 +91,16 @@ export default function Index() {
     const invitationPath = shareInvitation
       ? buildInvitationShare(shareInvitation.token, context?.user.displayName || '好友').path
       : '/pages/index/index'
+    if (journalShareTitle) {
+      return {
+        title: journalShareTitle,
+        path: invitationPath,
+        success: () => {
+          setJournalShareTitle('')
+          void prepareInvitation()
+        },
+      }
+    }
     if (tarotShareTitle) {
       return {
         title: tarotShareTitle,
@@ -166,6 +175,7 @@ export default function Index() {
 
   Taro.useDidShow(() => {
     setAccessToken(getAccessToken())
+    setJournalRefreshKey((key) => key + 1)
   })
 
   useEffect(() => {
@@ -179,14 +189,6 @@ export default function Index() {
     setMessage('')
   }
 
-  const handleWechatNameChange = (name: string) => {
-    setWechatName(name)
-  }
-
-  const handleWechatAvatarChange = (avatar: string) => {
-    setWechatAvatar(avatar)
-  }
-
   const loginWithWechat = async () => {
     setLoading(true)
     setMessage('')
@@ -194,10 +196,7 @@ export default function Index() {
     setLaunchProgress(0)
     setLaunchError('')
     try {
-      await authApi.loginWithWechat(normalizeWechatProfile({
-        displayName: wechatName,
-        avatarUrl: wechatAvatar
-      }))
+      await authApi.loginWithWechat()
       const ready = await prepareLaunch()
       if (ready) setAccessToken(getAccessToken())
     } catch (error) {
@@ -276,8 +275,6 @@ export default function Index() {
     setLaunchPhase('login')
     setLaunchProgress(1)
     setLaunchError('')
-    setWechatName('')
-    setWechatAvatar('')
     setShareInvitation(null)
   }
 
@@ -285,14 +282,10 @@ export default function Index() {
     return <MiniappLoginScreen
       busy={loading}
       message={message}
-      wechatName={wechatName}
-      wechatAvatar={wechatAvatar}
       launchPhase={launchPhase === 'ready' ? 'login' : launchPhase}
       launchProgress={launchProgress}
       launchError={launchError}
       onOpenWechatLogin={openWechatLogin}
-      onWechatNameChange={handleWechatNameChange}
-      onWechatAvatarChange={handleWechatAvatarChange}
       onWechatLogin={() => void loginWithWechat()}
       onRetryLaunch={() => void retryLaunch()}
     />
@@ -316,12 +309,10 @@ export default function Index() {
       />
     }
     if (activeTab === 'calendar') {
-      const activeRoom = context?.rooms.find((room) => room.id === roomId)
-      return <MiniappCalendarView
+      return <MiniappJournalView
         roomId={roomId}
-        myUserId={context?.user.id || ''}
-        friendId={activeRoom?.partner.id || ''}
-        friendName={activeRoom?.partner.displayName || '好友'}
+        refreshKey={journalRefreshKey}
+        onShareTitleChange={setJournalShareTitle}
       />
     }
     if (activeTab === 'me') {

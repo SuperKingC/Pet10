@@ -10,7 +10,7 @@ import { MiniappTarotFanStage } from './MiniappTarotFanStage'
 import { MiniappTarotRevealStage } from './MiniappTarotRevealStage'
 import { MiniappTarotReadingStage } from './MiniappTarotReadingStage'
 import { MiniappTarotHistoryPanel } from './MiniappTarotHistoryPanel'
-import { TAROT_SANCTUARY_BACKGROUND } from './tarotAssets'
+import { TAROT_SANCTUARY_BACKGROUND, preloadTarotResources } from './tarotAssets'
 import { createTarotCandidates } from './tarotCards'
 import { createInitialTarotFlow, tarotFlowReducer } from './tarotFlow'
 import { listTarotHistory, saveTarotReading } from './tarotHistory'
@@ -31,9 +31,21 @@ export function MiniappTarotFlow({ roomId, onClose, onShareTitleChange }: Miniap
   const [historyOpen, setHistoryOpen] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  const [loadProgress, setLoadProgress] = useState(0)
+  const [resourcesLoaded, setResourcesLoaded] = useState(false)
   const leaveTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const history = useMemo(() => historyOpen ? listTarotHistory() : [], [historyOpen, state.stage])
   const activeStageIndex = stageOrder.indexOf(state.stage)
+
+  useEffect(() => {
+    let cancelled = false
+    preloadTarotResources((p) => {
+      if (!cancelled) setLoadProgress(p)
+    }).then(() => {
+      if (!cancelled) setResourcesLoaded(true)
+    })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => () => {
     leaveTimersRef.current.forEach((timer) => clearTimeout(timer))
@@ -103,85 +115,98 @@ export function MiniappTarotFlow({ roomId, onClose, onShareTitleChange }: Miniap
       <View className="miniapp-tarot__veil" />
       <View className="miniapp-tarot__stars" />
       <View className="miniapp-tarot__fade" />
-      <View className="miniapp-tarot__header">
-        <Button aria-label="退出塔罗占卜" onClick={onClose}>×</Button>
-        <View className="miniapp-tarot__header-title">
-          <Text>塔罗密室</Text>
-          <Text>{state.stage === 'question' ? '聆听内心的提问' : findTarotSpread(state.spread).label}</Text>
+
+      {!resourcesLoaded ? (
+        <View className="miniapp-tarot__loading">
+          <View className="miniapp-tarot__loading-icon">
+            <View className="miniapp-tarot__loading_ring" />
+            <Text className="miniapp-tarot__loading_pct">{Math.round(loadProgress * 100)}%</Text>
+          </View>
+          <Text className="miniapp-tarot__loading_hint">正在加载塔罗资源…</Text>
         </View>
-        <Button aria-label="查看占卜历史" onClick={() => setHistoryOpen(true)}>⌛</Button>
-      </View>
-      <View className="miniapp-tarot__progress" aria-hidden>
-        {stageOrder.map((stage, index) => (
-          <View
-            key={stage}
-            className={index <= activeStageIndex ? 'miniapp-tarot__progress-active' : ''}
-          />
-        ))}
-      </View>
+      ) : (
+        <>
+          <View className="miniapp-tarot__header">
+            <Button aria-label="退出塔罗占卜" onClick={onClose}>×</Button>
+            <View className="miniapp-tarot__header-title">
+              <Text>塔罗密室</Text>
+              <Text>{state.stage === 'question' ? '聆听内心的提问' : findTarotSpread(state.spread).label}</Text>
+            </View>
+            <Button aria-label="查看占卜历史" onClick={() => setHistoryOpen(true)}>⌛</Button>
+          </View>
+          <View className="miniapp-tarot__progress" aria-hidden>
+            {stageOrder.map((stage, index) => (
+              <View
+                key={stage}
+                className={index <= activeStageIndex ? 'miniapp-tarot__progress-active' : ''}
+              />
+            ))}
+          </View>
 
-      {state.stage === 'question' && (
-        <MiniappTarotQuestionStage
-          question={state.question}
-          onQuestionChange={(question) => dispatch({ type: 'set-question', question })}
-          onContinue={() => dispatch({ type: 'continue' })}
-        />
-      )}
-      {state.stage === 'spread' && (
-        <MiniappTarotSpreadStage
-          spread={state.spread}
-          onSelect={selectSpread}
-        />
-      )}
-      {state.stage === 'shuffle' && (
-        <MiniappTarotShuffleStage
-          progress={state.progress}
-          onProgress={(progress) => dispatch({ type: 'set-shuffle-progress', progress })}
-          onContinue={() => dispatch({ type: 'continue' })}
-          onSkip={() => dispatch({ type: 'skip-ritual', candidates: createCandidates() })}
-        />
-      )}
-      {state.stage === 'cut' && (
-        <MiniappTarotCutStage
-          cutCount={state.cutCount}
-          cutting={state.cutting}
-          onStartCut={() => dispatch({ type: 'start-cut' })}
-          onFinishCut={() => dispatch({ type: 'finish-cut' })}
-          onContinue={() => dispatch({ type: 'enter-fan', candidates: createCandidates() })}
-        />
-      )}
-      {state.stage === 'fan' && (
-        <MiniappTarotFanStage
-          candidates={state.candidates}
-          picked={state.picked}
-          flyingCard={state.flyingCard}
-          needCount={findTarotSpread(state.spread).count}
-          onPick={(index) => dispatch({ type: 'pick-card', index })}
-          onFinishPick={(index) => dispatch({ type: 'finish-pick', index })}
-          onContinue={() => dispatch({ type: 'enter-reveal' })}
-        />
-      )}
-      {state.stage === 'reveal' && (
-        <MiniappTarotRevealStage
-          drawn={state.drawn}
-          flipped={state.flipped}
-          onFlip={(index) => dispatch({ type: 'flip-card', index })}
-          onContinue={finishReading}
-        />
-      )}
-      {state.stage === 'reading' && (
-        <MiniappTarotReadingStage
-          reading={state.reading}
-          sharing={sharing}
-          shared={state.shared}
-          canShare={Boolean(roomId)}
-          onShare={() => void shareReading()}
-          onRestart={restart}
-          onClose={onClose}
-        />
-      )}
+          {state.stage === 'question' && (
+            <MiniappTarotQuestionStage
+              question={state.question}
+              onQuestionChange={(question) => dispatch({ type: 'set-question', question })}
+              onContinue={() => dispatch({ type: 'continue' })}
+            />
+          )}
+          {state.stage === 'spread' && (
+            <MiniappTarotSpreadStage
+              spread={state.spread}
+              onSelect={selectSpread}
+            />
+          )}
+          {state.stage === 'shuffle' && (
+            <MiniappTarotShuffleStage
+              progress={state.progress}
+              onProgress={(progress) => dispatch({ type: 'set-shuffle-progress', progress })}
+              onContinue={() => dispatch({ type: 'continue' })}
+              onSkip={() => dispatch({ type: 'skip-ritual', candidates: createCandidates() })}
+            />
+          )}
+          {state.stage === 'cut' && (
+            <MiniappTarotCutStage
+              cutCount={state.cutCount}
+              cutting={state.cutting}
+              onStartCut={() => dispatch({ type: 'start-cut' })}
+              onFinishCut={() => dispatch({ type: 'finish-cut' })}
+              onContinue={() => dispatch({ type: 'enter-fan', candidates: createCandidates() })}
+            />
+          )}
+          {state.stage === 'fan' && (
+            <MiniappTarotFanStage
+              candidates={state.candidates}
+              picked={state.picked}
+              flyingCard={state.flyingCard}
+              needCount={findTarotSpread(state.spread).count}
+              onPick={(index) => dispatch({ type: 'pick-card', index })}
+              onFinishPick={(index) => dispatch({ type: 'finish-pick', index })}
+              onContinue={() => dispatch({ type: 'enter-reveal' })}
+            />
+          )}
+          {state.stage === 'reveal' && (
+            <MiniappTarotRevealStage
+              drawn={state.drawn}
+              flipped={state.flipped}
+              onFlip={(index) => dispatch({ type: 'flip-card', index })}
+              onContinue={finishReading}
+            />
+          )}
+          {state.stage === 'reading' && (
+            <MiniappTarotReadingStage
+              reading={state.reading}
+              sharing={sharing}
+              shared={state.shared}
+              canShare={Boolean(roomId)}
+              onShare={() => void shareReading()}
+              onRestart={restart}
+              onClose={onClose}
+            />
+          )}
 
-      {historyOpen && <MiniappTarotHistoryPanel history={history} onClose={() => setHistoryOpen(false)} />}
+          {historyOpen && <MiniappTarotHistoryPanel history={history} onClose={() => setHistoryOpen(false)} />}
+        </>
+      )}
     </View>
   )
 }

@@ -1,0 +1,32 @@
+.anniv-form { display: flex; flex-direction: column; gap: 20rpx; padding-top: 8rpx; }
+.anniv-form__title { text-align: center; color: #382b23; font-size: var(--font-size-overlay-title); font-weight: var(--font-weight-bold); }
+.anniv-form__field { display: flex; flex-direction: column; gap: 8rpx; padding: 12rpx 20rpx; background: #fff; border: 1px solid #ead5c2; border-radius: 16rpx; }
+.anniv-form__label { color: #b18c79; font-size: var(--font-size-aux); }
+.anniv-form__value { color: #5e3b1d; font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
+.anniv-form__input { color: #5e3b1d; font-size: var(--font-size-body); }
+.anniv-form__icons { display: flex; justify-content: space-between; gap: 8rpx; }
+.anniv-form__icon-item { display: flex; flex-direction: column; align-items: center; gap: 6rpx; padding: 12rpx 0; background: transparent; border: 0; border-radius: 16rpx; }
+.anniv-form__icon-item::after { border: 0; }
+.anniv-form__icon-item--active { background: #fbeadd; }
+.anniv-form__icon-img { width: 72rpx; height: 72rpx; }
+.anniv-form__icon-label { color: #8e776a; font-size: var(--font-size-aux); }
+.anniv-form__repeat { display: flex; gap: 16rpx; }
+.anniv-form__repeat-item, .anniv-form__repeat-item--active { flex: 1; margin: 0; padding: 12rpx 0; color: #8e776a; background: #fff; border: 1px solid #ead5c2; border-radius: 999rpx; font-size: var(--font-size-secondary); }
+.anniv-form__repeat-item--active { color: #8a4f37; background: #fbeadd; border-color: #d9b896; font-weight: var(--font-weight-semibold); }
+.anniv-form__actions { display: flex; gap: 16rpx; }
+.anniv-form__btn { flex: 1; margin: 0; padding: 14rpx 0; border-radius: 999rpx; font-size: var(--font-size-body); }
+.anniv-form__btn--primary { color: #fff; background: #d9845d; border: 0; }
+.anniv-form__btn--ghost { color: #8e776a; background: #fff; border: 1px solid #ead5c2; }
+.anniv-form__btn--danger { color: #c0564f; background: #fff; border: 1px solid #e8c0bc; }
+
+.anniv-list { display: flex; flex-direction: column; gap: 20rpx; padding-top: 8rpx; }
+.anniv-list__empty { padding: 60rpx 0; color: #a89489; font-size: var(--font-size-secondary); text-align: center; }
+.anniv-list__card { display: flex; gap: 20rpx; padding: 24rpx; background: #fff; border: 1px solid #ead5c2; border-radius: 20rpx; box-shadow: 0 7px 20px rgba(70, 48, 37, .05); }
+.anniv-list__icon { width: 88rpx; height: 88rpx; }
+.anniv-list__body { display: flex; flex: 1; flex-direction: column; gap: 6rpx; }
+.anniv-list__head { display: flex; align-items: baseline; justify-content: space-between; }
+.anniv-list__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.anniv-list__day { color: #b49a8d; font-size: var(--font-size-aux); }
+.anniv-list__note { color: #a89489; font-size: var(--font-size-aux); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.anniv-list__stats { color: #d9845d; font-size: var(--font-size-secondary); font-weight: var(--font-weight-medium); }
+.anniv-list__add { margin-top: 8rpx; padding: 16rpx 0; color: #fff; background: #d9845d; border: 0; border-radius: 999rpx; font-size: var(--font-size-body); }

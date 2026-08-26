@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button, Image, Input, Picker, Text, View } from '@tarojs/components'
 import type { AnniversaryInput, AnniversaryRepeat } from '../../services/socialApi'
 import { anniversaryIconKeys, anniversaryIconLabels, anniversaryIcons, type AnniversaryIconKey } from './anniversaryAssets'
-import './MiniappCalendarView.scss'
+import './anniversary.scss'
 
 interface AnniversaryFormProps {
   defaultDay: string

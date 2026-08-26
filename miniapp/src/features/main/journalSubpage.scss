@@ -1,0 +1,11 @@
+.journal-subpage {
+  min-height: 100vh;
+  padding: 16px 32px 48px;
+  background: #fdfaf5;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 44rpx, rgba(190, 170, 140, .14) 44rpx 46rpx),
+    repeating-linear-gradient(90deg, transparent 0 44rpx, rgba(190, 170, 140, .14) 44rpx 46rpx);
+}
+.journal-subpage__header { display: flex; flex-direction: column; gap: 4px; padding: 8px 2px 6px; }
+.journal-subpage__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); line-height: 1.25; }
+.journal-subpage__caption { color: #a89489; font-size: var(--font-size-aux); line-height: 1.4; }

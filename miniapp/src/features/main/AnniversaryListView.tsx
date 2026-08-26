@@ -2,7 +2,7 @@ import { Button, Image, Text, View } from '@tarojs/components'
 import type { MiniappAnniversary } from '../../services/socialApi'
 import { anniversaryIcons, type AnniversaryIconKey } from './anniversaryAssets'
 import { sortAnniversaries, statsLines } from './anniversaryModel'
-import './MiniappCalendarView.scss'
+import './anniversary.scss'
 
 interface AnniversaryListViewProps {
   items: MiniappAnniversary[]

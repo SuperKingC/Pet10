@@ -32,5 +32,7 @@ describe('runtime migrations', () => {
     expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS invitations_pending_expiry_idx')
     expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS anniversaries')
     expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS anniversaries_room_idx')
+    expect(executedSql).toContain('CREATE TABLE IF NOT EXISTS diaries')
+    expect(executedSql).toContain('CREATE INDEX IF NOT EXISTS diaries_user_day_idx')
   })
 })

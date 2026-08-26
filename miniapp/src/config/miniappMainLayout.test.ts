@@ -41,7 +41,7 @@ describe('miniapp main layout', () => {
   it('uses the same title geometry across all main tabs', () => {
     const sources = [
       fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.tsx'), 'utf8'),
-      fs.readFileSync(path.join(root, 'features', 'main', 'MiniappCalendarView.tsx'), 'utf8'),
+      fs.readFileSync(path.join(root, 'features', 'main', 'MiniappJournalView.tsx'), 'utf8'),
       fs.readFileSync(path.join(root, 'features', 'main', 'MiniappMessagesView.tsx'), 'utf8'),
       fs.readFileSync(path.join(root, 'features', 'main', 'MiniappMeView.tsx'), 'utf8'),
     ]
@@ -68,7 +68,7 @@ describe('miniapp main layout', () => {
     const tabStyles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
     expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*background:\s*#fff8ee;/)
-    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*48px 32px 220px;/)
+    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*16px 32px 220px;/)
     expect(tabStyles).toMatch(/\.miniapp-tab-bar\s*\{[\s\S]*background:\s*#fff8ee;/)
   })
 })

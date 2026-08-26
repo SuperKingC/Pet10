@@ -3,6 +3,7 @@ import type {
   AppNotification,
   ChatMessage,
   CodewordAnswer,
+  DiaryEntry,
   Fortune,
   InviteCode,
   Invitation,
@@ -135,6 +136,15 @@ export interface AnniversaryRepository {
   listByRoom(roomId: string): Promise<Anniversary[]>
 }
 
+export interface DiaryRepository {
+  create(input: Pick<DiaryEntry, 'userId' | 'day' | 'title' | 'body' | 'location' | 'photos'>): Promise<DiaryEntry>
+  update(id: string, patch: { title?: string; body?: string; location?: string; photos?: string[] }): Promise<DiaryEntry | undefined>
+  setLiked(id: string, liked: boolean): Promise<DiaryEntry | undefined>
+  deleteById(userId: string, id: string): Promise<void>
+  findById(id: string): Promise<DiaryEntry | undefined>
+  listForUser(userId: string, fromDay: string, toDay: string): Promise<DiaryEntry[]>
+}
+
 export interface PostRepository {
   create(input: Omit<Post, 'id' | 'createdAt'>): Promise<Post>
   createAsPet(roomId: string, text: string, imageUrl?: string): Promise<Post>
@@ -199,6 +209,7 @@ export interface RepositoryBundle {
   tasks: TaskRepository
   moods: MoodRepository
   anniversaries: AnniversaryRepository
+  diaries: DiaryRepository
   posts: PostRepository
   notifications: NotificationRepository
   fortunes: FortuneRepository

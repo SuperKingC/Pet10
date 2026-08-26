@@ -12,6 +12,7 @@ import { createInvitationRoutes } from './http/invitationRoutes.js'
 import { createRoomRoutes } from './http/roomRoutes.js'
 import { createSessionRoutes } from './http/sessionRoutes.js'
 import { createSocialRoutes } from './http/socialRoutes.js'
+import { createDiaryRoutes } from './http/diaryRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
 import { createImageRoutes } from './http/imageRoutes.js'
 import { createAuthService } from './services/authService.js'
@@ -26,6 +27,7 @@ import { createPushService, type PushService } from './services/pushService.js'
 import { createRoomService } from './services/roomService.js'
 import { createSessionService } from './services/sessionService.js'
 import { createSocialService } from './services/socialService.js'
+import { createDiaryService } from './services/diaryService.js'
 import type { AiService } from './services/aiService.js'
 import type { createUploadService } from './services/uploadService.js'
 import { createReminderService } from './services/reminderService.js'
@@ -106,6 +108,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   const friendshipService = createFriendshipService(repositories, {
     notify: (userId, type, payload) => void socialService.notify(userId, type, payload)
   })
+  const diaryService = createDiaryService(repositories)
   const gmService = createGmService(repositories, friendshipService)
   const invitationService = createInvitationService(repositories)
   const petService = createPetService(repositories, {
@@ -129,6 +132,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   app.use('/api/gm', authenticate, createGmRoutes(gmService))
   app.use('/api/invitations', authenticate, createInvitationRoutes(invitationService))
   app.use('/api/social', authenticate, createSocialRoutes({ social: socialService, pets: petService, push: pushService }))
+  app.use('/api/diaries', authenticate, createDiaryRoutes(diaryService))
   app.use('/api/rooms', authenticate, createRoomRoutes({
     rooms: roomService,
     pets: petService,

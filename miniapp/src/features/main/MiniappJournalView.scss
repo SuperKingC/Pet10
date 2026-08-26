@@ -1,0 +1,59 @@
+.miniapp-journal {
+  margin: -16px -32px 0;
+  padding: 24px 28px 0;
+  background: #fdfaf5;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 44rpx, rgba(190, 170, 140, .14) 44rpx 46rpx),
+    repeating-linear-gradient(90deg, transparent 0 44rpx, rgba(190, 170, 140, .14) 44rpx 46rpx);
+}
+.miniapp-journal__header { padding: 0 4px 12px; }
+.miniapp-journal__tabs { display: flex; gap: 16rpx; justify-content: center; padding: 0 0 20rpx; }
+.miniapp-journal__tab { min-width: 160rpx; margin: 0; padding: 10rpx 0; color: #8e776a; background: #fff; border: 1px solid #ead5c2; border-radius: 999rpx; font-size: var(--font-size-body); }
+.miniapp-journal__tab::after { border: 0; }
+.miniapp-journal__tab--active { color: #fff; background: #d9845d; border-color: #d9845d; font-weight: var(--font-weight-semibold); }
+.miniapp-journal__week-bar { display: flex; align-items: center; justify-content: center; gap: 28rpx; padding: 8rpx 0 20rpx; }
+.miniapp-journal__week-bar button { min-width: 64rpx; padding: 0 12rpx; color: #c9a284; background: transparent; border: 0; font-size: var(--font-size-section-title); }
+.miniapp-journal__week-bar button::after { border: 0; }
+.miniapp-journal__month-text { color: #8a4f37; font-size: var(--font-size-section-title); font-weight: var(--font-weight-bold); }
+.miniapp-journal__week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8rpx; padding-bottom: 24rpx; }
+.miniapp-journal__day { display: flex; flex-direction: column; align-items: center; gap: 6rpx; padding: 12rpx 0 8rpx; background: #fff; border: 1px solid #ead5c2; border-radius: 20rpx; }
+.miniapp-journal__day--active { background: #d9845d; border-color: #d9845d; }
+.miniapp-journal__day--active .miniapp-journal__day-label, .miniapp-journal__day--active .miniapp-journal__day-num { color: #fff; }
+.miniapp-journal__day-label { color: #b49a8d; font-size: var(--font-size-aux); line-height: 1.4; }
+.miniapp-journal__day-num { color: #8e776a; font-size: var(--font-size-body); font-weight: var(--font-weight-medium); }
+.miniapp-journal__day-num--today { color: #d9845d; font-weight: var(--font-weight-bold); }
+.miniapp-journal__day--active .miniapp-journal__day-num--today { color: #fff; }
+.miniapp-journal__day-dot { height: 12rpx; }
+.miniapp-journal__dot { display: block; width: 10rpx; height: 10rpx; margin: 0 auto; border-radius: 50%; background: #d9845d; }
+.miniapp-journal__day--active .miniapp-journal__dot { background: #fff; }
+
+.miniapp-journal__section { display: block; padding: 8rpx 4rpx 16rpx; color: #5e3b1d; font-size: var(--font-size-section-title); font-weight: var(--font-weight-bold); }
+.miniapp-journal__empty { padding: 60rpx 0; color: #a89489; background: #fff; border: 2rpx dashed #e3b79b; border-radius: 20rpx; font-size: var(--font-size-secondary); text-align: center; }
+
+.journal-card { margin-bottom: 24rpx; background: #fff; border: 1px solid #ead5c2; border-radius: 24rpx; box-shadow: 0 7px 20px rgba(70, 48, 37, .05); overflow: hidden; }
+.journal-card__cover { width: 100%; height: 320rpx; }
+.journal-card__body { display: flex; flex-direction: column; gap: 12rpx; padding: 24rpx; }
+.journal-card__date { color: #b49a8d; font-size: var(--font-size-aux); }
+.journal-card__title { color: #382b23; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.journal-card__text { color: #765c47; font-size: var(--font-size-body); line-height: 1.6; }
+.journal-card__photos { display: flex; gap: 12rpx; }
+.journal-card__photo { flex: 1; height: 160rpx; border-radius: 16rpx; }
+.journal-card__foot { display: flex; align-items: center; justify-content: space-between; }
+.journal-card__location { color: #a89489; font-size: var(--font-size-aux); }
+.journal-card__actions { display: flex; gap: 16rpx; }
+.journal-card__like, .journal-card__share { min-width: 56rpx; margin: 0; padding: 0 8rpx; color: #c9a284; background: transparent; border: 0; font-size: var(--font-size-body); }
+.journal-card__like::after, .journal-card__share::after { border: 0; }
+.journal-card__like--active { color: #d9845d; }
+
+.miniapp-journal__actions { display: flex; gap: 20rpx; padding: 8rpx 0 24rpx; }
+.miniapp-journal__action { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 8rpx; margin: 0; padding: 24rpx 0; color: #8a4f37; background: #fff; border: 1px solid #ead5c2; border-radius: 20rpx; font-size: var(--font-size-body); }
+.miniapp-journal__action::after { border: 0; }
+.miniapp-journal__action-icon { font-size: var(--font-size-section-title); }
+
+.miniapp-journal__fortune { margin-top: 8rpx; margin-bottom: 32rpx; padding: 24rpx; background: #fff; border: 1px solid #ead5c2; border-radius: 20px; box-shadow: 0 7px 20px rgba(70, 48, 37, .05); }
+.miniapp-journal__fortune-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.miniapp-journal__fortune-header button { min-width: 32px; padding: 4px 9px; color: #8a4f37; background: #fff; border: 0; border-radius: 999px; font-size: var(--font-size-body); }
+.miniapp-journal__fortune-header button::after { border: 0; }
+.miniapp-journal__fortune-label { display: block; color: #b18c79; font-size: var(--font-size-aux); }
+.miniapp-journal__fortune-title { display: block; margin-top: 6px; color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.miniapp-journal__fortune-meta { display: block; margin-top: 8px; color: #a89489; font-size: var(--font-size-aux); }

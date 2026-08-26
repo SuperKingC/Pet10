@@ -365,6 +365,38 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       },
       listByRoom: (roomId) => many('SELECT * FROM anniversaries WHERE room_id=$1 ORDER BY created_at', [roomId])
     },
+    diaries: {
+      create: (input) => one(
+        `INSERT INTO diaries(user_id,day,title,body,location,photos)
+         VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,
+        [input.userId, input.day, input.title, input.body, input.location, JSON.stringify(input.photos)]
+      ),
+      update: (id, patch) => one(
+        `UPDATE diaries SET
+           title = CASE WHEN $2 THEN $3 ELSE title END,
+           body = CASE WHEN $4 THEN $5 ELSE body END,
+           location = CASE WHEN $6 THEN $7 ELSE location END,
+           photos = CASE WHEN $8 THEN $9 ELSE photos END,
+           updated_at = now()
+         WHERE id=$1 RETURNING *`,
+        [
+          id,
+          patch.title !== undefined, patch.title,
+          patch.body !== undefined, patch.body,
+          patch.location !== undefined, patch.location,
+          patch.photos !== undefined, patch.photos === undefined ? null : JSON.stringify(patch.photos)
+        ]
+      ),
+      setLiked: (id, liked) => one('UPDATE diaries SET liked=$2, updated_at=now() WHERE id=$1 RETURNING *', [id, liked]),
+      async deleteById(userId, id) {
+        await database.query('DELETE FROM diaries WHERE user_id=$1 AND id=$2', [userId, id])
+      },
+      findById: (id) => one('SELECT * FROM diaries WHERE id=$1', [id]),
+      listForUser: (userId, fromDay, toDay) => many(
+        'SELECT * FROM diaries WHERE user_id=$1 AND day BETWEEN $2 AND $3 ORDER BY day DESC, created_at DESC',
+        [userId, fromDay, toDay]
+      )
+    },
     posts: {
       create: (input) => one(
         `INSERT INTO posts(room_id,author_type,author_id,text,image_url) VALUES($1,$2,$3,$4,$5) RETURNING *`,

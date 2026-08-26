@@ -7,14 +7,10 @@ const petImage = require('../../assets/xiaoduoli.png')
 type MiniappLoginScreenProps = {
   busy: boolean
   message: string
-  wechatName: string
-  wechatAvatar: string
   launchPhase: 'login' | 'preparing'
   launchProgress: number
   launchError: string
   onOpenWechatLogin(): void
-  onWechatNameChange(name: string): void
-  onWechatAvatarChange(avatar: string): void
   onWechatLogin(): void
   onRetryLaunch(): void
 }
@@ -22,21 +18,16 @@ type MiniappLoginScreenProps = {
 export function MiniappLoginScreen({
   busy,
   message,
-  wechatName,
-  wechatAvatar,
   launchPhase,
   launchProgress,
   launchError,
   onOpenWechatLogin,
-  onWechatNameChange,
-  onWechatAvatarChange,
   onWechatLogin,
   onRetryLaunch,
 }: MiniappLoginScreenProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const preparing = launchPhase === 'preparing'
   const percentage = Math.min(100, Math.max(0, Math.round(launchProgress * 100)))
-  const hasProfile = Boolean(wechatName.trim() || wechatAvatar.trim())
 
   const openWechatLogin = () => {
     setModalOpen(true)
@@ -44,10 +35,8 @@ export function MiniappLoginScreen({
   }
 
   const confirmWechatLogin = () => {
-    if (hasProfile) {
-      setModalOpen(false)
-      onWechatLogin()
-    }
+    setModalOpen(false)
+    onWechatLogin()
   }
 
   return (
@@ -100,46 +89,27 @@ export function MiniappLoginScreen({
       {modalOpen && (
         <View className="miniapp-login__overlay" onClick={() => !busy && setModalOpen(false)}>
           <View className="miniapp-login__modal" onClick={(event) => event.stopPropagation()}>
+            <Text className="miniapp-login__modal-header">温馨提示</Text>
             <Button className="miniapp-login__close" onClick={() => setModalOpen(false)} disabled={busy} aria-label="关闭">
               ×
             </Button>
-            <Text className="miniapp-login__modal-kicker">准备好了吗</Text>
-            <Text className="miniapp-login__modal-title">先让小多利认识你</Text>
 
-            {/* 头像 + 昵称 一体化表单 */}
-            <View className="miniapp-login__form">
-              {/* 头像：点击圆形区域直接选择 */}
-              <Button
-                className="miniapp-login__avatar-picker"
-                openType="chooseAvatar"
-                onChooseAvatar={(event) => onWechatAvatarChange(event.detail.avatarUrl)}
-              >
-                {wechatAvatar
-                  ? <Image className="miniapp-login__avatar" src={wechatAvatar} mode="aspectFill" />
-                  : <View className="miniapp-login__avatar-default">
-                      <Text className="miniapp-login__avatar-icon"></Text>
-                    </View>}
-              </Button>
-
-              {/* 昵称输入 */}
-              <input
-                className="miniapp-login__nickname-input"
-                type="nickname"
-                placeholder="点击输入你的昵称"
-                onInput={(event) => onWechatNameChange(event.detail.value)}
-                value={wechatName}
-              />
+            <View className="miniapp-login__modal-art" aria-label="小多利趴在垫子上等你">
+              <Image className="miniapp-login__modal-pet" src={petImage} mode="aspectFit" />
+              <View className="miniapp-login__modal-spark">✦</View>
             </View>
+
+            <Text className="miniapp-login__modal-title">先让小多利认识你</Text>
+            <Text className="miniapp-login__modal-copy">读取你的微信头像和昵称，小多利马上就能认出你啦～</Text>
 
             {message && <Text className="miniapp-login__modal-message">{message}</Text>}
 
             <Button
               className="miniapp-login__wechat"
               loading={busy}
-              disabled={busy || !hasProfile}
+              disabled={busy}
               onClick={confirmWechatLogin}
             >
-              <Text className="miniapp-login__wechat-mark">●</Text>
               微信一键登录
             </Button>
             <Button className="miniapp-login__later" onClick={() => setModalOpen(false)} disabled={busy}>

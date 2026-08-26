@@ -1,14 +1,5 @@
 import { apiRequest } from './apiClient'
 
-export interface MiniappMood {
-  id: string
-  roomId: string
-  userId: string
-  day: string
-  level: number
-  updatedAt: string
-}
-
 export interface MiniappFortune {
   id: string
   day: string
@@ -102,15 +93,6 @@ export const socialApi = {
   },
   listConversations() {
     return apiRequest<MiniappConversation[]>('/api/social/conversations')
-  },
-  listMoods(roomId: string, from: string, to: string) {
-    return apiRequest<MiniappMood[]>(`/api/social/rooms/${encodeURIComponent(roomId)}/moods?from=${from}&to=${to}`)
-  },
-  setMood(roomId: string, level: number) {
-    return apiRequest<MiniappMood>(`/api/social/rooms/${encodeURIComponent(roomId)}/moods`, {
-      method: 'PUT',
-      body: { level },
-    })
   },
   getFortune() {
     return apiRequest<MiniappFortune>('/api/social/fortune/today')

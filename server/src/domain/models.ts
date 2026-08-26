@@ -148,6 +148,19 @@ export interface Anniversary {
   updatedAt: Date
 }
 
+export interface DiaryEntry {
+  id: Id
+  userId: Id
+  day: string
+  title: string
+  body: string
+  location: string
+  photos: string[]
+  liked: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Post {
   id: Id
   roomId: Id

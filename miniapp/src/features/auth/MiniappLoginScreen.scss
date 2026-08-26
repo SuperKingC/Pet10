@@ -229,18 +229,18 @@
   align-items: center;
   justify-content: center;
   padding: 32rpx;
-  background: rgba(54, 44, 36, .42);
+  background: rgba(93, 78, 63, .32);
 }
 
 .miniapp-login__modal {
   position: relative;
   width: 100%;
   max-width: 630rpx;
-  padding: 54rpx 36rpx 30rpx;
-  border: 1px solid #f1d9c2;
-  border-radius: 26rpx;
-  background: #fffaf5;
+  padding: 44rpx 40rpx 40rpx;
+  border-radius: 32rpx;
+  background: #fbf4ea;
   box-shadow: 0 26rpx 72rpx rgba(74, 55, 42, .2);
+  text-align: center;
 }
 
 .miniapp-login__close {
@@ -250,144 +250,84 @@
   width: 56rpx;
   height: 56rpx;
   padding: 0;
-  color: #a89489;
+  color: #9b8b7b;
   background: transparent;
-  font-size: 44rpx;
+  font-size: 40rpx;
   line-height: 52rpx;
 }
 
-.miniapp-login__modal-kicker {
+.miniapp-login__modal-header {
   display: block;
-  color: #d9845d;
-  font-size: 24rpx;
+  color: #4b3a2b;
+  font-size: 32rpx;
   font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
+.miniapp-login__modal-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40rpx;
+}
+
+.miniapp-login__modal-pet {
+  width: 320rpx;
+  height: 240rpx;
+}
+
+.miniapp-login__modal-spark {
+  position: absolute;
+  top: -6rpx;
+  right: 22%;
+  color: #d9a05d;
+  font-size: 22rpx;
 }
 
 .miniapp-login__modal-title {
   display: block;
-  margin-top: 8rpx;
-  color: #453a32;
-  font-size: 40rpx;
+  margin-top: 36rpx;
+  color: #4b3a2b;
+  font-size: 36rpx;
   font-weight: var(--font-weight-bold);
+  text-align: center;
 }
 
 .miniapp-login__modal-copy {
   display: block;
-  margin-top: 14rpx;
-  color: #927d6d;
-  font-size: 26rpx;
-  line-height: 1.6;
-}
-
-/* 一体化表单：头像 + 昵称 */
-.miniapp-login__form {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-  margin: 32rpx 0 24rpx;
-  padding: 24rpx;
-  border: 1px solid #f0dfd0;
-  border-radius: 20rpx;
-  background: #fff6ed;
-}
-
-.miniapp-login__avatar-picker {
-  width: 112rpx;
-  height: 112rpx;
-  flex: 0 0 auto;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  line-height: normal;
-  overflow: hidden;
-  position: relative;
-}
-
-.miniapp-login__avatar-picker::after { border: 0; }
-
-.miniapp-login__avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.miniapp-login__avatar-default {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #ffecdc;
-  border: 2px dashed #e2b69b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.miniapp-login__avatar-icon {
-  display: block;
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
-  background: #e2b69b;
-  position: relative;
-}
-
-.miniapp-login__avatar-icon::after {
-  content: '';
-  position: absolute;
-  bottom: -4rpx;
-  right: -6rpx;
-  width: 20rpx;
-  height: 20rpx;
-  border-radius: 50%;
-  background: #d9845d;
-}
-
-.miniapp-login__nickname-input {
-  flex: 1;
-  min-width: 0;
-  height: 80rpx;
+  margin-top: 20rpx;
   padding: 0 24rpx;
-  border: 1px solid #e8d5c4;
-  border-radius: 40rpx;
-  background: #fff;
-  color: #453a32;
-  font-size: 28rpx;
-  box-sizing: border-box;
-}
-
-.miniapp-login__nickname-input::placeholder {
-  color: #b8a696;
+  color: #a5917e;
+  font-size: 26rpx;
+  line-height: 1.7;
+  text-align: center;
 }
 
 .miniapp-login__modal-message {
   display: block;
-  margin: -8rpx 0 16rpx;
+  margin: 16rpx 0 0;
   color: #b46f54;
   font-size: 24rpx;
   line-height: 1.45;
+  text-align: center;
 }
 
 .miniapp-login__wechat {
-  background: #39a861;
-  box-shadow: 0 10rpx 22rpx rgba(57, 168, 97, .18);
-}
-
-.miniapp-login__wechat-mark {
-  margin-right: 12rpx;
-  color: #dff6e5;
-  font-size: 22rpx;
+  margin-top: 44rpx;
+  border-radius: 999rpx;
+  background: #c58b60;
+  box-shadow: 0 10rpx 24rpx rgba(197, 139, 96, .28);
 }
 
 .miniapp-login__later {
-  height: 72rpx;
-  margin-top: 10rpx;
+  height: 64rpx;
+  margin-top: 18rpx;
   border: 0;
-  color: #a89489;
+  color: #b3a493;
   background: transparent;
-  font-size: 26rpx;
-  line-height: 72rpx;
+  font-size: 24rpx;
+  line-height: 64rpx;
 }
 
 @keyframes miniapp-login-speech {

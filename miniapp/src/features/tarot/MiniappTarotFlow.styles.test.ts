@@ -72,7 +72,7 @@ describe('miniapp tarot WXSS compatibility', () => {
     expect(shuffleStage).toContain('miniapp-tarot__stage--shuffle')
     // shuffle / cut / fan / reveal all reuse the same base ritual layout,
     // so title position and gaps stay consistent across every stage
-    expect(styles).toMatch(/\.miniapp-tarot__stage--ritual,[\s\S]*?\.miniapp-tarot__stage--fan,[\s\S]*?\.miniapp-tarot__stage--reveal \{[\s\S]*?padding-top: 54rpx/)
+    expect(styles).toMatch(/\.miniapp-tarot__stage--ritual,[\s\S]*?\.miniapp-tarot__stage--fan,[\s\S]*?\.miniapp-tarot__stage--reveal \{[\s\S]*?padding-top: 24rpx/)
     // equal-grow spacers above/below the card area center it between the
     // fixed title and the docked controls (auto margins pooled all free
     // space at the stage bottom in the WeChat renderer)
@@ -194,6 +194,19 @@ describe('miniapp tarot WXSS compatibility', () => {
     expect(styles).toContain('@media (prefers-reduced-motion: reduce)')
     expect(styles).toContain('animation-duration: .01ms !important')
     expect(styles).toContain('transition-duration: .01ms !important')
+  })
+
+  it('gates the tarot flow behind a resource download overlay with progress', () => {
+    const styles = fs.readFileSync(stylesPath, 'utf8')
+    const flowSource = fs.readFileSync(path.resolve(__dirname, 'MiniappTarotFlow.tsx'), 'utf8')
+
+    expect(flowSource).toContain('preloadTarotResources')
+    expect(flowSource).toContain('resourcesLoaded')
+    expect(flowSource).toContain('loadProgress')
+    expect(flowSource).toContain('miniapp-tarot__loading')
+    expect(styles).toContain('.miniapp-tarot__loading {')
+    expect(styles).toContain('.miniapp-tarot__loading_ring')
+    expect(styles).toContain('@keyframes tarot-loading-spin')
   })
 
   it('scales single-card spreads up and wires the result share to friend invitations', () => {

@@ -4,6 +4,7 @@ import type {
   AppNotification,
   ChatMessage,
   CodewordAnswer,
+  DiaryEntry,
   Fortune,
   InviteCode,
   Invitation,
@@ -42,6 +43,9 @@ export function createMemoryRepositories(): RepositoryBundle {
   const tasks = new Map<string, PetTask>()
   const moods = new Map<string, MoodEntry>()
   const anniversaries = new Map<string, Anniversary>()
+  const diaries = new Map<string, DiaryEntry>()
+  const diarySerial = new Map<string, number>()
+  let diarySequence = 0
   const posts = new Map<string, Post>()
   const postLikes = new Map<string, Set<string>>()
   const notifications = new Map<string, AppNotification>()
@@ -381,6 +385,50 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
+  const diaryRepo = {
+    async create(input: Pick<DiaryEntry, 'userId' | 'day' | 'title' | 'body' | 'location' | 'photos'>) {
+      const item: DiaryEntry = { ...input, id: randomUUID(), liked: false, createdAt: now(), updatedAt: now() }
+      diarySerial.set(item.id, diarySequence++)
+      diaries.set(item.id, item)
+      return item
+    },
+    async update(id: string, patch: { title?: string; body?: string; location?: string; photos?: string[] }) {
+      const item = diaries.get(id)
+      if (!item) return undefined
+      const updated: DiaryEntry = {
+        ...item,
+        title: patch.title ?? item.title,
+        body: patch.body ?? item.body,
+        location: patch.location ?? item.location,
+        photos: patch.photos ?? item.photos,
+        updatedAt: now()
+      }
+      diaries.set(id, updated)
+      return updated
+    },
+    async setLiked(id: string, liked: boolean) {
+      const item = diaries.get(id)
+      if (!item) return undefined
+      const updated: DiaryEntry = { ...item, liked, updatedAt: now() }
+      diaries.set(id, updated)
+      return updated
+    },
+    async deleteById(userId: string, id: string) {
+      const item = diaries.get(id)
+      if (item?.userId === userId) diaries.delete(id)
+    },
+    async findById(id: string) {
+      return diaries.get(id)
+    },
+    async listForUser(userId: string, fromDay: string, toDay: string) {
+      return [...diaries.values()]
+        .filter((item) => item.userId === userId && item.day >= fromDay && item.day <= toDay)
+        .sort((a, b) => (b.day === a.day
+          ? (diarySerial.get(b.id) ?? 0) - (diarySerial.get(a.id) ?? 0)
+          : b.day.localeCompare(a.day)))
+    }
+  }
+
   const postRepo = {
     async create(input: Omit<Post, 'id' | 'createdAt'>) {
       const post: Post = { ...input, id: randomUUID(), createdAt: now() }
@@ -508,6 +556,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     tasks: taskRepo,
     moods: moodRepo,
     anniversaries: anniversaryRepo,
+    diaries: diaryRepo,
     posts: postRepo,
     notifications: notificationRepo,
     fortunes: fortuneRepo,

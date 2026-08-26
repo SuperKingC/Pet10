@@ -5,6 +5,8 @@ export default defineAppConfig({
     'pages/pet/pet',
     'pages/room/room',
     'pages/settings/settings',
+    'pages/journal-anniversary/journal-anniversary',
+    'pages/journal-editor/journal-editor',
   ],
   window: {
     navigationBarTitleText: '小多利宠物伙伴',
