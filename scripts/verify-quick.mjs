@@ -7,13 +7,8 @@ const scopeArgument = process.argv.find((argument) => argument.startsWith('--sco
 const scope = scopeArgument?.split('=')[1]
 
 const commands = {
-  tarot: [
-    ['npx', ['vitest', '--run', 'src/games/tarot', 'src/dev/tarot']],
-    ['npx', ['tsc', '-b']],
-  ],
-  ui: [
-    ['npx', ['vitest', '--run', 'src/components']],
-    ['npx', ['tsc', '-b']],
+  miniapp: [
+    ['npm', ['test', '--prefix', 'miniapp']],
   ],
   server: [
     ['npm', ['run', 'server:test']],
@@ -22,7 +17,7 @@ const commands = {
 }
 
 if (!scope || !(scope in commands)) {
-  console.error('Usage: npm run verify:quick -- --scope=tarot|ui|server')
+  console.error('Usage: npm run verify:quick -- --scope=miniapp|server')
   process.exit(1)
 }
 

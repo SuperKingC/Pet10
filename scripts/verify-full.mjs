@@ -4,10 +4,8 @@ import { packageCommandInvocation } from './package-command.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const commands = [
-  ['npx', ['tsc', '-b']],
   ['npm', ['run', 'test:all']],
   ['npm', ['run', 'build:all']],
-  ['npm', ['run', 'check:architecture']],
   ['npm', ['run', 'check:docs']],
   ['npm', ['run', 'check:assets']],
 ]

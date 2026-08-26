@@ -1,5 +1,5 @@
 {
-  "name": "xiaoduoli-pwa",
+  "name": "pet10",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -7,37 +7,21 @@
     "server"
   ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "test": "vitest",
-    "preview": "vite preview",
     "server:dev": "npm run dev --workspace server",
     "server:test": "npm run test --workspace server",
     "server:build": "npm run build --workspace server",
+    "test": "vitest",
     "test:all": "npm test -- --run && npm run server:test",
-    "build:all": "npm run build && npm run server:build",
+    "build:all": "npm run server:build",
     "check:assets": "node scripts/check-assets.mjs",
     "check:docs": "node scripts/check-docs.mjs",
-    "check:architecture": "node scripts/check-architecture.mjs",
     "upload:static": "node scripts/upload-static-to-cos.mjs",
-    "review": "node scripts/review.mjs",
-    "review:stop": "node scripts/review-stop.mjs",
     "verify:quick": "node scripts/verify-quick.mjs",
     "verify:full": "node scripts/verify-full.mjs"
   },
-  "dependencies": {
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "socket.io-client": "^4.8.3"
-  },
   "devDependencies": {
-    "@types/react": "^19.1.10",
-    "@types/react-dom": "^19.1.7",
-    "@vitejs/plugin-react": "^5.0.2",
     "cos-nodejs-sdk-v5": "^3.0.0",
-    "jsdom": "^26.1.0",
     "typescript": "^5.9.2",
-    "vite": "^7.1.2",
     "vitest": "^3.2.4"
   }
 }
