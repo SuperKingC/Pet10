@@ -1,12 +1,4 @@
-pet10kk.com api.pet10kk.com {
+api.pet10kk.com {
     encode zstd gzip
-
-    @static_assets {
-        path /assets/* /pet/* /nest/* /icons/* /navigation/* /me/* /tarot/cards/* /tarot/ui/*
-        expression `"{$STATIC_ASSET_BASE_URL}" != "" && "{$STATIC_ASSET_VERSION}" != ""`
-    }
-    redir @static_assets {$STATIC_ASSET_BASE_URL}/{$STATIC_ASSET_VERSION}{uri} 302
-
-    reverse_proxy web:80
+    reverse_proxy api:8787
 }
-

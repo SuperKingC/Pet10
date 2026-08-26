@@ -7,9 +7,6 @@ PROJECT_DIR="${DEPLOY_PROJECT_DIR:-$REPO_ROOT}"
 COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.prod.yml}"
 ENV_FILE="${DEPLOY_ENV_FILE:-.env.production}"
 PUBLIC_URL="${DEPLOY_PUBLIC_URL:-}"
-STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL:-}"
-STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL%/}"
-STATIC_ASSET_VERSION="${STATIC_ASSET_VERSION:-}"
 STATE_DIR="${DEPLOY_STATE_DIR:-$HOME/.pet10-deploy}"
 STATE_FILE="$STATE_DIR/last-deploy.env"
 
@@ -61,8 +58,6 @@ prepare_deploy() {
   log "Target revision:   $TARGET_COMMIT"
   log "Deploy service:    $DEPLOY_SERVICE"
   git checkout --detach "$TARGET_COMMIT"
-  STATIC_ASSET_VERSION="$TARGET_COMMIT"
-  export STATIC_ASSET_VERSION
 }
 
 save_deploy_state() {
@@ -70,44 +65,7 @@ save_deploy_state() {
 PREVIOUS_COMMIT=$PREVIOUS_COMMIT
 TARGET_COMMIT=$TARGET_COMMIT
 DEPLOY_SERVICE=$DEPLOY_SERVICE
-STATIC_ASSET_BASE_URL=$STATIC_ASSET_BASE_URL
 EOF
-}
-
-assert_static_asset_config() {
-  [ -n "$STATIC_ASSET_BASE_URL" ] || fail "STATIC_ASSET_BASE_URL is required for web deployment"
-  [ -n "$STATIC_ASSET_VERSION" ] || fail "STATIC_ASSET_VERSION is required for web deployment"
-  export STATIC_ASSET_BASE_URL STATIC_ASSET_VERSION
-}
-
-persist_static_asset_config() {
-  assert_static_asset_config
-  local environment_directory
-  local temporary_file
-  environment_directory="$(dirname "$ENV_FILE")"
-  temporary_file="$(mktemp "$environment_directory/.pet10-env.XXXXXX")"
-
-  if ! awk '
-    !/^STATIC_ASSET_BASE_URL=/ &&
-    !/^STATIC_ASSET_VERSION=/
-  ' "$ENV_FILE" >"$temporary_file"; then
-    rm -f "$temporary_file"
-    fail "Could not prepare static asset configuration"
-  fi
-
-  {
-    printf '\nSTATIC_ASSET_BASE_URL=%s\n' "$STATIC_ASSET_BASE_URL"
-    printf 'STATIC_ASSET_VERSION=%s\n' "$STATIC_ASSET_VERSION"
-  } >>"$temporary_file"
-
-  chmod --reference="$ENV_FILE" "$temporary_file"
-  mv "$temporary_file" "$ENV_FILE"
-  log "Persisted static asset delivery configuration"
-}
-
-restart_static_delivery() {
-  assert_static_asset_config
-  compose up -d --no-deps --force-recreate caddy
 }
 
 wait_for_url() {
@@ -128,19 +86,7 @@ wait_for_url() {
 verify_public_endpoints() {
   [ -n "$PUBLIC_URL" ] || fail "DEPLOY_PUBLIC_URL is required"
   local base="${PUBLIC_URL%/}"
-  wait_for_url "$base/healthz"
   wait_for_url "$base/health"
-}
-
-verify_static_asset_redirect() {
-  assert_static_asset_config
-  [ -n "$PUBLIC_URL" ] || fail "DEPLOY_PUBLIC_URL is required"
-  local source="${PUBLIC_URL%/}/pet/xiaoduoli.png"
-  local expected="${STATIC_ASSET_BASE_URL%/}/${STATIC_ASSET_VERSION}/pet/xiaoduoli.png"
-  local location
-  location="$(curl --silent --show-error --head --max-time 10 "$source" | tr -d '\r' | awk -F ': ' 'tolower($1) == "location" { print $2 }')"
-  [ "$location" = "$expected" ] || fail "Unexpected static redirect: ${location:-missing}; expected $expected"
-  log "Static assets: $expected"
 }
 
 print_success() {
@@ -149,5 +95,5 @@ print_success() {
   log "New revision: $TARGET_COMMIT"
   log "Service: $DEPLOY_SERVICE"
   log "URL: ${PUBLIC_URL%/}"
-  log "Rollback: STATIC_ASSET_BASE_URL='$STATIC_ASSET_BASE_URL' DEPLOY_PUBLIC_URL='$PUBLIC_URL' ./deploy/rollback.sh"
+  log "Rollback: DEPLOY_PUBLIC_URL='$PUBLIC_URL' ./deploy/rollback.sh"
 }
