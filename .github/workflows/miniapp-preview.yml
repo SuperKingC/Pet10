@@ -1,0 +1,71 @@
+name: Miniapp Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag, or commit to preview
+        required: false
+        default: main
+        type: string
+      description:
+        description: Description shown in the WeChat developer console
+        required: false
+        default: Mobile preview
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm ci --prefix miniapp
+      - run: npm install --no-save --package-lock=false miniprogram-ci@2.1.31
+      - run: npm run test:all
+      - name: Validate preview environment
+        env:
+          TARO_API_BASE_URL: ${{ secrets.TARO_PREVIEW_API_BASE_URL }}
+          TARO_TAROT_ASSET_BASE_URL: ${{ secrets.TARO_TAROT_ASSET_BASE_URL }}
+        run: |
+          test -n "$TARO_API_BASE_URL"
+          test -n "$TARO_TAROT_ASSET_BASE_URL"
+
+      - name: Build miniapp
+        env:
+          TARO_API_BASE_URL: ${{ secrets.TARO_PREVIEW_API_BASE_URL }}
+          TARO_TAROT_ASSET_BASE_URL: ${{ secrets.TARO_TAROT_ASSET_BASE_URL }}
+        run: npm run build:weapp --prefix miniapp
+
+      - name: Write WeChat upload key
+        env:
+          WECHAT_PRIVATE_KEY: ${{ secrets.WECHAT_PRIVATE_KEY }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/wechat"
+          printf '%s' "$WECHAT_PRIVATE_KEY" > "$RUNNER_TEMP/wechat/private.key"
+
+      - name: Generate WeChat preview QR code
+        env:
+          WECHAT_APPID: ${{ secrets.WECHAT_APPID }}
+          WECHAT_PRIVATE_KEY_PATH: ${{ runner.temp }}/wechat/private.key
+          WECHAT_PREVIEW_DESC: ${{ inputs.description }}
+          WECHAT_PREVIEW_QR_PATH: ${{ github.workspace }}/artifacts/wechat-preview.png
+        run: node scripts/wechat-preview.mjs
+
+      - name: Upload preview QR code
+        uses: actions/upload-artifact@v4
+        with:
+          name: wechat-preview-${{ github.run_number }}
+          path: artifacts/wechat-preview.png
+          if-no-files-found: error

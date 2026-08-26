@@ -53,4 +53,15 @@ flowchart LR
 - GitHub 的 `production` Environment 必须启用人工批准，并配置服务器固定 SSH 主机公钥。
 - COS SecretId、SecretKey 只存在于 GitHub Environment，不能传到 Lighthouse、小程序构建产物或日志。
 
+## 小程序手机预览
+
+仓库提供 `.github/workflows/miniapp-preview.yml`，可从 GitHub Actions 手动触发指定分支、标签或提交，流程为：
+
+1. 安装根目录和 `miniapp/` 依赖，并固定安装 `miniprogram-ci@2.1.31`。
+2. 运行小程序测试并执行 `npm run build:weapp`。
+3. 使用 `miniprogram-ci` 生成微信预览二维码。
+4. 将二维码作为 Actions artifact 下载到手机后扫码体验。
+
+需要在 GitHub Actions Secrets 配置 `WECHAT_APPID`、`WECHAT_PRIVATE_KEY`、`TARO_PREVIEW_API_BASE_URL` 和 `TARO_TAROT_ASSET_BASE_URL`。预览 API 必须指向测试环境，避免体验操作写入生产数据；预览构建要求塔罗资源地址显式配置。上传密钥只在 CI 临时目录中使用，不能提交到仓库。该流程只生成预览二维码，不合并分支、不发布生产环境。
+
 详细配置见后续的 `docs/operations/lighthouse-deployment.md`。
