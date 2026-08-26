@@ -54,55 +54,6 @@
   flex-shrink: 0;
 }
 
-.miniapp-me__wechat {
-  padding: 24px 28px;
-  background: #fff;
-  border: 1px solid #ead5c2;
-  border-radius: 20px;
-}
-
-.miniapp-me__wechat-label {
-  display: block;
-  margin-bottom: 14px;
-  color: #b8a499;
-  font-size: var(--font-size-aux);
-}
-
-.miniapp-me__wechat-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.miniapp-me__wechat-avatar {
-  flex-shrink: 0;
-  height: 68px;
-  margin: 0;
-  padding: 0 22px;
-  color: #5e3b1d;
-  background: #fdf3e7;
-  border: 1px solid #ead5c2;
-  border-radius: 14px;
-  font-size: var(--font-size-aux);
-  line-height: 66px;
-}
-
-.miniapp-me__wechat-avatar::after {
-  border: 0;
-}
-
-.miniapp-me__wechat-nickname {
-  flex: 1;
-  min-width: 0;
-  height: 68px;
-  padding: 0 18px;
-  color: #5e3b1d;
-  background: #fdf3e7;
-  border: 1px solid #ead5c2;
-  border-radius: 14px;
-  font-size: var(--font-size-aux);
-}
-
 .miniapp-me__name-row {
   display: flex;
   align-items: center;

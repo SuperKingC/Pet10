@@ -5,7 +5,6 @@ import type { LaunchContext } from '../../services/launchContextApi'
 import { socialApi, type MiniappNotification } from '../../services/socialApi'
 import { accountApi } from '../../services/accountApi'
 import { clearAccessToken } from '../../services/apiClient'
-import { wechatAvatarToDataUrl } from '../../services/wechatProfileAssets'
 import { gmApi } from '../../services/gmApi'
 import { showInfo } from '../../services/feedback'
 import { defaultAvatarConfig, parseAvatarConfig, type MiniappAvatarConfig } from '../../domain/avatarConfig'
@@ -121,37 +120,6 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
     }
   }
 
-  // 微信不允许静默读取头像昵称，两者各需一次用户主动操作
-  const saveWechatAvatar = async (tempAvatarUrl: string) => {
-    if (busy || !tempAvatarUrl) return
-    setBusy(true)
-    try {
-      const dataUrl = await wechatAvatarToDataUrl(tempAvatarUrl)
-      await socialApi.updateProfile({ avatarUrl: dataUrl })
-      setAvatarUrl(dataUrl)
-      void showInfo('头像已更新')
-    } catch (error) {
-      void showInfo(error instanceof Error ? error.message : '头像保存失败')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const saveWechatNickname = async (nickname: string) => {
-    const trimmed = nickname.trim()
-    if (busy || trimmed.length < 2 || trimmed.length > 12 || trimmed === nameDraft) return
-    setBusy(true)
-    try {
-      await socialApi.updateProfile({ displayName: trimmed })
-      setNameDraft(trimmed)
-      void showInfo('昵称已更新')
-    } catch {
-      void showInfo('昵称保存失败')
-    } finally {
-      setBusy(false)
-    }
-  }
-
   const copyContactEmail = () => {
     Taro.setClipboardData({ data: CONTACT_EMAIL })
       .then(() => void showInfo('邮箱已复制'))
@@ -200,26 +168,6 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
         <View className="miniapp-me__name-row" onClick={() => setNameEditing(true)}>
           <Text className="miniapp-me__name">{nameDraft || displayName}</Text>
           <Text className="miniapp-me__name-hint">修改 <Text className="miniapp-me__arrow">›</Text></Text>
-        </View>
-      </View>
-      <View className="miniapp-me__wechat">
-        <Text className="miniapp-me__wechat-label">用微信资料补全</Text>
-        <View className="miniapp-me__wechat-row">
-          <Button
-            className="miniapp-me__wechat-avatar"
-            openType="chooseAvatar"
-            disabled={busy}
-            onChooseAvatar={(event) => void saveWechatAvatar(event.detail.avatarUrl)}
-          >
-            用微信头像
-          </Button>
-          <Input
-            className="miniapp-me__wechat-nickname"
-            type="nickname"
-            maxlength={12}
-            placeholder="用微信昵称"
-            onBlur={(event) => void saveWechatNickname(event.detail.value)}
-          />
         </View>
       </View>
       <View className="miniapp-me__list">
