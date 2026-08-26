@@ -1,7 +1,12 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 
 const apiBaseUrl = process.env.TARO_API_BASE_URL?.trim() || 'https://api.pet10kk.com'
-const tarotAssetBaseUrl = process.env.TARO_TAROT_ASSET_BASE_URL?.trim() || 'https://pet10kk.com'
+const tarotAssetBaseUrl = process.env.TARO_TAROT_ASSET_BASE_URL?.trim()
+if (!tarotAssetBaseUrl) {
+  throw new Error(
+    'TARO_TAROT_ASSET_BASE_URL is required, e.g. https://<bucket>.cos.<region>.myqcloud.com/pet10-web/<commitSHA>'
+  )
+}
 
 const config: UserConfigExport = defineConfig({
   projectName: 'pet10-miniapp',

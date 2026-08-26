@@ -12,12 +12,12 @@ describe('miniapp API build config', () => {
     )
   })
 
-  it('defines a production tarot asset base URL', () => {
+  it('requires a tarot asset base URL at build time', () => {
     const configSource = readFileSync(resolve(miniappRoot(), 'config/index.ts'), 'utf8')
 
-    expect(configSource).toContain(
-      "process.env.TARO_TAROT_ASSET_BASE_URL?.trim() || 'https://pet10kk.com'"
-    )
+    expect(configSource).toContain('process.env.TARO_TAROT_ASSET_BASE_URL')
+    expect(configSource).toContain('TARO_TAROT_ASSET_BASE_URL is required')
+    expect(configSource).not.toContain("'https://pet10kk.com'")
     expect(configSource).toContain('TARO_TAROT_ASSET_BASE_URL:')
   })
 })
