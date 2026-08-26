@@ -19,6 +19,7 @@ export default function Invite() {
   const [message, setMessage] = useState('正在读取好友邀请')
   const [loading, setLoading] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   Taro.useLoad((options) => {
     const nextToken = typeof options?.token === 'string'
@@ -53,27 +54,34 @@ export default function Invite() {
       }
       setMessage(invitationViewerMessage(nextViewerType))
     } catch (error) {
+      setFailed(true)
       setMessage(error instanceof Error ? error.message : '读取邀请失败')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    if (token && getAccessToken()) void loadInvitation(token)
-  }, [token])
-
-  const loginWithWechat = async () => {
-    setLoading(true)
-    try {
-      await authApi.loginWithWechat()
-      await loadInvitation(token)
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '微信登录失败')
-    } finally {
-      setLoading(false)
+  // 从邀请卡进入即用户明确意图，静默登录后直接展示邀请，省掉一次多余点击
+  const openInvitation = async (invitationToken: string) => {
+    setFailed(false)
+    if (!getAccessToken()) {
+      setLoading(true)
+      try {
+        await authApi.loginWithWechat()
+      } catch (error) {
+        setFailed(true)
+        setMessage(error instanceof Error ? error.message : '微信登录失败，请重试')
+        return
+      } finally {
+        setLoading(false)
+      }
     }
+    await loadInvitation(invitationToken)
   }
+
+  useEffect(() => {
+    if (token) void openInvitation(token)
+  }, [token])
 
   const accept = async () => {
     if (!token) return
@@ -104,15 +112,18 @@ export default function Invite() {
     }
   }
 
-  if (redirecting || (token && getAccessToken() && viewerType === null)) return null
+  // 失败时必须渲染出来，否则错误文案和重试入口都被这层守卫吞掉，页面整屏空白
+  if (redirecting || (token && getAccessToken() && viewerType === null && !failed)) return null
 
   return <View className="invite-page">
     <View className="invite-card">
       <Text className="eyebrow">PET10 · 好友邀请</Text>
       <Text className="invite-title">{invitation ? `${invitation.inviter.displayName} 选了你，做一起养我的人` : '请选好一起养我的人'}</Text>
       <Text className="invite-copy">我只有这一只，选了就是一辈子。选好之后，你们一起喂我、一起玩、一起看我四脚朝天地睡。</Text>
-      {!getAccessToken()
-        ? <Button className="wechat-button" loading={loading} onClick={loginWithWechat}>微信登录后查看邀请</Button>
+      {!getAccessToken() || (failed && !invitation)
+        ? <Button className="wechat-button" loading={loading} disabled={loading || !token} onClick={() => void openInvitation(token)}>
+          {failed ? '重试' : '正在为你打开邀请…'}
+        </Button>
         : viewerType === 'owner'
           ? <View className="self-invite-notice">
             <Text>邀请链接已准备好，不能用邀请人自己的账号接受。</Text>

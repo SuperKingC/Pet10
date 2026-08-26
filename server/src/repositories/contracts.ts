@@ -7,7 +7,6 @@ import type {
   Fortune,
   InviteCode,
   Invitation,
-  LoginCode,
   MapLight,
   MoodEntry,
   Pet,
@@ -44,12 +43,6 @@ export interface UserRepository {
 export interface InviteRepository {
   findByCode(code: string): Promise<InviteCode | undefined>
   consume(code: string): Promise<void>
-}
-
-export interface LoginCodeRepository {
-  save(code: LoginCode): Promise<void>
-  findByEmail(email: string): Promise<LoginCode | undefined>
-  deleteByEmail(email: string): Promise<void>
 }
 
 export interface WechatIdentityRepository {
@@ -198,7 +191,6 @@ export interface MapRepository {
 export interface RepositoryBundle {
   users: UserRepository
   invites: InviteRepository
-  loginCodes: LoginCodeRepository
   wechatIdentities: WechatIdentityRepository
   invitations: InvitationRepository
   relationships: RelationshipRepository

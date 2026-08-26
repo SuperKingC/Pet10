@@ -8,7 +8,6 @@ import type {
   Fortune,
   InviteCode,
   Invitation,
-  LoginCode,
   MoodEntry,
   Pet,
   PetEventStat,
@@ -31,7 +30,6 @@ export function createMemoryRepositories(): RepositoryBundle {
   const inviteCodes = new Map<string, InviteCode>([
     ['PET10-DEMO', { code: 'PET10-DEMO', active: true, maxUses: 10, useCount: 0 }]
   ])
-  const loginCodes = new Map<string, LoginCode>()
   const wechatIdentities = new Map<string, WechatIdentity>()
   const invitations = new Map<string, Invitation>()
   const relationships = new Map<string, Relationship>()
@@ -99,12 +97,6 @@ export function createMemoryRepositories(): RepositoryBundle {
       if (!invite) throw new Error('invalid_invite_code')
       invite.useCount += 1
     }
-  }
-
-  const loginCodeRepo = {
-    async save(code: LoginCode) { loginCodes.set(code.email, code) },
-    async findByEmail(email: string) { return loginCodes.get(email.toLowerCase()) },
-    async deleteByEmail(email: string) { loginCodes.delete(email.toLowerCase()) }
   }
 
   const wechatIdentityRepo = {
@@ -545,7 +537,6 @@ export function createMemoryRepositories(): RepositoryBundle {
   return {
     users: userRepo,
     invites: inviteRepo,
-    loginCodes: loginCodeRepo,
     wechatIdentities: wechatIdentityRepo,
     invitations: invitationRepo,
     relationships: relationshipRepo,

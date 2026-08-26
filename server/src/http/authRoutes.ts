@@ -1,15 +1,21 @@
-import { Router } from 'express'
+import { Router, type Request } from 'express'
 import { z } from 'zod'
+import { createLoginRateLimiter } from '../services/loginRateLimiter.js'
+
+function clientIp(request: Request) {
+  return request.ip || request.socket.remoteAddress || 'unknown'
+}
 
 export function createAuthRoutes(service: {
-  requestLoginCode(email: string, inviteCode: string): Promise<unknown>
-  verifyLoginCode(email: string, code: string): Promise<unknown>
   loginWithWechat?(code: string, profile: { displayName?: string; avatarUrl?: string }): Promise<unknown>
-}) {
+}, options: { rateLimitPerMinute?: number } = {}) {
   const router = Router()
+  const limiter = createLoginRateLimiter({ perMinute: options.rateLimitPerMinute ?? 10 })
+
   router.post('/wechat', async (request, response, next) => {
     try {
       if (!service.loginWithWechat) throw new Error('wechat_login_not_configured')
+      if (!limiter.allow(clientIp(request))) throw new Error('rate_limit_exceeded')
       const input = z.object({
         code: z.string().min(1),
         profile: z.object({
@@ -18,18 +24,6 @@ export function createAuthRoutes(service: {
         }).default({})
       }).parse(request.body)
       response.json(await service.loginWithWechat(input.code, input.profile))
-    } catch (error) { next(error) }
-  })
-  router.post('/request-code', async (request, response, next) => {
-    try {
-      const input = z.object({ email: z.email(), inviteCode: z.string().min(1) }).parse(request.body)
-      response.json(await service.requestLoginCode(input.email, input.inviteCode))
-    } catch (error) { next(error) }
-  })
-  router.post('/verify-code', async (request, response, next) => {
-    try {
-      const input = z.object({ email: z.email(), code: z.string().length(6) }).parse(request.body)
-      response.json(await service.verifyLoginCode(input.email, input.code))
     } catch (error) { next(error) }
   })
   return router

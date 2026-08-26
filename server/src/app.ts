@@ -15,7 +15,6 @@ import { createSocialRoutes } from './http/socialRoutes.js'
 import { createDiaryRoutes } from './http/diaryRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
 import { createImageRoutes } from './http/imageRoutes.js'
-import { createAuthService } from './services/authService.js'
 import { createAccountService } from './services/accountService.js'
 import { createWechatAuthService } from './services/wechatAuthService.js'
 import { createFriendshipService } from './services/friendshipService.js'
@@ -59,15 +58,6 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     })
   })
 
-  const authService = createAuthService({
-    repositories,
-    jwtSecret: config.jwtSecret,
-    jwtExpiresIn: config.jwtExpiresIn,
-    loginCodeTtlSeconds: config.loginCodeTtlSeconds,
-    mailMode: config.mail.mode,
-    allowedEmails: config.allowedEmails,
-    logCode: (email, code) => console.log(`[login-code] ${email}: ${code}`)
-  })
   const wechatAuthService = config.wechat.enabled
     ? createWechatAuthService({
         repositories,
@@ -121,11 +111,10 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
   app.use('/api/auth', createAuthRoutes({
-    ...authService,
     loginWithWechat: wechatAuthService
       ? (code, profile) => wechatAuthService.login(code, profile)
       : undefined
-  }))
+  }, { rateLimitPerMinute: config.wechat.loginRateLimitPerMinute }))
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
   app.use('/api/account', authenticate, createAccountRoutes(createAccountService(repositories)))
   app.use('/api/friendships', authenticate, createFriendshipRoutes(friendshipService))

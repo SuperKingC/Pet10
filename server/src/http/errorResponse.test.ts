@@ -18,6 +18,20 @@ describe('resolveErrorResponse', () => {
     })
   })
 
+  it('returns 503 when an integration is not configured', () => {
+    expect(resolveErrorResponse(new Error('wechat_login_not_configured'))).toEqual({
+      status: 503,
+      error: 'wechat_login_not_configured',
+    })
+  })
+
+  it('returns 429 when a rate limit is hit', () => {
+    expect(resolveErrorResponse(new Error('rate_limit_exceeded'))).toEqual({
+      status: 429,
+      error: 'rate_limit_exceeded',
+    })
+  })
+
   it('returns 400 for zod validation failures', () => {
     const error = z.object({ name: z.string() }).safeParse({ name: 1 }).error
     expect(resolveErrorResponse(error)).toEqual({ status: 400, error: 'invalid_input' })

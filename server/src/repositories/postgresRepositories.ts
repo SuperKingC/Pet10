@@ -81,17 +81,6 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         if (!result.rowCount) throw new Error('invalid_invite_code')
       }
     },
-    loginCodes: {
-      async save(code) {
-        await database.query(
-          `INSERT INTO login_codes(email,code_hash,expires_at) VALUES($1,$2,$3)
-           ON CONFLICT(email) DO UPDATE SET code_hash=EXCLUDED.code_hash, expires_at=EXCLUDED.expires_at, created_at=now()`,
-          [code.email, code.codeHash, code.expiresAt]
-        )
-      },
-      findByEmail: (email) => one('SELECT email,code_hash,expires_at FROM login_codes WHERE email=$1', [email.toLowerCase()]),
-      async deleteByEmail(email) { await database.query('DELETE FROM login_codes WHERE email=$1', [email.toLowerCase()]) }
-    },
     wechatIdentities: {
       findByOpenId: (openId) => one('SELECT * FROM wechat_identities WHERE open_id=$1', [openId]),
       findByUserId: (userId) => one('SELECT * FROM wechat_identities WHERE user_id=$1', [userId]),

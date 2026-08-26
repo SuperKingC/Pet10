@@ -142,8 +142,7 @@
   margin-top: 44rpx;
 }
 
-.miniapp-login__primary,
-.miniapp-login__wechat {
+.miniapp-login__primary {
   height: 94rpx;
   border: 0;
   border-radius: 20rpx;
@@ -155,10 +154,7 @@
   line-height: 94rpx;
 }
 
-.miniapp-login__primary::after,
-.miniapp-login__wechat::after,
-.miniapp-login__later::after,
-.miniapp-login__close::after {
+.miniapp-login__primary::after {
   border: 0;
 }
 
@@ -219,115 +215,6 @@
   font-size: 24rpx;
   line-height: 1.45;
   text-align: center;
-}
-
-.miniapp-login__overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32rpx;
-  background: rgba(93, 78, 63, .32);
-}
-
-.miniapp-login__modal {
-  position: relative;
-  width: 100%;
-  max-width: 630rpx;
-  padding: 44rpx 40rpx 40rpx;
-  border-radius: 32rpx;
-  background: #fbf4ea;
-  box-shadow: 0 26rpx 72rpx rgba(74, 55, 42, .2);
-  text-align: center;
-}
-
-.miniapp-login__close {
-  position: absolute;
-  top: 18rpx;
-  right: 18rpx;
-  width: 56rpx;
-  height: 56rpx;
-  padding: 0;
-  color: #9b8b7b;
-  background: transparent;
-  font-size: 40rpx;
-  line-height: 52rpx;
-}
-
-.miniapp-login__modal-header {
-  display: block;
-  color: #4b3a2b;
-  font-size: 32rpx;
-  font-weight: var(--font-weight-semibold);
-  text-align: center;
-}
-
-.miniapp-login__modal-art {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 40rpx;
-}
-
-.miniapp-login__modal-pet {
-  width: 320rpx;
-  height: 240rpx;
-}
-
-.miniapp-login__modal-spark {
-  position: absolute;
-  top: -6rpx;
-  right: 22%;
-  color: #d9a05d;
-  font-size: 22rpx;
-}
-
-.miniapp-login__modal-title {
-  display: block;
-  margin-top: 36rpx;
-  color: #4b3a2b;
-  font-size: 36rpx;
-  font-weight: var(--font-weight-bold);
-  text-align: center;
-}
-
-.miniapp-login__modal-copy {
-  display: block;
-  margin-top: 20rpx;
-  padding: 0 24rpx;
-  color: #a5917e;
-  font-size: 26rpx;
-  line-height: 1.7;
-  text-align: center;
-}
-
-.miniapp-login__modal-message {
-  display: block;
-  margin: 16rpx 0 0;
-  color: #b46f54;
-  font-size: 24rpx;
-  line-height: 1.45;
-  text-align: center;
-}
-
-.miniapp-login__wechat {
-  margin-top: 44rpx;
-  border-radius: 999rpx;
-  background: #c58b60;
-  box-shadow: 0 10rpx 24rpx rgba(197, 139, 96, .28);
-}
-
-.miniapp-login__later {
-  height: 64rpx;
-  margin-top: 18rpx;
-  border: 0;
-  color: #b3a493;
-  background: transparent;
-  font-size: 24rpx;
-  line-height: 64rpx;
 }
 
 @keyframes miniapp-login-speech {
