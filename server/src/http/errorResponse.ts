@@ -4,6 +4,7 @@ export function resolveErrorResponse(error: unknown) {
   if (error instanceof ZodError) return { status: 400, error: 'invalid_input' }
   const message = error instanceof Error ? error.message : 'internal_server_error'
   const status = message.includes('not_found') ? 404 :
+    message.includes('not_configured') ? 503 :
     message.includes('forbidden') || message.includes('not_allowed') ? 403 :
     message.includes('unauthorized') ? 401 :
     message.includes('invalid') ||
