@@ -10,10 +10,10 @@ on:
       service:
         description: Smallest service set to update
         required: true
-        default: web
+        default: api
         type: choice
         options:
-          - web
+          - assets
           - api
           - all
 
@@ -69,15 +69,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Build static assets
-        if: ${{ inputs.service != 'api' }}
-        env:
-          VITE_USE_MOCK_API: "false"
-          VITE_API_BASE_URL: "/"
-          VITE_TAROT_ASSET_BASE_URL: ""
-        run: |
-          npm ci
-          npm run build
       - name: Upload static assets to COS
         if: ${{ inputs.service != 'api' }}
         env:
@@ -87,7 +78,9 @@ jobs:
           COS_REGION: ${{ secrets.COS_REGION }}
           STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}
           STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
-        run: npm run upload:static
+        run: |
+          npm ci
+          npm run upload:static
       - name: Verify public COS asset
         if: ${{ inputs.service != 'api' }}
         env:
@@ -95,7 +88,7 @@ jobs:
           STATIC_ASSET_VERSION: ${{ needs.validate.outputs.sha }}
         run: |
           STATIC_ASSET_BASE_URL="${STATIC_ASSET_BASE_URL%/}"
-          for asset_path in pet/xiaoduoli.png nest/action-feed.png; do
+          for asset_path in tarot/ui/card-back.jpg tarot/cards/the-fool.jpg; do
             curl --fail --head --retry 3 --max-time 30 \
               "$STATIC_ASSET_BASE_URL/$STATIC_ASSET_VERSION/$asset_path"
           done
@@ -110,19 +103,19 @@ jobs:
           printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
       - name: Deploy approved revision
+        if: ${{ inputs.service != 'assets' }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
-          STATIC_ASSET_BASE_URL: ${{ secrets.STATIC_ASSET_BASE_URL }}
           REVISION: ${{ needs.validate.outputs.sha }}
           SERVICE: ${{ inputs.service }}
         run: |
           printf -v remote_command \
-            'cd -- %q && STATIC_ASSET_BASE_URL=%q DEPLOY_PUBLIC_URL=%q ./deploy/update-%q.sh %q' \
-            "$DEPLOY_PATH" "$STATIC_ASSET_BASE_URL" "$DEPLOY_URL" "$SERVICE" "$REVISION"
+            'cd -- %q && DEPLOY_PUBLIC_URL=%q ./deploy/update-%q.sh %q' \
+            "$DEPLOY_PATH" "$DEPLOY_URL" "$SERVICE" "$REVISION"
           ssh -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote_command"
       - name: Deployment summary
         env:
@@ -135,5 +128,5 @@ jobs:
             echo "- Revision: \`$REVISION\`"
             echo "- Service: \`$SERVICE\`"
             echo "- URL: $DEPLOY_URL"
-            echo "- Health: $DEPLOY_URL/healthz"
+            echo "- Health: $DEPLOY_URL/health"
           } >> "$GITHUB_STEP_SUMMARY"

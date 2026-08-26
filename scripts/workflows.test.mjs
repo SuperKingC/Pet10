@@ -9,9 +9,9 @@ describe('GitHub workflows', () => {
     const workflow = await readFile(resolve(root, '.github/workflows/ci.yml'), 'utf8')
     expect(workflow).toContain('npm run test:all')
     expect(workflow).toContain('npm run build:all')
-    expect(workflow).toContain('npm run check:architecture')
     expect(workflow).toContain('npm run check:docs')
     expect(workflow).toContain('npm run check:assets')
+    expect(workflow).not.toContain('check:architecture')
     expect(workflow).not.toContain('DEPLOY_SSH_PRIVATE_KEY')
   })
 
@@ -32,5 +32,24 @@ describe('GitHub workflows', () => {
     expect(workflow).toContain('ssh -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote_command"')
     expect(workflow).not.toContain("cd '$DEPLOY_PATH'")
     expect(workflow).not.toContain('docker compose down -v')
+  })
+
+  it('uploads tarot assets from the repository without a web build', async () => {
+    const workflow = await readFile(resolve(root, '.github/workflows/deploy-production.yml'), 'utf8')
+    expect(workflow).toContain('npm run upload:static')
+    expect(workflow).not.toContain('npm run build')
+    expect(workflow).not.toContain('VITE_USE_MOCK_API')
+    expect(workflow).toContain('for asset_path in tarot/ui/card-back.jpg tarot/cards/the-fool.jpg; do')
+    expect(workflow).toContain('COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}')
+    expect(workflow.indexOf('npm run upload:static')).toBeLessThan(workflow.indexOf('name: Configure SSH'))
+  })
+
+  it('skips the remote deployment for asset-only releases and never forwards the COS origin', async () => {
+    const workflow = await readFile(resolve(root, '.github/workflows/deploy-production.yml'), 'utf8')
+    expect(workflow).toContain("if: ${{ inputs.service != 'assets' }}")
+    expect(workflow).not.toContain('STATIC_ASSET_BASE_URL=%q')
+    expect(workflow).not.toContain('COS_SECRET_KEY=%q')
+    expect(workflow).not.toContain('COS_SECRET_ID=%q')
+    expect(workflow).toContain('$DEPLOY_URL/health')
   })
 })
