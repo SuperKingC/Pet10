@@ -8,7 +8,7 @@ import { hasAuthenticatedSession } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
 import { MiniappLoginScreen } from '../../features/auth/MiniappLoginScreen'
 import { MiniappLaunchLoading } from '../../features/auth/MiniappLaunchLoading'
-import { authenticatedLaunchAssets, loginAssets, prepareLaunchAssets } from '../../services/launchAssetLoader'
+import { authenticatedLaunchAssets, prepareLaunchAssets } from '../../services/launchAssetLoader'
 import { clearAccessToken, getAccessToken } from '../../services/apiClient'
 import { roomApi, type RoomMemory } from '../../services/roomApi'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
@@ -169,7 +169,8 @@ export default function Index() {
     if (getAccessToken()) {
       void prepareLaunch()
     } else {
-      void prepareLaunchAssets(loginAssets, undefined).catch(() => undefined)
+      // 未登录时后台静默预热首屏资源（不驱动进度条），登录后进度条直接命中缓存
+      void prepareLaunchAssets(authenticatedLaunchAssets, undefined).catch(() => undefined)
     }
   }, [])
 
@@ -184,10 +185,6 @@ export default function Index() {
     }
   }, [invitationToken])
 
-
-  const openWechatLogin = () => {
-    setMessage('')
-  }
 
   const loginWithWechat = async () => {
     setLoading(true)
@@ -285,7 +282,6 @@ export default function Index() {
       launchPhase={launchPhase === 'ready' ? 'login' : launchPhase}
       launchProgress={launchProgress}
       launchError={launchError}
-      onOpenWechatLogin={openWechatLogin}
       onWechatLogin={() => void loginWithWechat()}
       onRetryLaunch={() => void retryLaunch()}
     />
