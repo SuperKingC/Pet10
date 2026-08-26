@@ -53,12 +53,15 @@ jobs:
           WECHAT_PRIVATE_KEY: ${{ secrets.WECHAT_PRIVATE_KEY }}
         run: |
           mkdir -p "$RUNNER_TEMP/wechat"
-          printf '%s' "$WECHAT_PRIVATE_KEY" \
-            | sed 's/\\n/\n/g' \
-            | tr -d '\r' \
-            > "$RUNNER_TEMP/wechat/private.key"
-          grep -Eq -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$RUNNER_TEMP/wechat/private.key"
-          openssl pkey -in "$RUNNER_TEMP/wechat/private.key" -noout
+          printf '%s' "$WECHAT_PRIVATE_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > "$RUNNER_TEMP/wechat/private.key"
+          if ! grep -Eq -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$RUNNER_TEMP/wechat/private.key"; then
+            printf '%s' "$WECHAT_PRIVATE_KEY" | base64 --decode > "$RUNNER_TEMP/wechat/private.key" 2>/dev/null || true
+          fi
+          if ! openssl pkey -in "$RUNNER_TEMP/wechat/private.key" -noout 2>/dev/null; then
+            echo "WECHAT_PRIVATE_KEY is not a valid PEM or Base64-encoded private key."
+            echo "Store the complete contents of the downloaded WeChat .key file, including BEGIN/END lines."
+            exit 1
+          fi
 
       - name: Generate WeChat preview QR code
         env:
