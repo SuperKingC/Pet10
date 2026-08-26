@@ -11,7 +11,7 @@
     "server:test": "npm run test --workspace server",
     "server:build": "npm run build --workspace server",
     "test": "vitest",
-    "test:all": "npm test -- --run && npm run server:test",
+    "test:all": "npm test -- --run && npm test --prefix miniapp && npm run server:test",
     "build:all": "npm run server:build",
     "check:assets": "node scripts/check-assets.mjs",
     "check:docs": "node scripts/check-docs.mjs",

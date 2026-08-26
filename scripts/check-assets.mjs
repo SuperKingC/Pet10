@@ -8,7 +8,7 @@ const publicRoot = resolve(root, 'public')
 const designAssetsRoot = resolve(root, 'design-assets')
 const manifestPath = resolve(root, 'docs/assets/asset-manifest.json')
 const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.avif', '.svg', '.ico'])
-const runtimeDirectories = ['public/icons', 'public/pet', 'public/tarot/cards', 'public/tarot/ui']
+const runtimeDirectories = ['public/tarot/cards', 'public/tarot/ui']
 const sourceOnlyDirectories = ['public/tarot/concepts', 'design-assets/tarot/concepts']
 
 function toRepoPath(path) {
@@ -16,7 +16,12 @@ function toRepoPath(path) {
 }
 
 async function listFiles(directory) {
-  const entries = await (await import('node:fs/promises')).readdir(directory, { withFileTypes: true })
+  let entries
+  try {
+    entries = await (await import('node:fs/promises')).readdir(directory, { withFileTypes: true })
+  } catch {
+    return []
+  }
   const files = []
   for (const entry of entries) {
     const path = resolve(directory, entry.name)
@@ -29,14 +34,12 @@ async function listFiles(directory) {
 function categoryFor(path) {
   const repoPath = toRepoPath(path)
   if (sourceOnlyDirectories.some((directory) => repoPath.startsWith(`${directory}/`))) return 'source-only'
-  if (repoPath.startsWith('public/icons/') || repoPath === 'public/pet/xiaoduoli.png') return 'runtime-critical'
   return 'runtime-feature'
 }
 
 function budgetFor(repoPath) {
   if (repoPath.startsWith('public/tarot/cards/')) return { warning: 350 * 1024, error: 500 * 1024 }
   if (repoPath.startsWith('public/tarot/ui/')) return { warning: 300 * 1024, error: 500 * 1024 }
-  if (repoPath === 'public/pet/xiaoduoli.png') return { warning: 1024 * 1024, error: 1536 * 1024 }
   return { warning: 500 * 1024, error: 1024 * 1024 }
 }
 
