@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const login = vi.hoisted(() => vi.fn())
 const apiRequest = vi.hoisted(() => vi.fn())
 const setAccessToken = vi.hoisted(() => vi.fn())
-const readFile = vi.hoisted(() => vi.fn())
+const readFileSync = vi.hoisted(() => vi.fn())
+const compressImage = vi.hoisted(() => vi.fn())
 
 vi.mock('@tarojs/taro', () => ({
   default: {
     login,
-    getFileSystemManager: () => ({ readFile }),
+    compressImage,
+    getFileSystemManager: () => ({ readFileSync }),
   },
 }))
 
@@ -22,14 +24,14 @@ describe('wechat auth api', () => {
     login.mockReset()
     apiRequest.mockReset()
     setAccessToken.mockReset()
-    readFile.mockReset()
+    readFileSync.mockReset()
+    compressImage.mockReset()
   })
 
   it('converts a selected local avatar before sending the confirmed profile', async () => {
     login.mockResolvedValue({ code: 'wechat-code' })
-    readFile.mockImplementation((options: { success(result: { data: string }): void }) => {
-      options.success({ data: 'encoded-avatar' })
-    })
+    compressImage.mockResolvedValue({ tempFilePath: 'wxfile://compressed-avatar' })
+    readFileSync.mockReturnValue('encoded-avatar')
     apiRequest.mockResolvedValue({
       token: 'session-token',
       user: {
@@ -46,10 +48,8 @@ describe('wechat auth api', () => {
       avatarUrl: 'wxfile://current-avatar',
     })
 
-    expect(readFile).toHaveBeenCalledWith(expect.objectContaining({
-      filePath: 'wxfile://current-avatar',
-      encoding: 'base64',
-    }))
+    expect(compressImage).toHaveBeenCalledWith({ src: 'wxfile://current-avatar', quality: 80 })
+    expect(readFileSync).toHaveBeenCalledWith('wxfile://compressed-avatar', 'base64')
     expect(apiRequest).toHaveBeenCalledWith('/api/auth/wechat', {
       method: 'POST',
       auth: false,
