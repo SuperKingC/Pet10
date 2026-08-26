@@ -62,11 +62,19 @@ jobs:
             echo "Store the complete contents of the downloaded WeChat .key file, including BEGIN/END lines."
             exit 1
           fi
+          if ! openssl rsa \
+            -in "$RUNNER_TEMP/wechat/private.key" \
+            -traditional \
+            -out "$RUNNER_TEMP/wechat/private-rsa.key" \
+            2>/dev/null; then
+            echo "WECHAT_PRIVATE_KEY must contain an RSA private key."
+            exit 1
+          fi
 
       - name: Generate WeChat preview QR code
         env:
           WECHAT_APPID: ${{ secrets.WECHAT_APPID }}
-          WECHAT_PRIVATE_KEY_PATH: ${{ runner.temp }}/wechat/private.key
+          WECHAT_PRIVATE_KEY_PATH: ${{ runner.temp }}/wechat/private-rsa.key
           WECHAT_PREVIEW_DESC: ${{ inputs.description }}
           WECHAT_PREVIEW_QR_PATH: ${{ github.workspace }}/artifacts/wechat-preview.png
         run: node scripts/wechat-preview.mjs
