@@ -25,6 +25,7 @@ describe('Lighthouse deployment scripts', () => {
   it('updates the api service without touching other containers', async () => {
     const api = await readFile(resolve(root, 'deploy/update-api.sh'), 'utf8')
     expect(api).toContain('compose up -d --no-deps api')
+    expect(api).toContain('compose up -d --no-deps caddy')
   })
 
   it('records the rollback point before changing containers', async () => {

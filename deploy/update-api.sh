@@ -8,5 +8,6 @@ prepare_deploy "${1:-origin/main}" api
 save_deploy_state
 compose build api
 compose up -d --no-deps api
+compose up -d --no-deps caddy
 verify_public_endpoints
 print_success

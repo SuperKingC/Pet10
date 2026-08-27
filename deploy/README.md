@@ -59,6 +59,8 @@ STATIC_ASSET_BASE_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com/pet10-we
 - `api`：服务端 API。
 - `all`：Compose、环境变量或前后端共同变化。
 
+执行 `api` 单服务更新时，脚本会在替换 API 容器后显式确保 Caddy 代理容器运行，再执行公网健康检查。
+
 脚本只接受属于远端 `main` 的提交，要求服务器工作区干净，并使用 detached HEAD 部署准确版本。
 
 ## 验证与回滚
