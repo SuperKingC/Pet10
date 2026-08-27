@@ -3,8 +3,10 @@ import {
   getFortuneAvailability,
   getGenderLabel,
   getInvitationButtonState,
+  getNestActionButton,
   getNestSceneMode,
   getProfilePresentation,
+  hasFriendConversations,
   shouldShowNestFeedback
 } from './miniappViewModel'
 import type { LaunchContext } from '../../services/launchContextApi'
@@ -71,17 +73,44 @@ describe('miniapp view model', () => {
     })
   })
 
-  it('derives the nest scene mode from context and pet', () => {
+  it('derives the nest scene mode from context, pet and unlock state', () => {
     const emptyContext = { rooms: [] } as unknown as LaunchContext
     const petlessRoomContext = { rooms: [{ id: 'room-1', pet: null }] } as unknown as LaunchContext
     const roomContext = { rooms: [{ id: 'room-1', pet: { id: 'pet-1' } }] } as unknown as LaunchContext
     const pet = {} as PetState
+    const unlocked = { initialized: true, unlockedRoomIds: ['room-1'] }
+    const locked = { initialized: true, unlockedRoomIds: [] }
 
     expect(getNestSceneMode(null, null)).toBe('loading')
     expect(getNestSceneMode(emptyContext, null)).toBe('empty')
     expect(getNestSceneMode(petlessRoomContext, null)).toBe('empty')
     expect(getNestSceneMode(petlessRoomContext, pet)).toBe('empty')
     expect(getNestSceneMode(roomContext, null)).toBe('loading')
-    expect(getNestSceneMode(roomContext, pet)).toBe('active')
+    expect(getNestSceneMode(roomContext, pet, 'room-1')).toBe('active')
+    expect(getNestSceneMode(roomContext, pet, 'room-1', unlocked)).toBe('active')
+    expect(getNestSceneMode(roomContext, pet, 'room-1', locked)).toBe('locked')
+  })
+
+  it('replaces the invite button with the unlock button after a friend accepts', () => {
+    const invite = getInvitationButtonState(true, false)
+    expect(getNestActionButton('empty', invite)).toEqual({
+      kind: 'invite',
+      label: '邀请好友一起养一只小多利吧~',
+      disabled: false,
+      shareReady: true,
+    })
+    expect(getNestActionButton('locked', invite)).toEqual({
+      kind: 'unlock',
+      label: '玩家已接受邀请解锁小多利~',
+      disabled: false,
+      shareReady: false,
+    })
+    expect(getNestActionButton('locked', invite, true).disabled).toBe(true)
+  })
+
+  it('treats only pair rooms as friend conversations on the messages tab', () => {
+    expect(hasFriendConversations([])).toBe(false)
+    expect(hasFriendConversations([{ type: 'pet_dm' }])).toBe(false)
+    expect(hasFriendConversations([{ type: 'pet_dm' }, { type: 'pair' }])).toBe(true)
   })
 })

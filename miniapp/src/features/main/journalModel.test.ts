@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getWeekDays, groupByDay, localDayKey, resolveMoodRoomId, shiftWeek, startOfWeek, weekMonthLabel } from './journalModel'
+import { getWeekDays, groupByDay, journalDateLabel, journalDisplayPhotos, journalMoodDisplay, localDayKey, parseJournalMoodTitle, resolveMoodRoomId, shiftWeek, startOfWeek, weekMonthLabel } from './journalModel'
 
 describe('journal week strip', () => {
   it('starts the week on Monday', () => {
@@ -25,7 +25,25 @@ describe('journal week strip', () => {
   })
 
   it('labels the month of the visible week', () => {
-    expect(weekMonthLabel(new Date(2026, 7, 23))).toBe('2026年 8月')
+    expect(weekMonthLabel(new Date(2026, 7, 23))).toBe('2026年8月')
+  })
+
+  it('formats the diary date line used on the editor page', () => {
+    expect(journalDateLabel('2026-08-26')).toBe('8月26日 星期三')
+  })
+
+  it('formats and parses the editor mood line used on the diary card', () => {
+    expect(journalMoodDisplay('happy', 'sunny')).toBe('开心 ☀️')
+    expect(parseJournalMoodTitle('开心 ☀️')).toEqual({ moodId: 'happy', weatherId: 'sunny', isMoodTitle: true })
+    expect(parseJournalMoodTitle('难过 🌧️')).toEqual({ moodId: 'sad', weatherId: 'rain', isMoodTitle: true })
+    expect(parseJournalMoodTitle('阳光正好的一天')).toEqual({ moodId: 'happy', weatherId: 'sunny', isMoodTitle: false })
+  })
+})
+
+describe('journal display photos', () => {
+  it('uses the default puppy photo until the player uploads one', () => {
+    expect(journalDisplayPhotos([], 'default.png')).toEqual({ src: 'default.png', isDefault: true })
+    expect(journalDisplayPhotos(['wxfile://mine.jpg'], 'default.png')).toEqual({ src: 'wxfile://mine.jpg', isDefault: false })
   })
 })
 

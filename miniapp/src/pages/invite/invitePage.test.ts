@@ -25,4 +25,11 @@ describe('invite page', () => {
 
     expect(source).toContain('viewerType === null && !failed)) return null')
   })
+
+  it('marks the accepted room as pending Xiaoduoli unlock before returning home', () => {
+    const source = fs.readFileSync(invitePagePath, 'utf8')
+
+    expect(source).toContain('addPendingUnlockRoom')
+    expect(source).toContain('addPendingUnlockRoom(result.room.id)')
+  })
 })

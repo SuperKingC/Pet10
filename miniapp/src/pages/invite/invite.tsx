@@ -6,6 +6,7 @@ import { getAccessToken } from '../../services/apiClient'
 import { invitationViewerMessage, resolveInvitationViewer } from '../../domain/invitationViewer'
 import { invitationApi, type InvitationSummary } from '../../services/invitationApi'
 import { launchContextApi } from '../../services/launchContextApi'
+import { addPendingUnlockRoom } from '../../services/xiaoduoliUnlockStorage'
 import { showInfo } from '../../services/feedback'
 import './invite.scss'
 
@@ -90,6 +91,7 @@ export default function Invite() {
       const result = await invitationApi.accept(token)
       Taro.removeStorageSync(invitationKey)
       Taro.setStorageSync(activeRoomKey, result.room.id)
+      addPendingUnlockRoom(result.room.id)
       Taro.reLaunch({ url: '/pages/index/index' })
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '接受邀请失败')

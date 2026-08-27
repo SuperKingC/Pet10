@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
@@ -26,7 +26,7 @@ import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappGamesModal } from '../../features/main/MiniappGamesModal'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
 import { MiniappTarotFlow } from '../../features/tarot/MiniappTarotFlow'
-import { getInvitationButtonState, shouldShowNestFeedback } from '../../features/main/miniappViewModel'
+import { getInvitationButtonState, getNestActionButton, shouldShowNestFeedback, type NestSceneMode } from '../../features/main/miniappViewModel'
 import './index.scss'
 
 const activeRoomKey = 'pet10_active_room_id'
@@ -63,8 +63,9 @@ export default function Index() {
   const [gobangOpen, setGobangOpen] = useState(false)
   const [tarotOpen, setTarotOpen] = useState(false)
   const [tarotShareTitle, setTarotShareTitle] = useState('')
-  const [journalShareTitle, setJournalShareTitle] = useState('')
   const [journalRefreshKey, setJournalRefreshKey] = useState(0)
+  const [nestSceneMode, setNestSceneMode] = useState<NestSceneMode>('loading')
+  const [boxPhase, setBoxPhase] = useState<'idle' | 'jumping'>('idle')
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -91,16 +92,6 @@ export default function Index() {
     const invitationPath = shareInvitation
       ? buildInvitationShare(shareInvitation.token, context?.user.displayName || '好友').path
       : '/pages/index/index'
-    if (journalShareTitle) {
-      return {
-        title: journalShareTitle,
-        path: invitationPath,
-        success: () => {
-          setJournalShareTitle('')
-          void prepareInvitation()
-        },
-      }
-    }
     if (tarotShareTitle) {
       return {
         title: tarotShareTitle,
@@ -275,6 +266,10 @@ export default function Index() {
     setShareInvitation(null)
   }
 
+  const handleJumpFinished = useCallback(() => {
+    setBoxPhase('idle')
+  }, [])
+
   if (!hasAuthenticatedSession(accessToken)) {
     return <MiniappLoginScreen
       busy={loading}
@@ -296,6 +291,7 @@ export default function Index() {
   }
 
   const invitationButton = getInvitationButtonState(Boolean(shareInvitation), preparingShare)
+  const nestAction = getNestActionButton(nestSceneMode, invitationButton, boxPhase === 'jumping')
 
   const renderMainContent = () => {
     if (activeTab === 'messages') {
@@ -308,7 +304,6 @@ export default function Index() {
       return <MiniappJournalView
         roomId={roomId}
         refreshKey={journalRefreshKey}
-        onShareTitleChange={setJournalShareTitle}
       />
     }
     if (activeTab === 'me') {
@@ -318,9 +313,12 @@ export default function Index() {
       context={context}
       pet={pet}
       roomId={roomId}
+      boxPhase={boxPhase}
       onAction={handleAction}
       onSelectRoom={selectRoom}
       onOpenMemories={() => void openMemories()}
+      onSceneModeChange={setNestSceneMode}
+      onJumpFinished={handleJumpFinished}
     />
   }
 
@@ -371,13 +369,17 @@ export default function Index() {
         onShareTitleChange={setTarotShareTitle}
       />
     )}
-    {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (invitationButton.shareReady ? (
+    {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && nestAction.kind === 'unlock' ? (
+      <Button className="share-button" disabled={nestAction.disabled} onClick={() => setBoxPhase('jumping')}>
+        {nestAction.label}
+      </Button>
+    ) : hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (nestAction.shareReady ? (
       <Button className="share-button" openType="share">
-        {invitationButton.label}
+        {nestAction.label}
       </Button>
     ) : (
-      <Button className="share-button" disabled={invitationButton.disabled} onClick={() => void prepareInvitation()}>
-        {invitationButton.label}
+      <Button className="share-button" disabled={nestAction.disabled} onClick={() => void prepareInvitation()}>
+        {nestAction.label}
       </Button>
     ))}
     {hasAuthenticatedSession(accessToken) && <MiniappTabBar

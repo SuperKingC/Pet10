@@ -1,3 +1,8 @@
 export default definePageConfig({
-  navigationBarTitleText: '写日记'
+  navigationBarTitleText: '小多利宠物伙伴',
+  navigationBarBackgroundColor: '#fff8ee',
+  navigationBarTextStyle: 'black',
+  backgroundColor: '#fff8ee',
+  backgroundColorTop: '#fff8ee',
+  backgroundColorBottom: '#fff8ee',
 })

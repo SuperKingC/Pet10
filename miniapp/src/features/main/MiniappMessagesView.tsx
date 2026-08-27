@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Button, Input, ScrollView, Text, View } from '@tarojs/components'
+import { Button, Image, Input, ScrollView, Text, View } from '@tarojs/components'
 import { roomApi, type RoomMessage } from '../../services/roomApi'
 import { startSingleFlightPolling } from '../../services/singleFlightPolling'
 import { socialApi, type MiniappConversation } from '../../services/socialApi'
+import { hasFriendConversations } from './miniappViewModel'
 import './MiniappMessagesView.scss'
+
+const messagesEmpty = require('../../assets/messages-empty.png')
 
 interface MiniappMessagesViewProps {
   roomId: string
@@ -70,13 +73,27 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
     }
   }
 
+  const showEmptyState = !hasFriendConversations(conversations)
+
   return (
     <View className="miniapp-messages">
       <View className="miniapp-page-header miniapp-messages__header">
         <Text className="miniapp-page-title miniapp-messages__title">消息</Text>
-        <Text className="miniapp-page-caption miniapp-messages__caption">你们的每一句话都会被小多利记住。</Text>
+        <Text className="miniapp-page-caption miniapp-messages__caption">你们的每一句温暖都由小多帮您记住</Text>
       </View>
-      {roomId ? (
+      {showEmptyState ? (
+        <View className="miniapp-messages__empty-card">
+          <Image
+            className="miniapp-messages__empty-illustration"
+            mode="widthFix"
+            src={messagesEmpty}
+            fadeIn={false}
+          />
+          <Text className="miniapp-messages__empty-title">还没有消息</Text>
+          <Text className="miniapp-messages__empty-copy">搜索好友并通过后，这里会显示你们的聊天。</Text>
+          <Button className="miniapp-messages__empty-action" openType="share">去邀请好友</Button>
+        </View>
+      ) : (
         <>
           <View className="miniapp-messages__conversation-list">
             {conversations.map((conversation) => (
@@ -97,13 +114,15 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
               </Button>
             ))}
           </View>
-          <Button className="miniapp-messages__conversation" onClick={() => onOpenRoom(roomId)}>
-            <View>
-              <Text className="miniapp-messages__conversation-title">共享房间</Text>
-              <Text className="miniapp-messages__conversation-copy">你们和小多利的共同聊天</Text>
-            </View>
-            <Text className="miniapp-messages__arrow">›</Text>
-          </Button>
+          {roomId && (
+            <Button className="miniapp-messages__conversation" onClick={() => onOpenRoom(roomId)}>
+              <View>
+                <Text className="miniapp-messages__conversation-title">共享房间</Text>
+                <Text className="miniapp-messages__conversation-copy">你们和小多利的共同聊天</Text>
+              </View>
+              <Text className="miniapp-messages__arrow">›</Text>
+            </Button>
+          )}
           <ScrollView className="miniapp-messages__list" scrollY>
             {messages.length === 0 && <Text className="miniapp-messages__empty">还没有消息，先打个招呼吧。</Text>}
             {messages.map((message) => (
@@ -127,11 +146,6 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
           <Button className="miniapp-messages__pet-reply" loading={busy} onClick={requestPetReply}>叫小多利说句话</Button>
           {error && <Text className="miniapp-messages__error">{error}</Text>}
         </>
-      ) : (
-        <View className="miniapp-messages__empty">
-          <Text>还没有消息</Text>
-          <Text>接受好友邀请后，这里会显示你们的聊天。</Text>
-        </View>
       )}
     </View>
   )

@@ -51,7 +51,10 @@ describe('miniapp main layout', () => {
       expect(source).toContain('miniapp-page-header')
       expect(source).toContain('miniapp-page-title')
     }
-    expect(indexStyles).toMatch(/\.miniapp-page-header\s*\{[\s\S]*padding:\s*8px 2px 6px;/)
+    expect(sources[0]).toContain('miniapp-page-caption')
+    expect(sources[2]).toContain('miniapp-page-caption')
+    expect(sources[3]).toContain('miniapp-page-caption')
+    expect(indexStyles).toMatch(/\.miniapp-page-header\s*\{[\s\S]*padding:\s*2px 2px 4px;/)
     expect(indexStyles).toMatch(/\.miniapp-page-title\s*\{[\s\S]*font-size:\s*var\(--font-size-page-title\);[\s\S]*font-weight:\s*var\(--font-weight-bold\);/)
   })
 
@@ -68,7 +71,7 @@ describe('miniapp main layout', () => {
     const tabStyles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
     expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*background:\s*#fff8ee;/)
-    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*16px 32px 220px;/)
+    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*4px 32px 220px;/)
     expect(tabStyles).toMatch(/\.miniapp-tab-bar\s*\{[\s\S]*background:\s*#fff8ee;/)
   })
 })

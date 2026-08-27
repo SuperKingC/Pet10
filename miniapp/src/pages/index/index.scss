@@ -1,6 +1,6 @@
 .home-page {
   min-height: 100vh;
-  padding: 16px 32px 220px;
+  padding: 4px 32px 220px;
   background: #fff8ee;
 }
 
@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 8px 2px 6px;
+  padding: 2px 2px 4px;
 }
 
 .miniapp-page-title {
@@ -95,10 +95,11 @@
 .share-button {
   margin-top: 16px;
   border: 0;
-  border-radius: 18px;
-  background: #35a35c;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d9855a 0%, #c56f45 100%);
   color: #fff;
   font-size: var(--font-size-body);
+  box-shadow: 0 8px 16px rgba(160, 90, 50, 0.18);
 }
 
 .share-button[disabled], .room-button[disabled] {

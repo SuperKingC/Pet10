@@ -29,7 +29,59 @@ export function getWeekDays(anchor: Date): WeekDay[] {
 }
 
 export function weekMonthLabel(anchor: Date): string {
-  return `${anchor.getFullYear()}年 ${anchor.getMonth() + 1}月`
+  return `${anchor.getFullYear()}年${anchor.getMonth() + 1}月`
+}
+
+const weekdayNames = ['日', '一', '二', '三', '四', '五', '六']
+
+export function journalDateLabel(dayKey: string): string {
+  const [year, month, day] = dayKey.split('-').map(Number)
+  const weekday = weekdayNames[new Date(year, month - 1, day).getDay()]
+  return `${month}月${day}日 星期${weekday}`
+}
+
+export const JOURNAL_MOODS = [
+  { id: 'happy', label: '开心', icon: '☀️' },
+  { id: 'calm', label: '平静', icon: '🌿' },
+  { id: 'sad', label: '难过', icon: '🌧️' },
+  { id: 'excited', label: '兴奋', icon: '✨' },
+] as const
+
+export const JOURNAL_WEATHERS = [
+  { id: 'sunny', label: '晴', icon: '☀️' },
+  { id: 'cloudy', label: '阴', icon: '☁️' },
+  { id: 'rain', label: '雨', icon: '🌧️' },
+  { id: 'snow', label: '雪', icon: '❄️' },
+] as const
+
+export function journalMoodDisplay(moodId: string, weatherId = 'sunny'): string {
+  const mood = JOURNAL_MOODS.find((item) => item.id === moodId) ?? JOURNAL_MOODS[0]
+  const weather = JOURNAL_WEATHERS.find((item) => item.id === weatherId) ?? JOURNAL_WEATHERS[0]
+  return `${mood.label} ${weather.icon}`
+}
+
+export function parseJournalMoodTitle(title: string): { moodId: string; weatherId: string; isMoodTitle: boolean } {
+  const trimmed = title.trim()
+  for (const mood of JOURNAL_MOODS) {
+    if (trimmed === mood.label) return { moodId: mood.id, weatherId: 'sunny', isMoodTitle: true }
+    for (const weather of JOURNAL_WEATHERS) {
+      if (trimmed === `${mood.label} ${weather.icon}`) {
+        return { moodId: mood.id, weatherId: weather.id, isMoodTitle: true }
+      }
+    }
+  }
+  return { moodId: 'happy', weatherId: 'sunny', isMoodTitle: false }
+}
+
+export interface JournalDisplayPhoto {
+  src: string
+  isDefault: boolean
+}
+
+export function journalDisplayPhotos(userPhotos: string[], fallback: string): JournalDisplayPhoto {
+  const first = userPhotos[0]
+  if (first) return { src: first, isDefault: false }
+  return { src: fallback, isDefault: true }
 }
 
 export function groupByDay<T extends { day: string }>(entries: T[]): Map<string, T[]> {

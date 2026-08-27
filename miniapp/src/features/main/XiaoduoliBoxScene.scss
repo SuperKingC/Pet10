@@ -1,0 +1,238 @@
+.xiaoduoli-box {
+  position: relative;
+  width: 100%;
+  height: 480rpx;
+  overflow: hidden;
+}
+
+.xiaoduoli-box__stage {
+  position: absolute;
+  inset: 0;
+}
+
+.xiaoduoli-box__shadow {
+  position: absolute;
+  right: 22%;
+  bottom: 8%;
+  left: 22%;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(94, 59, 29, 0.14);
+  transform: scaleX(1);
+}
+
+.xiaoduoli-box__box-wrap,
+.xiaoduoli-box__puppy-wrap,
+.xiaoduoli-box__standing-wrap {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.xiaoduoli-box__box-wrap {
+  bottom: 4%;
+  z-index: 1;
+  height: 62%;
+  transform-origin: 50% 80%;
+}
+
+.xiaoduoli-box__puppy-wrap {
+  top: 2%;
+  z-index: 2;
+  height: 58%;
+  transform-origin: 50% 92%;
+  animation: xiaoduoli-peek 3.2s ease-in-out infinite;
+}
+
+.xiaoduoli-box__standing-wrap {
+  top: 0;
+  z-index: 3;
+  height: 86%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.xiaoduoli-box__box,
+.xiaoduoli-box__puppy,
+.xiaoduoli-box__standing {
+  width: 100%;
+  height: 100%;
+}
+
+.xiaoduoli-box__ribbon {
+  position: absolute;
+  top: 22%;
+  z-index: 4;
+  width: 10px;
+  height: 22px;
+  border-radius: 2px;
+  animation-name: xiaoduoli-ribbon;
+  animation-timing-function: cubic-bezier(0.22, 0.68, 0.28, 1);
+  animation-fill-mode: both;
+}
+
+.xiaoduoli-box__star {
+  position: absolute;
+  z-index: 4;
+  color: #efbe68;
+  font-size: 28px;
+  line-height: 1;
+  animation-name: xiaoduoli-star;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.xiaoduoli-box--jumping .xiaoduoli-box__puppy-wrap {
+  animation: xiaoduoli-jump 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+}
+
+.xiaoduoli-box--jumping .xiaoduoli-box__box-wrap {
+  animation: xiaoduoli-box-recoil 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+}
+
+.xiaoduoli-box--jumping .xiaoduoli-box__shadow {
+  animation: xiaoduoli-shadow 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+}
+
+.xiaoduoli-box--jumping .xiaoduoli-box__standing-wrap {
+  animation: xiaoduoli-appear 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+}
+
+@keyframes xiaoduoli-peek {
+  0%,
+  14% {
+    transform: rotate(0deg) translateX(0);
+  }
+  30% {
+    transform: rotate(-11deg) translateX(-6%);
+  }
+  38% {
+    transform: rotate(-11deg) translateX(-6%);
+  }
+  52% {
+    transform: rotate(0deg) translateX(0);
+  }
+  70% {
+    transform: rotate(9deg) translateX(5%);
+  }
+  80% {
+    transform: rotate(9deg) translateX(5%);
+  }
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+}
+
+@keyframes xiaoduoli-jump {
+  0% {
+    transform: translateY(0) scale(1, 1);
+    opacity: 1;
+  }
+  14% {
+    transform: translateY(10%) scale(1.08, 0.84);
+  }
+  38% {
+    transform: translateY(-46%) scale(0.9, 1.14);
+  }
+  52% {
+    transform: translateY(-50%) scale(1, 1);
+  }
+  78% {
+    transform: translateY(-12%) scale(1.06, 0.92);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(-6%) scale(1, 1);
+    opacity: 0;
+  }
+}
+
+@keyframes xiaoduoli-box-recoil {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  14% {
+    transform: rotate(-2deg) translateY(6px);
+  }
+  38% {
+    transform: rotate(1.6deg) translateY(-4px);
+  }
+  78% {
+    transform: rotate(-0.6deg) translateY(2px);
+  }
+}
+
+@keyframes xiaoduoli-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  14% {
+    transform: scaleX(1.08);
+  }
+  38% {
+    transform: scaleX(0.72);
+    opacity: 0.55;
+  }
+  78% {
+    transform: scaleX(1.04);
+  }
+}
+
+@keyframes xiaoduoli-appear {
+  0%,
+  36% {
+    opacity: 0;
+    transform: translateY(18%) scale(0.86);
+  }
+  52% {
+    opacity: 1;
+    transform: translateY(-8%) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes xiaoduoli-ribbon {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(8px, 180px, 0) rotate(var(--ribbon-rotate, 180deg));
+    opacity: 0;
+  }
+}
+
+@keyframes xiaoduoli-star {
+  0% {
+    transform: scale(0.2) rotate(-12deg);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15) rotate(8deg);
+  }
+  100% {
+    transform: scale(0.6) translateY(-18px) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xiaoduoli-box__puppy-wrap,
+  .xiaoduoli-box--jumping .xiaoduoli-box__puppy-wrap,
+  .xiaoduoli-box--jumping .xiaoduoli-box__box-wrap,
+  .xiaoduoli-box--jumping .xiaoduoli-box__shadow,
+  .xiaoduoli-box--jumping .xiaoduoli-box__standing-wrap,
+  .xiaoduoli-box__ribbon,
+  .xiaoduoli-box__star {
+    animation-duration: 0.01ms !important;
+  }
+}

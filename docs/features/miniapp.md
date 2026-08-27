@@ -12,10 +12,12 @@ flowchart LR
   B -->|"是"| C["确认并接受邀请"]
   B -->|"否"| D{"是否已有小窝"}
   C --> E["创建关系小窝和宠物"]
-  D -->|"否"| F["准备中的小窝"]
+  D -->|"否"| F["准备中的小窝/箱中张望"]
   D -->|"是"| G["恢复或切换小窝"]
+  E --> K["箱中待解锁"]
+  K --> L["点解锁按钮跳出"]
   F --> H["微信分享邀请好友"]
-  E --> I["真实共享房间"]
+  L --> I["真实共享房间"]
   G --> I
   I --> J["宠物互动与消息同步"]
 ```
@@ -34,12 +36,14 @@ flowchart LR
 
 ### 小程序主界面补充
 
-- 无好友时，小窝页显示“小窝”标题和固定副标题，小窝背景右侧纵向展示放大的主要快捷入口，不显示重复的邀请引导标题或正常恢复提示。
+- 小窝、消息、我的页标题下保留简介；主内容区上边距收紧，底部导航位置不变。
+- 无好友时，小窝邀请界面上方是小多利在纸箱里探头左顾右盼，中部信纸信件（图片 `widthFix`/`aspectFit` 不拉伸，正文可滚动），下方功能预告；底部为邀请分享按钮。
+- 好友接受邀请后，小窝仍是同一套箱中探头和信件，只把底部按钮换成「玩家已接受邀请解锁小多利~」；点按钮后播放从箱子跳出、彩带和星光，随后进入站立小多利与互动。已有小窝在本机记为已解锁，不会重播。
 - 小窝支持读取共同记忆、删除共同记忆，并展示双方贡献榜。
-- 消息页读取真实会话列表，支持切换当前共享房间。
-- 小记为单人日记：周历条按周切换并标记有日记的日期，当日日记卡片支持编辑、喜欢与分享，提供「写日记」「拍照记录」入口，底部保留完整运势详情展开。
+- 消息页读取真实会话列表，支持切换当前共享房间。无好友会话时按空态卡片展示：标题与副文案、中间较大的抱信封小狗插画（约屏宽一半，文字紧跟插画下方）、说明和「去邀请好友」分享按钮。
+- 小记为单人日记：页面背景与其它主界面同为 `#fff8ee`；标题左对齐，下方简介「记录和小多利的每一天。」，「日记 / 纪念日」居中分页；周历放在白卡片里；今日日记卡右侧有「查看」；写日记/拍照记录插图较大；各区块使用统一 32rpx 间距；写日记/拍照记录按钮收矮且距卡片底边不变，今日日记上半拍立得区略增高，运势条紧跟其下、与底栏间距接近消息页。写日记和纪念日都在当前页全屏打开，不跳转；写日记覆盖层自带顶栏（返回 / 写日记 / 保存）、白卡片（日期、心情、正文、拍立得、天气/心情/相册/地点工具栏）和底部庭院插画，默认拍立得用奔跑小狗。不提供点赞和分享。
 - 日记数据使用个人维度 `/api/diaries` 接口（创建、区间列表、更新、删除、切换喜欢），照片压缩后以 base64 存储，单张不超过 30 万字符、每篇最多 3 张。
-- 纪念日与日记编辑器是独立全页面（`pages/journal-anniversary`、`pages/journal-editor`），不使用弹窗；纪念日沿用房间维度接口，无好友时回退个人 `pet_dm` 房间。
+- 纪念日与日记编辑器仍保留独立页面路由作壳层（`pages/journal-anniversary`、`pages/journal-editor`），主路径在小记当前页全屏打开对应面板；纪念日沿用房间维度接口，无好友时回退个人 `pet_dm` 房间。
 - 我的页面支持 MBTI 选择并通过资料接口保存。
 - 我的页面复用 `avatarConfig` 合同，支持头像预览、编辑、恢复和保存。
 - 小程序主页面壳层、底部安全区和底部导航使用统一的 `#fff8ee` 背景，避免切换到底部页面时出现白色露底。
@@ -76,6 +80,9 @@ flowchart LR
 ## 代码入口
 
 - `miniapp/src/pages/index/index.tsx`
+- `miniapp/src/features/main/MiniappJournalView.tsx`
+- `miniapp/src/features/main/JournalAnniversaryPanel.tsx`
+- `miniapp/src/features/main/JournalEditorForm.tsx`
 - `miniapp/src/domain/petRules.ts`
 - `miniapp/src/services/apiClient.ts`
 - `miniapp/src/services/authApi.ts`
@@ -85,6 +92,10 @@ flowchart LR
 - `miniapp/src/services/roomApi.ts`
 - `miniapp/src/services/petMapper.ts`
 - `miniapp/src/pages/invite/invite.tsx`
+- `miniapp/src/features/main/MiniappNestView.tsx`
+- `miniapp/src/features/main/XiaoduoliBoxScene.tsx`
+- `miniapp/src/domain/xiaoduoliUnlock.ts`
+- `miniapp/src/services/xiaoduoliUnlockStorage.ts`
 - `miniapp/src/pages/room/room.tsx`
 - `miniapp/src/components/PetStatusCard.tsx`
 - `miniapp/src/components/PetActionBar.tsx`
@@ -127,6 +138,15 @@ npm run build:weapp --prefix miniapp
 | `navigation/gobang.png` | 256×256 | 94 KB | 游戏弹窗五子棋入口图标 |
 | `navigation/codeword.png` | 256×256 | 93 KB | 爪印菜单每日暗号图标 |
 | `me/mbti.png` | 128×128 | 30 KB | 我的页性格类型入口图标 |
+| `nest/letter-paper.png` | 720×420 | 51 KB | 无好友小窝信件信纸背景 |
+| `nest/xiaoduoli-box.png` | 520×440 | 156 KB | 邀请/待解锁纸箱 |
+| `nest/xiaoduoli-peek.png` | 446×314 | 147 KB | 箱中探头左顾右盼，解锁时从箱子跳出 |
+| `messages-empty.png` | 520×411 | 89 KB | 消息页无好友空态：抱信封小狗 |
+| `journal/polaroid-run.png` | 420×406 | 103 KB | 小记与写日记默认奔跑小狗拍立得，点击可换自己的照片 |
+| `journal/polaroid-sit.png` | 420×373 | 90 KB | 小记备用坐姿小狗拍立得 |
+| `journal/action-write.png` | 320×270 | 45 KB | 小记「写日记」按钮插画 |
+| `journal/action-photo.png` | 359×219 | 65 KB | 小记「拍照记录」按钮插画 |
+| `journal/editor-yard.jpg` | 750×750 | 45 KB | 写日记页底部庭院背景 |
 
 PNG 保留原尺寸与透明通道并采用 256 色优化；房间背景保留 1280×1280 构图并重新编码为 WebP。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载。
 
@@ -153,6 +173,8 @@ D:\Pet10\miniapp\dist
 ```
 
 仓库根目录的 `project.config.json` 通过 `miniprogramRoot` 指向 `miniapp/dist`；`miniapp/project.config.json` 仍支持单独导入小程序目录。不要直接导入构建输出目录。
+
+预览时如果微信开发者工具已经打开，继续使用该窗口清缓存并编译，不要再开新窗口。只有尚未打开时才启动一次。
 
 ## 白屏排查
 
@@ -193,6 +215,7 @@ D:\Pet10\miniapp\dist
 - [x] 个人页支持姓名、性别编辑，性别默认保密；
 - [x] 个人页右侧资料值和头像编辑器选项具备可读的字号、间距和点击区域；
 - [x] 小记在未设置生日时不请求运势接口，改为提示先设置生日；
+- [ ] 接受邀请后小窝显示箱中探头左顾右盼和「玩家已接受邀请解锁小多利~」，点按钮后跳出并带彩带星光；
 - [ ] 使用真实 HTTPS API 完成两人接受邀请并读取同一只宠物；
 - [ ] 两台真机轮流操作后验证数据同步；
 - [ ] 微信开发者工具视觉验收；

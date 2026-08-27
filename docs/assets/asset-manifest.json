@@ -9,6 +9,17 @@
     "tarotUiError": 512000
   },
   "assets": [
+    { "path": "miniapp/src/assets/messages-empty.png", "category": "runtime-feature", "purpose": "Messages empty state puppy-with-envelope illustration" },
+    { "path": "miniapp/src/assets/nest/letter-paper.png", "category": "runtime-feature", "purpose": "Nest empty-friend letter paper background" },
+    { "path": "miniapp/src/assets/journal/polaroid-run.png", "category": "runtime-feature", "purpose": "Journal default running puppy polaroid" },
+    { "path": "miniapp/src/assets/journal/polaroid-sit.png", "category": "runtime-feature", "purpose": "Journal editor default sitting puppy polaroid" },
+    { "path": "miniapp/src/assets/journal/action-write.png", "category": "runtime-feature", "purpose": "Journal write-diary button illustration" },
+    { "path": "miniapp/src/assets/journal/action-photo.png", "category": "runtime-feature", "purpose": "Journal take-photo button illustration" },
+    { "path": "miniapp/src/assets/journal/puppy-cushion.png", "category": "runtime-feature", "purpose": "Journal sliced puppy-on-cushion illustration" },
+    { "path": "miniapp/src/assets/journal/editor-yard.jpg", "category": "runtime-feature", "purpose": "Journal editor bottom yard background" },
+    { "path": "miniapp/src/assets/nest/xiaoduoli-box.png", "category": "runtime-feature", "purpose": "Nest invite Xiaoduoli cardboard box layer" },
+    { "path": "miniapp/src/assets/nest/xiaoduoli-peek.png", "category": "runtime-feature", "purpose": "Nest invite Xiaoduoli peeking from box and jumping sprite" },
+    { "path": "design-assets/nest/xiaoduoli-in-box-source.jpg", "category": "source-only", "purpose": "Source illustration of Xiaoduoli in a box" },
     { "path": "public/tarot/cards/death.jpg", "category": "runtime-feature", "purpose": "Tarot card" },
     { "path": "public/tarot/cards/high-priestess.jpg", "category": "runtime-feature", "purpose": "Tarot card" },
     { "path": "public/tarot/cards/judgement.jpg", "category": "runtime-feature", "purpose": "Tarot card" },
