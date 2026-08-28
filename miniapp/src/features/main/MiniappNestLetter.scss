@@ -6,12 +6,13 @@
   padding: 12rpx 0 0;
 }
 
-// 信纸卡片：宽 620rpx 居中、高固定（整封信 + 预告 + 按钮收进首屏），背景由九宫格切片铺满
+// 信纸卡片：宽 620rpx 居中、高 700rpx 竖长比例（用户要求信纸视觉拉长；
+// 超出一屏由锁定层内滚动兜底），背景由九宫格切片铺满
 .nest-letter__card {
   position: relative;
   width: 620rpx;
   margin: 0 auto;
-  height: 620rpx;
+  height: 700rpx;
   overflow: hidden;
 }
 
