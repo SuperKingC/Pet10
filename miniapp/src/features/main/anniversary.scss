@@ -5,7 +5,7 @@
 .anniv-list__skeleton--short { height: 148rpx; width: 86%; }
 @keyframes anniv-shimmer { to { background-position: -200% 0; } }
 .anniv-list__empty { display: flex; flex-direction: column; align-items: center; gap: 10rpx; padding: 80rpx 40rpx; background: #fffdf8; border: 1px solid #f0dcc8; border-radius: 28rpx; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 14rpx 30rpx rgba(126, 82, 49, .08); animation: anniv-rise .4s ease-out both; }
-.anniv-list__empty-icon { width: 132rpx; height: 132rpx; margin-bottom: 6rpx; filter: drop-shadow(0 8rpx 14rpx rgba(227, 154, 85, .25)); }
+.anniv-list__empty-icon { width: 132rpx; height: 132rpx; margin-bottom: 6rpx; }
 .anniv-list__empty-title { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-semibold); }
 .anniv-list__empty-hint { color: #a89489; font-size: var(--font-size-aux); }
 .anniv-list__card { position: relative; display: flex; align-items: center; gap: 22rpx; padding: 30rpx 26rpx; background: #fffdf8; border: 1px solid #f0dcc8; border-radius: 28rpx; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 2rpx 6rpx rgba(126, 82, 49, .05), 0 14rpx 30rpx rgba(126, 82, 49, .08); animation: anniv-rise .4s ease-out both; }
@@ -13,21 +13,21 @@
 .anniv-list__card:nth-child(3) { animation-delay: .08s; }
 .anniv-list__card:nth-child(n+4) { animation-delay: .12s; }
 .anniv-list__card--today { background: linear-gradient(180deg, #fff3dd, #ffe9cd); border-color: #f0c188; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 10rpx 26rpx rgba(227, 154, 85, .22); }
-.anniv-list__icon-ring { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 104rpx; height: 104rpx; background: linear-gradient(160deg, #fff4e3, #ffe6c9); border-radius: 50%; box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, .7), 0 4rpx 10rpx rgba(227, 154, 85, .2); }
-.anniv-list__icon { width: 68rpx; height: 68rpx; }
+.anniv-list__icon-ring { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 108rpx; height: 108rpx; background: #fbf3e3; border-radius: 26rpx; box-shadow: 0 4rpx 10rpx rgba(126, 82, 49, .1); }
+.anniv-list__icon { width: 88rpx; height: 88rpx; }
 .anniv-list__body { display: flex; flex: 1; flex-direction: column; gap: 6rpx; min-width: 0; }
 .anniv-list__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .anniv-list__meta { color: #b49a8d; font-size: var(--font-size-aux); }
 .anniv-list__note { color: #a89489; font-size: var(--font-size-aux); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .anniv-list__sub { color: #d97b4f; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
-.anniv-list__count { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; min-width: 136rpx; padding: 18rpx 12rpx; background: linear-gradient(165deg, #fff1dd, #ffe3c1); border-radius: 22rpx; box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, .65), 0 4rpx 12rpx rgba(227, 154, 85, .18); }
+.anniv-list__count { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; min-width: 136rpx; padding: 18rpx 12rpx; background: linear-gradient(165deg, #fff1dd, #ffe3c1); border-radius: 22rpx; box-shadow: 0 4rpx 12rpx rgba(227, 154, 85, .18); }
 .anniv-list__count--today { background: linear-gradient(165deg, #ffe5bd, #ffd09c); }
 .anniv-list__count-num { color: #c9603a; font-size: var(--font-size-overlay-title); font-weight: var(--font-weight-bold); line-height: 1.15; }
 .anniv-list__count--today .anniv-list__count-num { color: #b54f28; }
 .anniv-list__count-unit { color: #c08c62; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); line-height: 1.4; }
-.anniv-list__add { margin-top: 4rpx; padding: 26rpx 0; color: #b3703f; background: rgba(255, 253, 248, .7); border: 2rpx dashed #d9ad83; border-radius: 28rpx; font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8); }
+.anniv-list__add { margin-top: 4rpx; padding: 26rpx 0; color: #b3703f; background: #fffdf8; border: 2rpx dashed #d9ad83; border-radius: 28rpx; font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); box-shadow: 0 4rpx 10rpx rgba(126, 82, 49, .06); }
 .anniv-list__add::after { border: none; }
-@keyframes anniv-rise { from { opacity: 0; transform: translateY(18rpx); } to { opacity: 1; transform: translateY(0); } }
+@keyframes anniv-rise { from { transform: translateY(18rpx); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
   .anniv-list__skeleton { animation: none; }
   .anniv-list__card, .anniv-list__empty, .anniv-form { animation: none; }
@@ -42,9 +42,9 @@
 .anniv-form__value { color: #5e3b1d; font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
 .anniv-form__input { color: #5e3b1d; font-size: var(--font-size-body); }
 .anniv-form__icons { display: flex; gap: 14rpx; }
-.anniv-form__icon-item { display: flex; flex: 1; align-items: center; justify-content: center; margin: 0; padding: 20rpx 0; background: #fff8ee; border: 2rpx solid #f3e3cf; border-radius: 20rpx; }
+.anniv-form__icon-item { display: flex; flex: 1; align-items: center; justify-content: center; margin: 0; padding: 20rpx 0; background: #fbf3e3; border: 2rpx solid #f0e0c8; border-radius: 20rpx; }
 .anniv-form__icon-item::after { border: 0; }
-.anniv-form__icon-item--active { background: linear-gradient(165deg, #fdeede, #fbe0c6); border-color: #e29a55; box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, .6), 0 6rpx 14rpx rgba(227, 154, 85, .22); }
+.anniv-form__icon-item--active { background: #f9e2c4; border-color: #e29a55; box-shadow: 0 6rpx 14rpx rgba(227, 154, 85, .25); }
 .anniv-form__icon-img { width: 84rpx; height: 84rpx; }
 .anniv-form__repeat { display: flex; gap: 0; padding: 6rpx; background: #f4e5d0; border-radius: 999rpx; box-shadow: inset 0 2rpx 6rpx rgba(126, 82, 49, .08); }
 .anniv-form__repeat-item, .anniv-form__repeat-item--active { flex: 1; margin: 0; padding: 12rpx 0; background: transparent; border: 0; border-radius: 999rpx; color: #8e776a; font-size: var(--font-size-secondary); }
