@@ -169,8 +169,12 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
     setShowMore((open) => !open)
   }
 
+  // 写日记/纪念日/运势覆盖层都在本层内部，被封在 z-index 19 的层级上下文里，
+  // 会被爪印菜单（z-index 30）压住底部；覆盖层打开时把整层抬到菜单之上
+  const overlayOpen = editor !== null || anniversaryOpen || fortuneOverlayOpen
+
   return (
-    <View className="miniapp-journal">
+    <View className={overlayOpen ? 'miniapp-journal miniapp-journal--overlay-open' : 'miniapp-journal'}>
       <View className="miniapp-journal__body">
         <View className="miniapp-page-header miniapp-journal__top">
           <Text className="miniapp-page-title miniapp-journal__title">小记</Text>

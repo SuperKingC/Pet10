@@ -15,6 +15,11 @@
   padding: 8px 28px 226px;
   background: #fff8ee;
 }
+/* 内部全屏覆盖层（写日记 z-50 / 纪念日 z-50 / 运势 z-40）被封在本层层级上下文内，
+   会被爪印菜单（z-index 30）压住底部；打开期间整层抬到菜单之上，关闭后回落 */
+.miniapp-journal--overlay-open {
+  z-index: 41;
+}
 .miniapp-journal__body {
   display: flex;
   flex-direction: column;
