@@ -1,0 +1,22 @@
+.miniapp-back-button {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 72rpx;
+  height: 72rpx;
+}
+
+.miniapp-back-button__icon {
+  width: 20rpx;
+  height: 20rpx;
+  margin-left: 6rpx;
+  border-left: 4rpx solid #5e3b1d;
+  border-bottom: 4rpx solid #5e3b1d;
+  border-radius: 2rpx;
+  transform: rotate(45deg);
+}
+
+.miniapp-back-button--active {
+  opacity: .6;
+}

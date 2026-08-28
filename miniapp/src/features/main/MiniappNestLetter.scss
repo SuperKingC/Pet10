@@ -2,58 +2,85 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8rpx;
-  padding: 0 0 8rpx;
+  gap: 4rpx;
+  padding: 12rpx 0 0;
 }
 
+// 信纸卡片：宽 620rpx 居中、高固定（整封信 + 预告 + 按钮收进首屏），背景由九宫格切片铺满
 .nest-letter__card {
   position: relative;
-  width: 100%;
+  width: 620rpx;
+  margin: 0 auto;
+  height: 540rpx;
   overflow: hidden;
 }
 
+// 切线比例来自 tools/make-letter-paper-slices.mjs（内容 720×549，卡片按 620rpx 宽换算）：
+// 左 59 / 右 197 / 上 110 / 下 231，中列与中行吃掉卡片与自然尺寸的差值
 .nest-letter__paper {
-  display: block;
-  width: 100%;
-  height: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 59rpx 1fr 197rpx;
+  grid-template-rows: 110rpx 1fr 231rpx;
 }
 
+.nest-letter__tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  &--tl { grid-area: 1 / 1; }
+  &--tc { grid-area: 1 / 2; }
+  &--tr { grid-area: 1 / 3; }
+  &--ml { grid-area: 2 / 1; }
+  &--mc { grid-area: 2 / 2; }
+  &--mr { grid-area: 2 / 3; }
+  &--bl { grid-area: 3 / 1; }
+  &--bc { grid-area: 3 / 2; }
+  &--br { grid-area: 3 / 3; }
+}
+
+// 正文完整平铺在白纸净区（不滚动、不分段）：左右各放宽一字（26rpx），右下留出爪印与小信封
 .nest-letter__body {
   position: absolute;
-  top: 10%;
-  right: 8%;
-  bottom: 16%;
-  left: 8%;
+  top: 90rpx;
+  left: 92rpx;
+  width: 469rpx; /* 620 卡宽 − 左 92 − 右 59 */
   box-sizing: border-box;
-  padding: 4rpx 8rpx 16rpx;
+  padding: 4rpx 8rpx 0;
 }
 
 .nest-letter__greeting {
   display: block;
   margin-bottom: 8rpx;
   color: #5b4632;
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 600;
   line-height: 1.35;
 }
 
 .nest-letter__paragraph {
   display: block;
-  margin-bottom: 8rpx;
   color: #6b5b4a;
-  font-size: 24rpx;
-  line-height: 1.5;
+  font-size: 26rpx;
+  line-height: 1.4;
 }
 
 .nest-letter__sign {
   display: block;
-  margin-right: 28rpx;
+  margin-top: 8rpx;
+  margin-right: 110rpx;
   color: #a08c74;
-  font-size: 22rpx;
+  font-size: 24rpx;
   text-align: right;
 }
 
 .nest-letter__preview {
+  margin-top: 16rpx;
   color: #a08c74;
   font-size: 22rpx;
   line-height: 1.4;

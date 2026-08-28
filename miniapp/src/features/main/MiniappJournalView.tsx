@@ -16,7 +16,7 @@ interface EditorSession {
   photo?: string
 }
 
-const polaroidRun = require('../../assets/journal/polaroid-run.png')
+const polaroidSit = require('../../assets/journal/polaroid-sit.png')
 const actionWrite = require('../../assets/journal/action-write.png')
 const actionPhoto = require('../../assets/journal/action-photo.png')
 
@@ -52,7 +52,7 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
   const selectedEntries = diariesByDay.get(selectedDay) ?? []
   const extraEntries = selectedEntries.slice(1)
   const featured = selectedEntries[0]
-  const featuredPhoto = journalDisplayPhotos(featured?.photos ?? [], polaroidRun)
+  const featuredPhoto = journalDisplayPhotos(featured?.photos ?? [], polaroidSit)
 
   useEffect(() => {
     setShowMore(false)
@@ -215,9 +215,9 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
             </View>
             <View className="journal-today__snippet" onClick={() => featured ? openEdit(featured) : writeDiary()}>
               {featured?.title ? <Text className="journal-today__title">{featured.title}</Text> : null}
-              <Text className="journal-today__text">
+              <View className="journal-today__text">
                 {featured?.body || '还没有日记，点左边的小狗照片或下方按钮，记下今天吧。'}
-              </Text>
+              </View>
             </View>
           </View>
           <View className="journal-today__actions">

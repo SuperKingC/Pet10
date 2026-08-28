@@ -16,26 +16,13 @@
   border-bottom: 1px solid rgba(96, 67, 50, .08);
 }
 
-.miniapp-fortune-view__back {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  color: #80685d;
-  background: #f3eae4;
-  border: 0;
-  border-radius: 13px;
-  font-size: 20px;
-}
-
-.miniapp-fortune-view__back::after { border: 0; }
-
 .miniapp-fortune-view__title {
   color: #382b23;
   font-size: var(--font-size-section-title);
   font-weight: var(--font-weight-bold);
 }
 
-.miniapp-fortune-view__header-spacer { width: 36px; }
+.miniapp-fortune-view__header-spacer { width: 72rpx; }
 
 .miniapp-fortune-view__body {
   display: flex;

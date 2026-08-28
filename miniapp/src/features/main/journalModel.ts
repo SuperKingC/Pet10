@@ -41,11 +41,14 @@ export function journalDateLabel(dayKey: string): string {
 }
 
 export const JOURNAL_MOODS = [
-  { id: 'happy', label: '开心', icon: '☀️' },
-  { id: 'calm', label: '平静', icon: '🌿' },
   { id: 'sad', label: '难过', icon: '🌧️' },
+  { id: 'calm', label: '平静', icon: '🌿' },
+  { id: 'happy', label: '开心', icon: '☀️' },
   { id: 'excited', label: '兴奋', icon: '✨' },
 ] as const
+
+/** 未知心情的展示兜底固定为开心，不随选择列表顺序变化 */
+const DEFAULT_MOOD = JOURNAL_MOODS.find((mood) => mood.id === 'happy') ?? JOURNAL_MOODS[0]
 
 export const JOURNAL_WEATHERS = [
   { id: 'sunny', label: '晴', icon: '☀️' },
@@ -55,7 +58,7 @@ export const JOURNAL_WEATHERS = [
 ] as const
 
 export function journalMoodDisplay(moodId: string, weatherId = 'sunny'): string {
-  const mood = JOURNAL_MOODS.find((item) => item.id === moodId) ?? JOURNAL_MOODS[0]
+  const mood = JOURNAL_MOODS.find((item) => item.id === moodId) ?? DEFAULT_MOOD
   const weather = JOURNAL_WEATHERS.find((item) => item.id === weatherId) ?? JOURNAL_WEATHERS[0]
   return `${mood.label} ${weather.icon}`
 }

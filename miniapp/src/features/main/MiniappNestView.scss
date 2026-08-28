@@ -1,7 +1,7 @@
 .miniapp-nest {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   padding: 0 14px;
 }
 
@@ -24,32 +24,6 @@
 .miniapp-nest__greeting {
   color: #a89489;
   font-size: var(--font-size-aux);
-}
-
-.miniapp-nest__rooms {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
-.miniapp-room-chip {
-  flex: 0 0 auto;
-  padding: 6px 12px;
-  color: #8a6250;
-  background: #fff0dc;
-  border: 1px solid #e8bd91;
-  border-radius: 999px;
-  font-size: var(--font-size-body);
-}
-
-.miniapp-room-chip::after {
-  border: 0;
-}
-
-.miniapp-room-chip--active {
-  color: #fff;
-  background: #d9845d;
 }
 
 .miniapp-nest__scene {

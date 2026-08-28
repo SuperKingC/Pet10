@@ -1,4 +1,4 @@
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Image, Text, View } from '@tarojs/components'
 import { useCallback, useEffect, useState } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
@@ -22,7 +22,6 @@ interface MiniappNestViewProps {
   roomId: string
   boxPhase: 'idle' | 'jumping'
   onAction(action: PetAction): void
-  onSelectRoom(roomId: string): void
   onOpenMemories(): void
   onSceneModeChange(mode: NestSceneMode): void
   onJumpFinished(): void
@@ -34,7 +33,6 @@ export function MiniappNestView({
   roomId,
   boxPhase,
   onAction,
-  onSelectRoom,
   onOpenMemories,
   onSceneModeChange,
   onJumpFinished,
@@ -88,20 +86,6 @@ export function MiniappNestView({
           {sceneMode === 'active' ? '记录你们和小多利的共同生活。' : '记录你和小多利的共同生活。'}
         </Text>
       </View>
-
-      {sceneMode === 'active' && context && context.rooms.some((room) => room.pet) && (
-        <View className="miniapp-nest__rooms">
-          {context.rooms.filter((room) => room.pet).map((room) => (
-            <Button
-              key={room.id}
-              className={room.id === roomId ? 'miniapp-room-chip miniapp-room-chip--active' : 'miniapp-room-chip'}
-              onClick={() => onSelectRoom(room.id)}
-            >
-              {room.partner.displayName} · Lv.{room.pet?.level}
-            </Button>
-          ))}
-        </View>
-      )}
 
       <View className="miniapp-nest__scene">
         {sceneMode === 'active' && pet

@@ -1,5 +1,93 @@
 # docs context
 
+## 2026-08-28（游戏中心页首插画换趴窝小多利）
+
+- **原因**：验收反馈——一起玩页首右侧改用小多利趴在窝垫上的插画。
+- **修改**：
+  - `docs/features/miniapp.md`：游戏中心描述「站立小多利插画」改为「小多利趴在窝垫上的插画（`journal/puppy-cushion.png`）」
+  - `docs/assets/asset-manifest.json`：`puppy-cushion.png` 用途补充游戏中心页首复用
+  - `miniapp/src/features/main/MiniappGamesPage.tsx`：页首右侧 `puppyImage` 改引 `journal/puppy-cushion.png`（复用既有 runtime 图，无新增资源）
+
+## 2026-08-28（返回按钮改细箭头无外圈）
+
+- **原因**：同步验收反馈——统一返回按钮去掉外圈与粗描边，只留细箭头。
+- **修改**：
+  - `docs/features/miniapp.md`：统一返回按钮条目改为「无底色深棕细左箭头」
+
+## 2026-08-28（统一全小程序返回按钮）
+
+- **原因**：同步返回按钮统一说明。
+- **修改**：
+  - `docs/features/miniapp.md`：主界面补充新增统一返回按钮条目；写日记顶栏描述改「统一返回按钮」
+  - `miniapp/src/components/MiniappBackButton.tsx/.scss`：新增共享返回按钮组件，替换写日记/纪念日/今日运势/游戏中心/五子棋 5 处自绘返回
+
+## 2026-08-28（信纸三轮：正文不分段与信封收窄上移）
+
+- **原因**：同步信纸版式调整说明。
+- **修改**：
+  - `docs/features/miniapp.md`：信纸描述补「不分段」
+  - `MiniappNestLetter.tsx/.scss`：正文四句合并整段；卡片 658×600→620×540rpx 居中；正文区左右各放宽一字
+
+## 2026-08-28（爪印菜单质感改版 + 游戏中心整页化）
+
+- **原因**：同步小程序爪印菜单视觉动效改版与「游戏」入口由居中弹窗改为整页游戏中心。二轮反馈：弹出动画更动感（强弹簧 + 标题落入 + 88rpx 行程错帧）、图标缩小（124rpx 底座/84rpx icon）、底座烤漆质感（镜面高光 + 内圈白描边）、移除关闭按钮、游戏页打开从上往下逐列入场。
+- **修改**：
+  - `docs/features/miniapp.md`：爪印菜单三入口描述（烤漆质感方形底座、一行最多四格网格从左到右排布不足一行靠左、不设关闭按钮、强弹簧上滑 + 错帧动画、`prefers-reduced-motion` 降级）；「游戏」入口改为整页游戏中心（「一起玩小游戏」标题 + 小多利插画 + 五子棋卡片 + 敬请期待 + 逐列入场动画），`navigation/gobang.png` 用途同步，代码入口补 `MiniappGamesPage.tsx`
+  - `miniapp/src/features/main/`：新增 `MiniappGamesPage.tsx/.scss`，删除 `MiniappGamesModal.tsx/.scss`；`MiniappPawMenu.tsx/.scss` 动效与底座改版、移除关闭按钮
+
+## 2026-08-28（信纸文案二轮：预告改领养提示）
+
+- **原因**：同步信纸文案二轮修改——拖鞋句定稿「等你」，信件下方功能预告行改为领养警示文案。
+- **修改**：
+  - `docs/features/miniapp.md`：无好友小窝描述「下方功能预告」改「下方领养提示（小多利独一无二、只能养一只且不能遗弃、请慎重选择一起养的对象）」
+  - `MiniappNestLetter.tsx`：底部提示行同步替换；第二段结尾定稿；第四段定为「如果你们愿意，初见那天就是我新的开始。这一次，不会再有人把我送走了。」
+
+## 2026-08-28（信纸正文文案优化）
+
+- **原因**：同步小窝信纸正文文案优化说明。
+- **修改**：
+  - `MiniappNestLetter.tsx`：四段正文人称与断句微调——信直接写给「你」（原「主人…她的拖鞋」与弃养设定矛盾），长句拆短；称呼「给还没来的家人：」、落款与底部预告不变，字数持平，样式未改
+
+## 2026-08-27（小多利探头：原图直出 + 眼部木偶拆解）
+
+- **原因**：旧抠图补痕 + 矢量重绘被否；整片眼贴式眨眼/瞟眼被反馈不像。改为 body 原图直出 + 眼部木偶拆解三层（眼眶/瞳孔/眼睑），眨眼=眼睑淡入+瞳孔压扁，瞟眼=瞳孔在眼眶内滑动。
+- **修改**：
+  - `docs/features/assets-and-performance.md`：角色动画素材规则（出生即分层优先 / 原图直出 + 覆盖件；禁止修补式反抠）
+  - `docs/features/miniapp.md`：箱中待机描述与资源表更新（body 446×314 原图直出；eyes/pupils/lids 眼部三层）
+  - `docs/assets/asset-manifest.json`：用途同步；layered.svg 源删除（矢量试点归档于 git 历史）
+
+## 2026-08-27（信纸去滚动、整封平铺）
+
+- **原因**：同步信件取消滚动、整封平铺与文案精简的说明。
+- **修改**：
+  - `docs/features/miniapp.md`：信纸描述改为「整封信完整平铺在白纸净区内，不滚动」
+
+## 2026-08-27（信纸文字超框修复与内容下移）
+
+- **原因**：同步 scroll-view 忽略 `right` 收缩导致文字超出纸面、内容整体偏上的修复。
+- **修改**：
+  - `MiniappNestLetter.scss`：正文改显式宽度 403rpx 卡住文本范围；`.nest-letter` 顶部加 28rpx 使内容下移
+
+## 2026-08-27（小窝邀请页布局微调）
+
+- **原因**：同步信件字号/信纸高度/小狗尺寸与整体上移的调整。
+- **修改**：
+  - `miniapp` 样式：信纸 545rpx、正文 28-30rpx、箱中场景 400rpx、小窝页间距收紧；功能文档无量化描述，不改
+
+## 2026-08-27（小窝信纸九宫格换图）
+
+- **原因**：同步小窝信纸替换为分层纸叠新图并改九宫格渲染的说明。
+- **修改**：
+  - `docs/features/miniapp.md`：信纸描述改九宫格切片渲染；资源表 `letter-paper.png` 换为 9 块切片行
+  - `docs/assets/asset-manifest.json`：新增 9 块切片与 `design-assets/nest/letter-paper-source.png`（source-only）
+
+## 2026-08-27（箱中待机分层行为系统）
+
+- **原因**：同步箱中待机改为无眼底图 + 眼睛覆盖层、领域层种子化时间线的说明。
+- **修改**：
+  - `docs/features/miniapp.md`：补充待机分层行为描述；资源表 peek 换为 body/eyes 两行
+  - `docs/assets/asset-manifest.json`：新增 `xiaoduoli-body.png`、`xiaoduoli-eyes.png`；peek 改为 `design-assets/nest/xiaoduoli-peek-source.png`（source-only）
+
 ## 2026-08-27（箱中动画还原到最初探头）
 
 - **原因**：同步待机恢复为纸箱探头左顾右盼，去掉整图分层说明。

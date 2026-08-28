@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Image, Input, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { diaryApi, type MiniappDiary } from '../../services/diaryApi'
+import { MiniappBackButton } from '../../components/MiniappBackButton'
 import {
   JOURNAL_MOODS,
   JOURNAL_WEATHERS,
@@ -13,6 +14,13 @@ import './JournalEditorForm.scss'
 
 const polaroidRun = require('../../assets/journal/polaroid-run.png')
 const editorYard = require('../../assets/journal/editor-yard.jpg')
+
+const moodImages: Record<string, string> = {
+  happy: require('../../assets/moods/mood-3.png'),
+  calm: require('../../assets/moods/mood-2.png'),
+  sad: require('../../assets/moods/mood-1.png'),
+  excited: require('../../assets/moods/mood-4.png'),
+}
 
 const MAX_PHOTOS = 3
 const MAX_PHOTO_CHARS = 300_000
@@ -64,6 +72,7 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
   const hasUserPhoto = photos.length > 0
   const editId = edit?.id ?? ''
   const moodLine = journalMoodDisplay(moodId, weatherId)
+  const weather = JOURNAL_WEATHERS.find((item) => item.id === weatherId) ?? JOURNAL_WEATHERS[0]
 
   const syncMoodTitle = (nextMoodId: string, nextWeatherId: string) => {
     const nextTitle = journalMoodDisplay(nextMoodId, nextWeatherId)
@@ -87,6 +96,18 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
     } catch {
       // 用户取消选择
     }
+  }
+
+  const previewPhotos = (index: number) => {
+    Taro.previewImage({ urls: photos, current: photos[index] }).catch(() => {
+      // 用户取消或预览失败
+    })
+  }
+
+  const openPrimarySheet = async () => {
+    const index = await pickSheetIndex(['查看大图', '更换照片'])
+    if (index === 0) previewPhotos(0)
+    else if (index === 1) void replacePrimaryPhoto()
   }
 
   const replacePrimaryPhoto = async () => {
@@ -113,12 +134,9 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
     syncMoodTitle(moodId, next.id)
   }
 
-  const pickMood = async () => {
-    const index = await pickSheetIndex(JOURNAL_MOODS.map((item) => `${item.label} ${item.icon}`))
-    const next = JOURNAL_MOODS[index]
-    if (!next) return
-    setMoodId(next.id)
-    syncMoodTitle(next.id, weatherId)
+  const chooseMood = (nextMoodId: string) => {
+    setMoodId(nextMoodId)
+    syncMoodTitle(nextMoodId, weatherId)
   }
 
   const save = async () => {
@@ -164,7 +182,7 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
       <Image className="journal-editor__yard" src={editorYard} mode="widthFix" />
       <View className="journal-editor">
         <View className="journal-editor__nav">
-          <Text className="journal-editor__back" onClick={onClose}>‹</Text>
+          <MiniappBackButton onClick={onClose} />
           <Text className="journal-editor__heading">写日记</Text>
           <Button className="journal-editor__save" disabled={saving} onClick={() => void save()}>
             {saving ? '保存中' : '保存'}
@@ -174,7 +192,19 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
         <View className="journal-editor__card">
           <View className="journal-editor__meta">
             <Text className="journal-editor__date">{journalDateLabel(day)}</Text>
-            <Text className="journal-editor__mood" onClick={() => void pickMood()}>{moodLine}</Text>
+          </View>
+          <View className="journal-editor__moods">
+            <Text className="journal-editor__moods-title">心情</Text>
+            {JOURNAL_MOODS.map((mood) => (
+              <View
+                key={mood.id}
+                className={moodId === mood.id ? 'journal-editor__mood-option journal-editor__mood-option--active' : 'journal-editor__mood-option'}
+                onClick={() => chooseMood(mood.id)}
+              >
+                <Image className="journal-editor__mood-image" src={moodImages[mood.id]} mode="aspectFit" />
+                <Text className="journal-editor__mood-label">{mood.label}</Text>
+              </View>
+            ))}
           </View>
           <Textarea
             className="journal-editor__body"
@@ -185,22 +215,26 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
           />
           <View
             className={hasUserPhoto ? 'journal-editor__polaroid journal-editor__polaroid--user' : 'journal-editor__polaroid'}
-            onClick={() => void replacePrimaryPhoto()}
+            onClick={() => (hasUserPhoto ? void openPrimarySheet() : void replacePrimaryPhoto())}
           >
             <Image
               className="journal-editor__polaroid-image"
               src={hasUserPhoto ? photos[0] : polaroidRun}
               mode={hasUserPhoto ? 'aspectFill' : 'aspectFit'}
             />
+            {!hasUserPhoto && <Text className="journal-editor__polaroid-hint">点这里放今天的照片</Text>}
           </View>
           {photos.length > 1 && (
             <View className="journal-editor__photos">
               {photos.slice(1).map((item, index) => (
-                <View key={`${index}-${item.slice(0, 24)}`} className="journal-editor__photo-wrap">
+                <View key={`${index}-${item.slice(0, 24)}`} className="journal-editor__photo-wrap" onClick={() => previewPhotos(index + 1)}>
                   <Image className="journal-editor__photo" src={item} mode="aspectFill" />
                   <Text
                     className="journal-editor__photo-remove"
-                    onClick={() => setPhotos((current) => current.filter((_photo, i) => i !== index + 1))}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setPhotos((current) => current.filter((_photo, i) => i !== index + 1))
+                    }}
                   >×</Text>
                 </View>
               ))}
@@ -209,12 +243,8 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
           <View className="journal-editor__toolbar">
             <View className="journal-editor__tools">
               <View className="journal-editor__tool" onClick={() => void pickWeather()}>
-                <Text className="journal-editor__tool-icon journal-editor__tool-icon--weather">☁</Text>
+                <Text className="journal-editor__tool-icon">{weather.icon}</Text>
                 <Text className="journal-editor__tool-label">天气</Text>
-              </View>
-              <View className="journal-editor__tool" onClick={() => void pickMood()}>
-                <Text className="journal-editor__tool-icon journal-editor__tool-icon--mood">☺</Text>
-                <Text className="journal-editor__tool-label">心情</Text>
               </View>
               <View className="journal-editor__tool" onClick={() => void addPhotos()}>
                 <Text className="journal-editor__tool-icon journal-editor__tool-icon--album">🖼</Text>
@@ -225,7 +255,6 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
                 <Text className="journal-editor__tool-label">地点</Text>
               </View>
             </View>
-            <Text className="journal-editor__plus" onClick={() => void addPhotos()}>+</Text>
           </View>
           {locationOpen && (
             <Input

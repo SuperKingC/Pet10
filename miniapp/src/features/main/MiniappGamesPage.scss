@@ -1,0 +1,183 @@
+.miniapp-games-page {
+  position: fixed;
+  inset: 0;
+  z-index: 32;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 18px 14px calc(24px + env(safe-area-inset-bottom));
+  background: #fff8ee;
+  animation: games-page-in .28s ease backwards;
+}
+
+.miniapp-games-page__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  animation: games-header-in .44s cubic-bezier(.3, 1.34, .52, 1) .04s backwards;
+}
+
+.miniapp-games-page__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.miniapp-games-page__title {
+  display: block;
+  color: #382b23;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-games-page__caption {
+  display: block;
+  margin-top: 3px;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+.miniapp-games-page__puppy {
+  flex-shrink: 0;
+  /* 左右负边距向标题区借宽并向右出血，放大插画而不挤压标题换行 */
+  width: 192px;
+  height: 112px;
+  margin-left: -40px;
+  margin-right: -6px;
+}
+
+.miniapp-games-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.miniapp-games-page__card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 26rpx 24rpx;
+  background: #fffdf8;
+  border: 1px solid #f0decb;
+  border-radius: 28rpx;
+  box-shadow: 0 10rpx 24rpx rgba(70, 48, 37, .08);
+  animation: games-card-in .54s cubic-bezier(.32, 1.5, .55, 1) backwards;
+}
+
+/* 从上往下逐张入场，后续新增卡片按序错帧 */
+.miniapp-games-page__card:nth-child(1) {
+  animation-delay: .14s;
+}
+
+.miniapp-games-page__card:nth-child(2) {
+  animation-delay: .26s;
+}
+
+.miniapp-games-page__card:nth-child(3) {
+  animation-delay: .38s;
+}
+
+.miniapp-games-page__card:nth-child(4) {
+  animation-delay: .5s;
+}
+
+.miniapp-games-page__card-base {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 110rpx;
+  height: 110rpx;
+  background:
+    radial-gradient(130% 100% at 28% 10%, #fffcf3 0%, rgba(255, 252, 243, 0) 52%),
+    linear-gradient(155deg, #fffdf8 0%, #fbead4 55%, #f2dcbc 100%);
+  border: 1px solid rgba(198, 155, 108, .42);
+  border-radius: 26rpx;
+  box-shadow:
+    inset 0 2rpx 4rpx rgba(255, 255, 255, .95),
+    inset 0 -10rpx 16rpx rgba(197, 148, 96, .2),
+    inset 0 0 0 2rpx rgba(255, 255, 255, .38),
+    0 8rpx 18rpx rgba(70, 48, 37, .12);
+}
+
+.miniapp-games-page__card-icon {
+  width: 74rpx;
+  height: 74rpx;
+}
+
+.miniapp-games-page__card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.miniapp-games-page__card-title {
+  display: block;
+  color: #5e3b1d;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-games-page__card-caption {
+  display: block;
+  margin-top: 8rpx;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+.miniapp-games-page__play {
+  flex-shrink: 0;
+  height: 72rpx;
+  padding: 0 30rpx;
+  color: #7a4a26;
+  background: linear-gradient(180deg, #ffe3a6 0%, #f6c674 100%);
+  border: 0;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 2rpx 0 rgba(255, 255, 255, .7),
+    0 8rpx 16rpx rgba(70, 48, 37, .14);
+  font-size: 26rpx;
+  font-weight: var(--font-weight-bold);
+  line-height: 72rpx;
+}
+
+.miniapp-games-page__play::after {
+  border: 0;
+}
+
+.miniapp-games-page__more {
+  display: block;
+  margin-top: 14rpx;
+  color: #bda694;
+  text-align: center;
+  font-size: var(--font-size-aux);
+  animation: games-more-in .4s ease .42s backwards;
+}
+
+@keyframes games-page-in {
+  from { transform: translateY(24rpx); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes games-header-in {
+  from { transform: translateY(-36rpx); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes games-card-in {
+  from { transform: translateY(76rpx) scale(.92); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes games-more-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .miniapp-games-page,
+  .miniapp-games-page__header,
+  .miniapp-games-page__card,
+  .miniapp-games-page__more {
+    animation: none;
+  }
+}

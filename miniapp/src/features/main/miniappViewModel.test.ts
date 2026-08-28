@@ -6,6 +6,7 @@ import {
   getNestActionButton,
   getNestSceneMode,
   getProfilePresentation,
+  getMessagePresentation,
   hasFriendConversations,
   shouldShowNestFeedback
 } from './miniappViewModel'
@@ -112,5 +113,25 @@ describe('miniapp view model', () => {
     expect(hasFriendConversations([])).toBe(false)
     expect(hasFriendConversations([{ type: 'pet_dm' }])).toBe(false)
     expect(hasFriendConversations([{ type: 'pet_dm' }, { type: 'pair' }])).toBe(true)
+  })
+
+  it('tells my messages apart from friend and pet messages in shared rooms', () => {
+    expect(getMessagePresentation({ senderType: 'user', senderId: 'me-1' }, 'me-1', '真好友')).toEqual({
+      mine: true,
+      name: '我'
+    })
+    expect(getMessagePresentation({ senderType: 'user', senderId: 'friend-1' }, 'me-1', '真好友')).toEqual({
+      mine: false,
+      name: '真好友'
+    })
+    expect(getMessagePresentation({ senderType: 'pet' }, 'me-1', '真好友')).toEqual({
+      mine: false,
+      name: '小多利'
+    })
+    // 历史数据没有 senderId 时保持旧行为，按自己的消息处理
+    expect(getMessagePresentation({ senderType: 'user' }, 'me-1', '真好友')).toEqual({
+      mine: true,
+      name: '我'
+    })
   })
 })

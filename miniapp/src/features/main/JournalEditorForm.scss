@@ -2,21 +2,35 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  overflow-y: auto;
+  overflow: hidden;
   background: #fff8ee;
 }
 .journal-editor-page {
   position: relative;
-  min-height: 100%;
-  padding: 0 28rpx 420rpx;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 28rpx 330rpx;
   background: #fff8ee;
   box-sizing: border-box;
+  overflow: hidden;
+}
+/* 卡片内除正文外全部定高不可压缩，正文 textarea 是唯一弹性区 */
+.journal-editor__nav,
+.journal-editor__meta,
+.journal-editor__moods,
+.journal-editor__polaroid,
+.journal-editor__photos,
+.journal-editor__toolbar,
+.journal-editor__location,
+.journal-editor__delete {
+  flex-shrink: 0;
 }
 .journal-editor__yard {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: -85rpx;
   width: 100%;
   height: auto;
   z-index: 0;
@@ -27,7 +41,9 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 20rpx;
+  flex: 1;
+  min-height: 0;
 }
 .journal-editor__nav {
   position: relative;
@@ -35,14 +51,6 @@
   align-items: center;
   min-height: 72rpx;
   padding: calc(10rpx + env(safe-area-inset-top)) 4rpx 8rpx;
-}
-.journal-editor__back {
-  position: relative;
-  z-index: 1;
-  width: 56rpx;
-  color: #6a4630;
-  font-size: 56rpx;
-  line-height: 1;
 }
 .journal-editor__heading {
   position: absolute;
@@ -72,8 +80,10 @@
 .journal-editor__card {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
-  padding: 28rpx 28rpx 20rpx;
+  gap: 16rpx;
+  flex: 1;
+  min-height: 0;
+  padding: 24rpx 28rpx 20rpx;
   background: #fffdfb;
   border-radius: 36rpx;
   box-shadow: 0 18rpx 36rpx rgba(126, 82, 49, .1);
@@ -89,12 +99,46 @@
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-semibold);
 }
-.journal-editor__mood {
-  color: #7a5840;
-  font-size: var(--font-size-body);
+.journal-editor__moods {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.journal-editor__moods-title {
+  flex: 0 0 auto;
+  color: #8a6a52;
+  font-size: var(--font-size-aux);
+}
+.journal-editor__mood-option {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  padding: 12rpx 0 10rpx;
+  background: #fff8ee;
+  border: 2rpx solid transparent;
+  border-radius: 20rpx;
+}
+.journal-editor__mood-option--active {
+  background: #ffefd9;
+  border-color: #e79a5a;
+}
+.journal-editor__mood-image {
+  width: 120rpx;
+  height: 120rpx;
+}
+.journal-editor__mood-label {
+  color: #8a6a52;
+  font-size: var(--font-size-aux);
+}
+.journal-editor__mood-option--active .journal-editor__mood-label {
+  color: #c9722e;
+  font-weight: var(--font-weight-semibold);
 }
 .journal-editor__body {
-  min-height: 220rpx;
+  flex: 1;
+  min-height: 60rpx;
   width: 100%;
   padding: 0;
   color: #5e3b1d;
@@ -103,26 +147,36 @@
   font-size: var(--font-size-body);
   line-height: 1.8;
 }
+/* 空态与上传照片外框同为 300rpx 宽、326rpx 高，切换不跳变；提示文字收在框内下方，不遮工具栏 */
 .journal-editor__polaroid {
   display: flex;
   flex-direction: column;
   align-items: center;
   align-self: center;
-  width: 360rpx;
-  margin: 8rpx 0 12rpx;
+  width: 300rpx;
+  height: 326rpx;
+  margin: 4rpx 0 8rpx;
 }
 .journal-editor__polaroid-image {
-  width: 360rpx;
-  height: 348rpx;
+  width: 100%;
+  height: 290rpx;
 }
+.journal-editor__polaroid-hint {
+  margin-top: 4rpx;
+  color: #b0896c;
+  font-size: var(--font-size-aux);
+}
+/* 用户照片白框外径同为 300×326（272 + 14×2 内衬），倾角与默认奔跑邮票一致（实测约 +6.2°） */
 .journal-editor__polaroid--user {
-  width: 300rpx;
+  box-sizing: content-box;
+  width: 272rpx;
+  height: 272rpx;
   padding: 14rpx 14rpx 40rpx;
   background: #fffdf8;
-  border: 2rpx solid #f0e2d0;
+  border: 0;
   border-radius: 12rpx;
   box-shadow: 0 14rpx 28rpx rgba(126, 82, 49, .14);
-  transform: rotate(-6deg);
+  transform: rotate(6deg);
 }
 .journal-editor__polaroid--user .journal-editor__polaroid-image {
   width: 272rpx;
@@ -184,19 +238,11 @@
   line-height: 1;
   text-align: center;
 }
-.journal-editor__tool-icon--mood { color: #e0b23a; }
 .journal-editor__tool-icon--album { color: #7aa35a; }
 .journal-editor__tool-icon--pin { color: #6aa36a; }
 .journal-editor__tool-label {
   color: #8a6a52;
   font-size: var(--font-size-aux);
-}
-.journal-editor__plus {
-  flex: 0 0 40rpx;
-  color: #b0896c;
-  font-size: 40rpx;
-  line-height: 1;
-  text-align: center;
 }
 .journal-editor__location {
   padding: 12rpx 20rpx;

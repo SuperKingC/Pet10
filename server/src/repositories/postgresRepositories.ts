@@ -213,6 +213,8 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
           client?.release()
         }
       },
+      // 删除关系会按外键级联清理房间、宠物与会话数据（见 sql/001_initial.sql）
+      removeById: async (id) => { await database.query('DELETE FROM relationships WHERE id=$1', [id]) },
       listPendingForUser: (userId) => many(
         `SELECT * FROM relationships WHERE status='pending'
          AND (requester_id=$1 OR addressee_id=$1) ORDER BY created_at DESC`,

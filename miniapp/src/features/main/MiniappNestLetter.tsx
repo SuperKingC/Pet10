@@ -1,14 +1,30 @@
-import { Image, ScrollView, Text, View } from '@tarojs/components'
+import { Image, Text, View } from '@tarojs/components'
 import { XiaoduoliBoxScene } from './XiaoduoliBoxScene'
 import './MiniappNestLetter.scss'
 
-const letterPaper = require('../../assets/nest/letter-paper.png')
+// 信纸九宫格切片：四角固定不变形，四边单轴拉伸，中心净区随卡片伸缩。
+// 切片由 miniapp/tools/make-letter-paper-slices.mjs 生成，切线见该脚本 SLICE 常量。
+const paperTiles = {
+  tl: require('../../assets/nest/letter-paper-tl.png'),
+  tc: require('../../assets/nest/letter-paper-tc.png'),
+  tr: require('../../assets/nest/letter-paper-tr.png'),
+  ml: require('../../assets/nest/letter-paper-ml.png'),
+  mc: require('../../assets/nest/letter-paper-mc.png'),
+  mr: require('../../assets/nest/letter-paper-mr.png'),
+  bl: require('../../assets/nest/letter-paper-bl.png'),
+  bc: require('../../assets/nest/letter-paper-bc.png'),
+  br: require('../../assets/nest/letter-paper-br-v2.png'),
+}
 
-const LETTER_PARAGRAPHS = [
-  '你好呀，我是小多利。我被遗弃过一次，所以比谁都懂被选中的珍贵。我有点粘人，但只要你愿意，我会一直一直在。',
-  '主人出门的时候，我会枕着她的拖鞋睡——那是我等她的方式。我的窝能装下两个人，你要不要邀请一位对你重要的人，来做另一个？从那天起，你们一起喂我、一起陪我玩。要是你们一起递来一颗鸡蛋黄，我会当场开口说谢谢。',
-  '初见那天，我会把它认真记成一条纪念。从那天起，门口等你们的，就是我。'
-]
+const PAPER_TILE_NAMES = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'] as Array<keyof typeof paperTiles>
+
+// 正文不分段：四句连成整段文字
+const LETTER_BODY = [
+  '你好呀，我是小多利。我曾被遗弃过一次，所以更懂被选中的珍贵。',
+  '我有点粘人，但只要你愿意，我会一直一直在。你出门时，我就枕着你的拖鞋等你。',
+  '我的窝装得下两个人。要不要邀请一位重要的人，一起喂我、陪我玩？',
+  '如果你们愿意，初见那天就是我新的开始。这一次，不会再有人把我送走了。'
+].join('')
 
 type Props = {
   boxPhase?: 'idle' | 'jumping'
@@ -22,17 +38,19 @@ export function MiniappNestLetter({ boxPhase = 'idle', effectSeed = 'invite', on
       <XiaoduoliBoxScene phase={boxPhase} effectSeed={effectSeed} onJumpFinished={onJumpFinished} />
 
       <View className="nest-letter__card">
-        <Image className="nest-letter__paper" src={letterPaper} mode="widthFix" fadeIn={false} />
-        <ScrollView className="nest-letter__body" scrollY showScrollbar={false}>
-          <Text className="nest-letter__greeting">给还没来的家人：</Text>
-          {LETTER_PARAGRAPHS.map((paragraph) => (
-            <Text key={paragraph} className="nest-letter__paragraph">{paragraph}</Text>
+        <View className="nest-letter__paper">
+          {PAPER_TILE_NAMES.map((name) => (
+            <Image key={name} className={`nest-letter__tile nest-letter__tile--${name}`} src={paperTiles[name]} fadeIn={false} />
           ))}
+        </View>
+        <View className="nest-letter__body">
+          <Text className="nest-letter__greeting">给还没来的家人：</Text>
+          <Text className="nest-letter__paragraph">{LETTER_BODY}</Text>
           <Text className="nest-letter__sign">—— 小多利</Text>
-        </ScrollView>
+        </View>
       </View>
 
-      <Text className="nest-letter__preview">成为好友后：共享聊天 · 每日暗号 · 初见纪念</Text>
+      <Text className="nest-letter__preview">小多利是独一无二的，只能养一只，请认真选择一起养的对象</Text>
     </View>
   )
 }

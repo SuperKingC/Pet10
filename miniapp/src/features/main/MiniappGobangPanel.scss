@@ -1,24 +1,518 @@
-.miniapp-gobang { position: fixed; inset: 0; z-index: 34; box-sizing: border-box; overflow-y: auto; padding: 18px 14px calc(24px + env(safe-area-inset-bottom)); background: #fff8ee; }
-.miniapp-gobang__header { display: flex; align-items: center; gap: 10px; }
-.miniapp-gobang__header button { min-width: 36px; padding: 2px 10px; color: #8a4f37; background: #fff0dc; border: 0; border-radius: 50%; font-size: var(--font-size-aux); }
-.miniapp-gobang__header button::after, .miniapp-gobang__invite button::after, .miniapp-gobang__idle button::after, .miniapp-gobang__resign::after { border: 0; }
-.miniapp-gobang__header view text:first-child { display: block; color: #382b23; font-size: var(--font-size-overlay-title); font-weight: var(--font-weight-bold); }
-.miniapp-gobang__header view text:last-child { display: block; margin-top: 3px; color: #a89489; font-size: var(--font-size-aux); }
-.miniapp-gobang__invite, .miniapp-gobang__idle { margin-top: 18px; padding: 16px; color: #765847; background: #fff; border: 1px solid #ead5c2; border-radius: 18px; font-size: var(--font-size-secondary); }
-.miniapp-gobang__invite view { display: flex; gap: 8px; margin-top: 10px; }
-.miniapp-gobang__invite button, .miniapp-gobang__idle button, .miniapp-gobang__resign { padding: 8px 12px; color: #8a4f37; background: #fff0dc; border: 0; border-radius: 999px; font-size: var(--font-size-body); }
-.miniapp-gobang__idle { display: flex; min-height: 260px; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
-.miniapp-gobang__status { display: block; margin: 18px 0 10px; color: #765847; text-align: center; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
-.miniapp-gobang__board { display: grid; width: calc(100vw - 28px); height: calc(100vw - 28px); grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); box-sizing: border-box; padding: 10px; background: #ddb87d; border: 2px solid #9d7045; border-radius: 12px; }
-.miniapp-gobang__cell { position: relative; border-right: 1px solid rgba(94,59,29,.45); border-bottom: 1px solid rgba(94,59,29,.45); }
-.miniapp-gobang__stone { position: absolute; z-index: 2; inset: 8%; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,.28); }
-.miniapp-gobang__stone--black { background: radial-gradient(circle at 35% 30%, #555, #111 70%); }
-.miniapp-gobang__stone--white { background: radial-gradient(circle at 35% 30%, #fff, #ddd 70%); }
-.miniapp-gobang__resign { display: block; margin: 14px auto 0; color: #b15f52; }
-.miniapp-gobang__notice { display: block; margin-top: 10px; color: #c55f50; text-align: center; font-size: var(--font-size-aux); }
-.miniapp-gobang__modes { display: flex; flex-direction: column; gap: 14px; margin: 24px 0; }
-.miniapp-gobang__mode { display: block; padding: 20px 18px; background: #fff; border: 1px solid #ead5c2; border-radius: 18px; text-align: left; }
+.miniapp-gobang {
+  position: fixed;
+  inset: 0;
+  z-index: 34;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px calc(24px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(90% 42% at 84% -6%, rgba(255, 210, 148, .48), rgba(255, 210, 148, 0) 70%),
+    radial-gradient(74% 36% at 6% 10%, rgba(255, 236, 205, .55), rgba(255, 236, 205, 0) 68%),
+    #fff8ee;
+}
+
+.miniapp-gobang__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.miniapp-gobang__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.miniapp-gobang__heading-title {
+  display: block;
+  color: #382b23;
+  font-size: var(--font-size-overlay-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-gobang__heading-subtitle {
+  display: block;
+  margin-top: 3px;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+/* ---- 玩法选择页 ---- */
+
+.miniapp-gobang__modes {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-top: 26rpx;
+}
+
+.miniapp-gobang__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 30rpx 30rpx 24rpx;
+  overflow: hidden;
+  background:
+    radial-gradient(150% 130% at 90% 0%, rgba(255, 210, 148, .6), rgba(255, 210, 148, 0) 56%),
+    linear-gradient(150deg, #fffdf8 0%, #fff1de 100%);
+  border: 1px solid #f0decb;
+  border-radius: 34rpx;
+  box-shadow:
+    0 14rpx 30rpx rgba(70, 48, 37, .1),
+    inset 0 2rpx 0 rgba(255, 255, 255, .9);
+  animation: gobang-rise .4s ease .04s backwards;
+}
+
+.miniapp-gobang__hero-copy {
+  flex: 1;
+  min-width: 0;
+  padding-left: 12rpx;
+}
+
+.miniapp-gobang__hero-title {
+  display: block;
+  color: #5e3b1d;
+  font-size: 30rpx;
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-gobang__hero-caption {
+  display: block;
+  margin-top: 10rpx;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+.miniapp-gobang__hero-puppy {
+  flex-shrink: 0;
+  width: 172rpx;
+  height: 172rpx;
+}
+
+.miniapp-gobang__hero-stone {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.miniapp-gobang__hero-stone--black {
+  left: 34rpx;
+  bottom: 20rpx;
+  width: 34rpx;
+  height: 34rpx;
+  background: radial-gradient(circle at 34% 28%, #6b6b6b, #1c1c1c 62%);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, .3);
+}
+
+.miniapp-gobang__hero-stone--white {
+  left: 78rpx;
+  bottom: 40rpx;
+  width: 24rpx;
+  height: 24rpx;
+  background: radial-gradient(circle at 34% 28%, #fff, #d9d9d9 70%);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, .18);
+}
+
+.miniapp-gobang__mode {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  width: 100%;
+  padding: 26rpx;
+  text-align: left;
+  background: linear-gradient(150deg, #fffdf8 0%, #fff6e8 100%);
+  border: 1px solid #f0decb;
+  border-radius: 30rpx;
+  box-shadow:
+    0 12rpx 26rpx rgba(70, 48, 37, .09),
+    inset 0 2rpx 0 rgba(255, 255, 255, .9);
+  animation: gobang-pop-in .5s cubic-bezier(.32, 1.4, .55, 1) backwards;
+}
+
+.miniapp-gobang__modes .miniapp-gobang__mode:nth-child(2) { animation-delay: .12s; }
+.miniapp-gobang__modes .miniapp-gobang__mode:nth-child(3) { animation-delay: .24s; }
+
 .miniapp-gobang__mode::after { border: 0; }
-.miniapp-gobang__mode[disabled] { opacity: .55; }
-.miniapp-gobang__mode-title { display: block; color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
-.miniapp-gobang__mode-caption { display: block; margin-top: 6px; color: #a89489; font-size: var(--font-size-aux); }
+
+.miniapp-gobang__mode[disabled] .miniapp-gobang__mode-title {
+  color: #b3a08e;
+}
+
+.miniapp-gobang__mode[disabled] .miniapp-gobang__mode-arrow {
+  color: #dcc9b2;
+}
+
+.miniapp-gobang__mode-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background:
+    radial-gradient(130% 100% at 28% 10%, #fffcf3 0%, rgba(255, 252, 243, 0) 52%),
+    linear-gradient(155deg, #fffdf8 0%, #fbead4 55%, #f2dcbc 100%);
+  border: 1px solid rgba(198, 155, 108, .42);
+  box-shadow:
+    inset 0 2rpx 4rpx rgba(255, 255, 255, .95),
+    inset 0 -10rpx 16rpx rgba(197, 148, 96, .2),
+    0 8rpx 18rpx rgba(70, 48, 37, .12);
+}
+
+.miniapp-gobang__mode-icon-img {
+  width: 72rpx;
+  height: 72rpx;
+}
+
+.miniapp-gobang__mode-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.miniapp-gobang__mode-title {
+  display: block;
+  color: #5e3b1d;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-gobang__mode-caption {
+  display: block;
+  margin-top: 8rpx;
+  color: #a89489;
+  font-size: var(--font-size-aux);
+}
+
+.miniapp-gobang__mode-arrow {
+  flex-shrink: 0;
+  padding-right: 8rpx;
+  color: #c9a06b;
+  font-size: 48rpx;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+/* ---- 对弈页：对阵栏 + 棋盘 ---- */
+
+.miniapp-gobang__arena {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22rpx;
+  padding: 16rpx 0 20rpx;
+}
+
+.miniapp-gobang__versus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 4rpx;
+  padding: 18rpx 30rpx 14rpx;
+  background: linear-gradient(150deg, #fffdf8 0%, #fff3e2 100%);
+  border: 1px solid #f0decb;
+  border-radius: 30rpx;
+  box-shadow:
+    0 10rpx 24rpx rgba(70, 48, 37, .08),
+    inset 0 2rpx 0 rgba(255, 255, 255, .9);
+  animation: gobang-rise .4s ease .04s backwards;
+}
+
+.miniapp-gobang__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  min-width: 150rpx;
+}
+
+.miniapp-gobang__player-avatar {
+  position: relative;
+  width: 104rpx;
+  height: 104rpx;
+  margin-bottom: 4rpx;
+}
+
+.miniapp-gobang__player--active .miniapp-gobang__player-avatar::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: -8rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(246, 198, 116, .95);
+}
+
+.miniapp-gobang__player-imgwrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff3dd;
+  border: 2rpx solid #e8bd91;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miniapp-gobang__player-img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 小多利头像放大裁切到头部区域，避免整只缩小导致模糊 */
+.miniapp-gobang__player-img--mascot {
+  position: absolute;
+  width: 240%;
+  height: 240%;
+  top: -16%;
+  left: -70%;
+}
+
+.miniapp-gobang__player-fallback {
+  color: #b98a5a;
+  font-size: 44rpx;
+  font-weight: var(--font-weight-bold);
+}
+
+/* 棋子角标：悬浮在头像框上方，完整可见 */
+.miniapp-gobang__player-stone {
+  position: absolute;
+  z-index: 3;
+  top: -10rpx;
+  right: -6rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 4rpx solid #fffdf8;
+  box-shadow: 0 3rpx 6rpx rgba(0, 0, 0, .25);
+}
+
+.miniapp-gobang__player-stone--black { background: radial-gradient(circle at 34% 28%, #6b6b6b, #1c1c1c 62%); }
+.miniapp-gobang__player-stone--white { background: radial-gradient(circle at 34% 28%, #fff, #d9d9d9 70%); }
+
+.miniapp-gobang__player-name {
+  max-width: 170rpx;
+  overflow: hidden;
+  color: #5e3b1d;
+  font-size: 24rpx;
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.miniapp-gobang__player-color {
+  color: #a89489;
+  font-size: 20rpx;
+}
+
+.miniapp-gobang__vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  color: #7a4a26;
+  background: linear-gradient(180deg, #ffe3a6 0%, #f6c674 100%);
+  box-shadow:
+    inset 0 2rpx 0 rgba(255, 255, 255, .7),
+    0 8rpx 16rpx rgba(70, 48, 37, .16);
+  font-size: 24rpx;
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-gobang__status {
+  align-self: center;
+  padding: 10rpx 30rpx;
+  color: #7a4a26;
+  background: rgba(255, 255, 255, .82);
+  border: 1px solid #f0decb;
+  border-radius: 999px;
+  box-shadow: 0 6rpx 14rpx rgba(70, 48, 37, .08);
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
+  animation: gobang-rise .4s ease .1s backwards;
+}
+
+.miniapp-gobang__board {
+  position: relative;
+  display: grid;
+  align-self: center;
+  width: calc(100vw - 28px);
+  height: calc(100vw - 28px);
+  max-width: 660rpx;
+  max-height: 660rpx;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  box-sizing: border-box;
+  padding: 22rpx;
+  background:
+    repeating-linear-gradient(98deg, rgba(140, 95, 50, .05) 0 3rpx, rgba(140, 95, 50, 0) 3rpx 26rpx),
+    radial-gradient(120% 90% at 30% 12%, rgba(255, 244, 222, .5), rgba(255, 244, 222, 0) 46%),
+    linear-gradient(155deg, #eccf9b 0%, #ddb87d 48%, #cda063 100%);
+  border: 3rpx solid #9d7045;
+  border-radius: 24rpx;
+  box-shadow:
+    0 20rpx 44rpx rgba(93, 61, 33, .28),
+    0 6rpx 14rpx rgba(93, 61, 33, .16),
+    inset 0 2rpx 0 rgba(255, 255, 255, .55),
+    inset 0 -8rpx 18rpx rgba(122, 79, 38, .22);
+  animation: gobang-pop-in .5s cubic-bezier(.32, 1.3, .55, 1) .16s backwards;
+}
+
+/* 网格线：每格画右/下边线，首列补左边线、首行补上边线，四周线齐全 */
+.miniapp-gobang__cell {
+  position: relative;
+  box-sizing: border-box;
+  border-right: 1px solid rgba(94, 59, 29, .48);
+  border-bottom: 1px solid rgba(94, 59, 29, .48);
+}
+
+.miniapp-gobang__cell:nth-child(15n + 1) {
+  border-left: 1px solid rgba(94, 59, 29, .48);
+}
+
+.miniapp-gobang__cell:nth-child(-n + 15) {
+  border-top: 1px solid rgba(94, 59, 29, .48);
+}
+
+/* 星位与天元 */
+.miniapp-gobang__cell--star::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  margin: auto;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: rgba(94, 59, 29, .6);
+}
+
+.miniapp-gobang__stone {
+  position: absolute;
+  z-index: 2;
+  inset: 6%;
+  border-radius: 50%;
+  animation: gobang-stone-pop .22s cubic-bezier(.3, 1.4, .5, 1) backwards;
+}
+
+.miniapp-gobang__stone--black {
+  background: radial-gradient(circle at 34% 28%, #696969, #1d1d1d 62%, #000);
+  box-shadow:
+    0 4rpx 8rpx rgba(0, 0, 0, .35),
+    inset 0 -4rpx 6rpx rgba(255, 255, 255, .08);
+}
+
+.miniapp-gobang__stone--white {
+  background: radial-gradient(circle at 34% 28%, #fff, #ececec 58%, #cfcfcf);
+  box-shadow:
+    0 4rpx 8rpx rgba(0, 0, 0, .28),
+    inset 0 -4rpx 8rpx rgba(120, 110, 100, .25);
+}
+
+.miniapp-gobang__stone--last::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 22%;
+  height: 22%;
+  border-radius: 50%;
+  background: #e2704a;
+}
+
+/* ---- 按钮、邀请与提示 ---- */
+
+.miniapp-gobang__primary {
+  align-self: center;
+  height: 84rpx;
+  padding: 0 56rpx;
+  margin-top: 4rpx;
+  color: #7a4a26;
+  background: linear-gradient(180deg, #ffe3a6 0%, #f6c674 100%);
+  border: 0;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 2rpx 0 rgba(255, 255, 255, .7),
+    0 10rpx 20rpx rgba(70, 48, 37, .16);
+  font-size: 28rpx;
+  font-weight: var(--font-weight-bold);
+  line-height: 84rpx;
+  animation: gobang-rise .4s ease .22s backwards;
+}
+
+.miniapp-gobang__primary::after { border: 0; }
+
+.miniapp-gobang__resign {
+  align-self: center;
+  height: 76rpx;
+  padding: 0 44rpx;
+  color: #b15f52;
+  background: rgba(255, 255, 255, .85);
+  border: 1px solid #f0d9cc;
+  border-radius: 999px;
+  box-shadow: 0 8rpx 18rpx rgba(70, 48, 37, .08);
+  font-size: 26rpx;
+  line-height: 76rpx;
+}
+
+.miniapp-gobang__resign::after { border: 0; }
+
+.miniapp-gobang__invite,
+.miniapp-gobang__idle {
+  margin-top: 20rpx;
+  padding: 30rpx 28rpx;
+  color: #765847;
+  background: linear-gradient(150deg, #fffdf8 0%, #fff4e4 100%);
+  border: 1px solid #f0decb;
+  border-radius: 30rpx;
+  box-shadow:
+    0 12rpx 26rpx rgba(70, 48, 37, .09),
+    inset 0 2rpx 0 rgba(255, 255, 255, .9);
+  font-size: var(--font-size-secondary);
+  animation: gobang-rise .4s ease .1s backwards;
+}
+
+.miniapp-gobang__invite-actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.miniapp-gobang__idle {
+  display: flex;
+  min-height: 460rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  text-align: center;
+}
+
+.miniapp-gobang__notice {
+  align-self: center;
+  margin-top: 4rpx;
+  color: #c55f50;
+  text-align: center;
+  font-size: var(--font-size-aux);
+}
+
+@keyframes gobang-rise {
+  from { opacity: 0; transform: translateY(18rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gobang-pop-in {
+  from { opacity: 0; transform: translateY(26rpx) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes gobang-stone-pop {
+  from { opacity: .4; transform: scale(.35); }
+  to { opacity: 1; transform: scale(1); }
+}

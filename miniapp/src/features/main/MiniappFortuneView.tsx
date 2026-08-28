@@ -1,5 +1,6 @@
-import { Button, Text, View } from '@tarojs/components'
+import { Text, View } from '@tarojs/components'
 import type { MiniappFortune } from '../../services/socialApi'
+import { MiniappBackButton } from '../../components/MiniappBackButton'
 import './MiniappFortuneView.scss'
 
 const fortuneSections = [
@@ -19,7 +20,7 @@ export function MiniappFortuneView({ fortune, onClose }: MiniappFortuneViewProps
   return (
     <View className="miniapp-fortune-view">
       <View className="miniapp-fortune-view__header">
-        <Button className="miniapp-fortune-view__back" onClick={onClose}>‹</Button>
+        <MiniappBackButton onClick={onClose} />
         <Text className="miniapp-fortune-view__title">今日运势 · {fortune.content.zodiac}</Text>
         <View className="miniapp-fortune-view__header-spacer" />
       </View>

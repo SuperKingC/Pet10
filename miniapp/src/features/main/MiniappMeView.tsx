@@ -26,9 +26,10 @@ const CONTACT_EMAIL = 'pet10-support@example.com'
 interface MiniappMeViewProps {
   context: LaunchContext | null
   onLogout(): void
+  onDataChanged?(): void
 }
 
-export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
+export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeViewProps) {
   const profilePresentation = getProfilePresentation(context?.user || null)
   const displayName = profilePresentation.displayName
   const [nameDraft, setNameDraft] = useState(displayName)
@@ -133,8 +134,27 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
       const result = await gmApi.addFriends(gmCount)
       setGmOpen(false)
       Taro.showToast({ title: `已添加 ${result.added.length} 个好友`, icon: 'success' })
+      onDataChanged?.()
     } catch {
       Taro.showToast({ title: '添加失败', icon: 'none' })
+    } finally {
+      setGmBusy(false)
+    }
+  }
+
+  const removeGmFriends = async () => {
+    if (gmBusy) return
+    setGmBusy(true)
+    try {
+      const result = await gmApi.removeFriends()
+      setGmOpen(false)
+      Taro.showToast({
+        title: result.removed.length > 0 ? `已删除 ${result.removed.length} 个测试好友` : '没有可删除的测试好友',
+        icon: 'none'
+      })
+      onDataChanged?.()
+    } catch {
+      Taro.showToast({ title: '删除失败', icon: 'none' })
     } finally {
       setGmBusy(false)
     }
@@ -252,7 +272,7 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
       {gmOpen && (
         <MiniappModal onClose={() => { if (!gmBusy) setGmOpen(false) }}>
           <Text className="miniapp-gm__title">GM 工具</Text>
-          <Text className="miniapp-gm__intro">为当前账号添加测试好友，用于模拟一个或多个好友的场景。</Text>
+          <Text className="miniapp-gm__intro">为当前账号添加或删除测试好友，用于模拟一个或多个好友的场景。删除只作用于 GM 生成的测试好友。</Text>
           <View className="miniapp-gm__counts">
             {[1, 3, 5].map((value) => (
               <Button
@@ -264,9 +284,14 @@ export function MiniappMeView({ context, onLogout }: MiniappMeViewProps) {
               </Button>
             ))}
           </View>
-          <Button className="miniapp-gm__submit" disabled={gmBusy} onClick={() => void addGmFriends()}>
-            {gmBusy ? '添加中…' : '添加好友'}
-          </Button>
+          <View className="miniapp-gm__actions">
+            <Button className="miniapp-gm__submit" disabled={gmBusy} onClick={() => void addGmFriends()}>
+              {gmBusy ? '处理中…' : '添加好友'}
+            </Button>
+            <Button className="miniapp-gm__delete" disabled={gmBusy} onClick={() => void removeGmFriends()}>
+              删除测试好友
+            </Button>
+          </View>
         </MiniappModal>
       )}
       {deactivateOpen && (

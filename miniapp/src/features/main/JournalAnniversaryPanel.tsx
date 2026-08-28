@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { socialApi, type AnniversaryInput, type MiniappAnniversary } from '../../services/socialApi'
+import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { AnniversaryForm } from './AnniversaryForm'
 import { AnniversaryListView } from './AnniversaryListView'
 import { localDayKey, resolveMoodRoomId } from './journalModel'
@@ -72,7 +73,7 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
   return (
     <View className="journal-anniv-panel">
       <View className="journal-anniv-panel__top">
-        <Text className="journal-anniv-panel__back" onClick={onClose}>返回</Text>
+        <MiniappBackButton onClick={onClose} />
         <Text className="journal-anniv-panel__title">纪念日</Text>
       </View>
       <Text className="journal-anniv-panel__caption">把重要的日子记下来。</Text>

@@ -71,6 +71,7 @@ export interface RelationshipRepository {
   findById(id: string): Promise<Relationship | undefined>
   create(requesterId: string, addresseeId: string): Promise<Relationship>
   accept(id: string): Promise<Relationship>
+  removeById(id: string): Promise<void>
   listPendingForUser(userId: string): Promise<Relationship[]>
 }
 

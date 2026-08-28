@@ -200,6 +200,9 @@ export function createMemoryRepositories(): RepositoryBundle {
       item.status = 'accepted'
       return item
     },
+    async removeById(id: string) {
+      relationships.delete(id)
+    },
     async listPendingForUser(userId: string) {
       return [...relationships.values()].filter((item) =>
         item.status === 'pending' && (item.requesterId === userId || item.addresseeId === userId)

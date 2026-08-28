@@ -74,3 +74,14 @@ export function getNestSceneMode(
 export function hasFriendConversations(conversations: Array<{ type: string }>) {
   return conversations.some((conversation) => conversation.type === 'pair')
 }
+
+export interface ChatMessageLike {
+  senderType: 'user' | 'pet'
+  senderId?: string
+}
+
+export function getMessagePresentation(message: ChatMessageLike, viewerId: string, friendName: string) {
+  if (message.senderType === 'pet') return { mine: false, name: '小多利' }
+  if (message.senderId && message.senderId !== viewerId) return { mine: false, name: friendName }
+  return { mine: true, name: '我' }
+}

@@ -1,0 +1,58 @@
+{
+  "source": "design-assets/nest/xiaoduoli-peek-source.png",
+  "canvas": {
+    "width": 446,
+    "height": 314
+  },
+  "rig": {
+    "eyes": [
+      {
+        "name": "left",
+        "rect": {
+          "x": 128,
+          "y": 147,
+          "w": 62,
+          "h": 64
+        }
+      },
+      {
+        "name": "right",
+        "rect": {
+          "x": 260,
+          "y": 136,
+          "w": 64,
+          "h": 70
+        }
+      }
+    ],
+    "pad": 6,
+    "feather": 6,
+    "pupil": {
+      "solidR": 14,
+      "rampR": 18,
+      "slidePx": 6
+    }
+  },
+  "parts": {
+    "body": {
+      "file": "src/assets/nest/xiaoduoli-body.png",
+      "bytes": 93533
+    },
+    "eyes": {
+      "file": "src/assets/nest/xiaoduoli-eyes.png",
+      "bytes": 17922
+    },
+    "pupils": {
+      "file": "src/assets/nest/xiaoduoli-pupils.png",
+      "bytes": 3800
+    },
+    "lids": {
+      "file": "src/assets/nest/xiaoduoli-lids.png",
+      "bytes": 19887
+    }
+  },
+  "generated": {
+    "scss": "src/features/main/xiaoduoli-box-parts.generated.scss",
+    "pupilsOriginYPct": 55.73
+  }
+}

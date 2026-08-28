@@ -7,7 +7,7 @@ function setup() {
   const repositories = createMemoryRepositories()
   const friendship = createFriendshipService(repositories)
   const gm = createGmService(repositories, friendship)
-  return { repositories, gm }
+  return { repositories, friendship, gm }
 }
 
 describe('gm service', () => {
@@ -44,5 +44,35 @@ describe('gm service', () => {
     await expect(gm.addFriends(me.id, 0)).rejects.toThrow('invalid_count')
     await expect(gm.addFriends(me.id, 11)).rejects.toThrow('invalid_count')
     await expect(gm.addFriends(me.id, 1.5)).rejects.toThrow('invalid_count')
+  })
+
+  it('removes only gm-created friends and keeps real friendships', async () => {
+    const { repositories, friendship, gm } = setup()
+    const me = await repositories.users.create({ email: 'me@example.com', username: 'me', displayName: '我' })
+
+    await gm.addFriends(me.id, 2)
+    const realFriend = await repositories.users.create({ email: 'real@example.com', username: 'real', displayName: '真好友' })
+    const realRelationship = await friendship.sendRequest(me.id, 'real')
+    await friendship.acceptRequest(realFriend.id, realRelationship.id)
+
+    const result = await gm.removeFriends(me.id)
+
+    expect(result.removed).toHaveLength(2)
+    for (const removedFriend of result.removed) {
+      expect(await repositories.users.findById(removedFriend.userId)).toBeUndefined()
+    }
+    const remaining = await repositories.relationships.listAcceptedForUser(me.id)
+    expect(remaining).toHaveLength(1)
+    expect(remaining[0].id).toBe(realRelationship.id)
+  })
+
+  it('removes nothing when there are no gm-created friends', async () => {
+    const { repositories, gm } = setup()
+    const me = await repositories.users.create({ email: 'me@example.com', username: 'me', displayName: '我' })
+
+    const result = await gm.removeFriends(me.id)
+
+    expect(result.removed).toHaveLength(0)
+    expect(await repositories.relationships.listAcceptedForUser(me.id)).toHaveLength(0)
   })
 })

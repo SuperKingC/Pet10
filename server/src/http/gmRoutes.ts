@@ -6,6 +6,7 @@ const addFriendsSchema = z.object({ count: z.number().int().min(1).max(10) })
 
 export function createGmRoutes(service: {
   addFriends(userId: string, count: number): Promise<unknown>
+  removeFriends(userId: string): Promise<unknown>
 }) {
   const router = Router()
   router.post('/friends', async (request: AuthenticatedRequest, response, next) => {
@@ -13,6 +14,11 @@ export function createGmRoutes(service: {
       const parsed = addFriendsSchema.safeParse(request.body)
       if (!parsed.success) throw new Error('invalid_count')
       response.status(201).json(await service.addFriends(request.userId!, parsed.data.count))
+    } catch (error) { next(error) }
+  })
+  router.delete('/friends', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      response.json(await service.removeFriends(request.userId!))
     } catch (error) { next(error) }
   })
   return router

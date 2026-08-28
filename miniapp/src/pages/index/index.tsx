@@ -4,7 +4,7 @@ import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
-import { hasAuthenticatedSession } from '../../domain/sessionState'
+import { hasAuthenticatedSession, isAccountMissingError } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
 import { MiniappLoginScreen } from '../../features/auth/MiniappLoginScreen'
 import { MiniappLaunchLoading } from '../../features/auth/MiniappLaunchLoading'
@@ -23,7 +23,7 @@ import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappCodewordModal } from '../../features/main/MiniappCodewordModal'
 import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
-import { MiniappGamesModal } from '../../features/main/MiniappGamesModal'
+import { MiniappGamesPage } from '../../features/main/MiniappGamesPage'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
 import { MiniappTarotFlow } from '../../features/tarot/MiniappTarotFlow'
 import { getInvitationButtonState, getNestActionButton, shouldShowNestFeedback, type NestSceneMode } from '../../features/main/miniappViewModel'
@@ -149,6 +149,15 @@ export default function Index() {
       setLaunchPhase('ready')
       return true
     } catch (error) {
+      if (isAccountMissingError(error)) {
+        // 账号已在其他设备注销：令牌还有效但用户已不存在，清掉令牌退回登录页，避免卡死在准备页。
+        clearAccessToken()
+        setAccessToken('')
+        setLaunchPhase('login')
+        setLaunchError('')
+        setMessage('账号已注销，请重新登录')
+        return false
+      }
       setLaunchError(error instanceof Error ? error.message : '资源准备失败，请重试')
       return false
     } finally {
@@ -207,10 +216,6 @@ export default function Index() {
     void loadContext(nextRoomId).catch((error) => {
       setMessage(error instanceof Error ? error.message : '读取 Pet10 状态失败')
     })
-  }
-
-  const selectRoom = (nextRoomId: string) => {
-    loadRoomContext(nextRoomId)
   }
 
   const handleAction = async (action: PetAction) => {
@@ -297,6 +302,8 @@ export default function Index() {
     if (activeTab === 'messages') {
       return <MiniappMessagesView
         roomId={roomId}
+        viewerId={context?.user.id || ''}
+        friendName={context?.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
         onOpenRoom={loadRoomContext}
       />
     }
@@ -307,7 +314,7 @@ export default function Index() {
       />
     }
     if (activeTab === 'me') {
-      return <MiniappMeView context={context} onLogout={logout} />
+      return <MiniappMeView context={context} onLogout={logout} onDataChanged={() => void loadContext(roomId)} />
     }
     return <MiniappNestView
       context={context}
@@ -315,7 +322,6 @@ export default function Index() {
       roomId={roomId}
       boxPhase={boxPhase}
       onAction={handleAction}
-      onSelectRoom={selectRoom}
       onOpenMemories={() => void openMemories()}
       onSceneModeChange={setNestSceneMode}
       onJumpFinished={handleJumpFinished}
@@ -348,17 +354,19 @@ export default function Index() {
       />
     )}
     {gamesOpen && (
-      <MiniappGamesModal
+      <MiniappGamesPage
         onClose={() => setGamesOpen(false)}
-        onOpenGobang={() => { setGamesOpen(false); setGobangOpen(true) }}
+        onOpenGobang={() => setGobangOpen(true)}
       />
     )}
     {gobangOpen && context && (
       <MiniappGobangPanel
         roomId={roomId}
         myUserId={context.user.id}
+        myAvatarUrl={context.user.avatarUrl || null}
         friendId={context.rooms.find((room) => room.id === roomId)?.partner.id || ''}
         friendName={context.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
+        friendAvatarUrl={context.rooms.find((room) => room.id === roomId)?.partner.avatarUrl || null}
         onClose={() => setGobangOpen(false)}
       />
     )}

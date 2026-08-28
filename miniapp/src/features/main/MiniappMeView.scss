@@ -380,7 +380,13 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.miniapp-gm__actions {
+  display: flex;
+  gap: 16rpx;
+}
+
 .miniapp-gm__submit {
+  flex: 1;
   margin: 0;
   padding: 20rpx 0;
   color: #fff;
@@ -392,6 +398,22 @@
 }
 
 .miniapp-gm__submit[disabled] {
+  opacity: 0.6;
+}
+
+.miniapp-gm__delete {
+  flex: 1;
+  margin: 0;
+  padding: 20rpx 0;
+  color: #c97655;
+  background: #fff;
+  border: 2px solid #f0ded1;
+  border-radius: 999px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.miniapp-gm__delete[disabled] {
   opacity: 0.6;
 }
 

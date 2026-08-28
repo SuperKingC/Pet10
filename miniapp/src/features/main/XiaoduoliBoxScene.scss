@@ -1,7 +1,10 @@
+/* 出生即分层管线：眼层眨眼支点由 tools/build-xiaoduoli-parts.mjs 自动生成 */
+@import './xiaoduoli-box-parts.generated.scss';
+
 .xiaoduoli-box {
   position: relative;
   width: 100%;
-  height: 480rpx;
+  height: 390rpx;
   overflow: hidden;
 }
 
@@ -10,15 +13,26 @@
   inset: 0;
 }
 
+/* 夜景街角背景：1125×585 webp 不透明满幅（边缘炭化暗角，无透明区），aspectFill 铺满舞台、左右贴屏幕两边 */
+.xiaoduoli-box__street {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
 .xiaoduoli-box__shadow {
   position: absolute;
-  right: 22%;
-  bottom: 8%;
-  left: 22%;
+  right: 34%;
+  bottom: 6%;
+  left: 34%;
   height: 28px;
   border-radius: 50%;
   background: rgba(94, 59, 29, 0.14);
   transform: scaleX(1);
+  animation: xiaoduoli-shadow-drift 3.6s ease-in-out infinite;
 }
 
 .xiaoduoli-box__box-wrap,
@@ -32,18 +46,109 @@
 }
 
 .xiaoduoli-box__box-wrap {
-  bottom: 4%;
+  bottom: 2%;
   z-index: 1;
-  height: 62%;
+  height: 35.5%;
   transform-origin: 50% 80%;
 }
 
 .xiaoduoli-box__puppy-wrap {
-  top: 2%;
+  top: 44%;
   z-index: 2;
-  height: 58%;
+  height: 134rpx;
   transform-origin: 50% 92%;
-  animation: xiaoduoli-peek 3.2s ease-in-out infinite;
+}
+
+/* 446:314 分层 PNG 按 rpx 等比锁定（192×134rpx），眼层全画布叠放天然对位 */
+.xiaoduoli-box__puppet {
+  position: relative;
+  width: 192rpx;
+  height: 134rpx;
+  overflow: hidden;
+}
+
+.xiaoduoli-box__breathe {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  animation: xiaoduoli-breathe 3.2s ease-in-out infinite;
+}
+
+.xiaoduoli-box__bob {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 88%;
+  animation: xiaoduoli-bob 7.4s ease-in-out infinite;
+}
+
+.xiaoduoli-box__look {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 82%;
+}
+
+.xiaoduoli-box__look--left {
+  animation: xiaoduoli-look-left 1700ms ease-in-out both;
+}
+
+.xiaoduoli-box__look--right {
+  animation: xiaoduoli-look-right 1700ms ease-in-out both;
+}
+
+.xiaoduoli-box__body {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 192rpx;
+  height: 134rpx;
+}
+
+/* 眼部三层（眼眶/瞳孔/眼睑）同为全画布分层 PNG，显式 rpx 尺寸与 0 偏移叠放（不用 inset/百分比，规避运行时差异）；瞳孔支点在生成文件中 */
+.xiaoduoli-box__eyes,
+.xiaoduoli-box__pupils,
+.xiaoduoli-box__lids {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 192rpx;
+  height: 134rpx;
+}
+
+/* 眼睑静止时隐藏，眨眼时淡入形成闭眼 */
+.xiaoduoli-box__lids {
+  opacity: 0;
+}
+
+.xiaoduoli-box__lids--blink {
+  animation: xiaoduoli-lids-blink 200ms ease-in-out both;
+}
+
+.xiaoduoli-box__lids--blink-twice {
+  animation: xiaoduoli-lids-blink 190ms ease-in-out both 2;
+}
+
+.xiaoduoli-box__pupils--blink {
+  animation: xiaoduoli-pupils-blink 200ms ease-in-out both;
+}
+
+.xiaoduoli-box__pupils--blink-twice {
+  animation: xiaoduoli-pupils-blink 190ms ease-in-out both 2;
+}
+
+.xiaoduoli-box__pupils--glance-left {
+  animation: xiaoduoli-glance-left 750ms ease-in-out both;
+}
+
+.xiaoduoli-box__pupils--glance-right {
+  animation: xiaoduoli-glance-right 750ms ease-in-out both;
+}
+
+.xiaoduoli-box--hop .xiaoduoli-box__puppet {
+  animation: xiaoduoli-hop 900ms ease-in-out both;
+}
+
+.xiaoduoli-box--hop .xiaoduoli-box__box-wrap {
+  animation: xiaoduoli-box-dip 900ms ease-in-out both;
 }
 
 .xiaoduoli-box__standing-wrap {
@@ -55,7 +160,6 @@
 }
 
 .xiaoduoli-box__box,
-.xiaoduoli-box__puppy,
 .xiaoduoli-box__standing {
   width: 100%;
   height: 100%;
@@ -100,28 +204,158 @@
   animation: xiaoduoli-appear 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
 }
 
-@keyframes xiaoduoli-peek {
+@keyframes xiaoduoli-breathe {
   0%,
-  14% {
-    transform: rotate(0deg) translateX(0);
+  100% {
+    transform: scaleY(1);
   }
-  30% {
-    transform: rotate(-11deg) translateX(-6%);
+  50% {
+    transform: scaleY(0.985);
   }
-  38% {
-    transform: rotate(-11deg) translateX(-6%);
+}
+
+@keyframes xiaoduoli-bob {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
   }
-  52% {
-    transform: rotate(0deg) translateX(0);
+  22% {
+    transform: rotate(-1.1deg) translateY(-1.6%);
   }
-  70% {
-    transform: rotate(9deg) translateX(5%);
+  46% {
+    transform: rotate(0.5deg) translateY(0.3%);
   }
-  80% {
-    transform: rotate(9deg) translateX(5%);
+  72% {
+    transform: rotate(1.2deg) translateY(-1.1%);
   }
+}
+
+@keyframes xiaoduoli-look-left {
+  0%,
   100% {
     transform: rotate(0deg) translateX(0);
+  }
+  12% {
+    transform: rotate(1.6deg) translateX(1.2%);
+  }
+  40% {
+    transform: rotate(-3.4deg) translateX(-2.6%);
+  }
+  68% {
+    transform: rotate(-2.8deg) translateX(-2.1%);
+  }
+  84% {
+    transform: rotate(-3.8deg) translateX(-2.9%);
+  }
+}
+
+@keyframes xiaoduoli-look-right {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  12% {
+    transform: rotate(-1.6deg) translateX(-1.2%);
+  }
+  40% {
+    transform: rotate(3.4deg) translateX(2.6%);
+  }
+  68% {
+    transform: rotate(2.8deg) translateX(2.1%);
+  }
+  84% {
+    transform: rotate(3.8deg) translateX(2.9%);
+  }
+}
+
+/* 眨眼：眼睑淡入形成闭眼 + 瞳孔向支点压扁（支点为两瞳孔中心平均高度，见生成文件） */
+@keyframes xiaoduoli-lids-blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45%,
+  55% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes xiaoduoli-pupils-blink {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  45%,
+  55% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* 瞟眼幅度按瞳孔盘可滑距离取 ±1.3%（约 6 画布像素），瞳孔始终留在眼眶内 */
+@keyframes xiaoduoli-glance-left {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35%,
+  65% {
+    transform: translateX(-1.3%);
+  }
+}
+
+@keyframes xiaoduoli-glance-right {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35%,
+  65% {
+    transform: translateX(1.3%);
+  }
+}
+
+@keyframes xiaoduoli-hop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  18% {
+    transform: translateY(4%) scale(1.05, 0.92);
+  }
+  45% {
+    transform: translateY(-9%) scale(0.97, 1.05);
+  }
+  70% {
+    transform: translateY(2.5%) scale(1.03, 0.97);
+  }
+  86% {
+    transform: translateY(-1.5%) scale(0.995, 1.01);
+  }
+}
+
+@keyframes xiaoduoli-box-dip {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  18% {
+    transform: translateY(1.4%);
+  }
+  45% {
+    transform: translateY(-0.9%);
+  }
+  70% {
+    transform: translateY(0.6%);
+  }
+}
+
+@keyframes xiaoduoli-shadow-drift {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.035);
   }
 }
 
@@ -226,7 +460,22 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xiaoduoli-box__puppy-wrap,
+  .xiaoduoli-box__breathe,
+  .xiaoduoli-box__bob,
+  .xiaoduoli-box__shadow {
+    animation: none !important;
+  }
+
+  .xiaoduoli-box__look--left,
+  .xiaoduoli-box__look--right,
+  .xiaoduoli-box__lids--blink,
+  .xiaoduoli-box__lids--blink-twice,
+  .xiaoduoli-box__pupils--blink,
+  .xiaoduoli-box__pupils--blink-twice,
+  .xiaoduoli-box__pupils--glance-left,
+  .xiaoduoli-box__pupils--glance-right,
+  .xiaoduoli-box--hop .xiaoduoli-box__puppet,
+  .xiaoduoli-box--hop .xiaoduoli-box__box-wrap,
   .xiaoduoli-box--jumping .xiaoduoli-box__puppy-wrap,
   .xiaoduoli-box--jumping .xiaoduoli-box__box-wrap,
   .xiaoduoli-box--jumping .xiaoduoli-box__shadow,

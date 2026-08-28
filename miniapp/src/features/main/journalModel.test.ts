@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getWeekDays, groupByDay, journalDateLabel, journalDisplayPhotos, journalMoodDisplay, localDayKey, parseJournalMoodTitle, resolveMoodRoomId, shiftWeek, startOfWeek, weekMonthLabel } from './journalModel'
+import { getWeekDays, groupByDay, JOURNAL_MOODS, journalDateLabel, journalDisplayPhotos, journalMoodDisplay, localDayKey, parseJournalMoodTitle, resolveMoodRoomId, shiftWeek, startOfWeek, weekMonthLabel } from './journalModel'
 
 describe('journal week strip', () => {
   it('starts the week on Monday', () => {
@@ -30,6 +30,10 @@ describe('journal week strip', () => {
 
   it('formats the diary date line used on the editor page', () => {
     expect(journalDateLabel('2026-08-26')).toBe('8月26日 星期三')
+  })
+
+  it('orders the mood picker from sad to excited', () => {
+    expect(JOURNAL_MOODS.map((mood) => mood.id)).toEqual(['sad', 'calm', 'happy', 'excited'])
   })
 
   it('formats and parses the editor mood line used on the diary card', () => {

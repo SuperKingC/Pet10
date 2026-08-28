@@ -33,6 +33,13 @@
 - Run `npm run verify:full` before merging or deploying.
 - Visual changes require user acceptance before merging to `main` or deploying production.
 
+## Task commit hygiene
+
+- As soon as a task with code changes reaches its goal and passes the fastest relevant check, commit that task's changes immediately (commit message in Chinese).
+- Stage only the file paths the task explicitly touched; never use `git add -A` or `git add .`.
+- If the worktree contains uncommitted changes unrelated to the task: do not revert, commit, or mix them in; list them in the report instead.
+- This does not change the acceptance gates: visual changes still require user acceptance before merging to `main` or deploying.
+
 ## Git and deployment
 
 - Write Git commit messages in Chinese.

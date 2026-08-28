@@ -3,17 +3,19 @@ import { Button, Image, Input, ScrollView, Text, View } from '@tarojs/components
 import { roomApi, type RoomMessage } from '../../services/roomApi'
 import { startSingleFlightPolling } from '../../services/singleFlightPolling'
 import { socialApi, type MiniappConversation } from '../../services/socialApi'
-import { hasFriendConversations } from './miniappViewModel'
+import { getMessagePresentation, hasFriendConversations } from './miniappViewModel'
 import './MiniappMessagesView.scss'
 
 const messagesEmpty = require('../../assets/messages-empty.png')
 
 interface MiniappMessagesViewProps {
   roomId: string
+  viewerId: string
+  friendName: string
   onOpenRoom(roomId: string): void
 }
 
-export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewProps) {
+export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom }: MiniappMessagesViewProps) {
   const [messages, setMessages] = useState<RoomMessage[]>([])
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -114,23 +116,17 @@ export function MiniappMessagesView({ roomId, onOpenRoom }: MiniappMessagesViewP
               </Button>
             ))}
           </View>
-          {roomId && (
-            <Button className="miniapp-messages__conversation" onClick={() => onOpenRoom(roomId)}>
-              <View>
-                <Text className="miniapp-messages__conversation-title">共享房间</Text>
-                <Text className="miniapp-messages__conversation-copy">你们和小多利的共同聊天</Text>
-              </View>
-              <Text className="miniapp-messages__arrow">›</Text>
-            </Button>
-          )}
           <ScrollView className="miniapp-messages__list" scrollY>
             {messages.length === 0 && <Text className="miniapp-messages__empty">还没有消息，先打个招呼吧。</Text>}
-            {messages.map((message) => (
-              <View key={message.id} className={message.senderType === 'user' ? 'miniapp-message miniapp-message--mine' : 'miniapp-message'}>
-                <Text className="miniapp-message__sender">{message.senderType === 'pet' ? '小多利' : '我'}</Text>
-                <Text className="miniapp-message__bubble">{message.text || (message.kind === 'image' ? '[图片]' : '')}</Text>
-              </View>
-            ))}
+            {messages.map((message) => {
+              const presentation = getMessagePresentation(message, viewerId, friendName)
+              return (
+                <View key={message.id} className={presentation.mine ? 'miniapp-message miniapp-message--mine' : 'miniapp-message'}>
+                  <Text className="miniapp-message__sender">{presentation.name}</Text>
+                  <Text className="miniapp-message__bubble">{message.text || (message.kind === 'image' ? '[图片]' : '')}</Text>
+                </View>
+              )
+            })}
           </ScrollView>
           <View className="miniapp-messages__composer">
             <Input

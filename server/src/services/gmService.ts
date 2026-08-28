@@ -3,6 +3,7 @@ import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { createFriendshipService } from './friendshipService.js'
 
 const MAX_COUNT = 10
+const GM_USERNAME_PREFIX = 'gm_friend_'
 
 function randomSuffix() {
   return randomBytes(6).toString('hex')
@@ -39,6 +40,21 @@ export function createGmService(
         added.push({ userId: friend.id, displayName: friend.displayName })
       }
       return { added }
+    },
+
+    // 只删除 GM 生成的假用户（用户名以 gm_friend_ 开头），不碰真实好友
+    async removeFriends(userId: string) {
+      const accepted = await repositories.relationships.listAcceptedForUser(userId)
+      const removed: { userId: string; displayName: string }[] = []
+      for (const relationship of accepted) {
+        const otherId = relationship.requesterId === userId ? relationship.addresseeId : relationship.requesterId
+        const other = await repositories.users.findById(otherId)
+        if (!other?.username.startsWith(GM_USERNAME_PREFIX)) continue
+        await repositories.relationships.removeById(relationship.id)
+        await repositories.users.deleteById(other.id)
+        removed.push({ userId: other.id, displayName: other.displayName })
+      }
+      return { removed }
     }
   }
 }
