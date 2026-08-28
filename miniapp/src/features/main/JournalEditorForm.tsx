@@ -12,14 +12,14 @@ import {
 } from './journalModel'
 import './JournalEditorForm.scss'
 
-const polaroidRun = require('../../assets/journal/polaroid-run.webp')
-const editorYard = require('../../assets/journal/editor-yard.webp')
+const polaroidRun = require('../../assets/journal/polaroid-run.png')
+const editorYard = require('../../assets/journal/editor-yard.jpg')
 
 const moodImages: Record<string, string> = {
-  happy: require('../../assets/moods/mood-3.webp'),
-  calm: require('../../assets/moods/mood-2.webp'),
-  sad: require('../../assets/moods/mood-1.webp'),
-  excited: require('../../assets/moods/mood-4.webp'),
+  happy: require('../../assets/moods/mood-3.png'),
+  calm: require('../../assets/moods/mood-2.png'),
+  sad: require('../../assets/moods/mood-1.png'),
+  excited: require('../../assets/moods/mood-4.png'),
 }
 
 const MAX_PHOTOS = 3

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Button, Image, Text, View } from '@tarojs/components'
 import './MiniappPawMenu.scss'
 
-const codewordIcon = require('../../assets/navigation/codeword.webp')
+const codewordIcon = require('../../assets/navigation/codeword.png')
 const gameIcon = require('../../assets/navigation/game.png')
-const tarotIcon = require('../../assets/navigation/tarot.webp')
+const tarotIcon = require('../../assets/navigation/tarot.png')
 
 const CLOSE_ANIMATION_MS = 240
 

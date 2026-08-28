@@ -3,7 +3,7 @@ import type { PetState } from '../domain/types'
 import './PetStatusCard.scss'
 
 type Props = { pet: PetState; onOpenMemories?: () => void }
-const roomBackground = require('../assets/room-background.webp')
+const roomBackground = require('../assets/room-background.jpg')
 const statuses = [
   ['饱食', 'hunger', '#f3a85d'],
   ['心情', 'mood', '#ed7e9a'],
@@ -18,7 +18,7 @@ export function PetStatusCard({ pet, onOpenMemories }: Props) {
       <View className="pet-card-scene">
         <Image className="pet-card-background" src={roomBackground} mode="aspectFill" />
         <Text className="pet-level">Lv.{pet.level}</Text>
-        <Image className="pet-avatar-image" src={require('../assets/xiaoduoli.webp')} mode="aspectFit" />
+        <Image className="pet-avatar-image" src={require('../assets/xiaoduoli.png')} mode="aspectFit" />
         <Text className="pet-name-badge">{pet.name}</Text>
         {onOpenMemories && (
           <View className="pet-memory-button" onClick={onOpenMemories}>

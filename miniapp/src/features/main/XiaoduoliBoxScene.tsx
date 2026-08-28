@@ -5,13 +5,13 @@ import type { XiaoduoliFaceAction } from '../../domain/xiaoduoliBehavior'
 import { useXiaoduoliIdleBehavior } from './useXiaoduoliIdleBehavior'
 import './XiaoduoliBoxScene.scss'
 
-const streetImage = require('../../assets/nest/xiaoduoli-street-v4.webp')
-const boxImage = require('../../assets/nest/xiaoduoli-box.webp')
-const bodyImage = require('../../assets/nest/xiaoduoli-body.webp')
-const eyesImage = require('../../assets/nest/xiaoduoli-eyes.webp')
+const streetImage = require('../../assets/nest/xiaoduoli-street-v6.png')
+const boxImage = require('../../assets/nest/xiaoduoli-box.png')
+const bodyImage = require('../../assets/nest/xiaoduoli-body.png')
+const eyesImage = require('../../assets/nest/xiaoduoli-eyes.png')
 const pupilsImage = require('../../assets/nest/xiaoduoli-pupils.png')
-const lidsImage = require('../../assets/nest/xiaoduoli-lids.webp')
-const standingImage = require('../../assets/xiaoduoli.webp')
+const lidsImage = require('../../assets/nest/xiaoduoli-lids.png')
+const standingImage = require('../../assets/xiaoduoli.png')
 
 // 眨眼 = 眼睑淡入 + 瞳孔压扁；瞟眼 = 瞳孔在眼眶内滑动
 const pupilsClassNames: Record<XiaoduoliFaceAction, string> = {

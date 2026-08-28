@@ -1,10 +1,10 @@
 import { Image, Text, View } from '@tarojs/components'
 import './MiniappTabBar.scss'
 
-const journalIcon = require('../assets/navigation/journal.webp')
-const meIcon = require('../assets/navigation/me.webp')
+const journalIcon = require('../assets/navigation/journal.png')
+const meIcon = require('../assets/navigation/me.png')
 const messagesIcon = require('../assets/navigation/messages.png')
-const nestIcon = require('../assets/navigation/nest.webp')
+const nestIcon = require('../assets/navigation/nest.png')
 const pawIcon = require('../assets/navigation/paw.png')
 
 export type MiniappTab = 'nest' | 'calendar' | 'messages' | 'me'

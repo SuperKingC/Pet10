@@ -6,14 +6,14 @@ import './MiniappNestLetter.scss'
 // 切片由 miniapp/tools/make-letter-paper-slices.mjs 生成，切线见该脚本 SLICE 常量。
 const paperTiles = {
   tl: require('../../assets/nest/letter-paper-tl.png'),
-  tc: require('../../assets/nest/letter-paper-tc.webp'),
-  tr: require('../../assets/nest/letter-paper-tr.webp'),
+  tc: require('../../assets/nest/letter-paper-tc.png'),
+  tr: require('../../assets/nest/letter-paper-tr.png'),
   ml: require('../../assets/nest/letter-paper-ml.png'),
-  mc: require('../../assets/nest/letter-paper-mc.webp'),
-  mr: require('../../assets/nest/letter-paper-mr.webp'),
-  bl: require('../../assets/nest/letter-paper-bl.webp'),
-  bc: require('../../assets/nest/letter-paper-bc.webp'),
-  br: require('../../assets/nest/letter-paper-br-v2.webp'),
+  mc: require('../../assets/nest/letter-paper-mc.png'),
+  mr: require('../../assets/nest/letter-paper-mr.png'),
+  bl: require('../../assets/nest/letter-paper-bl.png'),
+  bc: require('../../assets/nest/letter-paper-bc.png'),
+  br: require('../../assets/nest/letter-paper-br-v2.png'),
 }
 
 const PAPER_TILE_NAMES = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'] as Array<keyof typeof paperTiles>
