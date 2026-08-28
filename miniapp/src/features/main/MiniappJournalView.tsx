@@ -38,6 +38,7 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
   const [anchor, setAnchor] = useState(() => new Date())
   const [selectedDay, setSelectedDay] = useState(todayKey)
   const [diaries, setDiaries] = useState<MiniappDiary[]>([])
+  const [diariesLoading, setDiariesLoading] = useState(true)
   const [fortune, setFortune] = useState<MiniappFortune | null>(null)
   const [fortuneOverlayOpen, setFortuneOverlayOpen] = useState(false)
   const [fortuneMessage, setFortuneMessage] = useState('')
@@ -60,9 +61,20 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
 
   useEffect(() => {
     let cancelled = false
+    setDiariesLoading(true)
     void diaryApi.list(weekFrom, weekTo)
-      .then((items) => { if (!cancelled) setDiaries(items) })
-      .catch(() => { if (!cancelled) setDiaries([]) })
+      .then((items) => {
+        if (!cancelled) {
+          setDiaries(items)
+          setDiariesLoading(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDiaries([])
+          setDiariesLoading(false)
+        }
+      })
     return () => { cancelled = true }
   }, [weekFrom, weekTo, refreshKey, listTick])
 
@@ -214,10 +226,20 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
               />
             </View>
             <View className="journal-today__snippet" onClick={() => featured ? openEdit(featured) : writeDiary()}>
-              {featured?.title ? <Text className="journal-today__title">{featured.title}</Text> : null}
-              <View className="journal-today__text">
-                {featured?.body || '还没有日记，点左边的小狗照片或下方按钮，记下今天吧。'}
-              </View>
+              {diariesLoading ? (
+                <View className="journal-today__loading">
+                  <View className="journal-today__skeleton journal-today__skeleton--title" />
+                  <View className="journal-today__skeleton journal-today__skeleton--line" />
+                  <View className="journal-today__skeleton journal-today__skeleton--short" />
+                </View>
+              ) : (
+                <>
+                  {featured?.title ? <Text className="journal-today__title">{featured.title}</Text> : null}
+                  <View className="journal-today__text">
+                    {featured?.body || '还没有日记，点左边的小狗照片或下方按钮，记下今天吧。'}
+                  </View>
+                </>
+              )}
             </View>
           </View>
           <View className="journal-today__actions">
