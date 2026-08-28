@@ -18,7 +18,7 @@ export function PetStatusCard({ pet, onOpenMemories }: Props) {
       <View className="pet-card-scene">
         <Image className="pet-card-background" src={roomBackground} mode="aspectFill" />
         <Text className="pet-level">Lv.{pet.level}</Text>
-        <Image className="pet-avatar-image" src={require('../assets/xiaoduoli.png')} mode="aspectFit" />
+        <Image className="pet-avatar-image" src={require('../assets/xiaoduoli.webp')} mode="aspectFit" />
         <Text className="pet-name-badge">{pet.name}</Text>
         {onOpenMemories && (
           <View className="pet-memory-button" onClick={onOpenMemories}>

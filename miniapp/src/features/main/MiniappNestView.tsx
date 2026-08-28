@@ -13,9 +13,9 @@ import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import { reconcileStoredUnlock, writeUnlockState } from '../../services/xiaoduoliUnlockStorage'
 import './MiniappNestView.scss'
 
-const wardrobe = require('../../assets/nest/wardrobe.png')
-const photoWall = require('../../assets/nest/photo-wall.png')
-const tasks = require('../../assets/nest/tasks.png')
+const wardrobe = require('../../assets/nest/wardrobe.webp')
+const photoWall = require('../../assets/nest/photo-wall.webp')
+const tasks = require('../../assets/nest/tasks.webp')
 interface MiniappNestViewProps {
   context: LaunchContext | null
   pet: PetState | null

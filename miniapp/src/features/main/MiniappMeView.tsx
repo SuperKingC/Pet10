@@ -15,12 +15,12 @@ import { MiniappMbtiTest } from './MiniappMbtiTest'
 import { getProfilePresentation } from './miniappViewModel'
 import './MiniappMeView.scss'
 
-const birthdayIcon = require('../../assets/me/birthday.png')
+const birthdayIcon = require('../../assets/me/birthday.webp')
 const mbtiIcon = require('../../assets/me/mbti.png')
 const notificationIcon = require('../../assets/me/notification.png')
 const contactIcon = require('../../assets/me/contact.png')
 const aboutIcon = require('../../assets/me/about.png')
-const logoutIcon = require('../../assets/me/logout.png')
+const logoutIcon = require('../../assets/me/logout.webp')
 
 const CONTACT_EMAIL = 'pet10-support@example.com'
 interface MiniappMeViewProps {

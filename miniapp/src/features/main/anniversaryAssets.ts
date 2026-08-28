@@ -2,11 +2,11 @@ export const anniversaryIconKeys = ['heart', 'star', 'cake', 'paw', 'balloon'] a
 export type AnniversaryIconKey = typeof anniversaryIconKeys[number]
 
 export const anniversaryIcons: Record<AnniversaryIconKey, string> = {
-  heart: require('../../assets/anniversaries/anniv-heart.png'),
-  star: require('../../assets/anniversaries/anniv-star.png'),
-  cake: require('../../assets/anniversaries/anniv-cake.png'),
-  paw: require('../../assets/anniversaries/anniv-paw.png'),
-  balloon: require('../../assets/anniversaries/anniv-balloon.png'),
+  heart: require('../../assets/anniversaries/anniv-heart.webp'),
+  star: require('../../assets/anniversaries/anniv-star.webp'),
+  cake: require('../../assets/anniversaries/anniv-cake.webp'),
+  paw: require('../../assets/anniversaries/anniv-paw.webp'),
+  balloon: require('../../assets/anniversaries/anniv-balloon.webp'),
 }
 
 export const anniversaryIconLabels: Record<AnniversaryIconKey, string> = {

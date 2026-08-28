@@ -8,7 +8,7 @@ import {
 
 const assets: LaunchAsset[] = [
   { id: 'pet', label: '小多利', src: 'pet.png' },
-  { id: 'nest', label: '小窝', src: 'nest.png' },
+  { id: 'nest', label: '小窝', src: 'nest.webp' },
 ]
 
 describe('launch asset loader', () => {
@@ -27,7 +27,7 @@ describe('launch asset loader', () => {
   it('keeps the completed progress and reports a retryable asset error', async () => {
     const progress: number[] = []
     const load = vi.fn(async (src: string) => {
-      if (src === 'nest.png') throw new Error('offline')
+      if (src === 'nest.webp') throw new Error('offline')
     })
 
     await expect(prepareLaunchAssets(assets, (value) => progress.push(value), load))
@@ -45,8 +45,8 @@ describe('launch asset loader', () => {
   })
 
   it('does not ask WeChat to decode packaged assets as file paths', () => {
-    expect(shouldDecodeLaunchImage('assets/xiaoduoli.png')).toBe(false)
-    expect(shouldDecodeLaunchImage('https://cdn.example.com/xiaoduoli.png')).toBe(true)
+    expect(shouldDecodeLaunchImage('assets/xiaoduoli.webp')).toBe(false)
+    expect(shouldDecodeLaunchImage('https://cdn.example.com/xiaoduoli.webp')).toBe(true)
     expect(shouldDecodeLaunchImage('wxfile://tmp/avatar.png')).toBe(true)
   })
 })

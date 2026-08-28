@@ -63,7 +63,7 @@ describe('miniapp main layout', () => {
     const tabStyles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
     expect(tabSource).not.toContain('style={{ backgroundImage')
-    expect(tabStyles).toContain("url('../assets/navigation/tab-bar-background.png')")
+    expect(tabStyles).toContain("url('../assets/navigation/tab-bar-background.webp')")
   })
 
   it('keeps the page shell and bottom safe area on one background color', () => {

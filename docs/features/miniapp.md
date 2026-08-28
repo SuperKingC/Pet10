@@ -38,7 +38,7 @@ flowchart LR
 ### 小程序主界面补充
 
 - 小窝、消息、我的页标题下保留简介；主内容区上边距收紧，底部导航位置不变。
-- 无好友时，小窝邀请界面上方是小多利在纸箱里探头左顾右盼，中部信纸信件（九宫格切片渲染：四角固定不变形、四边单轴拉伸、中心净区补余量；整封信不分段，完整平铺在白纸净区内，不滚动），下方领养提示（小多利独一无二、只能养一只、请认真选择一起养的对象）；底部为邀请分享按钮。注意：`letter-paper-br-v2.png` 内的信封装饰已从切片位置手动下移 7px（若重跑 `make-letter-paper-slices.mjs` 需重做该偏移）。箱中待机为原图直出 + 眼部木偶拆解方案：身体层（`xiaoduoli-body.png`）是原图直出、一个像素不改；眼部三层全部从同一原图确定性裁切/采样生成——眼眶层（`xiaoduoli-eyes.png`，瞳孔原位以采样虹膜色填充）、瞳孔层（`xiaoduoli-pupils.png`，圆盘裁切）、眼睑层（`xiaoduoli-lids.png`，按眼上下毛色渐变绘制闭眼状态）；静止时与原图逐像素一致，眨眼=眼睑淡入+瞳孔压扁，瞟眼=瞳孔在眼眶内滑动（±1.3%）；各图层 446×314 同坐标叠放，显式 rpx 尺寸对位，瞳孔支点由出件脚本自动生成；领域层按邀请种子生成随机时间线，做眨眼、双眨、左右瞟和小跳，同一房间回放一致，并支持 `prefers-reduced-motion` 降级为静态图。纸箱动画底下铺夜景街角背景（`xiaoduoli-street-v3.webp`，贴寻主启事的砖墙与路灯；生成图边缘与棋盘格底一并炭化成近黑焦边（不透明满幅矩形、1125×585 webp 入包），`aspectFill` 铺满舞台、左右贴屏幕两边，撕裂形轮廓在焦色渐变中保留，z-index 0 垫底，动画各层照常在其上方；箱体与小多利按 0.58 缩小：箱高 35.5%、木偶 192×134rpx，落点与眼神动画随 rpx 等比缩放）。
+- 无好友时，小窝邀请界面上方是小多利在纸箱里探头左顾右盼，中部信纸信件（九宫格切片渲染：四角固定不变形、四边单轴拉伸、中心净区补余量；整封信不分段，完整平铺在白纸净区内，不滚动），下方领养提示（小多利独一无二、只能养一只、请认真选择一起养的对象）；底部为邀请分享按钮。注意：`letter-paper-br-v2.png` 内的信封装饰已从切片位置手动下移 7px（若重跑 `make-letter-paper-slices.mjs` 需重做该偏移）。箱中待机为原图直出 + 眼部木偶拆解方案：身体层（`xiaoduoli-body.png`）是原图直出、一个像素不改；眼部三层全部从同一原图确定性裁切/采样生成——眼眶层（`xiaoduoli-eyes.png`，瞳孔原位以采样虹膜色填充）、瞳孔层（`xiaoduoli-pupils.png`，圆盘裁切）、眼睑层（`xiaoduoli-lids.png`，按眼上下毛色渐变绘制闭眼状态）；静止时与原图逐像素一致，眨眼=眼睑淡入+瞳孔压扁，瞟眼=瞳孔在眼眶内滑动（±1.3%）；各图层 446×314 同坐标叠放，显式 rpx 尺寸对位，瞳孔支点由出件脚本自动生成；领域层按邀请种子生成随机时间线，做眨眼、双眨、左右瞟和小跳，同一房间回放一致，并支持 `prefers-reduced-motion` 降级为静态图。纸箱动画底下铺夜景街角背景（`xiaoduoli-street-v4.webp`，贴寻主启事的砖墙与路灯；烧纸边重绘版：原图白底已按亮度反向转真透明（白底消色，画面内部高光不受影响），裁切 750:390 满幅、1125×585 webp 入包，`aspectFill` 铺满舞台、左右贴屏幕两边，撕裂形轮廓在焦色渐变中保留，z-index 0 垫底，动画各层照常在其上方；箱体与小多利按 0.58 缩小：箱高 35.5%、木偶 192×134rpx，落点与眼神动画随 rpx 等比缩放）。
 - 好友接受邀请后，小窝仍是同一套箱中探头和信件，只把底部按钮换成「玩家已接受邀请解锁小多利~」；点按钮后播放从箱子跳出、彩带和星光，随后进入站立小多利与互动。已有小窝在本机记为已解锁，不会重播。
 - 小窝支持读取共同记忆、删除共同记忆，并展示双方贡献榜。小窝顶部不再展示「好友名 · Lv」房间芯片行；多房间的切换入口在消息页会话列表，避免测试好友名字堆在小窝上方。
 - 消息页读取真实会话列表，支持切换当前共享房间。无好友会话时按空态卡片展示：标题与副文案、中间较大的抱信封小狗插画（约屏宽一半，文字紧跟插画下方）、说明和「去邀请好友」分享按钮。有好友会话时只渲染会话列表本身（不再附加与会话重复的“共享房间”固定入口）；共享房间消息按 `senderId` 区分发送者：自己的消息右侧显示「我」，好友的消息左侧显示好友昵称（`getMessagePresentation`），小多利消息左侧显示「小多利」。
@@ -132,44 +132,44 @@ npm run build:weapp --prefix miniapp
 
 | 文件 | 原始尺寸 | 体积 | 小程序用途 |
 | --- | --- | --- | --- |
-| `xiaoduoli.png` | 436×700 | 85 KB | 宠物场景主图；解锁跳出后的站立小多利 |
-| `action-feed.png` | 445×474 | 25 KB | 喂食动作 |
-| `action-play.png` | 449×474 | 24 KB | 玩耍动作 |
-| `action-clean.png` | 448×474 | 25 KB | 清洁动作 |
-| `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
+| `xiaoduoli.webp` | 436×700 | 52 KB | 宠物场景主图；解锁跳出后的站立小多利 |
+| `action-feed.webp` | 445×474 | 17 KB | 喂食动作 |
+| `action-play.webp` | 449×474 | 16 KB | 玩耍动作 |
+| `action-clean.webp` | 448×474 | 17 KB | 清洁动作 |
+| `action-sleep.webp` | 447×474 | 18 KB | 睡觉动作 |
 | `room-background.webp` | 1280×1280 | 158 KB | 小窝宠物场景背景 |
-| `navigation/game.png` | 256×256 | 97 KB | 爪印菜单游戏入口图标 |
-| `navigation/tarot.png` | 256×256 | 99 KB | 爪印菜单塔罗占卜入口图标 |
-| `navigation/gobang.png` | 256×256 | 94 KB | 游戏中心五子棋入口图标 |
-| `navigation/codeword.png` | 256×256 | 60 KB | 爪印菜单每日暗号图标（挂锁笔记本） |
-| `me/mbti.png` | 128×128 | 30 KB | 我的页性格类型入口图标 |
+| `navigation/game.png` | 256×256 | 12 KB | 爪印菜单游戏入口图标 |
+| `navigation/tarot.webp` | 256×256 | 16 KB | 爪印菜单塔罗占卜入口图标 |
+| `navigation/gobang.webp` | 256×256 | 15 KB | 游戏中心五子棋入口图标 |
+| `navigation/codeword.webp` | 256×256 | 10 KB | 爪印菜单每日暗号图标（挂锁笔记本） |
+| `me/mbti.png` | 128×128 | 4 KB | 我的页性格类型入口图标 |
 | `nest/letter-paper-tl.png` | 65×121 | 9 KB | 无好友小窝信纸九宫格左上角 |
-| `nest/letter-paper-tc.png` | 439×121 | 40 KB | 信纸九宫格上边条（含信封翻盖沿线，横向拉伸） |
-| `nest/letter-paper-tr.png` | 216×121 | 28 KB | 信纸九宫格右上角（含木夹） |
+| `nest/letter-paper-tc.webp` | 439×121 | 4 KB | 信纸九宫格上边条（含信封翻盖沿线，横向拉伸） |
+| `nest/letter-paper-tr.webp` | 216×121 | 4 KB | 信纸九宫格右上角（含木夹） |
 | `nest/letter-paper-ml.png` | 65×175 | 13 KB | 信纸九宫格左边条（纵向拉伸） |
-| `nest/letter-paper-mc.png` | 439×175 | 28 KB | 信纸九宫格中心净区 |
-| `nest/letter-paper-mr.png` | 216×175 | 21 KB | 信纸九宫格右边条（纵向拉伸） |
-| `nest/letter-paper-bl.png` | 65×253 | 20 KB | 信纸九宫格左下角 |
-| `nest/letter-paper-bc.png` | 439×253 | 52 KB | 信纸九宫格下边条（横向拉伸） |
-| `nest/letter-paper-br-v2.png` | 216×253 | 56 KB | 信纸九宫格右下角（含爪印、爱心与小信封装饰） |
-| `nest/xiaoduoli-box.png` | 520×440 | 156 KB | 邀请/待解锁纸箱 |
-| `nest/xiaoduoli-street.webp` | 1125×631 | 145 KB | 待解锁纸箱夜景街角背景（烧焦撕裂柔边透明，左右贴边） |
-| `nest/xiaoduoli-body.png` | 446×314 | 92 KB | 箱中探头身体层（原图直出，未作任何修补） |
-| `nest/xiaoduoli-eyes.png` | 446×314 | 18 KB | 眼眶底层（瞳孔原位以采样虹膜色填充，供瞳孔滑动） |
+| `nest/letter-paper-mc.webp` | 439×175 | 1 KB | 信纸九宫格中心净区 |
+| `nest/letter-paper-mr.webp` | 216×175 | 2 KB | 信纸九宫格右边条（纵向拉伸） |
+| `nest/letter-paper-bl.webp` | 65×253 | 3 KB | 信纸九宫格左下角 |
+| `nest/letter-paper-bc.webp` | 439×253 | 4 KB | 信纸九宫格下边条（横向拉伸） |
+| `nest/letter-paper-br-v2.webp` | 216×253 | 6 KB | 信纸九宫格右下角（含爪印、爱心与小信封装饰） |
+| `nest/xiaoduoli-box.webp` | 520×440 | 10 KB | 邀请/待解锁纸箱 |
+| `nest/xiaoduoli-street-v4.webp` | 1125×585 | 133 KB | 待解锁纸箱夜景街角背景（烧纸边白底转透明，左右贴边） |
+| `nest/xiaoduoli-body.webp` | 446×314 | 18 KB | 箱中探头身体层（原图直出，未作任何修补） |
+| `nest/xiaoduoli-eyes.webp` | 446×314 | 3 KB | 眼眶底层（瞳孔原位以采样虹膜色填充，供瞳孔滑动） |
 | `nest/xiaoduoli-pupils.png` | 446×314 | 4 KB | 瞳孔圆盘层（瞟眼时在眼眶内滑动） |
-| `nest/xiaoduoli-lids.png` | 446×314 | 20 KB | 闭眼眼睑层（眨眼时淡入） |
-| `messages-empty.png` | 520×411 | 89 KB | 消息页无好友空态：抱信封小狗 |
-| `journal/polaroid-run.png` | 420×406 | 103 KB | 写日记页默认奔跑小狗拍立得，点击可换自己的照片 |
-| `journal/polaroid-sit.png` | 420×373 | 90 KB | 小记今日日记卡默认坐姿小狗拍立得 |
-| `journal/action-write.png` | 320×270 | 45 KB | 小记「写日记」按钮插画 |
-| `journal/action-photo.png` | 359×219 | 65 KB | 小记「拍照记录」按钮插画 |
-| `journal/editor-yard.jpg` | 750×750 | 45 KB | 写日记页底部庭院背景 |
-| `moods/mood-1.png` | 256×256 | 17 KB | 写日记心情选择：难过（乌云含泪，透明抠图） |
-| `moods/mood-2.png` | 256×256 | 20 KB | 写日记心情选择：平静（微汗，透明抠图） |
-| `moods/mood-3.png` | 256×256 | 21 KB | 写日记心情选择：开心（吐舌笑，透明抠图） |
-| `moods/mood-4.png` | 256×256 | 21 KB | 写日记心情选择：兴奋（眯眼欢呼，透明抠图） |
+| `nest/xiaoduoli-lids.webp` | 446×314 | 1 KB | 闭眼眼睑层（眨眼时淡入） |
+| `messages-empty.webp` | 520×411 | 26 KB | 消息页无好友空态：抱信封小狗 |
+| `journal/polaroid-run.webp` | 420×406 | 20 KB | 写日记页默认奔跑小狗拍立得，点击可换自己的照片 |
+| `journal/polaroid-sit.webp` | 420×373 | 18 KB | 小记今日日记卡默认坐姿小狗拍立得 |
+| `journal/action-write.webp` | 320×270 | 12 KB | 小记「写日记」按钮插画 |
+| `journal/action-photo.webp` | 359×219 | 14 KB | 小记「拍照记录」按钮插画 |
+| `journal/editor-yard.webp` | 750×750 | 27 KB | 写日记页底部庭院背景 |
+| `moods/mood-1.webp` | 256×256 | 13 KB | 写日记心情选择：难过（乌云含泪，透明抠图） |
+| `moods/mood-2.webp` | 256×256 | 14 KB | 写日记心情选择：平静（微汗，透明抠图） |
+| `moods/mood-3.webp` | 256×256 | 16 KB | 写日记心情选择：开心（吐舌笑，透明抠图） |
+| `moods/mood-4.webp` | 256×256 | 18 KB | 写日记心情选择：兴奋（眯眼欢呼，透明抠图） |
 
-PNG 保留原尺寸与透明通道并采用 256 色优化；房间背景保留 1280×1280 构图并重新编码为 WebP。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载。
+原始 PNG 保留原尺寸与透明通道；超过 16KB 的位图在入库前用 `scripts/optimize-miniapp-assets.mjs` 统一转为 WebP（质量 80、保留透明通道），过大的既有 WebP 重编码，替换原图以控制包体。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内；主包构建产物必须低于微信 2MB 上限（当前约 1.6MB）。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载。
 
 ## 开发命令
 

@@ -8,8 +8,8 @@ import './MiniappGobangPanel.scss'
 
 const boardCells = Array.from({ length: 225 }, (_, index) => ({ x: index % 15, y: Math.floor(index / 15) }))
 const starCells = new Set(['3,3', '11,3', '7,7', '3,11', '11,11'])
-const xiaoduoliImage = require('../../assets/xiaoduoli.png')
-const gobangIcon = require('../../assets/navigation/gobang.png')
+const xiaoduoliImage = require('../../assets/xiaoduoli.webp')
+const gobangIcon = require('../../assets/navigation/gobang.webp')
 
 type GobangMode = 'select' | 'solo' | 'friend'
 type StoneColor = 'black' | 'white'

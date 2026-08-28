@@ -6,7 +6,7 @@ import { socialApi, type MiniappConversation } from '../../services/socialApi'
 import { getMessagePresentation, hasFriendConversations } from './miniappViewModel'
 import './MiniappMessagesView.scss'
 
-const messagesEmpty = require('../../assets/messages-empty.png')
+const messagesEmpty = require('../../assets/messages-empty.webp')
 
 interface MiniappMessagesViewProps {
   roomId: string
