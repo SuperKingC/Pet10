@@ -6,6 +6,7 @@ import './anniversary.scss'
 
 interface AnniversaryListViewProps {
   items: MiniappAnniversary[]
+  loading?: boolean
   today: Date
   onAdd(): void
   onEdit(id: string): void
@@ -43,18 +44,20 @@ function countdownOf(item: MiniappAnniversary, today: Date): AnniversaryCountdow
   return { count: String(-stats.daysUntilNext), unit: '天前', sub: '', isToday: false }
 }
 
-export function AnniversaryListView({ items, today, onAdd, onEdit }: AnniversaryListViewProps) {
+export function AnniversaryListView({ items, loading = false, today, onAdd, onEdit }: AnniversaryListViewProps) {
   const sorted = sortAnniversaries(items, today)
   return (
     <View className="anniv-list">
-      {sorted.length === 0 && (
+      {loading && <View className="anniv-list__skeleton" />}
+      {loading && <View className="anniv-list__skeleton anniv-list__skeleton--short" />}
+      {!loading && sorted.length === 0 && (
         <View className="anniv-list__empty">
           <Image className="anniv-list__empty-icon" src={anniversaryIcons.balloon} mode="aspectFit" />
           <Text className="anniv-list__empty-title">还没有纪念日</Text>
           <Text className="anniv-list__empty-hint">和小多利一起，把重要的日子记下来吧。</Text>
         </View>
       )}
-      {sorted.map((item) => {
+      {!loading && sorted.map((item) => {
         const countdown = countdownOf(item, today)
         return (
           <View
@@ -84,7 +87,7 @@ export function AnniversaryListView({ items, today, onAdd, onEdit }: Anniversary
           </View>
         )
       })}
-      <Button className="anniv-list__add" onClick={onAdd}>+ 添加纪念日</Button>
+      {!loading && <Button className="anniv-list__add" onClick={onAdd}>+ 添加纪念日</Button>}
     </View>
   )
 }

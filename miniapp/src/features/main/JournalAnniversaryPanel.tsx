@@ -16,7 +16,7 @@ interface JournalAnniversaryPanelProps {
 
 export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: JournalAnniversaryPanelProps) {
   const [roomId, setRoomId] = useState(pairRoomId)
-  const [anniversaries, setAnniversaries] = useState<MiniappAnniversary[]>([])
+  const [anniversaries, setAnniversaries] = useState<MiniappAnniversary[] | null>(null)
   const [form, setForm] = useState<{ day: string; edit?: MiniappAnniversary; pickDay?: boolean } | null>(null)
   const [saving, setSaving] = useState(false)
   const today = new Date()
@@ -38,6 +38,7 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
 
   useEffect(() => {
     if (!roomId) return
+    setAnniversaries(null)
     void socialApi.listAnniversaries(roomId).then(setAnniversaries).catch(() => setAnniversaries([]))
   }, [roomId])
 
@@ -47,10 +48,10 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
     try {
       if (form?.edit) {
         const updated = await socialApi.updateAnniversary(roomId, form.edit.id, input)
-        setAnniversaries((current) => current.map((item) => (item.id === updated.id ? updated : item)))
+        setAnniversaries((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)))
       } else {
         const created = await socialApi.createAnniversary(roomId, input)
-        setAnniversaries((current) => [...current, created])
+        setAnniversaries((current) => [...(current ?? []), created])
       }
       setForm(null)
     } catch (error) {
@@ -63,7 +64,7 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
     setSaving(true)
     try {
       await socialApi.deleteAnniversary(roomId, form.edit.id)
-      setAnniversaries((current) => current.filter((item) => item.id !== form.edit?.id))
+      setAnniversaries((current) => (current ?? []).filter((item) => item.id !== form.edit?.id))
       setForm(null)
     } catch (error) {
       Taro.showToast({ title: error instanceof Error ? error.message : '删除失败', icon: 'none' })
@@ -89,11 +90,12 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
         />
       ) : (
         <AnniversaryListView
-          items={anniversaries}
+          items={anniversaries ?? []}
+          loading={anniversaries === null}
           today={today}
           onAdd={() => setForm({ day: currentDay, pickDay: true })}
           onEdit={(id) => {
-            const item = anniversaries.find((entry) => entry.id === id)
+            const item = anniversaries?.find((entry) => entry.id === id)
             if (item) setForm({ day: item.day, edit: item })
           }}
         />

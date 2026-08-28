@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button, Image, Input, Picker, Text, View } from '@tarojs/components'
 import type { AnniversaryInput, AnniversaryRepeat } from '../../services/socialApi'
-import { anniversaryIconKeys, anniversaryIconLabels, anniversaryIcons, type AnniversaryIconKey } from './anniversaryAssets'
+import { anniversaryIconKeys, anniversaryIcons, type AnniversaryIconKey } from './anniversaryAssets'
 import './anniversary.scss'
 
 interface AnniversaryFormProps {
@@ -44,7 +44,6 @@ export function AnniversaryForm({ defaultDay, withDatePicker, initial, saving, o
         {anniversaryIconKeys.map((key) => (
           <Button key={key} className={`anniv-form__icon-item${icon === key ? ' anniv-form__icon-item--active' : ''}`} onClick={() => setIcon(key)}>
             <Image className="anniv-form__icon-img" src={anniversaryIcons[key]} mode="aspectFit" />
-            <Text className="anniv-form__icon-label">{anniversaryIconLabels[key]}</Text>
           </Button>
         ))}
       </View>
