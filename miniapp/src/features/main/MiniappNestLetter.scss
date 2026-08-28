@@ -11,12 +11,14 @@
   position: relative;
   width: 620rpx;
   margin: 0 auto;
-  height: 540rpx;
+  height: 620rpx;
   overflow: hidden;
 }
 
-// 切线比例来自 tools/make-letter-paper-slices.mjs（内容 720×549，卡片按 620rpx 宽换算）：
-// 左 59 / 右 197 / 上 110 / 下 231，中列与中行吃掉卡片与自然尺寸的差值
+// 切线比例来自 tools/make-letter-paper-slices.mjs（内容 720×549，切线 left 65 / right 504 / top 210 / bottom 296）：
+// 轨道按 620rpx 卡宽 × 620/720 自然比例折算（56 / 186 / 181 / 218），
+// 中列宽度恰好等于切片自然宽、只有中行纵向拉伸，且中带是纯色纸面净区，接缝无错位；
+// br 块用手动微调版 letter-paper-br-v2.png（信封装饰下移 7px），脚本不覆盖
 .nest-letter__paper {
   position: absolute;
   top: 0;
@@ -24,8 +26,8 @@
   bottom: 0;
   left: 0;
   display: grid;
-  grid-template-columns: 59rpx 1fr 197rpx;
-  grid-template-rows: 110rpx 1fr 231rpx;
+  grid-template-columns: 56rpx 1fr 186rpx;
+  grid-template-rows: 181rpx 1fr 218rpx;
 }
 
 .nest-letter__tile {
@@ -44,10 +46,11 @@
   &--br { grid-area: 3 / 3; }
 }
 
-// 正文完整平铺在白纸净区（不滚动、不分段）：左右各放宽一字（26rpx），右下留出爪印与小信封
+// 正文完整平铺在白纸净区（不滚动、不分段）：顶部避开纸面上缘（自然比例下左端约 102rpx），
+// 左右各放宽一字（26rpx），右下留出爪印与小信封
 .nest-letter__body {
   position: absolute;
-  top: 90rpx;
+  top: 108rpx;
   left: 92rpx;
   width: 469rpx; /* 620 卡宽 − 左 92 − 右 59 */
   box-sizing: border-box;

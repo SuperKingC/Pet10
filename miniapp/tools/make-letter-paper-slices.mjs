@@ -1,8 +1,8 @@
 // 从 design-assets/nest/letter-paper-source.png 生成小窝信纸九宫格切片：
 //  1) 归档图超过 SOURCE_ARCHIVE_MAX 时降采样回写（原始 2508px 源图超仓库 1MB 单文件预算）
 //  2) 按 alpha 包围盒裁掉透明边，再缩放到输出宽度后切成 9 块切片（四角固定、四边单轴拉伸、中心净区）
-//  3) 输出 tools/letter-debug-*.png 标定图，切线常量靠目视校准
-// 零依赖：自解析 PNG（RGBA/RGB 8bit 非隔行）。
+//  3) 有 sharp 时把切片量化回 PNG8（与线上格式一致，软阴影不糊），无 sharp 回退真彩 PNG
+//  4) 输出 tools/letter-debug-*.png 标定图，切线常量靠目视校准
 // 用法：node tools/make-letter-paper-slices.mjs
 import { readFileSync, writeFileSync } from 'node:fs'
 import { deflateSync, inflateSync } from 'node:zlib'
@@ -19,11 +19,14 @@ const SOURCE_ARCHIVE_MAX = 1280
 const OUTPUT_WIDTH = 720
 
 // 九宫格切线（裁边后内容宽高的百分比）：left/right/top/bottom
-// 校准依据 tools/letter-debug-grid.png：上行需罩住信封翻盖与木夹下端（夹子到 y≈21%），
-// 右列需罩住木夹与右下信封装饰，下行从爪印/爱心上方走净区
-const SLICE = { left: 9, right: 30, top: 22, bottom: 46 }
-// 供调用的 rpx 参考：按卡片宽 650rpx 换算角块尺寸
-const CARD_WIDTH_RPX = 650
+// 校准依据 tools/letter-debug-grid.png：上切线必须落在信封翻盖与图钉下方的纸面净区
+// （翻盖+图钉整体留在固定顶带，中带只拉纯色纸面）；下切线在爪印/小爱心上方的纸面净区；
+// 右列罩住木夹与右下信封装饰，左右切线两侧均为竖向边带，可随中行纵向拉伸。
+// br 块不由此脚本输出：letter-paper-br-v2.png 是手动微调版（信封装饰已下移 7px），
+// 重跑脚本会跳过 br，避免覆盖已验收的手调图。
+const SLICE = { left: 9, right: 30, top: 38.3, bottom: 46.1 }
+// 供调用的 rpx 参考：与 MiniappNestLetter.scss 的卡片宽一致
+const CARD_WIDTH_RPX = 620
 
 // ---------- PNG 解码 ----------
 function readPngRgba(path) {
@@ -286,11 +289,30 @@ const tiles = {
   bc: { x: px.left, y: px.bottom, w: px.right - px.left, h: outH - px.bottom },
   br: { x: px.right, y: px.bottom, w: outW - px.right, h: outH - px.bottom },
 }
+// br 线上文件名固定为 letter-paper-br-v2.png（组件/测试/manifest 均按此名引用）
+const tileFileName = (name) => (name === 'br' ? 'letter-paper-br-v2.png' : `letter-paper-${name}.png`)
+
+// 有 sharp 时量化回 PNG8（与既有线上切片格式一致，体积最小）；无 sharp 回退真彩 PNG
+async function writeTile(path, tile) {
+  try {
+    const { default: sharp } = await import('sharp')
+    const info = await sharp(tile.rgba, { raw: { width: tile.width, height: tile.height, channels: 4 } })
+      .png({ palette: true, quality: 100, dither: 1 })
+      .toFile(path)
+    return info.size
+  } catch {
+    return writePngRgba(path, tile.width, tile.height, tile.rgba)
+  }
+}
+
 const tileFiles = {}
 for (const [name, box] of Object.entries(tiles)) {
+  // br 块（letter-paper-br-v2.png）为手动微调版，脚本不输出，避免覆盖
+  if (name === 'br') continue
   const tile = crop(sheet, box)
-  const bytes = writePngRgba(resolve(outDir, `letter-paper-${name}.png`), tile.width, tile.height, tile.rgba)
-  tileFiles[name] = { file: `letter-paper-${name}.png`, width: tile.width, height: tile.height, kb: Number((bytes / 1024).toFixed(1)) }
+  const file = tileFileName(name)
+  const bytes = await writeTile(resolve(outDir, file), tile)
+  tileFiles[name] = { file, width: tile.width, height: tile.height, kb: Number((bytes / 1024).toFixed(1)) }
 }
 
 // 6) 标定图：整体网格 + 局部放大
@@ -346,10 +368,10 @@ function debugCrop(name, x0pct, x1pct, y0pct, y1pct, scale) {
 }
 
 const debugs = {
-  topRight: debugCrop('topright', 50, 100, 0, 30, 1.4),
+  topRight: debugCrop('topright', 50, 100, 0, 45, 1.4),
   bottomRight: debugCrop('bottomright', 50, 100, 40, 100, 1.4),
   left: debugCrop('left', 0, 30, 0, 100, 1),
-  bottom: debugCrop('bottom', 0, 75, 70, 100, 1.2),
+  bottom: debugCrop('bottom', 0, 75, 45, 100, 1.2),
 }
 
 // rpx 参考：四角按 1:1 渲染所需轨道尺寸
