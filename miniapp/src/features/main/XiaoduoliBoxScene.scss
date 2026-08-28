@@ -103,10 +103,10 @@
   height: 134rpx;
 }
 
-/* 眼部三层（眼眶/瞳孔/眼睑）同为全画布分层 PNG，显式 rpx 尺寸与 0 偏移叠放（不用 inset/百分比，规避运行时差异）；瞳孔支点在生成文件中 */
+/* 眼部三层（眼窝底毛/眼眶/瞳孔）同为全画布分层 PNG，显式 rpx 尺寸与 0 偏移叠放（不用 inset/百分比，规避运行时差异）；压扁支点在生成文件中 */
+.xiaoduoli-box__underlay,
 .xiaoduoli-box__eyes,
-.xiaoduoli-box__pupils,
-.xiaoduoli-box__lids {
+.xiaoduoli-box__pupils {
   position: absolute;
   left: 0;
   top: 0;
@@ -114,25 +114,21 @@
   height: 134rpx;
 }
 
-/* 眼睑静止时隐藏，眨眼时淡入形成闭眼 */
-.xiaoduoli-box__lids {
-  opacity: 0;
+/* 眼组容器承载眨眼压扁动画，保证眼眶与瞳孔严格同频；支点 = 两瞳孔中心平均高度（生成文件） */
+.xiaoduoli-box__eye-group {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 192rpx;
+  height: 134rpx;
 }
 
-.xiaoduoli-box__lids--blink {
-  animation: xiaoduoli-lids-blink 200ms ease-in-out both;
+.xiaoduoli-box__eye-group--blink {
+  animation: xiaoduoli-eye-squash 200ms ease-in-out both;
 }
 
-.xiaoduoli-box__lids--blink-twice {
-  animation: xiaoduoli-lids-blink 190ms ease-in-out both 2;
-}
-
-.xiaoduoli-box__pupils--blink {
-  animation: xiaoduoli-pupils-blink 200ms ease-in-out both;
-}
-
-.xiaoduoli-box__pupils--blink-twice {
-  animation: xiaoduoli-pupils-blink 190ms ease-in-out both 2;
+.xiaoduoli-box__eye-group--blink-twice {
+  animation: xiaoduoli-eye-squash 190ms ease-in-out both 2;
 }
 
 .xiaoduoli-box__pupils--glance-left {
@@ -268,26 +264,15 @@
   }
 }
 
-/* 眨眼：眼睑快速不透明淡入形成闭眼（0→25% 合上、65%→100% 张开），峰值须盖住眼球避免露底 */
-@keyframes xiaoduoli-lids-blink {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  25%,
-  65% {
-    opacity: 1;
-  }
-}
-
-@keyframes xiaoduoli-pupils-blink {
+/* 眨眼：眼组（眼眶+瞳孔）绕支点整体压扁成闭眼线，露出眼窝底毛；无透明度淡入，无补丁边界 */
+@keyframes xiaoduoli-eye-squash {
   0%,
   100% {
     transform: scaleY(1);
   }
   25%,
   65% {
-    transform: scaleY(0.1);
+    transform: scaleY(0.08);
   }
 }
 
@@ -468,10 +453,8 @@
 
   .xiaoduoli-box__look--left,
   .xiaoduoli-box__look--right,
-  .xiaoduoli-box__lids--blink,
-  .xiaoduoli-box__lids--blink-twice,
-  .xiaoduoli-box__pupils--blink,
-  .xiaoduoli-box__pupils--blink-twice,
+  .xiaoduoli-box__eye-group--blink,
+  .xiaoduoli-box__eye-group--blink-twice,
   .xiaoduoli-box__pupils--glance-left,
   .xiaoduoli-box__pupils--glance-right,
   .xiaoduoli-box--hop .xiaoduoli-box__puppet,

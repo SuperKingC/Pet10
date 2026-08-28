@@ -25,16 +25,16 @@
         }
       }
     ],
-    "pad": 6,
+    "pad": 14,
     "feather": 6,
     "pupil": {
       "solidR": 14,
       "rampR": 18,
       "slidePx": 6
     },
-    "lid": {
-      "grow": 8,
-      "solid": 0.86
+    "underlay": {
+      "grow": 7,
+      "solid": 0.88
     }
   },
   "parts": {
@@ -44,15 +44,15 @@
     },
     "eyes": {
       "file": "src/assets/nest/xiaoduoli-eyes.png",
-      "bytes": 17922
+      "bytes": 23017
     },
     "pupils": {
       "file": "src/assets/nest/xiaoduoli-pupils.png",
       "bytes": 3800
     },
-    "lids": {
-      "file": "src/assets/nest/xiaoduoli-lids.png",
-      "bytes": 29508
+    "underlay": {
+      "file": "src/assets/nest/xiaoduoli-underlay.png",
+      "bytes": 19024
     }
   },
   "generated": {

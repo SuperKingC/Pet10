@@ -1,4 +1,6 @@
 /* 由 miniapp/tools/build-xiaoduoli-parts.mjs 自动生成，请勿手改；源：design-assets/nest/xiaoduoli-peek-source.png */
+/* 眼组（眼眶+瞳孔）与瞳孔共用同一压扁支点：两瞳孔中心的平均高度 */
+.xiaoduoli-box__eye-group,
 .xiaoduoli-box__pupils {
   transform-origin: 50% 55.73%;
 }
