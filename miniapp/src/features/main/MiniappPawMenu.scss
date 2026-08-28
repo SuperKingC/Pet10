@@ -85,6 +85,8 @@
   border: 0;
   /* 无过冲的减速曲线：落位即静止，避免图标出现后回弹一下 */
   animation: paw-entry-pop .52s cubic-bezier(.22, 1, .36, 1) backwards;
+  /* 动画结束后保留合成层，防止位图按非合成路径重排导致图标位移 */
+  will-change: transform;
 }
 
 .miniapp-paw-menu__entry:nth-child(2) {
@@ -165,6 +167,8 @@
 
 @keyframes paw-entry-pop {
   from { transform: translateY(88rpx) scale(.6); opacity: 0; }
+  /* 提前落位并保持到结束，收尾帧与静止态逐像素一致，避免收尾重采样位移 */
+  78% { transform: none; opacity: 1; }
   to { transform: none; opacity: 1; }
 }
 
