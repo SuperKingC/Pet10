@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { anniversaryStats, matchesDay, nextOccurrence, sortAnniversaries, statsLines } from './anniversaryModel'
+import { anniversaryStats, matchesDay, nextOccurrence, sortAnniversaries } from './anniversaryModel'
 
 const yearly = { id: '1', name: '恋爱纪念日', icon: 'heart', note: '', day: '2025-02-14', repeatRule: 'yearly' as const, createdAt: '' }
 const once = { id: '2', name: '演唱会', icon: 'star', note: '', day: '2026-10-01', repeatRule: 'none' as const, createdAt: '' }
@@ -48,22 +48,6 @@ describe('anniversaryStats', () => {
     const stats = anniversaryStats(future, new Date(2026, 7, 23))
     expect(stats.daysSince).toBeLessThan(0)
     expect(stats.daysUntilNext).toBe(9)
-  })
-})
-
-describe('statsLines', () => {
-  it('yearly shows elapsed days plus countdown', () => {
-    expect(statsLines(yearly, new Date(2026, 7, 23))).toEqual(['已经走过 555 天', '距第 2 周年还有 175 天'])
-  })
-  it('yearly celebrates today', () => {
-    expect(statsLines(yearly, new Date(2026, 1, 14))[1]).toContain('周年')
-  })
-  it('one-off future shows countdown only', () => {
-    expect(statsLines(once, new Date(2026, 7, 23))).toEqual(['还有 39 天'])
-  })
-  it('one-off past shows elapsed days', () => {
-    const past = { ...once, day: '2026-08-01' }
-    expect(statsLines(past, new Date(2026, 7, 23))).toEqual(['已经过去 22 天'])
   })
 })
 

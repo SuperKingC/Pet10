@@ -60,17 +60,6 @@ export function anniversaryStats(record: AnniversaryRecord, today: Date): Annive
   return { daysSince, daysUntilNext, nextAnniversaryYear, isAnniversaryToday }
 }
 
-export function statsLines(record: AnniversaryRecord, today: Date): string[] {
-  const stats = anniversaryStats(record, today)
-  if (record.repeatRule === 'yearly') {
-    if (stats.daysSince < 0) return [`还有 ${stats.daysUntilNext} 天`]
-    if (stats.isAnniversaryToday) return [`已经走过 ${stats.daysSince} 天`, `今天是第 ${stats.nextAnniversaryYear} 周年 🎉`]
-    return [`已经走过 ${stats.daysSince} 天`, `距第 ${stats.nextAnniversaryYear} 周年还有 ${stats.daysUntilNext} 天`]
-  }
-  if (stats.daysSince === 0) return ['就是今天 🎉']
-  return stats.daysSince > 0 ? [`已经过去 ${stats.daysSince} 天`] : [`还有 ${stats.daysUntilNext} 天`]
-}
-
 export function sortAnniversaries<T extends Pick<AnniversaryRecord, 'day' | 'repeatRule'>>(list: T[], today: Date): T[] {
   return [...list].sort((a, b) => {
     const aNext = nextOccurrence(a, today) as Date
