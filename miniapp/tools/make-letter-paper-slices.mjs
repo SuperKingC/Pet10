@@ -26,7 +26,7 @@ const OUTPUT_WIDTH = 720
 // 重跑脚本会跳过 br，避免覆盖已验收的手调图。
 const SLICE = { left: 9, right: 30, top: 38.3, bottom: 46.1 }
 // 供调用的 rpx 参考：与 MiniappNestLetter.scss 的卡片宽一致
-const CARD_WIDTH_RPX = 620
+const CARD_WIDTH_RPX = 680
 
 // ---------- PNG 解码 ----------
 function readPngRgba(path) {
