@@ -136,7 +136,7 @@ npm run build:weapp --prefix miniapp
 | `navigation/game.png` | 256×256 | 97 KB | 爪印菜单游戏入口图标 |
 | `navigation/tarot.png` | 256×256 | 99 KB | 爪印菜单塔罗占卜入口图标 |
 | `navigation/gobang.png` | 256×256 | 94 KB | 游戏弹窗五子棋入口图标 |
-| `navigation/codeword.png` | 256×256 | 93 KB | 爪印菜单每日暗号图标 |
+| `navigation/codeword.png` | 256×256 | 60 KB | 爪印菜单每日暗号图标（挂锁笔记本） |
 | `me/mbti.png` | 128×128 | 30 KB | 我的页性格类型入口图标 |
 | `nest/letter-paper.png` | 720×420 | 51 KB | 无好友小窝信件信纸背景 |
 | `nest/xiaoduoli-box.png` | 520×440 | 156 KB | 邀请/待解锁纸箱 |
