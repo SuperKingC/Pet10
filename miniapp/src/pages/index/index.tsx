@@ -298,6 +298,26 @@ export default function Index() {
   const invitationButton = getInvitationButtonState(Boolean(shareInvitation), preparingShare)
   const nestAction = getNestActionButton(nestSceneMode, invitationButton, boxPhase === 'jumping')
 
+  // 小窝底部操作区（反馈 + 邀请/解锁按钮）：锁定/空状态时由 NestView 渲染进固定全屏层
+  const nestFooter = hasAuthenticatedSession(accessToken) && activeTab === 'nest' ? (
+    <>
+      {shouldShowNestFeedback(activeTab, loading, message) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
+      {nestAction.kind === 'unlock' ? (
+        <Button className="share-button" disabled={nestAction.disabled} onClick={() => setBoxPhase('jumping')}>
+          {nestAction.label}
+        </Button>
+      ) : nestAction.shareReady ? (
+        <Button className="share-button" openType="share">
+          {nestAction.label}
+        </Button>
+      ) : (
+        <Button className="share-button" disabled={nestAction.disabled} onClick={() => void prepareInvitation()}>
+          {nestAction.label}
+        </Button>
+      )}
+    </>
+  ) : null
+
   const renderMainContent = () => {
     if (activeTab === 'messages') {
       return <MiniappMessagesView
@@ -321,6 +341,7 @@ export default function Index() {
       pet={pet}
       roomId={roomId}
       boxPhase={boxPhase}
+      footer={nestFooter}
       onAction={handleAction}
       onOpenMemories={() => void openMemories()}
       onSceneModeChange={setNestSceneMode}
@@ -331,7 +352,6 @@ export default function Index() {
   return <View className="home-page">
     {renderMainContent()}
 
-    {shouldShowNestFeedback(activeTab, loading, message) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
     <MiniappPawMenu
       open={pawMenuOpen}
       onClose={() => setPawMenuOpen(false)}
@@ -377,19 +397,6 @@ export default function Index() {
         onShareTitleChange={setTarotShareTitle}
       />
     )}
-    {hasAuthenticatedSession(accessToken) && activeTab === 'nest' && nestAction.kind === 'unlock' ? (
-      <Button className="share-button" disabled={nestAction.disabled} onClick={() => setBoxPhase('jumping')}>
-        {nestAction.label}
-      </Button>
-    ) : hasAuthenticatedSession(accessToken) && activeTab === 'nest' && (nestAction.shareReady ? (
-      <Button className="share-button" openType="share">
-        {nestAction.label}
-      </Button>
-    ) : (
-      <Button className="share-button" disabled={nestAction.disabled} onClick={() => void prepareInvitation()}>
-        {nestAction.label}
-      </Button>
-    ))}
     {hasAuthenticatedSession(accessToken) && <MiniappTabBar
       active={activeTab}
       onChange={(tab) => { setPawMenuOpen(false); setActiveTab(tab) }}

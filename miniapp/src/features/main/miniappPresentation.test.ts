@@ -344,7 +344,9 @@ describe('miniapp ui presentation rules', () => {
     const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
 
     expect(nestView).toContain('<MiniappNestLetter')
-    expect(nestView).toContain("sceneMode === 'empty' || sceneMode === 'locked'")
+    // 锁定/空状态信件场景渲染进固定全屏层，避免真机整页滚动
+    expect(nestView).toContain('shouldLockNestPageScroll(sceneMode)')
+    expect(nestView).toContain('nest-lock-layer')
     // 小窝顶部不再展示好友名芯片行
     expect(nestView).not.toContain('miniapp-nest__rooms')
     expect(nestView).not.toContain('miniapp-room-chip')

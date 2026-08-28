@@ -57,6 +57,12 @@ export function getFortuneAvailability(birthday: string | null | undefined) {
 
 export type NestSceneMode = 'loading' | 'empty' | 'locked' | 'active'
 
+// 信件场景（空状态/锁定）整层固定占满一屏：内容高度固定且接近一屏，
+// 若留在文档流会连同 220px 底部留白撑出整页滚动，真机上表现为整页可拖动。
+export function shouldLockNestPageScroll(mode: NestSceneMode) {
+  return mode === 'empty' || mode === 'locked'
+}
+
 export function getNestSceneMode(
   context: LaunchContext | null,
   pet: PetState | null,
