@@ -10,9 +10,9 @@
   },
   "assets": [
     {
-      "path": "miniapp/src/assets/messages-empty.png",
+      "path": "miniapp/src/assets/messages-empty-v2.png",
       "category": "runtime-feature",
-      "purpose": "Messages empty state puppy-with-envelope illustration"
+      "purpose": "Messages empty state puppy-with-envelope illustration, re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
       "path": "miniapp/src/assets/nest/letter-paper-tl-v2.png",
@@ -60,29 +60,29 @@
       "purpose": "Nest letter paper nine-slice bottom-right corner with paw and envelope ornament"
     },
     {
-      "path": "miniapp/src/assets/journal/polaroid-run.png",
+      "path": "miniapp/src/assets/journal/polaroid-run-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor default running puppy polaroid"
+      "purpose": "Journal editor default running puppy polaroid, re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/journal/polaroid-sit.png",
+      "path": "miniapp/src/assets/journal/polaroid-sit-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal today-card default sitting puppy polaroid"
+      "purpose": "Journal today-card default sitting puppy polaroid, re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/journal/action-write.png",
+      "path": "miniapp/src/assets/journal/action-write-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal write-diary button illustration"
+      "purpose": "Journal write-diary button illustration, re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/journal/action-photo.png",
+      "path": "miniapp/src/assets/journal/action-photo-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal take-photo button illustration"
+      "purpose": "Journal take-photo button illustration, re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/journal/puppy-cushion.png",
+      "path": "miniapp/src/assets/journal/puppy-cushion-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal sliced puppy-on-cushion illustration; also the games page header puppy"
+      "purpose": "Journal sliced puppy-on-cushion illustration; also the games page header puppy; re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
       "path": "miniapp/src/assets/journal/editor-yard.jpg",
@@ -90,24 +90,24 @@
       "purpose": "Journal editor bottom yard background"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-1.png",
+      "path": "miniapp/src/assets/moods/mood-1-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli sad expression"
+      "purpose": "Journal editor mood picker Xiaoduoli sad expression, regenerated at the native 160px size with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-2.png",
+      "path": "miniapp/src/assets/moods/mood-2-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli calm expression"
+      "purpose": "Journal editor mood picker Xiaoduoli calm expression, regenerated at the native 160px size with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-3.png",
+      "path": "miniapp/src/assets/moods/mood-3-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli happy expression"
+      "purpose": "Journal editor mood picker Xiaoduoli happy expression, regenerated at the native 160px size with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-4.png",
+      "path": "miniapp/src/assets/moods/mood-4-v2.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli excited expression"
+      "purpose": "Journal editor mood picker Xiaoduoli excited expression, regenerated at the native 160px size with a full 256-color dithered palette"
     },
     {
       "path": "miniapp/src/assets/nest/xiaoduoli-box.png",
@@ -132,12 +132,12 @@
     {
       "path": "miniapp/src/assets/nest/xiaoduoli-underlay.png",
       "category": "runtime-feature",
-      "purpose": "Nest invite Xiaoduoli under-eye fur underlay revealed by eye-group squash blink"
+      "purpose": "Nest invite Xiaoduoli under-eye fur underlay revealed by eye-group squash blink; alpha-matched to source highlights"
     },
     {
-      "path": "miniapp/src/assets/nest/xiaoduoli-street-v6.png",
+      "path": "miniapp/src/assets/nest/xiaoduoli-street-v11.png",
       "category": "runtime-feature",
-      "purpose": "Nest locked box scene night-street backdrop with owner-notice wall and lamp, burnt-paper edge with baked white matte converted to real transparency, full-bleed 750:390 stage"
+      "purpose": "Nest locked box scene night-street backdrop with owner-notice wall and lamp, burnt-paper edge with baked white matte converted to real transparency, full-bleed 750:406 stage"
     },
     {
       "path": "design-assets/nest/xiaoduoli-in-box-source.jpg",

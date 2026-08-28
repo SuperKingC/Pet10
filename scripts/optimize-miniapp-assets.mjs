@@ -20,16 +20,12 @@ const reportPath = reportIndex > -1 ? resolve(process.argv[reportIndex + 1]) : n
 const convertThreshold = 16 * 1024
 const reencodeMinSaving = 0.1
 const maxWidth = 1500
-const pngQuality = Number(process.env.MINIAPP_PNG_QUALITY ?? 60)
-const pngColors = Number(process.env.MINIAPP_PNG_COLORS ?? 128)
 const jpegQuality = Number(process.env.MINIAPP_JPEG_QUALITY ?? 75)
 // 大背景按显示密度降采样（全宽 390pt@3x≈1170px，840px 对夜景照片足够；room 为宠物场景柔焦背景）。
 const downscaleWidths = [
   { match: /xiaoduoli-street/, width: 820 },
   { match: /room-background/, width: 1152 },
 ]
-// 照片/毛发类图像：量化会色带、海报化，保持 128 色 + 抖动。
-const photoPattern = /polaroid|xiaoduoli-body|xiaoduoli-street|room-background|^xiaoduoli\./
 const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp'])
 
 async function listImages(directory) {
@@ -71,13 +67,11 @@ async function encode(source, format, sourceBytes) {
   const downscale = downscaleWidths.find(({ match }) => match.test(source))
   if (downscale && meta.width && meta.width > downscale.width) pipeline = pipeline.resize({ width: downscale.width })
   if (format === 'png') {
-    // 照片类（柔和渐变）128 色 + 轻抖动防色带；扁平插画 64 色 + 无抖动（更小更干净）。
-    const photo = photoPattern.test(source)
-    const colors = photo ? pngColors : Math.min(pngColors, 64)
-    const quality = photo ? pngQuality : Math.min(pngQuality, 55)
-    return pipeline.png({ palette: true, quality, colors, effort: 10, dither: photo ? 0.5 : 0 }).toBuffer()
+    // 256 色全色板 + 误差扩散抖动：扁平图（≤256 色）像素级不变，渐变/毛发类色彩观感与原图一致。
+    // 禁止再压 64/128 小色板——2026-08 验收发现整体被压灰；真彩 PNG 全量约 5.4MB 超包，此为包体约束下最接近原图的方案。
+    return pipeline.png({ palette: true, quality: 100, colors: 256, effort: 10, dither: 1 }).toBuffer()
   }
-  return pipeline.jpeg({ quality: jpegQuality, mozjpeg: true }).toBuffer()
+  return pipeline.jpeg({ quality: jpegQuality, mozjpeg: true, chromaSubsampling: '4:4:4' }).toBuffer()
 }
 
 function kb(bytes) {

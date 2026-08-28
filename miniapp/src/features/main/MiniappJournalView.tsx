@@ -16,9 +16,9 @@ interface EditorSession {
   photo?: string
 }
 
-const polaroidSit = require('../../assets/journal/polaroid-sit.png')
-const actionWrite = require('../../assets/journal/action-write.png')
-const actionPhoto = require('../../assets/journal/action-photo.png')
+const polaroidSit = require('../../assets/journal/polaroid-sit-v2.png')
+const actionWrite = require('../../assets/journal/action-write-v2.png')
+const actionPhoto = require('../../assets/journal/action-photo-v2.png')
 
 interface MiniappJournalViewProps {
   roomId: string

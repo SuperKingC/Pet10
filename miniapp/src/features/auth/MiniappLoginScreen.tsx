@@ -1,7 +1,7 @@
 import { Button, Image, Text, View } from '@tarojs/components'
 import './MiniappLoginScreen.scss'
 
-const petImage = require('../../assets/xiaoduoli.webp')
+const petImage = require('../../assets/xiaoduoli.png')
 
 type MiniappLoginScreenProps = {
   busy: boolean

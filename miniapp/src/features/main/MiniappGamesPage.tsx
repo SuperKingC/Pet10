@@ -3,7 +3,7 @@ import { MiniappBackButton } from '../../components/MiniappBackButton'
 import './MiniappGamesPage.scss'
 
 const gobangIcon = require('../../assets/navigation/gobang.png')
-const puppyImage = require('../../assets/journal/puppy-cushion.png')
+const puppyImage = require('../../assets/journal/puppy-cushion-v2.png')
 
 interface MiniappGamesPageProps {
   onClose(): void

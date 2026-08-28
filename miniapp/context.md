@@ -1,11 +1,43 @@
 # miniapp context
 
+## 2026-08-28（包内图片回归原图色彩：256 全色板+抖动重编码 10 张，主包反降 46KB）
+
+- **原因**：用户反馈"整体图片灰灰黄黄"。排查确认非滤镜：提交 `fdd1a85` 为修 iOS 本地 WebP 走 `optimize-miniapp-assets.mjs` 时把索引色压到 64/128 色（登录页小狗 1725→51 色级、家具 44% 像素色差），色阶断层即"发灰"观感。实测全量真彩 PNG ≈5.4MB，远超微信 2MB 硬限（HEAD 基线 dist 精确 2048998B、余量仅 47KB），无法一步到位。
+- **修改**：
+  - 10 张受损图从 git 真彩原图重编码为「256 色全色板 + 误差扩散抖动」并升名 `-v2`（同路径换图模拟器/真机有不可清缓存）：journal/action-photo、action-write、polaroid-run、polaroid-sit、puppy-cushion、messages-empty、moods/mood-1~4（moods 顺带从历史拉伸的 256px 回到原生 160px），旧图删除；合计 **−46KB**
+  - 引用同步：`MiniappJournalView.tsx`、`JournalEditorForm.tsx`、`MiniappGamesPage.tsx`、`MiniappMessagesView.tsx`、`miniappPresentation.test.ts`、`docs/assets/asset-manifest.json`、`docs/features/miniapp.md`
+  - `scripts/optimize-miniapp-assets.mjs`：PNG 统一 256 全色板 + dither 1.0、JPEG 改 4:4:4，删除 64/128 色分档与 photoPattern
+- **验证**：miniapp vitest 全量通过；基线 worktree（HEAD+本改动）重编译 dist 实测见本次报告；`cache --clean all` 后模拟器预览
+- **边界**：`xiaoduoli-body/eyes/street-v9`、`lids` 属并行会话纸箱图层作业区，本轮未动（其工具全量重跑即回真彩）；`xiaoduoli.png` 登录页主图（损最重 1725→51 色）+101KB 放不进 47KB 余量，nest 家具三张 +259KB、动作图标 +350KB、tab 底条 +141KB 均超预算——彻底回归原图色需按文档既定方向"大图迁 COS"，属方案变更待用户拍板
+
+## 2026-08-28（小记/消息/我的根节点改固定全屏层，整页彻底锁死）
+
+- **原因**：用户验收延续上一条——小记、消息、我的三个 tab 在真机上也要求整体锁定不能滑动。三个 tab 各有最小约 40–60px 的固有超高（小记 `calc(100vh - 220px)` + 头部/留白后仍超一屏），页面文档流始终可滚。
+- **修改**：
+  - `MiniappMessagesView.scss`：`.miniapp-messages` 改 `position: fixed; inset: 0; z-index: 19; overflow-y: auto; padding: 4px 34px 220px`（32px 层内边距 + 自身 2px），去 min-height calc
+  - `MiniappJournalView.scss`：`.miniapp-journal` 改固定层 `padding: 8px 28px 226px`，去掉 `height: calc(100vh - 220px)`、负边距出血与 `overflow: hidden`；内容区几何精确复刻（首屏 y=8、可用高 100vh−234、底部净空 226px），正常仍一屏不滚，异常字号由 overflow-y 兜底
+  - `MiniappMeView.scss`：`.miniapp-me` 改固定层 `padding: 4px 46px 220px`（32px + 自身 14px）
+  - 新增 `miniappTabLayer.test.ts` 断言三根节点 fixed/inset/z-19/overflow-y（先红后绿）
+- **验证**：miniapp vitest 202 通过、仅剩并行会话 street-v6 png 半成品断言失败（非本任务）；dist 重编译被该并行改动阻塞（代码引用尚未生成的 `xiaoduoli-street-v6.png`），待其资产落地后重编译 + `cache --clean all` 预览
+- **备注**：小窝 loading/活跃态仍走原文档流（用户未要求，列为非目标）；切 tab 后各层内滚动位置回到顶部（原页面级滚动会跨 tab 保留，行为更可预期）
+
+## 2026-08-28（小窝锁定信件场景改固定全屏层，消除真机整页滚动）
+
+- **原因**：真机反馈——锁定/空状态信件场景在手机上除底部栏外整页可上下拖动，模拟器不明显。根因：`.home-page` 是文档流滚动页，信纸卡 540rpx + 街景 406rpx + 按钮 + 220px 底部留白合计约 880px，超过真机一屏可视高度（约 600–760px）；底部栏是 fixed 所以只有内容在滚。模拟器不模拟触摸回弹且机型可视高度不同，故不易复现。
+- **修改**：
+  - `miniappViewModel.ts`：新增 `shouldLockNestPageScroll(mode)`，`empty/locked` 返回 true
+  - `MiniappNestView.tsx`：锁定/空状态渲染进 `.nest-lock-layer` 固定全屏层（标题 + 信件 + footer）；其余模式返回 Fragment（`.miniapp-nest` + footer），新增 `footer?: ReactNode` prop 承接反馈文案与邀请/解锁按钮
+  - `MiniappNestView.scss`：新增 `.nest-lock-layer`（`position: fixed; inset: 0; z-index: 19; overflow-y: auto; padding: 4px 32px 220px`，背景 `#fff8ee`），层在底栏（z 20）之下
+  - `pages/index/index.tsx`：反馈文案 + 底部按钮抽成 `nestFooter` 传给 `MiniappNestView`（锁定态随之进层），删除原文档流渲染；逻辑与渲染顺序不变
+- **验证**：新增 `miniappNestLock.test.ts`（先红后绿）；miniapp vitest 全量 199/199；清 `dist` 重编译（占位 TARO_TAROT_ASSET_BASE_URL）成功，`dist/pages/index/index.wxss` 含 `nest-lock-layer`；CLI `open` + `cache --clean all` 后现有窗口预览；真机滚动行为待用户验收
+- **备注**：`cli auto --auto-port 9420` 附着已开窗口时不绑定自动化端口，automator 程序化验证不可用（`tools/tmp-verify-nest-lock.mjs` 留作后续用）
+
 ## 2026-08-28（游戏中心页首插画换趴窝小多利并放大）
 
 - **原因**：验收反馈——页首右侧站立小多利换成小多利趴在窝垫上的那张插画；随后反馈图标要更大。
 - **修改**：
   - `MiniappGamesPage.tsx`：页首右侧 `puppyImage` 由 `assets/xiaoduoli.png` 改引 `assets/journal/puppy-cushion.png`（480×280 横构图，复用既有 runtime 图，无新增资源）
-  - `MiniappGamesPage.scss`：`__puppy` 132×96 → 192×112（源码 px 按 designWidth 750 以 1:1 转为 rpx），并加 `margin-left: -40px / margin-right: -6px` 向标题区借宽、向右出血（图框比例=图片 1.714 消除 aspectFit 留白），标题与简介仍单行
+  - `MiniappGamesPage.scss`：`__puppy` 132×96 → 240×140（原图 480×280 的一半，12:7 无失真；源码 px 按 designWidth 750 以 1:1 转为 rpx），并加 `margin-left: -40px / margin-right: -6px` 向标题区借宽、向右出血，简介文字末端约 395rpx、插画左缘约 502rpx 不相压，标题与简介仍单行
 - **验证**：miniapp vitest 全量通过；清 `dist` 重编译成功；CLI `cache --clean all` 后模拟器预览
 
 ## 2026-08-28（返回按钮改细箭头无外圈）

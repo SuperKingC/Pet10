@@ -1,7 +1,7 @@
 import { Button, Image, Text, View } from '@tarojs/components'
 import './MiniappLaunchLoading.scss'
 
-const petImage = require('../../assets/xiaoduoli.webp')
+const petImage = require('../../assets/xiaoduoli.png')
 
 type MiniappLaunchLoadingProps = {
   progress: number
