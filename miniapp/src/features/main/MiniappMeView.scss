@@ -1,8 +1,16 @@
+/* 我的页固定全屏层：页面文档流高度归零，真机整页不可拖动；资料项超一屏由层内滚动兜底。
+   padding 复刻原 .home-page(4px 32px 220px) + 自身 14px 的几何。 */
 .miniapp-me {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 14px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 4px 46px 220px;
+  background: #fff8ee;
 }
 
 .miniapp-me__header {

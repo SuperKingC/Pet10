@@ -1,14 +1,19 @@
+/* 小记固定全屏层：不再依赖 .home-page 文档流（原 height calc(100vh - 220px) + 负边距出血），
+   页面文档流高度归零、真机整页不可拖动。padding 8px 28px 226px 精确复刻原内容区
+   （首屏起点 y=8、可用高度 100vh - 234、底部净空 226px），正常内容仍恰好一屏不滚动，
+   仅异常字号/机型下由 overflow-y 兜底。 */
 .miniapp-journal {
   --journal-gap: 32rpx;
+  position: fixed;
+  inset: 0;
+  z-index: 19;
   display: flex;
   flex-direction: column;
   gap: var(--journal-gap);
-  height: calc(100vh - 220px);
-  margin: -4px -32px 0;
-  padding: 4px 28px 10px;
-  background: #fff8ee;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto;
+  padding: 8px 28px 226px;
+  background: #fff8ee;
 }
 .miniapp-journal__body {
   display: flex;
@@ -94,6 +99,16 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 6;
   overflow: hidden;
+}
+/* 周日记加载中：微光骨架占位，避免先闪「还没有日记」默认文案再刷新成记录 */
+.journal-today__loading { display: flex; flex-direction: column; gap: 16rpx; padding: 4rpx 0; }
+.journal-today__skeleton { height: 30rpx; border-radius: 10rpx; background: linear-gradient(100deg, #f3e2cd 40%, #fbf1e2 50%, #f3e2cd 60%); background-size: 200% 100%; animation: journal-shimmer 1.4s linear infinite; }
+.journal-today__skeleton--title { width: 42%; height: 34rpx; }
+.journal-today__skeleton--line { width: 88%; }
+.journal-today__skeleton--short { width: 62%; }
+@keyframes journal-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .journal-today__skeleton { animation: none; }
 }
 .journal-today__actions { display: flex; gap: 16rpx; padding-top: 12rpx; }
 .journal-today__action {
