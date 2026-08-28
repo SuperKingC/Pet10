@@ -83,7 +83,8 @@
   padding: 0;
   background: transparent;
   border: 0;
-  animation: paw-entry-pop .52s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  /* 无过冲的减速曲线：落位即静止，避免图标出现后回弹一下 */
+  animation: paw-entry-pop .52s cubic-bezier(.22, 1, .36, 1) backwards;
 }
 
 .miniapp-paw-menu__entry:nth-child(2) {
