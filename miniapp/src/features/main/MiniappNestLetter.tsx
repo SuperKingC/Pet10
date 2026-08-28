@@ -4,16 +4,17 @@ import './MiniappNestLetter.scss'
 
 // 信纸九宫格切片：四角固定不变形，四边单轴拉伸，中心净区随卡片伸缩。
 // 切片由 miniapp/tools/make-letter-paper-slices.mjs 生成，切线见该脚本 SLICE 常量。
+// 文件名带版本号（-v2/-v3）：同路径图片会被开发者工具缓存供旧图，换图必须升文件名。
 const paperTiles = {
-  tl: require('../../assets/nest/letter-paper-tl.png'),
-  tc: require('../../assets/nest/letter-paper-tc.png'),
-  tr: require('../../assets/nest/letter-paper-tr.png'),
-  ml: require('../../assets/nest/letter-paper-ml.png'),
-  mc: require('../../assets/nest/letter-paper-mc.png'),
-  mr: require('../../assets/nest/letter-paper-mr.png'),
-  bl: require('../../assets/nest/letter-paper-bl.png'),
-  bc: require('../../assets/nest/letter-paper-bc.png'),
-  br: require('../../assets/nest/letter-paper-br-v2.png'),
+  tl: require('../../assets/nest/letter-paper-tl-v2.png'),
+  tc: require('../../assets/nest/letter-paper-tc-v2.png'),
+  tr: require('../../assets/nest/letter-paper-tr-v2.png'),
+  ml: require('../../assets/nest/letter-paper-ml-v2.png'),
+  mc: require('../../assets/nest/letter-paper-mc-v2.png'),
+  mr: require('../../assets/nest/letter-paper-mr-v2.png'),
+  bl: require('../../assets/nest/letter-paper-bl-v2.png'),
+  bc: require('../../assets/nest/letter-paper-bc-v2.png'),
+  br: require('../../assets/nest/letter-paper-br-v3.png'),
 }
 
 const PAPER_TILE_NAMES = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'] as Array<keyof typeof paperTiles>

@@ -22,7 +22,7 @@ const OUTPUT_WIDTH = 720
 // 校准依据 tools/letter-debug-grid.png：上切线必须落在信封翻盖与图钉下方的纸面净区
 // （翻盖+图钉整体留在固定顶带，中带只拉纯色纸面）；下切线在爪印/小爱心上方的纸面净区；
 // 右列罩住木夹与右下信封装饰，左右切线两侧均为竖向边带，可随中行纵向拉伸。
-// br 块不由此脚本输出：letter-paper-br-v2.png 是手动微调版（信封装饰已下移 7px），
+// br 块不由此脚本输出：letter-paper-br-v3.png 是手动微调版（信封装饰已下移 7px），
 // 重跑脚本会跳过 br，避免覆盖已验收的手调图。
 const SLICE = { left: 9, right: 30, top: 38.3, bottom: 46.1 }
 // 供调用的 rpx 参考：与 MiniappNestLetter.scss 的卡片宽一致
@@ -289,8 +289,8 @@ const tiles = {
   bc: { x: px.left, y: px.bottom, w: px.right - px.left, h: outH - px.bottom },
   br: { x: px.right, y: px.bottom, w: outW - px.right, h: outH - px.bottom },
 }
-// br 线上文件名固定为 letter-paper-br-v2.png（组件/测试/manifest 均按此名引用）
-const tileFileName = (name) => (name === 'br' ? 'letter-paper-br-v2.png' : `letter-paper-${name}.png`)
+// 切片文件名带版本号：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
+const tileFileName = (name) => (name === 'br' ? 'letter-paper-br-v3.png' : `letter-paper-${name}-v2.png`)
 
 // 有 sharp 时量化回 PNG8（与既有线上切片格式一致，体积最小）；无 sharp 回退真彩 PNG
 async function writeTile(path, tile) {

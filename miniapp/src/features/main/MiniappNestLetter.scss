@@ -19,7 +19,7 @@
 // 切线比例来自 tools/make-letter-paper-slices.mjs（内容 720×549，切线 left 65 / right 504 / top 210 / bottom 296）：
 // 轨道按 680rpx 卡宽 × 680/720 自然比例折算（61 / 204 / 198 / 239），
 // 中列宽度恰好等于切片自然宽、只有中行纵向拉伸，且中带是纯色纸面净区，接缝无错位；
-// br 块用手动微调版 letter-paper-br-v2.png（信封装饰下移 7px），脚本不覆盖
+// br 块用手动微调版 letter-paper-br-v3.png（信封装饰下移 7px），脚本不覆盖
 .nest-letter__paper {
   position: absolute;
   top: 0;
