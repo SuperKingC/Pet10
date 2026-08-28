@@ -31,6 +31,10 @@
       "solidR": 14,
       "rampR": 18,
       "slidePx": 6
+    },
+    "lid": {
+      "grow": 8,
+      "solid": 0.86
     }
   },
   "parts": {
@@ -48,7 +52,7 @@
     },
     "lids": {
       "file": "src/assets/nest/xiaoduoli-lids.png",
-      "bytes": 19887
+      "bytes": 29508
     }
   },
   "generated": {

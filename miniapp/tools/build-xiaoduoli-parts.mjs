@@ -2,9 +2,11 @@
 //  1) xiaoduoli-body.png   = design-assets/nest/xiaoduoli-peek-source.png 原图直出（不修补、不抠图）
 //  2) xiaoduoli-eyes.png   = 眼眶底层：眼区矩形裁切，瞳孔原位用虹膜色平滑填充（供瞳孔滑动，不露底图重影）
 //  3) xiaoduoli-pupils.png = 瞳孔圆盘层：从原图裁出双眼瞳孔盘，瞟眼时在眼眶内滑动（静止时逐像素对位）
-//  4) xiaoduoli-lids.png   = 眼睑层：按眼上下毛色渐变绘制的闭眼状态（含闭眼线），眨眼时淡入淡出
+//  4) xiaoduoli-lids.png   = 眼睑层：紧贴眼球的椭圆闭眼补丁（颜色从眼周四边双线性采样，含两端收尖的
+//                            闭眼弧线），眨眼时不透明淡入覆盖睁眼；形状贴合避免矩形贴纸感
 // 禁止修补式反抠（inpaint 补洞 / 阈值抠 alpha）；所有填充只用采样到的平滑色。改完必须重跑并同步文档。
-// 用法：node tools/build-xiaoduoli-parts.mjs
+// 用法：node tools/build-xiaoduoli-parts.mjs（全量，会重写全部四层）
+//      node tools/build-xiaoduoli-parts.mjs --only=lids（只重生成眼睑层，保留已压缩的其他三层）
 import { readFileSync, writeFileSync } from 'node:fs'
 import { inflateSync, deflateSync } from 'node:zlib'
 import { dirname, resolve } from 'node:path'
@@ -24,6 +26,9 @@ const EYES = [
   { name: 'right', rect: { x: 260, y: 136, w: 64, h: 70 } },
 ]
 const PAD = 6
+// 眼睑补丁参数：椭圆比眼区外扩 LID.grow，d<LID.solid 全不透明，到 d=1 渐隐（约 5 画布像素软边）；
+// solid 须足够大盖住眼球深色轮廓（半透明环带会露出深色睫毛边形成"眼镜环"），同时盖住瞳孔盘
+const LID = { grow: 8, solid: 0.86 }
 
 // ---------- PNG 解码（RGBA 8bit 非隔行） ----------
 function readPngRgba(path) {
@@ -105,7 +110,7 @@ const crcTable = (() => {
 
 function crc32(buf) {
   let c = -1
-  for (const b of buf) c = crcTable[(c ^ b) & 0xff] ^ (c >>> 8)
+  for (const b of buf) c = (crcTable[(c ^ b) & 0xff] ^ (c >>> 8)) >>> 0
   return (c ^ -1) >>> 0
 }
 
@@ -156,124 +161,195 @@ const blendPx = (buf, x, y, rgb, alpha) => {
   buf[i + 2] = Math.round(buf[i + 2] * (1 - a) + rgb[2] * a)
   buf[i + 3] = Math.min(255, buf[i + 3] + alpha)
 }
+// --only=<part>：只重生成指定层（如 lids），避免全量重跑覆盖已压缩优化的其他层
+const onlyArg = process.argv.find((arg) => arg.startsWith('--only='))
+const only = onlyArg ? onlyArg.slice('--only='.length) : 'all'
+const wants = (part) => only === 'all' || only === part
+
+const rig = EYES.map((eye) => ({
+  name: eye.name,
+  rect: {
+    x: eye.rect.x - PAD,
+    y: eye.rect.y - PAD,
+    w: eye.rect.w + PAD * 2,
+    h: eye.rect.h + PAD * 2,
+  },
+  center: [eye.rect.x + Math.floor(eye.rect.w / 2), eye.rect.y + Math.floor(eye.rect.h / 2)],
+}))
 
 // ---------- 1) 身体层：原图直出 ----------
-const bodyBytes = writePngRgba(resolve(outDir, 'xiaoduoli-body.png'), CANVAS.width, CANVAS.height, src.rgba)
+const bodyBytes = wants('body')
+  ? writePngRgba(resolve(outDir, 'xiaoduoli-body.png'), CANVAS.width, CANVAS.height, src.rgba)
+  : 0
 
 // ---------- 2) 眼眶底层：眼区裁切 + 瞳孔原位虹膜色填充 ----------
-const eyes = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
-const rig = []
-for (const eye of EYES) {
-  const { x, y, w, h } = eye.rect
-  const cx = x + Math.floor(w / 2)
-  const cy = y + Math.floor(h / 2)
-  // 虹膜填充色 = 瞳孔盘外圈（r solidR+2 .. rampR+2）平均色
-  let sr = 0
-  let sg = 0
-  let sb = 0
-  let n = 0
-  for (let dy = -PUPIL.rampR - 2; dy <= PUPIL.rampR + 2; dy += 1) {
-    for (let dx = -PUPIL.rampR - 2; dx <= PUPIL.rampR + 2; dx += 1) {
-      const d = Math.sqrt(dx * dx + dy * dy)
-      if (d < PUPIL.solidR + 2 || d > PUPIL.rampR + 2) continue
-      const [r, g, b, a] = srcAt(cx + dx, cy + dy)
-      if (a < 200) continue
-      sr += r; sg += g; sb += b; n += 1
-    }
-  }
-  if (n === 0) throw new Error(`${eye.name} 虹膜采样失败`)
-  const iris = [Math.round(sr / n), Math.round(sg / n), Math.round(sb / n)]
-  // 眼区矩形（含 PAD）拷贝 + 边缘羽化
-  const rect = { x: x - PAD, y: y - PAD, w: w + PAD * 2, h: h + PAD * 2 }
-  for (let py = 0; py < rect.h; py += 1) {
-    for (let px = 0; px < rect.w; px += 1) {
-      const sx = rect.x + px
-      const sy = rect.y + py
-      const [r, g, b, a] = srcAt(sx, sy)
-      const edge = Math.min(px, py, rect.w - 1 - px, rect.h - 1 - py)
-      const outA = Math.min(a, edge >= FEATHER ? 255 : Math.round((255 * edge) / FEATHER))
-      const di = (sy * CANVAS.width + sx) * 4
-      eyes[di] = r; eyes[di + 1] = g; eyes[di + 2] = b; eyes[di + 3] = outA
-    }
-  }
-  // 瞳孔原位填充虹膜色（实心 r solidR，到 rampR 渐隐）
-  for (let dy = -PUPIL.rampR; dy <= PUPIL.rampR; dy += 1) {
-    for (let dx = -PUPIL.rampR; dx <= PUPIL.rampR; dx += 1) {
-      const d = Math.sqrt(dx * dx + dy * dy)
-      if (d > PUPIL.rampR) continue
-      const alpha = d <= PUPIL.solidR ? 255 : Math.round(255 * (PUPIL.rampR - d) / (PUPIL.rampR - PUPIL.solidR))
-      blendPx(eyes, cx + dx, cy + dy, iris, alpha)
-    }
-  }
-  rig.push({ name: eye.name, rect, center: [cx, cy], irisFill: iris })
-}
-const eyesBytes = writePngRgba(resolve(outDir, 'xiaoduoli-eyes.png'), CANVAS.width, CANVAS.height, eyes)
+const eyesBytes = wants('eyes')
+  ? (() => {
+      const eyes = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
+      for (const eye of EYES) {
+        const { x, y, w, h } = eye.rect
+        const cx = x + Math.floor(w / 2)
+        const cy = y + Math.floor(h / 2)
+        // 虹膜填充色 = 瞳孔盘外圈（r solidR+2 .. rampR+2）平均色
+        let sr = 0
+        let sg = 0
+        let sb = 0
+        let n = 0
+        for (let dy = -PUPIL.rampR - 2; dy <= PUPIL.rampR + 2; dy += 1) {
+          for (let dx = -PUPIL.rampR - 2; dx <= PUPIL.rampR + 2; dx += 1) {
+            const d = Math.sqrt(dx * dx + dy * dy)
+            if (d < PUPIL.solidR + 2 || d > PUPIL.rampR + 2) continue
+            const [r, g, b, a] = srcAt(cx + dx, cy + dy)
+            if (a < 200) continue
+            sr += r; sg += g; sb += b; n += 1
+          }
+        }
+        if (n === 0) throw new Error(`${eye.name} 虹膜采样失败`)
+        const iris = [Math.round(sr / n), Math.round(sg / n), Math.round(sb / n)]
+        // 眼区矩形（含 PAD）拷贝 + 边缘羽化
+        const rect = { x: x - PAD, y: y - PAD, w: w + PAD * 2, h: h + PAD * 2 }
+        for (let py = 0; py < rect.h; py += 1) {
+          for (let px = 0; px < rect.w; px += 1) {
+            const sx = rect.x + px
+            const sy = rect.y + py
+            const [r, g, b, a] = srcAt(sx, sy)
+            const edge = Math.min(px, py, rect.w - 1 - px, rect.h - 1 - py)
+            const outA = Math.min(a, edge >= FEATHER ? 255 : Math.round((255 * edge) / FEATHER))
+            const di = (sy * CANVAS.width + sx) * 4
+            eyes[di] = r; eyes[di + 1] = g; eyes[di + 2] = b; eyes[di + 3] = outA
+          }
+        }
+        // 瞳孔原位填充虹膜色（实心 r solidR，到 rampR 渐隐）
+        for (let dy = -PUPIL.rampR; dy <= PUPIL.rampR; dy += 1) {
+          for (let dx = -PUPIL.rampR; dx <= PUPIL.rampR; dx += 1) {
+            const d = Math.sqrt(dx * dx + dy * dy)
+            if (d > PUPIL.rampR) continue
+            const alpha = d <= PUPIL.solidR ? 255 : Math.round(255 * (PUPIL.rampR - d) / (PUPIL.rampR - PUPIL.solidR))
+            blendPx(eyes, cx + dx, cy + dy, iris, alpha)
+          }
+        }
+      }
+      return writePngRgba(resolve(outDir, 'xiaoduoli-eyes.png'), CANVAS.width, CANVAS.height, eyes)
+    })()
+  : 0
 
 // ---------- 3) 瞳孔层：原图瞳孔圆盘（实心 r solidR，向外渐隐） ----------
-const pupils = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
-for (const { center } of rig) {
-  const [cx, cy] = center
-  for (let dy = -PUPIL.rampR; dy <= PUPIL.rampR; dy += 1) {
-    for (let dx = -PUPIL.rampR; dx <= PUPIL.rampR; dx += 1) {
-      const d = Math.sqrt(dx * dx + dy * dy)
-      if (d > PUPIL.rampR) continue
-      const [r, g, b] = srcAt(cx + dx, cy + dy)
-      const alpha = d <= PUPIL.solidR ? 255 : Math.round(255 * (PUPIL.rampR - d) / (PUPIL.rampR - PUPIL.solidR))
-      const di = ((cy + dy) * CANVAS.width + (cx + dx)) * 4
-      pupils[di] = r; pupils[di + 1] = g; pupils[di + 2] = b; pupils[di + 3] = alpha
-    }
-  }
-}
-const pupilsBytes = writePngRgba(resolve(outDir, 'xiaoduoli-pupils.png'), CANVAS.width, CANVAS.height, pupils)
+const pupilsBytes = wants('pupils')
+  ? (() => {
+      const pupils = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
+      for (const { center } of rig) {
+        const [cx, cy] = center
+        for (let dy = -PUPIL.rampR; dy <= PUPIL.rampR; dy += 1) {
+          for (let dx = -PUPIL.rampR; dx <= PUPIL.rampR; dx += 1) {
+            const d = Math.sqrt(dx * dx + dy * dy)
+            if (d > PUPIL.rampR) continue
+            const [r, g, b] = srcAt(cx + dx, cy + dy)
+            const alpha = d <= PUPIL.solidR ? 255 : Math.round(255 * (PUPIL.rampR - d) / (PUPIL.rampR - PUPIL.solidR))
+            const di = ((cy + dy) * CANVAS.width + (cx + dx)) * 4
+            pupils[di] = r; pupils[di + 1] = g; pupils[di + 2] = b; pupils[di + 3] = alpha
+          }
+        }
+      }
+      return writePngRgba(resolve(outDir, 'xiaoduoli-pupils.png'), CANVAS.width, CANVAS.height, pupils)
+    })()
+  : 0
 
-// ---------- 4) 眼睑层：眼上下毛色渐变 + 闭眼线 ----------
-const lids = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
-const avgCol = (x, y0, y1) => {
-  let r = 0
-  let g = 0
-  let b = 0
-  let n = 0
-  for (let y = y0; y <= y1; y += 1) {
-    const [pr, pg, pb, pa] = srcAt(x, y)
-    if (pa < 200) continue
-    r += pr; g += pg; b += pb; n += 1
-  }
-  if (n === 0) return null
-  return [Math.round(r / n), Math.round(g / n), Math.round(b / n)]
-}
-for (const { rect } of rig) {
-  const { x, y, w, h } = rect
-  for (let px = 0; px < w; px += 1) {
-    const sx = x + px
-    const top = avgCol(sx, Math.max(1, y - 9), Math.max(2, y - 3)) ?? [227, 170, 106]
-    const bottom = avgCol(sx, Math.min(CANVAS.height - 2, y + h + 3), Math.min(CANVAS.height - 1, y + h + 9)) ?? [250, 225, 191]
-    for (let py = 0; py < h; py += 1) {
-      const sy = y + py
-      const t = h > 1 ? py / (h - 1) : 0.5
-      const rgb = [0, 1, 2].map((c) => Math.round(top[c] * (1 - t) + bottom[c] * t))
-      const edge = Math.min(px, py, w - 1 - px, h - 1 - py)
-      const alpha = edge >= FEATHER ? 255 : Math.round((255 * edge) / FEATHER)
-      blendPx(lids, sx, sy, rgb, alpha)
-    }
-    // 闭眼线：位于眼高约 42% 处的柔和下弯弧
-    const lineY = y + Math.round(h * 0.42)
-    for (let dy = -1; dy <= 2; dy += 1) {
-      const t = w > 1 ? px / (w - 1) : 0.5
-      const arc = Math.round(2.5 * Math.sin(Math.PI * t))
-      const ly = lineY + dy + arc
-      if (ly < y + 2 || ly > y + h - 3) continue
-      const strength = dy <= 0 ? 150 : 235 - (dy - 1) * 70
-      const dark = [Math.round(top[0] * 0.42), Math.round(top[1] * 0.42), Math.round(top[2] * 0.42)]
-      blendPx(lids, sx, ly, dark, strength)
-    }
-  }
-}
-const lidsBytes = writePngRgba(resolve(outDir, 'xiaoduoli-lids.png'), CANVAS.width, CANVAS.height, lids)
+// ---------- 4) 眼睑层：椭圆闭眼补丁 + 两端收尖的闭眼弧线 ----------
+// 形状：眼区外扩 LID.grow 的椭圆，d<LID.solid 全不透明、到椭圆边渐隐；填色按列取眼上/下方毛色
+// 均值（横向平滑）做竖向渐变，并向椭圆边缘轻微压暗模拟眼窝阴影；不用左右侧采样（会采到睫毛深色）。
+const lidsBytes = wants('lids')
+  ? (() => {
+      const lids = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
+      const avgWindow = (x0, x1, y0, y1) => {
+        let r = 0
+        let g = 0
+        let b = 0
+        let n = 0
+        for (let y = y0; y <= y1; y += 1) {
+          for (let x = x0; x <= x1; x += 1) {
+            const [pr, pg, pb, pa] = srcAt(x, y)
+            if (pa < 200) continue
+            r += pr; g += pg; b += pb; n += 1
+          }
+        }
+        if (n === 0) return null
+        return [Math.round(r / n), Math.round(g / n), Math.round(b / n)]
+      }
+      const smooth5 = (cols) =>
+        cols.map((col, i) => {
+          let sum = [0, 0, 0]
+          let n = 0
+          for (let k = -2; k <= 2; k += 1) {
+            const c = cols[i + k]
+            if (!c) continue
+            sum = [sum[0] + c[0], sum[1] + c[1], sum[2] + c[2]]
+            n += 1
+          }
+          return [Math.round(sum[0] / n), Math.round(sum[1] / n), Math.round(sum[2] / n)]
+        })
+      for (const eye of EYES) {
+        const { x, y, w, h } = eye.rect
+        const cx = x + w / 2
+        const cy = y + h / 2
+        const aAxis = w / 2 + LID.grow
+        const bAxis = h / 2 + LID.grow
+        const x0 = Math.floor(cx - aAxis)
+        const x1 = Math.ceil(cx + aAxis)
+        const y0 = Math.floor(cy - bAxis)
+        const y1 = Math.ceil(cy + bAxis)
+        const top = smooth5(Array.from({ length: x1 - x0 + 1 }, (_, i) =>
+          avgWindow(x0 + i, x0 + i, Math.max(1, y - 7), Math.max(2, y - 3)) ?? [227, 170, 106]))
+        const bottom = smooth5(Array.from({ length: x1 - x0 + 1 }, (_, i) =>
+          avgWindow(x0 + i, x0 + i, Math.min(CANVAS.height - 2, y + h + 3), Math.min(CANVAS.height - 1, y + h + 7)) ?? [250, 225, 191]))
+        const W = x1 - x0
+        const H = y1 - y0
+        for (let py = y0; py <= y1; py += 1) {
+          for (let px = x0; px <= x1; px += 1) {
+            const dx = (px - cx) / aAxis
+            const dy = (py - cy) / bAxis
+            const d = Math.sqrt(dx * dx + dy * dy)
+            if (d >= 1) continue
+            const mask = d <= LID.solid
+              ? 255
+              : Math.round(255 * (1 - (d - LID.solid) / (1 - LID.solid)))
+            const tx = (px - x0) / W
+            const ty = (py - y0) / H
+            const cTop = top[Math.round(tx * W)]
+            const cBottom = bottom[Math.round(tx * W)]
+            const vig = 1 - 0.18 * Math.max(0, Math.min(1, (d - 0.45) / 0.55))
+            const rgb = [0, 1, 2].map((c) => Math.round(
+              (cTop[c] * (1 - ty) + cBottom[c] * ty) * vig,
+            ))
+            blendPx(lids, px, py, rgb, mask)
+          }
+        }
+        // 闭眼弧线：过瞳孔中心、两端收尖的浅下弯弧；只画中段，端点完全收尖避免钩状瑕疵
+        for (let px = x0; px <= x1; px += 1) {
+          const t = (px - x0) / W
+          const envelope = t < 0.14 || t > 0.86 ? 0 : Math.pow(Math.sin(Math.PI * (t - 0.14) / 0.72), 1.5)
+          if (envelope <= 0) continue
+          const arc = Math.round(2 * Math.sin(Math.PI * t))
+          for (let dy = -1; dy <= 1; dy += 1) {
+            const ly = Math.round(cy) + dy + arc
+            const ddx = (px - cx) / aAxis
+            const ddy = (ly - cy) / bAxis
+            const d = Math.sqrt(ddx * ddx + ddy * ddy)
+            if (d >= LID.solid) continue
+            const strength = Math.round((dy <= 0 ? 110 : 180 - (dy - 1) * 60) * envelope)
+            const cTop = top[Math.round(t * W)]
+            const dark = [Math.round(cTop[0] * 0.5), Math.round(cTop[1] * 0.5), Math.round(cTop[2] * 0.5)]
+            blendPx(lids, px, ly, dark, strength)
+          }
+        }
+      }
+      return writePngRgba(resolve(outDir, 'xiaoduoli-lids.png'), CANVAS.width, CANVAS.height, lids)
+    })()
+  : 0
 
 const report = {
   source: 'design-assets/nest/xiaoduoli-peek-source.png',
   canvas: CANVAS,
-  rig: { eyes: EYES, pad: PAD, feather: FEATHER, pupil: PUPIL },
+  rig: { eyes: EYES, pad: PAD, feather: FEATHER, pupil: PUPIL, lid: LID },
   parts: {
     body: { file: 'src/assets/nest/xiaoduoli-body.png', bytes: bodyBytes },
     eyes: { file: 'src/assets/nest/xiaoduoli-eyes.png', bytes: eyesBytes },
@@ -289,10 +365,21 @@ const report = {
   },
 }
 const scssPath = resolve(here, '../src/features/main/xiaoduoli-box-parts.generated.scss')
-writeFileSync(
-  scssPath,
-  `/* 由 miniapp/tools/build-xiaoduoli-parts.mjs 自动生成，请勿手改；源：design-assets/nest/xiaoduoli-peek-source.png */\n.xiaoduoli-box__pupils {\n  transform-origin: 50% ${report.generated.pupilsOriginYPct}%;\n}\n`,
-)
+if (only === 'all') {
+  writeFileSync(
+    scssPath,
+    `/* 由 miniapp/tools/build-xiaoduoli-parts.mjs 自动生成，请勿手改；源：design-assets/nest/xiaoduoli-peek-source.png */\n.xiaoduoli-box__pupils {\n  transform-origin: 50% ${report.generated.pupilsOriginYPct}%;\n}\n`,
+  )
+}
+if (only !== 'all') {
+  // 局部重生成时保留其他层的既有记录，避免报告出现 0 字节误报
+  try {
+    const prev = JSON.parse(readFileSync(reportPath, 'utf8'))
+    for (const key of Object.keys(report.parts)) {
+      if (report.parts[key].bytes === 0 && prev.parts?.[key]) report.parts[key].bytes = prev.parts[key].bytes
+    }
+  } catch {}
+}
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`)
 
 console.log(JSON.stringify(report, null, 2))
