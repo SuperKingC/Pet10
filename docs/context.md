@@ -1,5 +1,16 @@
 # docs context
 
+## 2026-08-29（信纸九宫格换新图：白底 JPG 转真透明重切 v4）
+
+- **原因**：验收反馈——信纸换新构图切图（纸叠+翻盖+木夹+爪印+小信封，原图为白底 JPG）。
+- **修改**：
+  - `design-assets/nest/letter-paper-source-v2.png`：新源图归档（gitignore，仅本地）；白底经边界洪泛 + 亮度渐变 alpha 转真透明，纸叠边缘柔和羽化
+  - `miniapp/tools/make-letter-paper-slices.mjs`：源图指向 v2，切线重标定（内容 720×553，切线 left 65 / right 504 / top 212 / bottom 298），9 块全部由脚本输出，切片文件名升为 `-v4`
+  - `miniapp/src/assets/nest/`：删除 9 块 v2/v3 旧切片，新增 9 块 v4 切片（过 TinyPNG）
+  - `MiniappNestLetter.tsx/.scss`：切片引用升 v4；轨道行高 198/239 → 200/241rpx
+  - `miniappPresentation.test.ts`：切片文件名断言升 v4
+  - `docs/features/miniapp.md`：信纸描述与资源表同步（删除 br 手调 7px 说明）；`docs/assets/asset-manifest.json`：9 块切片与 source 路径同步
+
 ## 2026-08-28（游戏中心页首插画换趴窝小多利）
 
 - **原因**：验收反馈——一起玩页首右侧改用小多利趴在窝垫上的插画。

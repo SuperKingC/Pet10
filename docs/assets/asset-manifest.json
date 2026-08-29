@@ -15,47 +15,47 @@
       "purpose": "Messages empty state puppy-with-envelope illustration, re-encoded from the truecolor original with a full 256-color dithered palette"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-tl-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-tl-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice top-left corner"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-tc-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-tc-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice top edge strip"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-tr-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-tr-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice top-right corner with wooden clip"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-ml-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-ml-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice left edge strip"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-mc-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-mc-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice center writing area"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-mr-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-mr-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice right edge strip"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-bl-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-bl-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice bottom-left corner"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-bc-v2.png",
+      "path": "miniapp/src/assets/nest/letter-paper-bc-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice bottom edge strip"
     },
     {
-      "path": "miniapp/src/assets/nest/letter-paper-br-v3.png",
+      "path": "miniapp/src/assets/nest/letter-paper-br-v4.png",
       "category": "runtime-feature",
       "purpose": "Nest letter paper nine-slice bottom-right corner with paw and envelope ornament"
     },
@@ -155,7 +155,7 @@
       "purpose": "Source illustration of the night-street backdrop (archived at 1280px)"
     },
     {
-      "path": "design-assets/nest/letter-paper-source.png",
+      "path": "design-assets/nest/letter-paper-source-v2.png",
       "category": "source-only",
       "purpose": "Source illustration of the nest letter paper (archived at 1280px)"
     },

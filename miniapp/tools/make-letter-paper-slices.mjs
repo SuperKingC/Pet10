@@ -1,8 +1,8 @@
-// 从 design-assets/nest/letter-paper-source.png 生成小窝信纸九宫格切片：
-//  1) 归档图超过 SOURCE_ARCHIVE_MAX 时降采样回写（原始 2508px 源图超仓库 1MB 单文件预算）
-//  2) 按 alpha 包围盒裁掉透明边，再缩放到输出宽度后切成 9 块切片（四角固定、四边单轴拉伸、中心净区）
-//  3) 有 sharp 时把切片量化回 PNG8（与线上格式一致，软阴影不糊），无 sharp 回退真彩 PNG
-//  4) 输出 tools/letter-debug-*.png 标定图，切线常量靠目视校准
+// 从 design-assets/nest/letter-paper-source-v2.png 生成小窝信纸九宫格切片：
+//  1) 按 alpha 包围盒裁掉透明边，再缩放到输出宽度后切成 9 块切片（四角固定、四边单轴拉伸、中心净区）
+//  2) 有 sharp 时把切片量化回 PNG8（与线上格式一致，软阴影不糊），无 sharp 回退真彩 PNG
+//  3) 输出 tools/letter-debug-*.png 标定图，切线常量靠目视校准
+// 源图 v2：白底 JPG 经边界洪泛 + 亮度渐变 alpha 转真透明后归档（design-assets 已 gitignore，仅本地留存）。
 // 用法：node tools/make-letter-paper-slices.mjs
 import { readFileSync, writeFileSync } from 'node:fs'
 import { deflateSync, inflateSync } from 'node:zlib'
@@ -10,7 +10,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const srcPath = resolve(here, '../../design-assets/nest/letter-paper-source.png')
+const srcPath = resolve(here, '../../design-assets/nest/letter-paper-source-v2.png')
 const outDir = resolve(here, '../src/assets/nest')
 
 // 归档图最大宽度（保持 2 倍于输出宽度，便于日后重切）
@@ -19,11 +19,11 @@ const SOURCE_ARCHIVE_MAX = 1280
 const OUTPUT_WIDTH = 720
 
 // 九宫格切线（裁边后内容宽高的百分比）：left/right/top/bottom
-// 校准依据 tools/letter-debug-grid.png：上切线必须落在信封翻盖与图钉下方的纸面净区
-// （翻盖+图钉整体留在固定顶带，中带只拉纯色纸面）；下切线在爪印/小爱心上方的纸面净区；
-// 右列罩住木夹与右下信封装饰，左右切线两侧均为竖向边带，可随中行纵向拉伸。
-// br 块不由此脚本输出：letter-paper-br-v3.png 是手动微调版（信封装饰已下移 7px），
-// 重跑脚本会跳过 br，避免覆盖已验收的手调图。
+// 校准依据 tools/letter-debug-v2-grid.png：上切线落在信封翻盖与木夹下方的纸面净区
+// （翻盖+木夹整体留在固定顶带，中带只拉纯色纸面）；下切线在爪印/小爱心上方的纸面净区；
+// 右列罩住木夹与右下小信封装饰，左右切线两侧均为竖向边带，可随中行纵向拉伸。
+// v2 源图构图与旧图接近，切线按旧图百分比换算并微调后经标定图目视确认。
+// 全部 9 块由本脚本输出（v2 源图无需再手调 br 块）。
 const SLICE = { left: 9, right: 30, top: 38.3, bottom: 46.1 }
 // 供调用的 rpx 参考：与 MiniappNestLetter.scss 的卡片宽一致
 const CARD_WIDTH_RPX = 680
@@ -290,7 +290,8 @@ const tiles = {
   br: { x: px.right, y: px.bottom, w: outW - px.right, h: outH - px.bottom },
 }
 // 切片文件名带版本号：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
-const tileFileName = (name) => (name === 'br' ? 'letter-paper-br-v3.png' : `letter-paper-${name}-v2.png`)
+// v4：v2 源图（新构图信纸）首次切片；v2/v3 旧切片由本次任务删除
+const tileFileName = (name) => `letter-paper-${name}-v4.png`
 
 // 有 sharp 时量化回 PNG8（与既有线上切片格式一致，体积最小）；无 sharp 回退真彩 PNG
 async function writeTile(path, tile) {
@@ -307,8 +308,6 @@ async function writeTile(path, tile) {
 
 const tileFiles = {}
 for (const [name, box] of Object.entries(tiles)) {
-  // br 块（letter-paper-br-v2.png）为手动微调版，脚本不输出，避免覆盖
-  if (name === 'br') continue
   const tile = crop(sheet, box)
   const file = tileFileName(name)
   const bytes = await writeTile(resolve(outDir, file), tile)
