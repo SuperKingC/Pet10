@@ -5,7 +5,7 @@ import type { XiaoduoliFaceAction } from '../../domain/xiaoduoliBehavior'
 import { useXiaoduoliIdleBehavior } from './useXiaoduoliIdleBehavior'
 import './XiaoduoliBoxScene.scss'
 
-const streetImage = require('../../assets/nest/xiaoduoli-street-v11.png')
+const streetImage = require('../../assets/nest/xiaoduoli-street-v12.png')
 const boxImage = require('../../assets/nest/xiaoduoli-box.png')
 const bodyImage = require('../../assets/nest/xiaoduoli-body.png')
 const eyesImage = require('../../assets/nest/xiaoduoli-eyes.png')
