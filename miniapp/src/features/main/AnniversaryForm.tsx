@@ -92,9 +92,9 @@ export function AnniversaryForm({ defaultDay, withDatePicker, initial, saving, o
       </View>
       <View className="anniv-form__icons">
         {anniversaryIconKeys.map((key) => (
-          <Button key={key} className={`anniv-form__icon-item${icon === key ? ' anniv-form__icon-item--active' : ''}`} onClick={() => setIcon(key)}>
+          <View key={key} className={`anniv-form__icon-item${icon === key ? ' anniv-form__icon-item--active' : ''}`} onClick={() => setIcon(key)}>
             <Image className="anniv-form__icon-img" src={anniversaryIcons[key]} mode="aspectFit" />
-          </Button>
+          </View>
         ))}
       </View>
       <View className="anniv-form__field">

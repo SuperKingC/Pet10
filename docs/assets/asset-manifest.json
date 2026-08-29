@@ -402,27 +402,27 @@
     {
       "path": "miniapp/src/assets/anniversaries/anniv-heart.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary heart icon, warm cream rounded base with coral gradient heart and highlight"
+      "purpose": "Anniversary heart sticker icon, hand-drawn outline style with cream fill and sparkle accents, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-star.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary star icon, warm cream rounded base with gold gradient star and highlight"
+      "purpose": "Anniversary star sticker icon, hand-drawn outline style with cream fill and sparkle accents, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-cake.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary cake icon, warm cream rounded base with cream frosting cake and cherry candle"
+      "purpose": "Anniversary cake sticker icon, hand-drawn outline style with cream frosting and candle flames, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-paw.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary paw icon, warm cream rounded base with coral paw pads and highlight"
+      "purpose": "Anniversary paw sticker icon, hand-drawn outline style with cream pads and sparkle accents, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-balloon.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary balloon icon, warm cream rounded base with rose balloon and string"
+      "purpose": "Anniversary balloon sticker icon, hand-drawn outline style with cream balloon and string, transparent background"
     }
   ]
 }

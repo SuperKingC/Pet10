@@ -28,6 +28,17 @@ describe('anniversary photo presentation rules', () => {
     expect(styles).toMatch(/\.anniv-list__photo-num \{[^}]*132rpx/)
   })
 
+  it('keeps the form icon row borderless, fixed and aligned with the mood picker pattern', () => {
+    const form = fs.readFileSync(formPath, 'utf8')
+    const styles = fs.readFileSync(stylesPath, 'utf8')
+
+    // 不用 Button 原生样式（自带边框与可滑动清除），与心情选择一样直接用 View
+    expect(form).not.toMatch(/<Button[^>]*anniv-form__icon-item/)
+    expect(form).toMatch(/<View key=\{key\} className=\{`anniv-form__icon-item/)
+    expect(styles).toMatch(/\.anniv-form__icon-item \{[^}]*border: 2rpx solid transparent/)
+    expect(styles).not.toMatch(/\.anniv-form__icon-item \{[^}]*overflow-x/)
+  })
+
   it('keeps the form photo picker inside the warm card frame', () => {
     const styles = fs.readFileSync(stylesPath, 'utf8')
 
