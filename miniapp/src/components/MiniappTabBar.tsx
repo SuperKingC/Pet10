@@ -12,6 +12,8 @@ export type MiniappTab = 'nest' | 'calendar' | 'messages' | 'me'
 interface MiniappTabBarProps {
   active: MiniappTab
   unreadCount?: number
+  /** 全屏页（如聊天页）打开时隐藏整个 tab 栏 */
+  hidden?: boolean
   onChange(tab: MiniappTab): void
   onOpenPawMenu(): void
 }
@@ -23,7 +25,8 @@ const tabs: Array<{ key: MiniappTab; label: string; icon: string }> = [
   { key: 'me', label: '我的', icon: meIcon },
 ]
 
-export function MiniappTabBar({ active, unreadCount = 0, onChange, onOpenPawMenu }: MiniappTabBarProps) {
+export function MiniappTabBar({ active, unreadCount = 0, hidden = false, onChange, onOpenPawMenu }: MiniappTabBarProps) {
+  if (hidden) return null
   return (
     <View className="miniapp-tab-bar">
       <View className="miniapp-tab-bar__background" />

@@ -67,6 +67,8 @@ export default function Index() {
   const [journalRefreshKey, setJournalRefreshKey] = useState(0)
   const [nestSceneMode, setNestSceneMode] = useState<NestSceneMode>('loading')
   const [boxPhase, setBoxPhase] = useState<'idle' | 'jumping'>('idle')
+  // 消息页当前打开的全屏聊天页房间 ID（'' 表示停在会话列表），用于隐藏底部 tab 栏
+  const [chatRoomId, setChatRoomId] = useState('')
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -330,6 +332,7 @@ export default function Index() {
         viewerId={context?.user.id || ''}
         friendName={context?.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
         onOpenRoom={loadRoomContext}
+        onChatOpenChange={setChatRoomId}
       />
     }
     if (activeTab === 'calendar') {
@@ -407,6 +410,7 @@ export default function Index() {
       onChange={(tab) => { setPawMenuOpen(false); setActiveTab(tab) }}
       onOpenPawMenu={() => setPawMenuOpen((open) => !open)}
       unreadCount={context?.rooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0)}
+      hidden={activeTab === 'messages' && Boolean(chatRoomId)}
     />}
   </View>
 }

@@ -24,13 +24,15 @@ interface MiniappMessagesViewProps {
   viewerId: string
   friendName: string
   onOpenRoom(roomId: string): void
+  /** 全屏聊天页打开/关闭时上报，页面据此隐藏底部 tab 栏 */
+  onChatOpenChange?(chatRoomId: string): void
 }
 
 function isOwnMessage(message: { senderType?: 'user' | 'pet'; senderId?: string }, viewerId: string) {
   return message.senderType === 'user' && (!message.senderId || message.senderId === viewerId)
 }
 
-export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom }: MiniappMessagesViewProps) {
+export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom, onChatOpenChange }: MiniappMessagesViewProps) {
   const [conversations, setConversations] = useState<MiniappConversation[]>([])
   const [conversationsLoaded, setConversationsLoaded] = useState(false)
   // '' 表示停在会话列表页；非空表示打开了对应会话的全屏聊天页（PWA 末版两层结构）
@@ -41,7 +43,7 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom }
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [unread, setUnread] = useState<Record<string, number>>({})
-// 各房间已读到的最新消息 ID：轮询发现更新的他人消息时计未读，打开会话即清零
+  // 各房间已读到的最新消息 ID：轮询发现更新的他人消息时计未读，打开会话即清零
   const lastSeenRef = useRef<Record<string, string>>({})
   const initializedRef = useRef(false)
 
@@ -102,6 +104,11 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom }
     setDraft('')
     setError('')
   }, [openRoomId])
+
+  // 聊天页开关上报给页面（tab 栏隐藏逻辑）
+  useEffect(() => {
+    onChatOpenChange?.(openRoomId)
+  }, [openRoomId, onChatOpenChange])
 
   const openConversation = (conversation: MiniappConversation) => {
     lastSeenRef.current[conversation.roomId] = conversation.latestMessage?.id ?? ''
