@@ -17,10 +17,10 @@ const polaroidRun = require('../../assets/journal/polaroid-run-v2.png')
 const editorYard = require('../../assets/journal/editor-yard.jpg')
 
 const moodImages: Record<string, string> = {
-  happy: require('../../assets/moods/mood-3-v3.png'),
-  calm: require('../../assets/moods/mood-2-v3.png'),
-  sad: require('../../assets/moods/mood-1-v3.png'),
-  excited: require('../../assets/moods/mood-4-v3.png'),
+  happy: require('../../assets/moods/mood-3-v4.png'),
+  calm: require('../../assets/moods/mood-2-v4.png'),
+  sad: require('../../assets/moods/mood-1-v4.png'),
+  excited: require('../../assets/moods/mood-4-v4.png'),
 }
 
 const MAX_PHOTOS = 3

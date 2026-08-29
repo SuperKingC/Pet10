@@ -23,15 +23,15 @@ const outDir = resolve(here, '../src/assets/moods')
 const SOURCE_ARCHIVE_MAX = 1280
 // 输出贴纸边长：日记心情选择器展示 120rpx（@3x ≈ 200px）
 const OUTPUT_SIZE = 200
-// 归一化基准（headNorm 标定的是 2048 源图坐标）：头部高度统一缩放到画布的 62%、
-// 头顶统一落在画布 6% 高度处、头中心统一置于画布水平 50%（跨图尺寸/高度一致的关键）
-const HEAD_NORM_PCT = 62
+// 归一化基准：以主体连通域的腮宽（最大行宽，跨四张几何一致）为缩放基准——
+// 腮宽统一缩放到画布 62%、头顶统一落在画布 6% 高度、腮中点对齐画布水平 50%
+const CHEEK_NORM_PCT = 62
 const HEAD_TOP_PCT = 6
 const HEAD_CX_PCT = 50
 // 画布下缘在输出高度外再留 8% 余量（缩放先在大画布上做，最后统一缩回 OUTPUT_SIZE）
 const HEAD_BOTTOM_MARGIN_PCT = 8
 // 输出文件名：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
-const OUTPUT_VERSION = 'v3'
+const OUTPUT_VERSION = 'v4'
 // 洪泛容差：对参考白（卡白/盘底）的 RGB 欧氏色距；雨滴色距 ~34、灰环 ~42，须远大于卡白-盘底差 (~5)
 const FLOOD_TOL = 14
 // 边缘 alpha 渐变：色距 EDGE_FROM 全透明 → EDGE_TO 全不透明
@@ -41,15 +41,69 @@ const EDGE_TO = 26
 
 // 四张卡片在 2048 原图上的标定矩形（来自 tools/tmp-mood-probe2/3.mjs 阴影带目视校准）
 // 文件名序号即心情语义：mood-1 委屈哭=难过、mood-2 汗滴=平静、mood-3 吐舌=开心、mood-4 腮红眯眼=兴奋
-// headNorm：归一化基准——四张图狗头占画比例本就不同（1 带乌云、4 带彩纸），
-// 各自按内容包围盒缩放会忽大忽小；统一按「主体连通域」度量的头部高度/中心做尺寸与垂直对齐
 const CARDS_2048 = [
-  { name: 'mood-1', x: 117, y: 79, disc: { cx: 516.5, cy: 478.5, r: 357.5 }, headNorm: { rowTop: 158, rowBottom: 700, cxPort: 0.5 } },
-  { name: 'mood-2', x: 1119, y: 79, disc: null, headNorm: { rowTop: 140, rowBottom: 730, cxPort: 0.487 } },
-  { name: 'mood-3', x: 117, y: 1027, disc: null, headNorm: { rowTop: 1094, rowBottom: 1630, cxPort: 0.485 } },
-  { name: 'mood-4', x: 1119, y: 1027, disc: { cx: 1518.5, cy: 1426.5, r: 357.5 }, headNorm: { rowTop: 1090, rowBottom: 1622, cxPort: 0.5 } },
+  { name: 'mood-1', x: 117, y: 79, disc: { cx: 516.5, cy: 478.5, r: 357.5 } },
+  { name: 'mood-2', x: 1119, y: 79, disc: null },
+  { name: 'mood-3', x: 117, y: 1027, disc: null },
+  { name: 'mood-4', x: 1119, y: 1027, disc: { cx: 1518.5, cy: 1426.5, r: 357.5 } },
 ]
 const CARD_SIZE = 799
+
+// 主体（狗头）测量：在透明化后的 RGBA 上取「暖色不透明像素」的最大 4 连通域。
+// 缩放基准用**腮宽**（连通域内最大行宽，同一只狗四张几何相同）与腮宽行的水平中点；
+// 连通域顶界即头顶（耳尖）、底界即胸毛底。彩纸（中性/冷色）/淡蓝泪滴汗滴/冷灰云不满足
+// 暖色判定，不进连通域——修复彩纸把 mood-4 撑大、装饰把基准带偏的问题。
+function measureHead(rgba, w, h) {
+  const warm = new Uint8Array(w * h)
+  for (let i = 0; i < w * h; i += 1) {
+    if (rgba[i * 4 + 3] < 128) continue
+    const R = rgba[i * 4]
+    const G = rgba[i * 4 + 1]
+    const B = rgba[i * 4 + 2]
+    if (R >= B + 12) warm[i] = 1
+  }
+  const label = new Int32Array(w * h).fill(-1)
+  const stack = []
+  let best = null
+  let comp = 0
+  for (let seed = 0; seed < w * h; seed += 1) {
+    if (!warm[seed] || label[seed] >= 0) continue
+    let minY = h
+    let sumX = 0
+    let count = 0
+    const rows = new Map() // y -> [minX, maxX]
+    stack.push(seed)
+    label[seed] = comp
+    while (stack.length) {
+      const p = stack.pop()
+      const px = p % w
+      const py = (p / w) | 0
+      if (py < minY) minY = py
+      sumX += px
+      count += 1
+      const row = rows.get(py)
+      if (!row) rows.set(py, [px, px])
+      else if (px < row[0]) row[0] = px
+      else if (px > row[1]) row[1] = px
+      if (px > 0 && warm[p - 1] && label[p - 1] < 0) { label[p - 1] = comp; stack.push(p - 1) }
+      if (px < w - 1 && warm[p + 1] && label[p + 1] < 0) { label[p + 1] = comp; stack.push(p + 1) }
+      if (py > 0 && warm[p - w] && label[p - w] < 0) { label[p - w] = comp; stack.push(p - w) }
+      if (py < h - 1 && warm[p + w] && label[p + w] < 0) { label[p + w] = comp; stack.push(p + w) }
+    }
+    if (!best || count > best.count) best = { count, minY, sumX, rows }
+    comp += 1
+  }
+  if (!best || best.count < w * h * 0.02) throw new Error('主体连通域测量失败')
+  // 腮宽：行宽前 5 宽的行按 y 取中位行（耳下腮部最宽处，对表情不敏感、跨图几何一致）
+  const widths = [...best.rows.entries()].map(([y, r]) => ({ y, w: r[1] - r[0] + 1, mid: (r[0] + r[1]) / 2 }))
+  widths.sort((a, b) => b.w - a.w)
+  const top5 = widths.slice(0, 5)
+  top5.sort((a, b) => a.y - b.y)
+  const cheek = top5[Math.floor(top5.length / 2)]
+  let bottom = best.minY
+  for (const y of best.rows.keys()) if (y > bottom) bottom = y
+  return { top: best.minY, bottom: bottom + 1, cheekW: cheek.w, cx: cheek.mid }
+}
 
 // ---------- PNG 解码（8bit 非隔行：RGBA / RGB / 调色板+可选 tRNS） ----------
 function readPngRgba(path) {
@@ -406,17 +460,15 @@ for (const card of CARDS_2048) {
     }
   }
 
-  // 6) 归一化：以标定的头部上下界（card 局部坐标）为基准——四张统一把头部高度缩放到
-  //    HEAD_NORM_PCT 画布高度、头中心水平对齐 cxPort、头顶落在同一 TOP_PCT，跨图尺寸/高度一致
-  const headTop = (card.headNorm.rowTop - card.y) * archScale
-  const headBottom = (card.headNorm.rowBottom - card.y) * archScale
-  const headH = headBottom - headTop
-  const headCenterX = w * card.headNorm.cxPort
-  const scale = (HEAD_NORM_PCT / 100) * OUTPUT_SIZE / headH
+  // 6) 归一化：自动测量主体连通域（狗头，暖色最大连通域），以**腮宽**为缩放基准——
+  //    同一只狗四张腮宽几何一致，表情/装饰（乌云、彩纸、汗滴）不影响它；
+  //    统一缩放到 CHEEK_NORM_PCT、头顶对齐 HEAD_TOP_PCT、腮中点对齐 HEAD_CX_PCT。
+  const head = measureHead(rgba, w, h)
+  const scale = (CHEEK_NORM_PCT / 100) * OUTPUT_SIZE / head.cheekW
   const topPad = Math.round((HEAD_TOP_PCT / 100) * OUTPUT_SIZE)
   // 画布宽按缩放后内容宽 + 左右边距，头中心置于画布水平 HEAD_CX_PCT 处
   const scaledW = Math.round(w * scale)
-  const cxInScaled = Math.round(headCenterX * scale)
+  const cxInScaled = Math.round(head.cx * scale)
   const sideW = Math.max(OUTPUT_SIZE, Math.round(scaledW + 2 * 12))
   const canvasX = Math.round(sideW * HEAD_CX_PCT / 100 - cxInScaled)
   const sideH = OUTPUT_SIZE + Math.round((HEAD_BOTTOM_MARGIN_PCT / 100) * OUTPUT_SIZE)
@@ -424,7 +476,7 @@ for (const card of CARDS_2048) {
   const scaledH = Math.round(h * scale)
   const scaled = resizeArea(rgba, w, h, scaledW, scaledH)
   const canvas = Buffer.alloc(sideW * sideH * 4)
-  const pasteY = topPad - Math.round(headTop * scale)
+  const pasteY = topPad - Math.round(head.top * scale)
   for (let y = 0; y < scaledH; y += 1) {
     const ty = pasteY + y
     if (ty < 0 || ty >= sideH) continue
@@ -451,7 +503,7 @@ for (const card of CARDS_2048) {
   } catch {
     bytes = writePngRgba(outPath, OUTPUT_SIZE, OUTPUT_SIZE, out)
   }
-  results.push({ file: outFile, box, ref, ringErased, headNorm: card.headNorm, kb: Number((bytes / 1024).toFixed(1)) })
+  results.push({ file: outFile, box, ref, ringErased, head: { top: head.top, bottom: head.bottom, cx: Math.round(head.cx) }, scale: Number(scale.toFixed(3)), kb: Number((bytes / 1024).toFixed(1)) })
   console.log(`${card.name}: ref=${ref} ringErased=${ringErased} scale=${scale.toFixed(3)} -> ${OUTPUT_SIZE}x${OUTPUT_SIZE} ${results[results.length - 1].kb}KB`)
 }
 

@@ -248,7 +248,7 @@
 - **原因**：用户验收用新四心情贴纸（乌云哭/汗滴/吐舌笑/腮红眯眼）替换日记心情选择器表情，需白底转真透明出件并同步文档。
 - **修改**：
   - `miniapp/tools/make-mood-slices.mjs`：新增出件脚本（边界洪泛转真透明+圆盘灰环几何擦除+PNG8）
-  - `miniapp/src/assets/moods/mood-1..4-v3.png`：200px 透明贴纸替换 v2（160px），v2 删除
+  - `miniapp/src/assets/moods/mood-1..4-v4.png`：200px 透明贴纸替换 v2（160px），v2 删除
   - `miniapp/src/features/main/JournalEditorForm.tsx` 与 `miniappPresentation.test.ts`：引用升 v3
   - `docs/assets/asset-manifest.json`：登记 v3 四张与 source-only 源图 `design-assets/nest/mood-four-source.jpg`
   - `docs/features/miniapp.md`：心情选择器条目与资源表更新
