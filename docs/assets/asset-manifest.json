@@ -90,24 +90,24 @@
       "purpose": "Journal editor bottom yard background"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-1-v2.png",
+      "path": "miniapp/src/assets/moods/mood-1-v3.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli sad expression, regenerated at the native 160px size with a full 256-color dithered palette"
+      "purpose": "Journal editor mood picker sad puppy crying under a rain cloud, flood-flooded to true transparency from the four-mood source sheet, 200px dithered palette PNG"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-2-v2.png",
+      "path": "miniapp/src/assets/moods/mood-2-v3.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli calm expression, regenerated at the native 160px size with a full 256-color dithered palette"
+      "purpose": "Journal editor mood picker calm puppy with a sweat drop, flood-flooded to true transparency from the four-mood source sheet, 200px dithered palette PNG"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-3-v2.png",
+      "path": "miniapp/src/assets/moods/mood-3-v3.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli happy expression, regenerated at the native 160px size with a full 256-color dithered palette"
+      "purpose": "Journal editor mood picker happy puppy with tongue out and sparkle strokes, flood-flooded to true transparency from the four-mood source sheet, 200px dithered palette PNG"
     },
     {
-      "path": "miniapp/src/assets/moods/mood-4-v2.png",
+      "path": "miniapp/src/assets/moods/mood-4-v3.png",
       "category": "runtime-feature",
-      "purpose": "Journal editor mood picker Xiaoduoli excited expression, regenerated at the native 160px size with a full 256-color dithered palette"
+      "purpose": "Journal editor mood picker excited puppy with blush and heart-star confetti, gray ring erased geometrically, 200px dithered palette PNG"
     },
     {
       "path": "miniapp/src/assets/nest/xiaoduoli-box.png",
@@ -158,6 +158,11 @@
       "path": "design-assets/nest/letter-paper-source-v2.png",
       "category": "source-only",
       "purpose": "Source illustration of the nest letter paper (archived at 1280px)"
+    },
+    {
+      "path": "design-assets/nest/mood-four-source.jpg",
+      "category": "source-only",
+      "purpose": "Four-mood puppy sticker sheet (sad/calm/happy/excited, archived at 1280px JPEG), source of the journal mood picker slices"
     },
     {
       "path": "public/tarot/cards/death.jpg",
