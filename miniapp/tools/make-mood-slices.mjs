@@ -23,15 +23,15 @@ const outDir = resolve(here, '../src/assets/moods')
 const SOURCE_ARCHIVE_MAX = 1280
 // 输出贴纸边长：日记心情选择器展示 120rpx（@3x ≈ 200px）
 const OUTPUT_SIZE = 200
-// 归一化基准：以主体连通域的腮宽（最大行宽，跨四张几何一致）为缩放基准——
-// 腮宽统一缩放到画布 62%、头顶统一落在画布 6% 高度、腮中点对齐画布水平 50%
-const CHEEK_NORM_PCT = 62
-const HEAD_TOP_PCT = 6
+// 归一化画布：固定正方形，四张贴纸画布同尺寸 → 无逐张二次缩放形变；
+// 腮宽基准 72%（画布视觉占比更大，120rpx 下狗脸更饱满）、头顶 12%（上方留乌云/彩纸空间，
+// 底部自然落至 ~175px 视觉居中）
+const OUTPUT_SIZE_SQ = 200
+const CHEEK_NORM_PCT = 72
+const HEAD_TOP_PCT = 12
 const HEAD_CX_PCT = 50
-// 画布下缘在输出高度外再留 8% 余量（缩放先在大画布上做，最后统一缩回 OUTPUT_SIZE）
-const HEAD_BOTTOM_MARGIN_PCT = 8
 // 输出文件名：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
-const OUTPUT_VERSION = 'v4'
+const OUTPUT_VERSION = 'v5'
 // 洪泛容差：对参考白（卡白/盘底）的 RGB 欧氏色距；雨滴色距 ~34、灰环 ~42，须远大于卡白-盘底差 (~5)
 const FLOOD_TOL = 14
 // 边缘 alpha 渐变：色距 EDGE_FROM 全透明 → EDGE_TO 全不透明
@@ -466,12 +466,13 @@ for (const card of CARDS_2048) {
   const head = measureHead(rgba, w, h)
   const scale = (CHEEK_NORM_PCT / 100) * OUTPUT_SIZE / head.cheekW
   const topPad = Math.round((HEAD_TOP_PCT / 100) * OUTPUT_SIZE)
-  // 画布宽按缩放后内容宽 + 左右边距，头中心置于画布水平 HEAD_CX_PCT 处
+  // 画布固定正方形 OUTPUT_SIZE_SQ：四张画布同尺寸 → 贴完后一次等比缩回，无逐张形变；
+  // 装饰（乌云/彩纸）超宽超顶时允许裁出画布外（沿用在裁线外的像素自然丢弃）
   const scaledW = Math.round(w * scale)
   const cxInScaled = Math.round(head.cx * scale)
-  const sideW = Math.max(OUTPUT_SIZE, Math.round(scaledW + 2 * 12))
+  const sideW = OUTPUT_SIZE_SQ
   const canvasX = Math.round(sideW * HEAD_CX_PCT / 100 - cxInScaled)
-  const sideH = OUTPUT_SIZE + Math.round((HEAD_BOTTOM_MARGIN_PCT / 100) * OUTPUT_SIZE)
+  const sideH = OUTPUT_SIZE_SQ
   // 全内容缩放（含乌云/汗滴/彩纸），头顶对齐 topPad；resizeArea 返回裸 Buffer
   const scaledH = Math.round(h * scale)
   const scaled = resizeArea(rgba, w, h, scaledW, scaledH)
@@ -481,14 +482,16 @@ for (const card of CARDS_2048) {
     const ty = pasteY + y
     if (ty < 0 || ty >= sideH) continue
     const srcStart = y * scaledW * 4
-    const dstStart = (ty * sideW + canvasX) * 4
-    const copyW = Math.min(scaledW, sideW - canvasX) * 4
-    scaled.copy(canvas, dstStart, srcStart, srcStart + copyW)
+    // 逐行裁剪到画布内（canvasX 可为负：装饰超左缘时裁掉，右侧同理）
+    const sx = Math.max(0, -canvasX)
+    const dx = Math.max(0, canvasX)
+    const copyW = Math.min(scaledW - sx, sideW - dx)
+    if (copyW <= 0) continue
+    scaled.copy(canvas, (ty * sideW + dx) * 4, srcStart + sx * 4, srcStart + (sx + copyW) * 4)
   }
-  const side = sideW * sideH
 
-  // 7) 缩放到输出尺寸
-  const out = resizeArea(canvas, sideW, sideH, OUTPUT_SIZE, OUTPUT_SIZE)
+  // 7) 画布即输出尺寸（等比缩放无二次形变，直接使用）
+  const out = canvas
 
   // 8) 写文件：有 sharp 量化 PNG8，否则真彩 PNG
   const outFile = `${card.name}-${OUTPUT_VERSION}.png`
