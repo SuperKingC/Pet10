@@ -388,14 +388,14 @@ describe('miniapp ui presentation rules', () => {
     const scene = fs.readFileSync(path.resolve(__dirname, 'XiaoduoliBoxScene.tsx'), 'utf8')
     const styles = fs.readFileSync(path.resolve(__dirname, 'XiaoduoliBoxScene.scss'), 'utf8')
     const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
-    const streetAssetPath = path.resolve(__dirname, '../../assets/nest/xiaoduoli-street-v12.png')
+    const streetAssetPath = path.resolve(__dirname, '../../assets/nest/xiaoduoli-street-v13.png')
     const singleAssetBudget = 180 * 1024
 
-    expect(scene).toContain('xiaoduoli-street-v12.png')
+    expect(scene).toContain('xiaoduoli-street-v13.png')
     expect(scene).toContain('xiaoduoli-box__street')
     expect(scene).toMatch(/xiaoduoli-box__street" src=\{streetImage\} mode="aspectFill"/)
     expect(styles).toMatch(/\.xiaoduoli-box__street \{[^}]*z-index: 0;/)
-    expect(manifest).toContain('nest/xiaoduoli-street-v12.png')
+    expect(manifest).toContain('nest/xiaoduoli-street-v13.png')
     expect(manifest).toContain('design-assets/nest/xiaoduoli-street-source.png')
     expect(fs.statSync(streetAssetPath).size).toBeLessThan(singleAssetBudget)
   })
