@@ -350,12 +350,12 @@ export function createMemoryRepositories(): RepositoryBundle {
   }
 
   const anniversaryRepo = {
-    async create(input: Pick<Anniversary, 'roomId' | 'userId' | 'name' | 'icon' | 'note' | 'day' | 'repeatRule'>) {
+    async create(input: Pick<Anniversary, 'roomId' | 'userId' | 'name' | 'icon' | 'note' | 'day' | 'repeatRule' | 'photo'>) {
       const item: Anniversary = { id: randomUUID(), ...input, createdAt: now(), updatedAt: now() }
       anniversaries.set(item.id, item)
       return item
     },
-    async update(id: string, patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule'] }) {
+    async update(id: string, patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule']; photo?: string | null }) {
       const item = anniversaries.get(id)
       if (!item) return undefined
       const updated: Anniversary = {
@@ -364,6 +364,7 @@ export function createMemoryRepositories(): RepositoryBundle {
         icon: patch.icon ?? item.icon,
         note: patch.note ?? item.note,
         repeatRule: patch.repeatRule ?? item.repeatRule,
+        photo: patch.photo === undefined ? item.photo : patch.photo,
         updatedAt: now()
       }
       anniversaries.set(id, updated)

@@ -139,6 +139,8 @@ export interface Anniversary {
   note: string
   day: string
   repeatRule: 'yearly' | 'none'
+  /** 可选照片背景（dataURL），为 null 时列表用 icon 展示 */
+  photo: string | null
   createdAt: Date
   updatedAt: Date
 }

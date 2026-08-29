@@ -182,7 +182,7 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
     async createAnniversary(
       roomId: string,
       userId: string,
-      input: Pick<Anniversary, 'name' | 'icon' | 'note' | 'day' | 'repeatRule'>
+      input: Pick<Anniversary, 'name' | 'icon' | 'note' | 'day' | 'repeatRule' | 'photo'>
     ) {
       await assertMember(roomId, userId)
       return repositories.anniversaries.create({ ...input, roomId, userId })
@@ -192,7 +192,7 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
       roomId: string,
       userId: string,
       id: string,
-      patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule'] }
+      patch: { name?: string; icon?: string; note?: string; repeatRule?: Anniversary['repeatRule']; photo?: string | null }
     ) {
       await assertMember(roomId, userId)
       const updated = await repositories.anniversaries.update(id, patch)

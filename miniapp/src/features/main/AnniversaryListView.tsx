@@ -23,6 +23,10 @@ function formatDay(day: string): string {
   return `${Number(day.slice(0, 4))}年${Number(day.slice(5, 7))}月${Number(day.slice(8, 10))}日`
 }
 
+function formatWeekday(day: string): string {
+  return ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][new Date(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1, Number(day.slice(8, 10))).getDay()]
+}
+
 function countdownOf(item: MiniappAnniversary, today: Date): AnniversaryCountdown {
   const stats = anniversaryStats(item, today)
   if (stats.isAnniversaryToday) {
@@ -59,6 +63,24 @@ export function AnniversaryListView({ items, loading = false, today, onAdd, onEd
       )}
       {!loading && sorted.map((item) => {
         const countdown = countdownOf(item, today)
+        if (item.photo) {
+          return (
+            <View
+              key={item.id}
+              className="anniv-list__photo-card"
+              onClick={() => onEdit(item.id)}
+            >
+              <Image className="anniv-list__photo-bg" src={item.photo} mode="aspectFill" />
+              <View className="anniv-list__photo-mask" />
+              <Text className="anniv-list__photo-lead">{item.name} · {countdown.isToday ? '就是今天' : (countdown.unit === '天后' ? '还有' : '已经')}</Text>
+              <View className="anniv-list__photo-count">
+                <Text className="anniv-list__photo-num">{countdown.count}</Text>
+                {countdown.unit ? <Text className="anniv-list__photo-unit">{countdown.unit}</Text> : null}
+              </View>
+              <Text className="anniv-list__photo-day">{formatDay(item.day)} {formatWeekday(item.day)}</Text>
+            </View>
+          )
+        }
         return (
           <View
             key={item.id}

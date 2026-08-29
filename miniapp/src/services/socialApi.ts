@@ -58,6 +58,7 @@ export interface MiniappAnniversary {
   note: string
   day: string
   repeatRule: AnniversaryRepeat
+  photo?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -68,6 +69,7 @@ export type AnniversaryInput = {
   note: string
   day: string
   repeatRule: AnniversaryRepeat
+  photo?: string | null
 }
 
 export interface MiniappContribution {

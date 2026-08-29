@@ -131,7 +131,7 @@ describe('room anniversaries', () => {
     return { me, friend, room }
   }
 
-  const input = { name: '恋爱纪念日', icon: 'heart', note: '在一起', day: '2025-02-14', repeatRule: 'yearly' as const }
+  const input = { name: '恋爱纪念日', icon: 'heart', note: '在一起', day: '2025-02-14', repeatRule: 'yearly' as const, photo: 'data:image/jpeg;base64,AAAA' }
 
   it('creates and lists anniversaries for room members', async () => {
     const { repositories, social } = createService()
@@ -142,6 +142,7 @@ describe('room anniversaries', () => {
 
     expect(created.name).toBe('恋爱纪念日')
     expect(created.repeatRule).toBe('yearly')
+    expect(created.photo).toBe('data:image/jpeg;base64,AAAA')
     expect(list).toHaveLength(1)
     expect(list[0].id).toBe(created.id)
   })
@@ -151,10 +152,11 @@ describe('room anniversaries', () => {
     const { me, room } = await createPairRoom(repositories)
     const created = await social.createAnniversary(room.id, me.id, input)
 
-    const updated = await social.updateAnniversary(room.id, me.id, created.id, { icon: 'star', note: '' })
+    const updated = await social.updateAnniversary(room.id, me.id, created.id, { icon: 'star', note: '', photo: null })
 
     expect(updated?.icon).toBe('star')
     expect(updated?.note).toBe('')
+    expect(updated?.photo).toBeNull()
     expect(updated?.name).toBe('恋爱纪念日')
   })
 

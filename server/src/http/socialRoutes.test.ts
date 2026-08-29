@@ -6,7 +6,8 @@ import { resolveErrorResponse } from './errorResponse.js'
 
 function createApp(social: Record<string, unknown>) {
   const app = express()
-  app.use(express.json())
+  // 与 app.ts 生产配置一致：2mb body 上限，保证超限照片走到 zod 校验返回 400
+  app.use(express.json({ limit: '2mb' }))
   app.use((_request, _response, next) => {
     ;(_request as { userId?: string }).userId = 'user-1'
     next()
@@ -21,7 +22,7 @@ function createApp(social: Record<string, unknown>) {
 
 const stored = {
   id: 'anniv-1', roomId: 'room-1', userId: 'user-1', name: '恋爱纪念日',
-  icon: 'heart', note: '在一起', day: '2025-02-14', repeatRule: 'yearly'
+  icon: 'heart', note: '在一起', day: '2025-02-14', repeatRule: 'yearly', photo: null as string | null
 }
 
 describe('anniversary routes', () => {
@@ -47,6 +48,32 @@ describe('anniversary routes', () => {
       .post('/rooms/room-1/anniversaries')
       .send({ name: 'x', icon: 'rocket', day: '2025-02-14' })
     expect(response.status).toBe(400)
+  })
+
+  it('creates an anniversary with a photo background', async () => {
+    const createAnniversary = vi.fn(async () => stored)
+    const photo = 'data:image/jpeg;base64,AAAA'
+    const response = await request(createApp({ createAnniversary }))
+      .post('/rooms/room-1/anniversaries')
+      .send({ name: '恋爱纪念日', icon: 'heart', note: '', day: '2025-02-14', repeatRule: 'yearly', photo })
+    expect(response.status).toBe(201)
+    expect(createAnniversary).toHaveBeenCalledWith('room-1', 'user-1', expect.objectContaining({ photo }))
+  })
+
+  it('rejects oversized anniversary photos', async () => {
+    const response = await request(createApp({}))
+      .post('/rooms/room-1/anniversaries')
+      .send({ name: 'x', icon: 'heart', day: '2025-02-14', photo: `data:image/jpeg;base64,${'A'.repeat(700_000)}` })
+    expect(response.status).toBe(400)
+  })
+
+  it('accepts clearing the anniversary photo', async () => {
+    const updateAnniversary = vi.fn(async () => stored)
+    const response = await request(createApp({ updateAnniversary }))
+      .put('/rooms/room-1/anniversaries/anniv-1')
+      .send({ photo: null })
+    expect(response.status).toBe(200)
+    expect(updateAnniversary).toHaveBeenCalledWith('room-1', 'user-1', 'anniv-1', { photo: null })
   })
 
   it('updates an anniversary', async () => {

@@ -10,6 +10,8 @@ function routeParam(value: string | string[]) {
 }
 
 const ANNIVERSARY_ICONS = ['heart', 'star', 'cake', 'paw', 'balloon'] as const
+// 纪念日照片背景复用日记照片的 dataURL 上限（photoSchema 300_000 字符）
+const anniversaryPhotoSchema = z.string().regex(/^data:image\/(png|jpeg|webp);base64,/).max(300_000)
 
 export function createSocialRoutes(dependencies: {
   social: SocialService
@@ -64,7 +66,8 @@ export function createSocialRoutes(dependencies: {
         icon: z.enum(ANNIVERSARY_ICONS),
         note: z.string().max(50).default(''),
         day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        repeatRule: z.enum(['yearly', 'none']).default('yearly')
+        repeatRule: z.enum(['yearly', 'none']).default('yearly'),
+        photo: anniversaryPhotoSchema.nullable().optional().default(null)
       }).parse(request.body)
       const anniversary = await dependencies.social.createAnniversary(routeParam(request.params.roomId), request.userId!, input)
       response.status(201).json(anniversary)
@@ -76,7 +79,8 @@ export function createSocialRoutes(dependencies: {
         name: z.string().trim().min(1).max(20),
         icon: z.enum(ANNIVERSARY_ICONS),
         note: z.string().max(50),
-        repeatRule: z.enum(['yearly', 'none'])
+        repeatRule: z.enum(['yearly', 'none']),
+        photo: anniversaryPhotoSchema.nullable()
       }).partial().parse(request.body)
       const anniversary = await dependencies.social.updateAnniversary(routeParam(request.params.roomId), request.userId!, routeParam(request.params.anniversaryId), patch)
       response.json(anniversary)

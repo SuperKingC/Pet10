@@ -135,9 +135,9 @@
       "purpose": "Nest invite Xiaoduoli under-eye fur underlay revealed by eye-group squash blink; alpha-matched to source highlights"
     },
     {
-      "path": "miniapp/src/assets/nest/xiaoduoli-street-v11.png",
+      "path": "miniapp/src/assets/nest/xiaoduoli-street-v12.png",
       "category": "runtime-feature",
-      "purpose": "Nest locked box scene night-street backdrop with owner-notice wall and lamp, burnt-paper edge with baked white matte converted to real transparency, full-bleed 750:406 stage"
+      "purpose": "Nest locked box scene night-street backdrop with owner-notice wall and lamp, cut straight from the source illustration, source burnt-paper haze converted to real alpha with a hairline canvas edge fade, full-bleed 750:406 stage"
     },
     {
       "path": "design-assets/nest/xiaoduoli-in-box-source.jpg",
@@ -398,6 +398,31 @@
       "path": "design-assets/tarot/concepts/wheel-of-fortune-gouache-tempera-v1.png",
       "category": "source-only",
       "purpose": "Concept archive"
+    },
+    {
+      "path": "miniapp/src/assets/anniversaries/anniv-heart.png",
+      "category": "runtime-feature",
+      "purpose": "Anniversary heart icon, warm cream rounded base with coral gradient heart and highlight"
+    },
+    {
+      "path": "miniapp/src/assets/anniversaries/anniv-star.png",
+      "category": "runtime-feature",
+      "purpose": "Anniversary star icon, warm cream rounded base with gold gradient star and highlight"
+    },
+    {
+      "path": "miniapp/src/assets/anniversaries/anniv-cake.png",
+      "category": "runtime-feature",
+      "purpose": "Anniversary cake icon, warm cream rounded base with cream frosting cake and cherry candle"
+    },
+    {
+      "path": "miniapp/src/assets/anniversaries/anniv-paw.png",
+      "category": "runtime-feature",
+      "purpose": "Anniversary paw icon, warm cream rounded base with coral paw pads and highlight"
+    },
+    {
+      "path": "miniapp/src/assets/anniversaries/anniv-balloon.png",
+      "category": "runtime-feature",
+      "purpose": "Anniversary balloon icon, warm cream rounded base with rose balloon and string"
     }
   ]
 }
