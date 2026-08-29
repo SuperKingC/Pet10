@@ -25,6 +25,7 @@ const jpegQuality = Number(process.env.MINIAPP_JPEG_QUALITY ?? 75)
 // 需要 TINIFY_API_KEY 环境变量（https://tinypng.com/developers，免费 500 张/月）；未设置时跳过并提示。
 // 输出格式不变（仍 PNG/JPEG），本地包内资源禁止转 WebP——微信 image 组件不解析本地 WebP，iOS 真机整块不显示。
 const tinifyKey = process.env.TINIFY_API_KEY?.trim() || ''
+let compressionCount = null // TinyPNG 响应头返回的本月已用配额
 const tinifyMinSaving = 0.02 // 节省不足 2% 时保留原文件，避免无谓重写
 const tinifyMaxBytes = 5 * 1024 * 1024 // TinyPNG 单张上限 5MB，包内图片远小于此
 // 大背景按显示密度降采样（全宽 390pt@3x≈1170px，840px 对夜景照片足够；room 为宠物场景柔焦背景）。
@@ -86,11 +87,13 @@ function kb(bytes) {
 
 // TinyPNG 只在本地优化产物上做追加压缩：上传当前文件字节，收益达标才覆盖落盘。
 // 禁止把输出转成 WebP/TinyPNG 专有格式——返回的 URL 下载回来仍是原格式。
+// 注意 output.url 同样需要 API key 认证才能下载，否则拿到的是 401 XML。
 async function tinifyShrink(path, bytes) {
+  const auth = `Basic ${Buffer.from(`api:${tinifyKey}`).toString('base64')}`
   const response = await fetch('https://api.tinify.com/shrink', {
     method: 'POST',
     headers: {
-      Authorization: `Basic ${Buffer.from(`api:${tinifyKey}`).toString('base64')}`,
+      Authorization: auth,
       'Content-Type': 'application/octet-stream',
     },
     body: await readFile(path),
@@ -99,10 +102,13 @@ async function tinifyShrink(path, bytes) {
     const detail = await response.text().catch(() => response.statusText)
     throw new Error(`TinyPNG ${response.status}: ${detail.slice(0, 200)}`)
   }
+  compressionCount = response.headers.get('compression-count') ?? compressionCount
   const payload = await response.json()
   const output = payload?.output
   if (!output?.url) throw new Error('TinyPNG response missing output.url')
-  const shrunk = await (await fetch(output.url)).arrayBuffer()
+  const shrunkResponse = await fetch(output.url, { headers: { Authorization: auth } })
+  if (!shrunkResponse.ok) throw new Error(`TinyPNG download ${shrunkResponse.status}`)
+  const shrunk = await shrunkResponse.arrayBuffer()
   const after = shrunk.byteLength
   if (after >= bytes * (1 - tinifyMinSaving)) return { action: 'tinify-keep', buffer: null, after: bytes }
   return { action: 'tinify', buffer: Buffer.from(shrunk), after }
@@ -188,4 +194,5 @@ if (reportPath) {
 }
 console.log(`\nFiles: ${rows.length}; converted: ${converted}; tinified: ${tinified}; mode: ${write ? 'WRITE' : 'dry-run'}`)
 if (!tinifyKey) console.log('TINIFY_API_KEY not set — skipping TinyPNG pass (set it to enable the extra ~5-15% squeeze)')
+else if (compressionCount !== null) console.log(`TinyPNG compression count this month: ${compressionCount} (free tier: 500)`)
 console.log(`assets total: ${kb(totalBefore)} -> ${kb(totalAfter)} (saving ${kb(totalBefore - totalAfter)})`)

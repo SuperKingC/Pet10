@@ -134,41 +134,41 @@ npm run build:weapp --prefix miniapp
 
 | 文件 | 原始尺寸 | 体积 | 小程序用途 |
 | --- | --- | --- | --- |
-| `xiaoduoli.png` | 436×700 | 88 KB | 宠物场景主图；解锁跳出后的站立小多利 |
-| `action-feed.png` | 445×474 | 27 KB | 喂食动作 |
-| `action-play.png` | 449×474 | 25 KB | 玩耍动作 |
-| `action-clean.png` | 448×474 | 27 KB | 清洁动作 |
-| `action-sleep.png` | 447×474 | 25 KB | 睡觉动作 |
-| `room-background.jpg` | 1152×1152 | 119 KB | 小窝宠物场景背景 |
+| `xiaoduoli.png` | 436×700 | 79 KB | 宠物场景主图；解锁跳出后的站立小多利 |
+| `action-feed.png` | 445×474 | 23 KB | 喂食动作 |
+| `action-play.png` | 449×474 | 22 KB | 玩耍动作 |
+| `action-clean.png` | 448×474 | 24 KB | 清洁动作 |
+| `action-sleep.png` | 447×474 | 22 KB | 睡觉动作 |
+| `room-background.jpg` | 1152×1152 | 106 KB | 小窝宠物场景背景 |
 | `navigation/game.png` | 256×256 | 12 KB | 爪印菜单游戏入口图标 |
-| `navigation/tarot.png` | 256×256 | 17 KB | 爪印菜单塔罗占卜入口图标 |
-| `navigation/gobang.png` | 256×256 | 19 KB | 游戏中心五子棋入口图标 |
+| `navigation/tarot.png` | 256×256 | 16 KB | 爪印菜单塔罗占卜入口图标 |
+| `navigation/gobang.png` | 256×256 | 18 KB | 游戏中心五子棋入口图标 |
 | `navigation/codeword.png` | 256×256 | 10 KB | 爪印菜单每日暗号图标（挂锁笔记本） |
 | `me/mbti.png` | 128×128 | 4 KB | 我的页性格类型入口图标 |
 | `nest/letter-paper-tl-v2.png` | 65×210 | 9 KB | 无好友小窝信纸九宫格左上角 |
-| `nest/letter-paper-tc-v2.png` | 439×210 | 35 KB | 信纸九宫格顶带（含信封翻盖与图钉，切线过其下方纸面净区，固定不拉伸） |
-| `nest/letter-paper-tr-v2.png` | 216×210 | 20 KB | 信纸九宫格右上角（含木夹与翻盖） |
+| `nest/letter-paper-tc-v2.png` | 439×210 | 19 KB | 信纸九宫格顶带（含信封翻盖与图钉，切线过其下方纸面净区，固定不拉伸） |
+| `nest/letter-paper-tr-v2.png` | 216×210 | 14 KB | 信纸九宫格右上角（含木夹与翻盖） |
 | `nest/letter-paper-ml-v2.png` | 65×86 | 5 KB | 信纸九宫格左边条（纯竖向边带，随中行纵向拉伸） |
 | `nest/letter-paper-mc-v2.png` | 439×86 | 11 KB | 信纸九宫格中心净区（纯色纸面，随卡片高度纵向拉伸） |
 | `nest/letter-paper-mr-v2.png` | 216×86 | 8 KB | 信纸九宫格右边条（纯竖向边带，随中行纵向拉伸） |
 | `nest/letter-paper-bl-v2.png` | 65×253 | 12 KB | 信纸九宫格左下角 |
-| `nest/letter-paper-bc-v2.png` | 439×253 | 34 KB | 信纸九宫格底带（切线过爪印上方纸面净区，固定不拉伸） |
+| `nest/letter-paper-bc-v2.png` | 439×253 | 14 KB | 信纸九宫格底带（切线过爪印上方纸面净区，固定不拉伸） |
 | `nest/letter-paper-br-v3.png` | 216×253 | 7 KB | 信纸九宫格右下角（含爪印、爱心与小信封装饰） |
 | `nest/xiaoduoli-box.png` | 520×440 | 11 KB | 邀请/待解锁纸箱 |
-| `nest/xiaoduoli-street-v11.png` | 960×540 | 176 KB | 待解锁纸箱夜景街角背景（四边有机烧焦撕边透明，左右贴边） |
-| `nest/xiaoduoli-body.png` | 446×314 | 39 KB | 箱中探头身体层（原图直出，未作任何修补） |
-| `nest/xiaoduoli-eyes.png` | 446×314 | 4 KB | 眼眶底层（瞳孔原位以采样虹膜色填充，供瞳孔滑动） |
+| `nest/xiaoduoli-street-v11.png` | 960×540 | 161 KB | 待解锁纸箱夜景街角背景（四边有机烧焦撕边透明，左右贴边） |
+| `nest/xiaoduoli-body.png` | 446×314 | 34 KB | 箱中探头身体层（原图直出，未作任何修补） |
+| `nest/xiaoduoli-eyes.png` | 446×314 | 10 KB | 眼眶底层（瞳孔原位以采样虹膜色填充，供瞳孔滑动） |
 | `nest/xiaoduoli-pupils.png` | 446×314 | 4 KB | 瞳孔圆盘层（瞟眼时在眼眶内滑动） |
 | `nest/xiaoduoli-lids.png` | 446×314 | 2 KB | 闭眼眼睑层（眨眼时淡入） |
-| `messages-empty-v2.png` | 520×411 | 33 KB | 消息页无好友空态：抱信封小狗 |
-| `journal/polaroid-run-v2.png` | 420×406 | 43 KB | 写日记页默认奔跑小狗拍立得，点击可换自己的照片 |
-| `journal/polaroid-sit-v2.png` | 420×373 | 39 KB | 小记今日日记卡默认坐姿小狗拍立得 |
-| `journal/action-write-v2.png` | 320×270 | 17 KB | 小记「写日记」按钮插画 |
-| `journal/action-photo-v2.png` | 359×219 | 25 KB | 小记「拍照记录」按钮插画 |
+| `messages-empty-v2.png` | 520×411 | 28 KB | 消息页无好友空态：抱信封小狗 |
+| `journal/polaroid-run-v2.png` | 420×406 | 36 KB | 写日记页默认奔跑小狗拍立得，点击可换自己的照片 |
+| `journal/polaroid-sit-v2.png` | 420×373 | 33 KB | 小记今日日记卡默认坐姿小狗拍立得 |
+| `journal/action-write-v2.png` | 320×270 | 14 KB | 小记「写日记」按钮插画 |
+| `journal/action-photo-v2.png` | 359×219 | 22 KB | 小记「拍照记录」按钮插画 |
 | `journal/editor-yard.jpg` | 750×750 | 29 KB | 写日记页底部庭院背景 |
-| `moods/mood-1-v2.png` | 160×160 | 20 KB | 写日记心情选择：难过（乌云含泪，透明抠图） |
+| `moods/mood-1-v2.png` | 160×160 | 15 KB | 写日记心情选择：难过（乌云含泪，透明抠图） |
 | `moods/mood-2-v2.png` | 160×160 | 12 KB | 写日记心情选择：平静（微汗，透明抠图） |
-| `moods/mood-3-v2.png` | 160×160 | 19 KB | 写日记心情选择：开心（吐舌笑，透明抠图） |
+| `moods/mood-3-v2.png` | 160×160 | 15 KB | 写日记心情选择：开心（吐舌笑，透明抠图） |
 | `moods/mood-4-v2.png` | 160×160 | 16 KB | 写日记心情选择：兴奋（眯眼欢呼，透明抠图） |
 
 本地包内资源禁止使用 WebP（微信 image 组件不解析本地 WebP，iOS 真机会整块不显示；WebP 仅用于塔罗 COS 网络资源并配合 `webp` 属性）。入库前用 `scripts/optimize-miniapp-assets.mjs` 统一压缩：带透明通道的图片转 256 色全色板 + 误差扩散抖动 PNG（禁止再压 64/128 小色板，2026-08 验收发现小色板把整体压灰；全量真彩 PNG 约 5.4MB 超包，256 全色板是包体约束下最接近原图色彩的方案），不透明背景转 JPEG（mozjpeg，4:4:4 色度保留），两张大背景按显示密度降采样（street 840px、room 1152px）。可选 TinyPNG 追加压缩：设置 `TINIFY_API_KEY` 环境变量后执行 `node scripts/optimize-miniapp-assets.mjs --write`，脚本在本地优化产物上再过一遍 TinyPNG，只覆盖收益 ≥2% 的文件，输出保持 PNG/JPEG（key 存环境变量，禁止进仓库）。运行时用户照片压缩走 `miniapp/src/services/imageCompression.ts`：单次压缩、quality 80、按宽度档位 `[1080, 900, 720]`（头像 `[640, 480, 360]`）降分辨率重试，禁止降质量和重复压缩（详见 `.agents/rules/miniapp-image.md`）。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内；主包构建产物必须低于微信 2MB 上限（当前约 1.9MB，若继续膨胀需考虑非 tab 页分包或大图迁 COS）。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载。
