@@ -39,10 +39,10 @@
   background: #fff8ee;
 }
 
-/* 快捷入口整体收进 470px 背景图内：三枚图标 108px + 间距 16px 共 356px，上下各留 ~57px，不再压到卡片下方 */
+/* 快捷入口整列收进 470px 背景图内且避开右上「记忆」按钮：从按钮下方起排，三枚图标 108px + 间距 16px 共 356px，底部余 26px */
 .miniapp-nest__shortcuts {
   position: absolute;
-  top: 20px;
+  top: 88px;
   right: 8px;
   z-index: 2;
   display: flex;

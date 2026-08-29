@@ -29,7 +29,7 @@ describe('miniapp main layout', () => {
     expect(nestStyles).toMatch(/\.miniapp-nest__scene\s*\{[\s\S]*position:\s*relative;/)
     // 快捷入口整列收进 470px 背景大图内，不再垂直居中溢出到卡片下方
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*position:\s*absolute;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*20px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*88px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*right:\s*8px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*flex-direction:\s*column;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*gap:\s*16px;/)
