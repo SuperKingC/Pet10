@@ -23,6 +23,13 @@ const outDir = resolve(here, '../src/assets/moods')
 const SOURCE_ARCHIVE_MAX = 1280
 // 输出贴纸边长：日记心情选择器展示 120rpx（@3x ≈ 200px）
 const OUTPUT_SIZE = 200
+// 归一化基准（headNorm 标定的是 2048 源图坐标）：头部高度统一缩放到画布的 62%、
+// 头顶统一落在画布 6% 高度处、头中心统一置于画布水平 50%（跨图尺寸/高度一致的关键）
+const HEAD_NORM_PCT = 62
+const HEAD_TOP_PCT = 6
+const HEAD_CX_PCT = 50
+// 画布下缘在输出高度外再留 8% 余量（缩放先在大画布上做，最后统一缩回 OUTPUT_SIZE）
+const HEAD_BOTTOM_MARGIN_PCT = 8
 // 输出文件名：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
 const OUTPUT_VERSION = 'v3'
 // 洪泛容差：对参考白（卡白/盘底）的 RGB 欧氏色距；雨滴色距 ~34、灰环 ~42，须远大于卡白-盘底差 (~5)
@@ -34,11 +41,13 @@ const EDGE_TO = 26
 
 // 四张卡片在 2048 原图上的标定矩形（来自 tools/tmp-mood-probe2/3.mjs 阴影带目视校准）
 // 文件名序号即心情语义：mood-1 委屈哭=难过、mood-2 汗滴=平静、mood-3 吐舌=开心、mood-4 腮红眯眼=兴奋
+// headNorm：归一化基准——四张图狗头占画比例本就不同（1 带乌云、4 带彩纸），
+// 各自按内容包围盒缩放会忽大忽小；统一按「主体连通域」度量的头部高度/中心做尺寸与垂直对齐
 const CARDS_2048 = [
-  { name: 'mood-1', x: 117, y: 79, disc: { cx: 516.5, cy: 478.5, r: 357.5 } },
-  { name: 'mood-2', x: 1119, y: 79, disc: null },
-  { name: 'mood-3', x: 117, y: 1027, disc: null },
-  { name: 'mood-4', x: 1119, y: 1027, disc: { cx: 1518.5, cy: 1426.5, r: 357.5 } },
+  { name: 'mood-1', x: 117, y: 79, disc: { cx: 516.5, cy: 478.5, r: 357.5 }, headNorm: { rowTop: 158, rowBottom: 700, cxPort: 0.5 } },
+  { name: 'mood-2', x: 1119, y: 79, disc: null, headNorm: { rowTop: 140, rowBottom: 730, cxPort: 0.487 } },
+  { name: 'mood-3', x: 117, y: 1027, disc: null, headNorm: { rowTop: 1094, rowBottom: 1630, cxPort: 0.485 } },
+  { name: 'mood-4', x: 1119, y: 1027, disc: { cx: 1518.5, cy: 1426.5, r: 357.5 }, headNorm: { rowTop: 1090, rowBottom: 1622, cxPort: 0.5 } },
 ]
 const CARD_SIZE = 799
 
@@ -397,34 +406,37 @@ for (const card of CARDS_2048) {
     }
   }
 
-  // 6) alpha 包围盒（阈值 8）→ 方形画布居中（留 3px 边距）
-  let x0 = w
-  let y0 = h
-  let x1 = -1
-  let y1 = -1
-  for (let y = 0; y < h; y += 1) {
-    for (let x = 0; x < w; x += 1) {
-      if (rgba[(y * w + x) * 4 + 3] >= 8) {
-        if (x < x0) x0 = x
-        if (y < y0) y0 = y
-        if (x > x1) x1 = x
-        if (y > y1) y1 = y
-      }
-    }
+  // 6) 归一化：以标定的头部上下界（card 局部坐标）为基准——四张统一把头部高度缩放到
+  //    HEAD_NORM_PCT 画布高度、头中心水平对齐 cxPort、头顶落在同一 TOP_PCT，跨图尺寸/高度一致
+  const headTop = (card.headNorm.rowTop - card.y) * archScale
+  const headBottom = (card.headNorm.rowBottom - card.y) * archScale
+  const headH = headBottom - headTop
+  const headCenterX = w * card.headNorm.cxPort
+  const scale = (HEAD_NORM_PCT / 100) * OUTPUT_SIZE / headH
+  const topPad = Math.round((HEAD_TOP_PCT / 100) * OUTPUT_SIZE)
+  // 画布宽按缩放后内容宽 + 左右边距，头中心置于画布水平 HEAD_CX_PCT 处
+  const scaledW = Math.round(w * scale)
+  const cxInScaled = Math.round(headCenterX * scale)
+  const sideW = Math.max(OUTPUT_SIZE, Math.round(scaledW + 2 * 12))
+  const canvasX = Math.round(sideW * HEAD_CX_PCT / 100 - cxInScaled)
+  const sideH = OUTPUT_SIZE + Math.round((HEAD_BOTTOM_MARGIN_PCT / 100) * OUTPUT_SIZE)
+  // 全内容缩放（含乌云/汗滴/彩纸），头顶对齐 topPad；resizeArea 返回裸 Buffer
+  const scaledH = Math.round(h * scale)
+  const scaled = resizeArea(rgba, w, h, scaledW, scaledH)
+  const canvas = Buffer.alloc(sideW * sideH * 4)
+  const pasteY = topPad - Math.round(headTop * scale)
+  for (let y = 0; y < scaledH; y += 1) {
+    const ty = pasteY + y
+    if (ty < 0 || ty >= sideH) continue
+    const srcStart = y * scaledW * 4
+    const dstStart = (ty * sideW + canvasX) * 4
+    const copyW = Math.min(scaledW, sideW - canvasX) * 4
+    scaled.copy(canvas, dstStart, srcStart, srcStart + copyW)
   }
-  if (x1 < 0) throw new Error(`${card.name} 整图透明`)
-  const bw = x1 - x0 + 1
-  const bh = y1 - y0 + 1
-  const side = Math.max(bw, bh) + 6
-  const canvas = Buffer.alloc(side * side * 4)
-  for (let y = 0; y < bh; y += 1) {
-    const srcStart = ((y0 + y) * w + x0) * 4
-    const dstStart = ((y + Math.floor((side - bh) / 2)) * side + Math.floor((side - bw) / 2)) * 4
-    rgba.copy(canvas, dstStart, srcStart, srcStart + bw * 4)
-  }
+  const side = sideW * sideH
 
   // 7) 缩放到输出尺寸
-  const out = resizeArea(canvas, side, side, OUTPUT_SIZE, OUTPUT_SIZE)
+  const out = resizeArea(canvas, sideW, sideH, OUTPUT_SIZE, OUTPUT_SIZE)
 
   // 8) 写文件：有 sharp 量化 PNG8，否则真彩 PNG
   const outFile = `${card.name}-${OUTPUT_VERSION}.png`
@@ -439,8 +451,8 @@ for (const card of CARDS_2048) {
   } catch {
     bytes = writePngRgba(outPath, OUTPUT_SIZE, OUTPUT_SIZE, out)
   }
-  results.push({ file: outFile, box, ref, ringErased, bbox: { x: x0, y: y0, w: bw, h: bh }, kb: Number((bytes / 1024).toFixed(1)) })
-  console.log(`${card.name}: ref=${ref} ringErased=${ringErased} bbox=${bw}x${bh} -> ${OUTPUT_SIZE}x${OUTPUT_SIZE} ${results[results.length - 1].kb}KB`)
+  results.push({ file: outFile, box, ref, ringErased, headNorm: card.headNorm, kb: Number((bytes / 1024).toFixed(1)) })
+  console.log(`${card.name}: ref=${ref} ringErased=${ringErased} scale=${scale.toFixed(3)} -> ${OUTPUT_SIZE}x${OUTPUT_SIZE} ${results[results.length - 1].kb}KB`)
 }
 
 // 9) 调试蒙太奇：暖色底上四张贴纸（查边缘光晕/残留）+ 棋盘格透明底（查 alpha）
