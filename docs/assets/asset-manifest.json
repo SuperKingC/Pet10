@@ -402,27 +402,27 @@
     {
       "path": "miniapp/src/assets/anniversaries/anniv-heart.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary heart sticker icon, hand-drawn outline style with cream fill and sparkle accents, transparent background"
+      "purpose": "Anniversary heart sticker icon, hand-drawn cream heart with brown outline, blush dots and sparkle accents, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-star.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary star sticker icon, hand-drawn outline style with cream fill and sparkle accents, transparent background"
+      "purpose": "Anniversary star sticker icon, hand-drawn cream star with orange core, brown outline and sparkle accents, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-cake.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary cake sticker icon, hand-drawn outline style with cream frosting and candle flames, transparent background"
+      "purpose": "Anniversary cake sticker icon, hand-drawn cream cake with blue candles and orange flames, brown outline, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-paw.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary paw sticker icon, hand-drawn outline style with cream pads and sparkle accents, transparent background"
+      "purpose": "Anniversary paw sticker icon, hand-drawn cream paw pads with brown outline and sparkle accents, transparent background"
     },
     {
       "path": "miniapp/src/assets/anniversaries/anniv-balloon.png",
       "category": "runtime-feature",
-      "purpose": "Anniversary balloon sticker icon, hand-drawn outline style with cream balloon and string, transparent background"
+      "purpose": "Anniversary balloon sticker icon, hand-drawn rose balloon with brown outline, string and sparkle accents, transparent background"
     }
   ]
 }

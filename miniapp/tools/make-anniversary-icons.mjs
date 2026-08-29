@@ -1,5 +1,6 @@
 // 重新生成纪念日图标：SVG 矢量绘制 → sharp 出件 256×256 PNG。
-// 风格：暖色奶油底 + 珊瑚橙主色渐变 + 顶部高光 + 柔和落影，与小程序暖色调统一。
+// 风格：手绘贴纸风，对齐应用内心情/动作图标语言——深棕粗描边 + 奶白填充 +
+// 柔和点缀色 + 小星星装饰，透明底（无边框、无底座）。
 // 运行：node miniapp/tools/make-anniversary-icons.mjs
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -8,132 +9,84 @@ import sharp from 'sharp'
 const outDir = path.resolve(import.meta.dirname, '../src/assets/anniversaries')
 await mkdir(outDir, { recursive: true })
 
-// 公共画布：256×256，圆角方形底座（图标座实底 #fbf3e3 一致），内容居中。
-const frame = (inner) => `
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <defs>
-    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fdf6e8"/>
-      <stop offset="1" stop-color="#f6e7cf"/>
-    </linearGradient>
-    <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f79e6c"/>
-      <stop offset="1" stop-color="#e2693c"/>
-    </linearGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f7c873"/>
-      <stop offset="1" stop-color="#eda145"/>
-    </linearGradient>
-    <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fffdf6"/>
-      <stop offset="1" stop-color="#fdf0d8"/>
-    </linearGradient>
-    <linearGradient id="rose" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f9b3a0"/>
-      <stop offset="1" stop-color="#ef8570"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#base)"/>
-  <rect x="8" y="8" width="240" height="240" rx="58" fill="none" stroke="#eddcbd" stroke-width="3"/>
-  ${inner}
-</svg>`
+// 采样自 mood-3-v2.png 的实测色板
+const STROKE = '#3a2417' // 深棕描边
+const CREAM = '#fcfcf7' // 奶白填充
+const CREAM_WARM = '#f7e0bf' // 暖奶油（蛋糕胚/阴影面）
+const ORANGE = '#e8a35c' // 暖橙点缀
+const ORANGE_DEEP = '#d08b4b' // 深一档暖橙
+const ROSE = '#f2b3a0' // 柔粉点缀
+const BLUE = '#a8cdeb' // 柔蓝点缀（对应玩耍糖果）
 
-// 柔和落影滤镜：内容統一向下偏移的半透明棕影
-const shadow = (shape, dx = 0, dy = 7, blur = 6, opacity = 0.16) => `
-<g filter="url(#soft)" opacity="${opacity}" transform="translate(${dx} ${dy})">${shape}</g>`
+const defs = `
+<defs>
+  <style>
+    .s { stroke: ${STROKE}; stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; fill: ${CREAM}; }
+    .si { stroke: ${STROKE}; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+    .spark { stroke: ${ORANGE_DEEP}; stroke-width: 7; stroke-linecap: round; fill: none; }
+    .hi { stroke: #ffffff; stroke-width: 9; stroke-linecap: round; fill: none; opacity: .9; }
+  </style>
+</defs>`
 
-const defsFilter = `
-<filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
-  <feGaussianBlur stdDeviation="${'${BLUR}'}"/>
-</filter>`
+// 右上角小星星 + 左下小弧线：应用图标通用装饰
+const decor = `
+  <path class="spark" d="M198 52 l0 22 M187 63 l22 0"/>
+  <path class="spark" d="M216 84 l0 13 M209.5 90.5 l13 0" opacity=".7"/>
+  <path class="spark" d="M48 176 q 6 -10 18 -10" opacity=".7"/>`
 
 const icons = {
-  // 心形：饱满双圆+尖底，左上高光
-  heart: frame(`
-    ${defsFilter}
-    <g>
-      ${shadow(`<path d="M128 196 C 96 172, 62 146, 62 108 C 62 82, 82 66, 104 66 C 116 66, 124 72, 128 80 C 132 72, 140 66, 152 66 C 174 66, 194 82, 194 108 C 194 146, 160 172, 128 196 Z" fill="url(#coral)"/>`)}
-      <path d="M128 196 C 96 172, 62 146, 62 108 C 62 82, 82 66, 104 66 C 116 66, 124 72, 128 80 C 132 72, 140 66, 152 66 C 174 66, 194 82, 194 108 C 194 146, 160 172, 128 196 Z" fill="url(#coral)"/>
-      <ellipse cx="96" cy="98" rx="16" ry="11" fill="#ffffff" opacity="0.55" transform="rotate(-24 96 98)"/>
-    </g>
-  `),
-  // 星星：圆角五角星，中心小高光
-  star: frame(`
-    ${defsFilter}
-    <g>
-      ${shadow(`<path d="M128 58 L 148.6 104.6 L 199.3 110.4 L 161.7 145.1 L 171.3 195.4 L 128 170.6 L 84.7 195.4 L 94.3 145.1 L 56.7 110.4 L 107.4 104.6 Z" fill="url(#gold)" stroke="#d98a2f" stroke-width="0" />`)}
-      <path d="M128 58 L 148.6 104.6 L 199.3 110.4 L 161.7 145.1 L 171.3 195.4 L 128 170.6 L 84.7 195.4 L 94.3 145.1 L 56.7 110.4 L 107.4 104.6 Z" fill="url(#gold)"/>
-      <ellipse cx="112" cy="102" rx="13" ry="9" fill="#ffffff" opacity="0.6" transform="rotate(-28 112 102)"/>
-    </g>
-  `),
-  // 蛋糕：双层奶油蛋糕+樱桃，暖色
-  cake: frame(`
-    ${defsFilter}
-    <g>
-      ${shadow(`<g>
-        <rect x="66" y="150" width="124" height="52" rx="14" fill="url(#rose)"/>
-        <rect x="58" y="128" width="140" height="34" rx="15" fill="url(#cream)" stroke="#eed4a8" stroke-width="2"/>
-        <path d="M58 143 q 17.5 14 35 0 q 17.5 14 35 0 q 17.5 14 35 0 q 17.5 14 35 0 v 8 a 15 15 0 0 1 -15 15 h -110 a 15 15 0 0 1 -15 -15 Z" fill="#fffdf6"/>
-        <rect x="120" y="96" width="16" height="34" rx="8" fill="#8fc7e8"/>
-        <ellipse cx="128" cy="90" rx="11" ry="10" fill="#e4574f"/>
-        <circle cx="124.5" cy="86.5" r="3.5" fill="#ffffff" opacity="0.7"/>
-      </g>`)}
-      <g>
-        <rect x="66" y="150" width="124" height="52" rx="14" fill="url(#rose)"/>
-        <rect x="58" y="128" width="140" height="34" rx="15" fill="url(#cream)" stroke="#eed4a8" stroke-width="2"/>
-        <path d="M58 143 q 17.5 14 35 0 q 17.5 14 35 0 q 17.5 14 35 0 q 17.5 14 35 0 v 8 a 15 15 0 0 1 -15 15 h -110 a 15 15 0 0 1 -15 -15 Z" fill="#fffdf6"/>
-        <rect x="120" y="96" width="16" height="34" rx="8" fill="#8fc7e8"/>
-        <ellipse cx="128" cy="90" rx="11" ry="10" fill="#e4574f"/>
-        <circle cx="124.5" cy="86.5" r="3.5" fill="#ffffff" opacity="0.7"/>
-      </g>
-    </g>
-  `),
-  // 爪印：大肉垫+四趾，暖棕珊瑚
-  paw: frame(`
-    ${defsFilter}
-    <g>
-      ${shadow(`<g fill="url(#coral)">
-        <ellipse cx="128" cy="156" rx="46" ry="38"/>
-        <ellipse cx="80" cy="106" rx="17" ry="21" transform="rotate(-18 80 106)"/>
-        <ellipse cx="112" cy="86" rx="16" ry="22"/>
-        <ellipse cx="144" cy="86" rx="16" ry="22"/>
-        <ellipse cx="176" cy="106" rx="17" ry="21" transform="rotate(18 176 106)"/>
-      </g>`)}
-      <g fill="url(#coral)">
-        <ellipse cx="128" cy="156" rx="46" ry="38"/>
-        <ellipse cx="80" cy="106" rx="17" ry="21" transform="rotate(-18 80 106)"/>
-        <ellipse cx="112" cy="86" rx="16" ry="22"/>
-        <ellipse cx="144" cy="86" rx="16" ry="22"/>
-        <ellipse cx="176" cy="106" rx="17" ry="21" transform="rotate(18 176 106)"/>
-      </g>
-      <ellipse cx="114" cy="146" rx="15" ry="9" fill="#ffffff" opacity="0.4" transform="rotate(-20 114 146)"/>
-    </g>
-  `),
-  // 气球：圆润气球+高光+系绳
-  balloon: frame(`
-    ${defsFilter}
-    <g>
-      ${shadow(`<g>
-        <path d="M128 52 C 160 52, 182 76, 182 106 C 182 136, 158 158, 128 158 C 98 158, 74 136, 74 106 C 74 76, 96 52, 128 52 Z" fill="url(#rose)"/>
-        <path d="M121 158 L 135 158 L 128 170 Z" fill="#d96a55"/>
-        <path d="M128 170 C 120 184, 138 192, 128 208" fill="none" stroke="#d98a5f" stroke-width="5" stroke-linecap="round"/>
-        <ellipse cx="106" cy="92" rx="13" ry="18" fill="#ffffff" opacity="0.5" transform="rotate(-18 106 92)"/>
-      </g>`)}
-      <g>
-        <path d="M128 52 C 160 52, 182 76, 182 106 C 182 136, 158 158, 128 158 C 98 158, 74 136, 74 106 C 74 76, 96 52, 128 52 Z" fill="url(#rose)"/>
-        <path d="M121 158 L 135 158 L 128 170 Z" fill="#d96a55"/>
-        <path d="M128 170 C 120 184, 138 192, 128 208" fill="none" stroke="#d98a5f" stroke-width="5" stroke-linecap="round"/>
-        <ellipse cx="106" cy="92" rx="13" ry="18" fill="#ffffff" opacity="0.5" transform="rotate(-18 106 92)"/>
-      </g>
-    </g>
-  `),
+  // 心形：奶白心 + 粉腮红两点 + 白高光弧
+  heart: `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">${defs}
+    <g transform="translate(0 10)">
+      <path class="s" d="M128 192 C 98 170, 64 144, 64 106 C 64 80, 84 64, 106 64 C 117 64, 125 70, 128 78 C 131 70, 139 64, 150 64 C 172 64, 192 80, 192 106 C 192 144, 158 170, 128 192 Z"/>
+      <ellipse cx="100" cy="108" rx="9" ry="6" fill="${ROSE}" opacity=".85"/>
+      <ellipse cx="156" cy="108" rx="9" ry="6" fill="${ROSE}" opacity=".85"/>
+      <path class="hi" d="M88 92 q 6 -12 20 -14"/>
+    </g>${decor}</svg>`,
+  // 星星：圆润五角星奶白填充 + 橙色芯
+  star: `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">${defs}
+    <g transform="translate(0 8)">
+      <path class="s" d="M128 56 L 149 103 L 200 109 L 162 144 L 172 194 L 128 169 L 84 194 L 94 144 L 56 109 L 107 103 Z"/>
+      <path class="si" style="fill: ${ORANGE};" d="M128 96 L 138 118 L 161 121 L 144 137 L 148 160 L 128 148 L 108 160 L 112 137 L 95 121 L 118 118 Z" stroke-width="6"/>
+      <path class="hi" d="M92 92 q 8 -14 24 -16"/>
+    </g>${decor}</svg>`,
+  // 蛋糕：奶白淋面蛋糕 + 三根蜡烛 + 橙色火苗
+  cake: `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">${defs}
+    <g transform="translate(0 6)">
+      <path class="s" d="M70 196 L 70 150 Q 70 140 80 140 L 176 140 Q 186 140 186 150 L 186 196 Q 186 204 178 204 L 78 204 Q 70 204 70 196 Z"/>
+      <path class="si" d="M70 158 q 14 12 29 0 q 14 12 29 0 q 14 12 29 0 q 14 12 29 0" fill="none" stroke-width="7"/>
+      <path class="si" d="M112 140 L 112 116 M 144 140 L 144 116" fill="none" stroke-width="9"/>
+      <rect x="106" y="112" width="12" height="30" rx="6" style="fill: ${BLUE};" stroke="${STROKE}" stroke-width="7"/>
+      <rect x="138" y="112" width="12" height="30" rx="6" style="fill: ${BLUE};" stroke="${STROKE}" stroke-width="7"/>
+      <path class="si" d="M112 100 q 0 -10 0 -12 M 144 100 q 0 -10 0 -12" fill="none" stroke-width="7" opacity="0"/>
+      <ellipse cx="112" cy="94" rx="7" ry="10" fill="${ORANGE}" stroke="${STROKE}" stroke-width="6"/>
+      <ellipse cx="144" cy="94" rx="7" ry="10" fill="${ORANGE}" stroke="${STROKE}" stroke-width="6"/>
+      <path class="hi" d="M84 176 q 4 -8 14 -9"/>
+    </g>${decor}</svg>`,
+  // 爪印：大肉垫 + 三趾，暖橙点缀趾垫
+  paw: `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">${defs}
+    <g transform="translate(0 8)">
+      <ellipse class="s" cx="128" cy="158" rx="46" ry="38"/>
+      <ellipse class="s" cx="84" cy="104" rx="17" ry="21" transform="rotate(-18 84 104)"/>
+      <ellipse class="s" cx="128" cy="88" rx="17" ry="22"/>
+      <ellipse class="s" cx="172" cy="104" rx="17" ry="21" transform="rotate(18 172 104)"/>
+      <ellipse cx="112" cy="152" rx="10" ry="7" fill="${ROSE}" opacity=".85"/>
+      <path class="hi" d="M104 142 q 6 -9 17 -10"/>
+    </g>${decor}</svg>`,
+  // 气球：圆润气球 + 三角结 + 波浪绳，柔粉填充
+  balloon: `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">${defs}
+    <g transform="translate(0 6)">
+      <path class="si" d="M128 176 C 118 190, 140 198, 128 214" fill="none" stroke-width="8"/>
+      <path class="s" style="fill: ${ROSE};" d="M128 44 C 162 44, 186 70, 186 102 C 186 132, 160 156, 128 156 C 96 156, 70 132, 70 102 C 70 70, 94 44, 128 44 Z"/>
+      <path class="si" style="fill: ${ROSE};" d="M118 156 L 138 156 L 128 170 Z"/>
+      <path class="hi" d="M96 78 q 8 -14 24 -16"/>
+    </g>${decor}</svg>`,
 }
 
 for (const [name, svg] of Object.entries(icons)) {
-  const cleaned = svg.replaceAll('${BLUR}', '4')
-  const png = await sharp(Buffer.from(cleaned)).png().toBuffer()
+  const png = await sharp(Buffer.from(svg)).png().toBuffer()
   const out = path.join(outDir, `anniv-${name}.png`)
   await writeFile(out, png)
   const meta = await sharp(out).metadata()
-  console.log(`${out} ${meta.width}x${meta.height}`)
+  process.stdout.write(`${out} ${meta.width}x${meta.height} ${png.length}\n`)
 }
