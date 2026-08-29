@@ -21,6 +21,12 @@ const convertThreshold = 16 * 1024
 const reencodeMinSaving = 0.1
 const maxWidth = 1500
 const jpegQuality = Number(process.env.MINIAPP_JPEG_QUALITY ?? 75)
+// TinyPNG 追加压缩：256 色板/mozjpeg 落盘后再过一遍 TinyPNG，能再吃掉残留冗余（约 5~15%）。
+// 需要 TINIFY_API_KEY 环境变量（https://tinypng.com/developers，免费 500 张/月）；未设置时跳过并提示。
+// 输出格式不变（仍 PNG/JPEG），本地包内资源禁止转 WebP——微信 image 组件不解析本地 WebP，iOS 真机整块不显示。
+const tinifyKey = process.env.TINIFY_API_KEY?.trim() || ''
+const tinifyMinSaving = 0.02 // 节省不足 2% 时保留原文件，避免无谓重写
+const tinifyMaxBytes = 5 * 1024 * 1024 // TinyPNG 单张上限 5MB，包内图片远小于此
 // 大背景按显示密度降采样（全宽 390pt@3x≈1170px，840px 对夜景照片足够；room 为宠物场景柔焦背景）。
 const downscaleWidths = [
   { match: /xiaoduoli-street/, width: 820 },
@@ -78,16 +84,59 @@ function kb(bytes) {
   return `${(bytes / 1024).toFixed(1)}K`
 }
 
+// TinyPNG 只在本地优化产物上做追加压缩：上传当前文件字节，收益达标才覆盖落盘。
+// 禁止把输出转成 WebP/TinyPNG 专有格式——返回的 URL 下载回来仍是原格式。
+async function tinifyShrink(path, bytes) {
+  const response = await fetch('https://api.tinify.com/shrink', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${Buffer.from(`api:${tinifyKey}`).toString('base64')}`,
+      'Content-Type': 'application/octet-stream',
+    },
+    body: await readFile(path),
+  })
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText)
+    throw new Error(`TinyPNG ${response.status}: ${detail.slice(0, 200)}`)
+  }
+  const payload = await response.json()
+  const output = payload?.output
+  if (!output?.url) throw new Error('TinyPNG response missing output.url')
+  const shrunk = await (await fetch(output.url)).arrayBuffer()
+  const after = shrunk.byteLength
+  if (after >= bytes * (1 - tinifyMinSaving)) return { action: 'tinify-keep', buffer: null, after: bytes }
+  return { action: 'tinify', buffer: Buffer.from(shrunk), after }
+}
+
 const files = await listImages(assetsRoot)
 const rows = []
 const renamed = []
 let totalBefore = 0
 let totalAfter = 0
 let converted = 0
+let tinified = 0
 
 for (const path of files.sort()) {
   const meta = await readImageMetadata(path)
   const { action, target, format } = await targetFor(path, meta.bytes)
+  if (action === 'keep' || action === 'reencode') {
+    // 本地优化后仍超阈值的文件在写入模式可再过 TinyPNG；dry-run 只统计。
+    if (tinifyKey && write && meta.bytes > convertThreshold && meta.bytes <= tinifyMaxBytes) {
+      try {
+        const shrunk = await tinifyShrink(path, meta.bytes)
+        if (shrunk.buffer) {
+          await writeFile(path, shrunk.buffer)
+          tinified += 1
+          rows.push({ file: relative(assetsRoot, path), action: 'tinify', before: meta.bytes, after: shrunk.after })
+          totalBefore += meta.bytes
+          totalAfter += shrunk.after
+          continue
+        }
+      } catch (error) {
+        console.warn(`WARN tinify ${relative(assetsRoot, path)}: ${error.message}`)
+      }
+    }
+  }
   if (action === 'keep') {
     rows.push({ file: relative(assetsRoot, path), action, before: meta.bytes, after: meta.bytes })
     totalBefore += meta.bytes
@@ -137,5 +186,6 @@ if (reportPath) {
   await writeFile(reportPath, JSON.stringify(renamed, null, 2))
   console.log(`renamed report (${renamed.length}) -> ${relative(root, reportPath)}`)
 }
-console.log(`\nFiles: ${rows.length}; converted: ${converted}; mode: ${write ? 'WRITE' : 'dry-run'}`)
+console.log(`\nFiles: ${rows.length}; converted: ${converted}; tinified: ${tinified}; mode: ${write ? 'WRITE' : 'dry-run'}`)
+if (!tinifyKey) console.log('TINIFY_API_KEY not set — skipping TinyPNG pass (set it to enable the extra ~5-15% squeeze)')
 console.log(`assets total: ${kb(totalBefore)} -> ${kb(totalAfter)} (saving ${kb(totalBefore - totalAfter)})`)

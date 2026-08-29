@@ -23,7 +23,7 @@
 - Add or update a focused test before changing behavior.
 - Do not combine visual changes with unrelated business or infrastructure changes.
 - Miniapp changes must follow `.agents/rules/miniapp-change.md`: all changes stay in `miniapp/`, and after each change clear caches and recompile so the latest build is always previewed.
-- Image changes must follow the image budgets in `docs/features/assets-and-performance.md`.
+- Image changes must follow the image budgets in `docs/features/assets-and-performance.md` and the compression rules in `.agents/rules/miniapp-image.md` (runtime photos: lower resolution before quality; bundled assets: TinyPNG pass, no WebP).
 
 ## Verification
 

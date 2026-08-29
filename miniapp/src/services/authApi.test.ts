@@ -48,7 +48,7 @@ describe('wechat auth api', () => {
       avatarUrl: 'wxfile://current-avatar',
     })
 
-    expect(compressImage).toHaveBeenCalledWith({ src: 'wxfile://current-avatar', quality: 80 })
+    expect(compressImage).toHaveBeenCalledWith({ src: 'wxfile://current-avatar', quality: 80, compressedWidth: 640 })
     expect(readFileSync).toHaveBeenCalledWith('wxfile://compressed-avatar', 'base64')
     expect(apiRequest).toHaveBeenCalledWith('/api/auth/wechat', {
       method: 'POST',

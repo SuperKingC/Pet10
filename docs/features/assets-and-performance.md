@@ -52,6 +52,14 @@ flowchart LR
 
 塔罗下载长期停在低百分比时，先直接测单张牌面的首字节和完整下载时间。这属于静态资源传输链路异常，不应通过伪造进度解决。
 
+### 用户上传的照片不清晰
+
+按 `.agents/rules/miniapp-image.md` 检查运行时压缩链路：整条链路只允许一次有损压缩，质量不低于 75，超限时降分辨率（`compressedWidth` 递减档位）而不是降质量。压缩统一走 `miniapp/src/services/imageCompression.ts`。清晰度必须在 iOS/Android 真机验收，开发者工具的压缩行为与真机不一致。
+
+### 包内静态资源偏大
+
+先确认已跑 `scripts/optimize-miniapp-assets.mjs`（256 色板/mozjpeg）；再设置 `TINIFY_API_KEY` 执行 `node scripts/optimize-miniapp-assets.mjs --write` 做 TinyPNG 追加压缩（只覆盖收益 ≥2% 的文件）。本地包内资源禁止 WebP（iOS 真机不显示）。
+
 ### 图片导致页面跳动
 
 检查图片是否有固定容器尺寸或 `aspectFit`/`aspectFill` 模式。
@@ -66,4 +74,6 @@ flowchart LR
 - [ ] COS 域名已加入小程序 downloadFile 合法域名。
 - [ ] COS 公共基址使用版本目录，更新图片时切换版本目录。
 - [ ] 小程序本地图片单张不超过 180 KB。
+- [ ] 本地包内资源不含 WebP；新增图片已过 optimize 脚本（有 key 时含 TinyPNG 追加压缩）。
+- [ ] 用户照片上传使用 `compressImageToDataUrl` 统一链路，真机清晰度验收通过。
 - [ ] `npm run check:assets` 通过。

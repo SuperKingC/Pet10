@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Image, Input, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { diaryApi, type MiniappDiary } from '../../services/diaryApi'
+import { compressImageToDataUrl } from '../../services/imageCompression'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import {
   JOURNAL_MOODS,
@@ -23,20 +24,17 @@ const moodImages: Record<string, string> = {
 }
 
 const MAX_PHOTOS = 3
+// 与服务端 diaryRoutes photoSchema 的 300_000 上限一致
 const MAX_PHOTO_CHARS = 300_000
+// 拍立得展示宽度约 390pt@3x≈1170px，1080px 起档；超限时降宽度而不是降质量
+const PHOTO_WIDTHS = [1080, 900, 720]
 
-async function photoToDataUrl(src: string): Promise<string> {
-  let path = src
-  try {
-    const compressed = await Taro.compressImage({ src, quality: 60 })
-    path = compressed.tempFilePath
-  } catch {
-    // 压缩失败时使用原图
-  }
-  const base64 = Taro.getFileSystemManager().readFileSync(path, 'base64') as string
-  const dataUrl = `data:image/jpeg;base64,${base64}`
-  if (dataUrl.length > MAX_PHOTO_CHARS) throw new Error('图片太大，请换一张或减少照片')
-  return dataUrl
+function photoToDataUrl(src: string): Promise<string> {
+  return compressImageToDataUrl(src, {
+    widths: PHOTO_WIDTHS,
+    maxChars: MAX_PHOTO_CHARS,
+    oversizeMessage: '图片太大，请换一张或减少照片',
+  })
 }
 
 async function pickSheetIndex(labels: string[]): Promise<number> {
