@@ -38,8 +38,16 @@ export interface MiniappConversation {
   title: string
   avatarUrl: string | null
   proactiveEnabled: boolean
+  /** pair 会话带好友资料（昵称/头像），pet_dm 无此字段 */
+  friend?: {
+    id: string
+    displayName: string
+    avatarUrl?: string | null
+  }
   latestMessage?: {
     id: string
+    senderType: 'user' | 'pet'
+    senderId?: string
     text: string
     kind: 'text' | 'image' | 'pet'
     createdAt: string
