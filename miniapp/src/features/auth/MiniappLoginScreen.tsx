@@ -1,7 +1,7 @@
 import { Button, Image, Text, View } from '@tarojs/components'
 import './MiniappLoginScreen.scss'
 
-const petImage = require('../../assets/xiaoduoli.png')
+const backgroundImage = require('../../assets/login-background.jpg')
 
 type MiniappLoginScreenProps = {
   busy: boolean
@@ -13,6 +13,7 @@ type MiniappLoginScreenProps = {
   onRetryLaunch(): void
 }
 
+// 排版一「全幅沉浸」：整页手绘背景，文字直接压在底部奶油渐变上，无卡片容器
 export function MiniappLoginScreen({
   busy,
   message,
@@ -27,27 +28,20 @@ export function MiniappLoginScreen({
 
   return (
     <View className={preparing ? 'miniapp-login miniapp-login--preparing' : 'miniapp-login'}>
-      <View className="miniapp-login__scene" aria-label="小多利正在向你挥手">
+      <Image className="miniapp-login__background" src={backgroundImage} mode="aspectFill" aria-label="小多利正在向你挥手" />
+      <View className="miniapp-login__scrim" />
+
+      <View className="miniapp-login__brand">PET10</View>
+
+      <View className="miniapp-login__content">
         <Text className="miniapp-login__speech">
           {preparing ? '我去把小窝收拾好。' : '我等你好久啦。'}
         </Text>
-        <View className="miniapp-login__art">
-          <View className="miniapp-login__sun" />
-          <View className="miniapp-login__halo" />
-          <Image className="miniapp-login__pet" src={petImage} mode="aspectFit" />
-          <View className="miniapp-login__ground" />
-          <View className="miniapp-login__spark miniapp-login__spark--one">✦</View>
-          <View className="miniapp-login__spark miniapp-login__spark--two">✦</View>
-        </View>
-      </View>
-
-      <View className="miniapp-login__copy">
-        <Text className="miniapp-login__companion">
-          {preparing ? '马上就好，我们一会儿见。' : '从今天开始，一起照顾小窝。'}
+        <Text className="miniapp-login__title">小多利宠物伙伴</Text>
+        <Text className="miniapp-login__slogan">
+          {preparing ? '马上就好，我们一会儿见。' : '见到蛋黄我会说话，见到你我会飞奔。'}
         </Text>
-      </View>
 
-      <View className="miniapp-login__actions">
         {preparing ? (
           <View className="miniapp-login__progress-wrap">
             <View className="miniapp-login__progress-bar" aria-label={'资源准备进度 ' + percentage + '%'}>
@@ -65,13 +59,25 @@ export function MiniappLoginScreen({
           </View>
         ) : (
           <Button className="miniapp-login__primary" onClick={onWechatLogin} disabled={busy} loading={busy}>
-            带我回家
+            <View className="miniapp-login__primary-inner">
+              <View className="miniapp-login__wechat-icon" aria-hidden>
+                <View className="miniapp-login__wechat-bubble miniapp-login__wechat-bubble--big">
+                  <View className="miniapp-login__wechat-eye" />
+                  <View className="miniapp-login__wechat-eye" />
+                </View>
+                <View className="miniapp-login__wechat-bubble miniapp-login__wechat-bubble--small">
+                  <View className="miniapp-login__wechat-eye" />
+                  <View className="miniapp-login__wechat-eye" />
+                </View>
+              </View>
+              <Text className="miniapp-login__primary-label">带我回家</Text>
+            </View>
           </Button>
         )}
+        {!preparing && <Text className="miniapp-login__hint">微信一键登录 · 和好友一起养</Text>}
       </View>
 
       {message && <Text className="miniapp-login__message">{message}</Text>}
-
     </View>
   )
 }

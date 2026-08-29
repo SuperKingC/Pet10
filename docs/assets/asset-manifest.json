@@ -132,7 +132,7 @@
     {
       "path": "miniapp/src/assets/nest/xiaoduoli-underlay.png",
       "category": "runtime-feature",
-      "purpose": "Nest invite Xiaoduoli under-eye fur underlay revealed by eye-group squash blink; alpha-matched to source highlights"
+      "purpose": "Nest invite Xiaoduoli under-eye fur underlay revealed by eye-group squash blink; per-angle fur sampling outside the eye ellipse, colors pre-blended back to source before alpha fade so the composite boundary is pixel-identical to the artwork (no visible round rim)"
     },
     {
       "path": "miniapp/src/assets/nest/xiaoduoli-street-v13.png",
@@ -423,6 +423,11 @@
       "path": "miniapp/src/assets/anniversaries/anniv-balloon.png",
       "category": "runtime-feature",
       "purpose": "Anniversary balloon sticker icon, hand-drawn rose balloon with brown outline, string and sparkle accents, transparent background"
+    },
+    {
+      "path": "miniapp/src/assets/login-background.jpg",
+      "category": "runtime-feature",
+      "purpose": "Full-screen login page background: hand-painted gouache morning living room with Xiaoduoli waving on a rug; quiet bottom third reserved for the login CTA"
     }
   ]
 }

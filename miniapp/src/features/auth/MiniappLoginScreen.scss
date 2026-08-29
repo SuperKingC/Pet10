@@ -1,136 +1,83 @@
+// 排版一「全幅沉浸」：背景整页铺满，文字压在底部奶油渐变上
 .miniapp-login {
-  position: relative;
-  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
   box-sizing: border-box;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
+  display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 36rpx 34rpx calc(40rpx + env(safe-area-inset-bottom));
   background: #fff8ee;
 }
 
-.miniapp-login__scene {
-  position: relative;
-  display: flex;
+.miniapp-login__background {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-width: 680rpx;
-  height: 560rpx;
-  min-height: 500rpx;
-  align-items: center;
-  justify-content: flex-start;
-  flex-direction: column;
-  flex: 0 1 auto;
+  height: 100%;
 }
 
-.miniapp-login__art {
+// 底部奶油渐变让文字区安静；背景图本身不烧渐变，换图不用重压
+.miniapp-login__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 248, 238, 0) 58%,
+    rgba(255, 248, 238, .55) 74%,
+    rgba(255, 248, 238, .94) 86%,
+    #fff8ee 100%
+  );
+}
+
+.miniapp-login__brand {
+  position: absolute;
+  top: calc(28rpx + env(safe-area-inset-top));
+  left: 40rpx;
+  padding: 10rpx 34rpx;
+  border-radius: 26rpx;
+  color: #d27658;
+  background: rgba(255, 253, 249, .82);
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
+}
+
+.miniapp-login__content {
   position: relative;
+  z-index: 1;
   display: flex;
-  width: 100%;
-  height: 470rpx;
+  flex: 1;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  margin-top: 28rpx;
+  justify-content: flex-end;
+  padding: 0 44rpx calc(30rpx + env(safe-area-inset-bottom));
 }
 
 .miniapp-login__speech {
-  position: relative;
-  top: auto;
-  z-index: 4;
+  margin-bottom: 10rpx;
   color: #d27658;
-  font-size: 34rpx;
+  font-size: var(--font-size-card-title);
   font-weight: var(--font-weight-semibold);
   line-height: 1.35;
   text-align: center;
-  transform: rotate(-2deg);
   animation: miniapp-login-speech 5.8s ease-in-out infinite;
 }
 
-.miniapp-login__speech::after {
-  display: block;
-  width: 42rpx;
-  height: 8rpx;
-  margin: 4rpx auto 0;
-  border-bottom: 2rpx solid rgba(210, 118, 88, .4);
-  content: '';
-  transform: rotate(4deg);
-}
-
-.miniapp-login__sun {
-  position: absolute;
-  top: 48rpx;
-  right: 15%;
-  width: 78rpx;
-  height: 78rpx;
-  border-radius: 50%;
-  background: #f4c779;
-  opacity: .68;
-}
-
-.miniapp-login__halo {
-  position: absolute;
-  top: 58rpx;
-  width: 430rpx;
-  height: 430rpx;
-  border: 1px solid rgba(217, 132, 93, .18);
-  border-radius: 50%;
-  box-shadow: 0 0 0 22rpx rgba(217, 132, 93, .05), 0 0 0 46rpx rgba(217, 132, 93, .03);
-  animation: miniapp-login-halo-breathe 6s ease-in-out infinite;
-}
-
-.miniapp-login__pet {
-  position: relative;
-  z-index: 2;
-  width: 370rpx;
-  height: 430rpx;
-  transform-origin: 50% 86%;
-  animation: miniapp-login-pet-idle 5.8s cubic-bezier(.37, 0, .63, 1) infinite;
-}
-
-.miniapp-login__ground {
-  position: absolute;
-  bottom: 22rpx;
-  width: 300rpx;
-  height: 22rpx;
-  border-radius: 50%;
-  background: rgba(136, 101, 75, .16);
-  filter: blur(5px);
-  animation: miniapp-login-ground-breathe 5.8s ease-in-out infinite;
-}
-
-.miniapp-login__spark {
-  position: absolute;
-  z-index: 3;
-  color: #d9845d;
-  font-size: 26rpx;
-  animation: miniapp-login-spark 4.6s ease-in-out infinite;
-}
-
-.miniapp-login__spark--one { top: 170rpx; left: 11%; }
-.miniapp-login__spark--two {
-  top: 264rpx;
-  right: 10%;
-  color: #b4a05d;
-  font-size: 19rpx;
-  animation-delay: 1.3s;
-}
-
-.miniapp-login__copy {
-  display: flex;
-  width: 100%;
-  max-width: 600rpx;
-  margin-top: 10rpx;
-  align-items: center;
-  justify-content: center;
+.miniapp-login__title {
+  margin-top: 6rpx;
+  color: #382b23;
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
   text-align: center;
 }
 
-.miniapp-login__companion {
-  color: #927d6d;
-  font-size: 28rpx;
-  line-height: 1.5;
+.miniapp-login__slogan {
+  margin-top: 16rpx;
+  color: #765c47;
+  font-size: var(--font-size-secondary);
+  line-height: 1.6;
+  text-align: center;
 }
 
 .miniapp-login__actions {
@@ -142,24 +89,132 @@
   margin-top: 44rpx;
 }
 
+// 微信绿主按钮（WeUI primary #07c160，按压 #06ae56），白色微信双气泡 logo 在文字左侧
 .miniapp-login__primary {
-  height: 94rpx;
+  width: 100%;
+  height: 104rpx;
+  margin-top: 40rpx;
   border: 0;
-  border-radius: 20rpx;
-  color: #fffdf9;
-  background: #5a5149;
-  box-shadow: 0 12rpx 24rpx rgba(90, 81, 73, .18);
-  font-size: 30rpx;
-  font-weight: var(--font-weight-semibold);
-  line-height: 94rpx;
+  border-radius: 52rpx;
+  background: #07c160;
+  box-shadow: 0 12rpx 24rpx rgba(7, 193, 96, .22);
+  line-height: 104rpx;
 }
 
 .miniapp-login__primary::after {
   border: 0;
 }
 
+.miniapp-login__primary.button-hover {
+  background: #06ae56;
+}
+
+.miniapp-login__primary[disabled] {
+  color: #fff;
+  background: #07c160;
+  opacity: .6;
+}
+
+.miniapp-login__primary-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+
+.miniapp-login__primary-label {
+  color: #fff;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: 104rpx;
+}
+
+// 纯 CSS 微信双气泡 logo：大泡左上 + 小泡右下，眼睛透出按钮绿底
+.miniapp-login__wechat-icon {
+  position: relative;
+  width: 48rpx;
+  height: 44rpx;
+  margin-right: 16rpx;
+}
+
+.miniapp-login__wechat-bubble {
+  position: absolute;
+  background: #fff;
+}
+
+.miniapp-login__wechat-bubble--big {
+  top: 0;
+  left: 0;
+  width: 34rpx;
+  height: 31rpx;
+  border-radius: 50%;
+
+  &::after {
+    position: absolute;
+    bottom: -7rpx;
+    left: 3rpx;
+    width: 0;
+    height: 0;
+    border-top: 9rpx solid #fff;
+    border-right: 11rpx solid transparent;
+    content: '';
+    transform: skewX(-18deg);
+  }
+}
+
+.miniapp-login__wechat-bubble--small {
+  right: 0;
+  bottom: 0;
+  width: 24rpx;
+  height: 22rpx;
+  border-radius: 50%;
+
+  &::after {
+    position: absolute;
+    bottom: -5rpx;
+    right: 3rpx;
+    width: 0;
+    height: 0;
+    border-top: 7rpx solid #fff;
+    border-right: 8rpx solid transparent;
+    content: '';
+    transform: skewX(16deg);
+  }
+}
+
+.miniapp-login__wechat-eye {
+  position: absolute;
+  top: 10rpx;
+  width: 5rpx;
+  height: 5rpx;
+  border-radius: 50%;
+  background: #07c160;
+}
+
+.miniapp-login__wechat-bubble--big .miniapp-login__wechat-eye {
+  &:first-child { left: 8rpx; }
+  &:last-child { right: 8rpx; }
+}
+
+.miniapp-login__wechat-bubble--small .miniapp-login__wechat-eye {
+  top: 7rpx;
+
+  &:first-child { left: 5rpx; }
+  &:last-child { right: 5rpx; }
+}
+
+.miniapp-login__hint {
+  margin-top: 22rpx;
+  color: #9a806b;
+  font-size: var(--font-size-aux);
+  line-height: 1.5;
+  text-align: center;
+}
+
 .miniapp-login__progress-wrap {
   width: 100%;
+  max-width: 560rpx;
+  margin-top: 40rpx;
 }
 
 .miniapp-login__progress-bar {
@@ -202,70 +257,28 @@
   border-radius: 18rpx;
   color: #765c47;
   background: transparent;
-  font-size: 26rpx;
+  font-size: var(--font-size-aux);
   line-height: 70rpx;
 }
 
 .miniapp-login__retry::after { border: 0; }
 
 .miniapp-login__message {
+  position: relative;
+  z-index: 1;
   max-width: 540rpx;
-  margin-top: 18rpx;
+  margin: 18rpx auto 0;
   color: #b46f54;
-  font-size: 24rpx;
+  font-size: var(--font-size-aux);
   line-height: 1.45;
   text-align: center;
 }
 
 @keyframes miniapp-login-speech {
-  0%, 100% { transform: translateY(2rpx) rotate(-2deg); }
-  50% { transform: translateY(-3rpx) rotate(-1deg); }
-}
-
-@keyframes miniapp-login-pet-idle {
-  0%, 100% { transform: translateY(2rpx) rotate(-.35deg) scale(.997); }
-  24% { transform: translateY(-2rpx) rotate(.05deg) scale(1); }
-  52% { transform: translateY(-6rpx) rotate(.4deg) scale(1.008); }
-  78% { transform: translateY(-1rpx) rotate(-.08deg) scale(1); }
-}
-
-@keyframes miniapp-login-pet-prepare {
-  0%, 100% { transform: translateY(1rpx) scale(.998) rotate(-.15deg); }
-  50% { transform: translateY(-4rpx) scale(1.012) rotate(.2deg); }
-}
-
-@keyframes miniapp-login-ground-breathe {
-  0%, 100% { transform: scaleX(.94); opacity: .46; }
-  50% { transform: scaleX(1); opacity: .3; }
-}
-
-@keyframes miniapp-login-halo-breathe {
-  0%, 100% { transform: scale(.985); opacity: .72; }
-  50% { transform: scale(1.02); opacity: 1; }
-}
-
-@keyframes miniapp-login-spark {
-  0%, 100% { transform: translateY(4rpx) scale(.88); opacity: .28; }
-  50% { transform: translateY(-4rpx) scale(1); opacity: .8; }
-}
-
-.miniapp-login--preparing .miniapp-login__speech {
-  animation-duration: 3.4s;
-}
-
-.miniapp-login--preparing .miniapp-login__pet {
-  animation: miniapp-login-pet-prepare 3.4s ease-in-out infinite;
-}
-
-.miniapp-login--preparing .miniapp-login__spark {
-  animation-duration: 3.2s;
+  0%, 100% { transform: translateY(2rpx); }
+  50% { transform: translateY(-3rpx); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .miniapp-login__speech,
-  .miniapp-login__pet,
-  .miniapp-login__ground,
-  .miniapp-login__halo,
-  .miniapp-login__spark { animation: none; }
+  .miniapp-login__speech { animation: none; }
 }
-

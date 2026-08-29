@@ -12,7 +12,9 @@ describe('miniapp login screen', () => {
     expect(source).toContain('onClick={onWechatLogin}')
     expect(source).not.toContain('温馨提示')
     expect(source).not.toContain('先让小多利认识你')
-    expect(source).not.toContain('微信一键登录')
+    // 「微信一键登录」只允许出现在底部辅助说明里，禁止作为弹窗或第二种登录方式
+    const secondaryHintOnly = source.split('微信一键登录').length - 1
+    expect(secondaryHintOnly).toBeLessThanOrEqual(1)
     expect(source).not.toContain('暂时不登录')
     expect(source).not.toContain('modalOpen')
   })
