@@ -229,7 +229,10 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
                 mode={featuredPhoto.isDefault ? 'aspectFit' : 'aspectFill'}
               />
             </View>
-            <View className="journal-today__snippet" onClick={() => featured ? openEdit(featured) : writeDiary()}>
+            <View
+              className={!featured && !diariesLoading ? 'journal-today__snippet journal-today__snippet--empty' : 'journal-today__snippet'}
+              onClick={() => featured ? openEdit(featured) : writeDiary()}
+            >
               {diariesLoading ? (
                 <View className="journal-today__loading">
                   <View className="journal-today__skeleton journal-today__skeleton--title" />

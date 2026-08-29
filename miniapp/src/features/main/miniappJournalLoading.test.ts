@@ -15,6 +15,15 @@ describe('journal today loading presentation', () => {
     expect(component).toMatch(/\) : \(\s*<>[\s\S]*?还没有日记/)
   })
 
+  it('centers the empty-state copy inside the fixed-height stage', () => {
+    const component = fs.readFileSync(viewPath, 'utf8')
+    const styles = fs.readFileSync(viewStylesPath, 'utf8')
+
+    // snippet 定高 100% 会使 stage 的 align-items 失效，空态必须显式垂直居中
+    expect(component).toContain('journal-today__snippet--empty')
+    expect(styles).toMatch(/\.journal-today__snippet--empty \{[^}]*justify-content: center;/)
+  })
+
   it('shows shimmer skeleton bars with a reduced-motion fallback while loading', () => {
     const styles = fs.readFileSync(viewStylesPath, 'utf8')
 

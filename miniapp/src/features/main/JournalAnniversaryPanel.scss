@@ -2,15 +2,19 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  overflow-y: auto;
+  /* 与写日记覆盖层一致：整层定高不可滚动，杜绝整页滑动 */
+  overflow: hidden;
   background: #fff8ee;
 }
 .journal-anniv-panel {
-  min-height: 100%;
-  padding: 12rpx 32rpx 64rpx;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12rpx 32rpx 40rpx;
   box-sizing: border-box;
   background: linear-gradient(180deg, #fff1df 0%, #fff8ee 380rpx);
 }
-.journal-anniv-panel__top { display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
+.journal-anniv-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
 .journal-anniv-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
 .journal-anniv-panel__caption { display: block; padding-bottom: 24rpx; color: #a89489; font-size: var(--font-size-aux); }

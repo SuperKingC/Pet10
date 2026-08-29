@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 const formPath = path.resolve(__dirname, 'AnniversaryForm.tsx')
 const listPath = path.resolve(__dirname, 'AnniversaryListView.tsx')
 const stylesPath = path.resolve(__dirname, 'anniversary.scss')
+const panelStylesPath = path.resolve(__dirname, 'JournalAnniversaryPanel.scss')
 
 describe('anniversary photo presentation rules', () => {
   it('compresses the chosen photo once through the services layer without lowering quality', () => {
@@ -44,5 +45,15 @@ describe('anniversary photo presentation rules', () => {
 
     expect(styles).toContain('.anniv-form__photo {')
     expect(styles).toContain('.anniv-form__photo-empty--busy {')
+  })
+
+  it('locks the anniversary overlay to one non-scrollable screen', () => {
+    const panelStyles = fs.readFileSync(panelStylesPath, 'utf8')
+
+    // 覆盖层与写日记一致：定高 + overflow hidden，杜绝整页滑动
+    expect(panelStyles).toMatch(/\.journal-anniv-overlay \{[^}]*overflow: hidden;/)
+    expect(panelStyles).not.toMatch(/\.journal-anniv-overlay \{[^}]*overflow-y: auto/)
+    expect(panelStyles).toMatch(/\.journal-anniv-panel \{[^}]*height: 100%;/)
+    expect(panelStyles).toMatch(/\.journal-anniv-panel \{[^}]*overflow: hidden;/)
   })
 })

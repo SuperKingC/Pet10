@@ -94,6 +94,8 @@
 }
 .journal-today__polaroid:not(.journal-today__polaroid--default) .journal-today__polaroid-image { border-radius: 6rpx; }
 .journal-today__snippet { flex: 1; min-width: 0; height: 100%; overflow: hidden; display: flex; flex-direction: column; gap: 6rpx; }
+/* 空态默认文案在固定高舞台里垂直居中（snippet 自身 height:100% 会让 stage 的 align-items 失效） */
+.journal-today__snippet--empty { justify-content: center; }
 .journal-today__title { color: #493326; font-size: var(--font-size-card-title); font-weight: var(--font-weight-semibold); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; }
 .journal-today__text {
   color: #8a6b55;
