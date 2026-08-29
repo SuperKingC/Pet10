@@ -94,6 +94,8 @@ describe('miniapp view model', () => {
 
   it('replaces the invite button with the unlock button after a friend accepts', () => {
     const invite = getInvitationButtonState(true, false)
+    // 小多利一人一只：已在养（active）时不再展示邀请好友入口
+    expect(getNestActionButton('active', invite)).toBeNull()
     expect(getNestActionButton('empty', invite)).toEqual({
       kind: 'invite',
       label: '邀请好友一起养一只小多利吧~',
@@ -106,7 +108,7 @@ describe('miniapp view model', () => {
       disabled: false,
       shareReady: false,
     })
-    expect(getNestActionButton('locked', invite, true).disabled).toBe(true)
+    expect(getNestActionButton('locked', invite, true)?.disabled).toBe(true)
   })
 
   it('treats only pair rooms as friend conversations on the messages tab', () => {

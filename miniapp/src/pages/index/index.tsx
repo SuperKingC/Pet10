@@ -302,7 +302,7 @@ export default function Index() {
   const nestFooter = hasAuthenticatedSession(accessToken) && activeTab === 'nest' ? (
     <>
       {shouldShowNestFeedback(activeTab, loading, message) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
-      {nestAction.kind === 'unlock' ? (
+      {nestAction === null ? null : nestAction.kind === 'unlock' ? (
         <Button className="share-button" disabled={nestAction.disabled} onClick={() => setBoxPhase('jumping')}>
           {nestAction.label}
         </Button>

@@ -43,6 +43,10 @@ export function getNestActionButton(
       shareReady: false,
     }
   }
+  // 小多利一人一只：已在养（active）时不再展示邀请好友入口
+  if (sceneMode === 'active') {
+    return null
+  }
   return {
     kind: 'invite' as const,
     ...invitation,

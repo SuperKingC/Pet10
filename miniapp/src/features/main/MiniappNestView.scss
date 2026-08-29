@@ -39,27 +39,27 @@
   background: #fff8ee;
 }
 
+/* 快捷入口整体收进 470px 背景图内：三枚图标 108px + 间距 16px 共 356px，上下各留 ~57px，不再压到卡片下方 */
 .miniapp-nest__shortcuts {
   position: absolute;
-  top: 50%;
-  right: 4px;
+  top: 20px;
+  right: 8px;
   z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transform: translateY(-50%);
 }
 
 .miniapp-nest__shortcut {
   display: flex;
-  width: 128px;
+  width: 104px;
   flex-direction: column;
   align-items: center;
 }
 
 .miniapp-nest__shortcut image {
-  width: 128px;
-  height: 133px;
+  width: 104px;
+  height: 108px;
 }
 
 /* 锁定/空状态信件场景独立成固定层：内容不足一屏时页面文档流为空、整页锁死不可拖动；

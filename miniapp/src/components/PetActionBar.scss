@@ -2,4 +2,4 @@
 .pet-actions-title { color: #a98d7e; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
 .pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 10px; }
 .pet-action-button { display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: var(--font-size-aux); }
-.pet-action-button image { width: 120px; height: 120px; }
+.pet-action-button image { width: 120px; height: 128px; }
