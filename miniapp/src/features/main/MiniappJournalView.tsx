@@ -8,6 +8,7 @@ import { MiniappFortuneView } from './MiniappFortuneView'
 import { JournalEditorForm } from './JournalEditorForm'
 import { JournalAnniversaryPanel } from './JournalAnniversaryPanel'
 import { getWeekDays, groupByDay, journalDisplayPhotos, localDayKey, shiftWeek, weekMonthLabel } from './journalModel'
+import { getCachedWeekDiaries, setCachedWeekDiaries } from './journalWeekCache'
 import './MiniappJournalView.scss'
 
 interface EditorSession {
@@ -37,8 +38,13 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
   const todayKey = localDayKey(today.getFullYear(), today.getMonth(), today.getDate())
   const [anchor, setAnchor] = useState(() => new Date())
   const [selectedDay, setSelectedDay] = useState(todayKey)
-  const [diaries, setDiaries] = useState<MiniappDiary[]>([])
-  const [diariesLoading, setDiariesLoading] = useState(true)
+  // tab 每次切换都会重挂载本组件：初始化 state 时先查周缓存，命中就跳过骨架动画直接展示旧数据
+  const [initialWeekKeys] = useState(() => {
+    const initialWeek = getWeekDays(new Date())
+    return { from: initialWeek[0].key, to: initialWeek[6].key }
+  })
+  const [diaries, setDiaries] = useState<MiniappDiary[]>(() => getCachedWeekDiaries(initialWeekKeys.from, initialWeekKeys.to) ?? [])
+  const [diariesLoading, setDiariesLoading] = useState(() => getCachedWeekDiaries(initialWeekKeys.from, initialWeekKeys.to) === null)
   const [fortune, setFortune] = useState<MiniappFortune | null>(null)
   const [fortuneOverlayOpen, setFortuneOverlayOpen] = useState(false)
   const [fortuneMessage, setFortuneMessage] = useState('')
@@ -61,17 +67,21 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
 
   useEffect(() => {
     let cancelled = false
-    setDiariesLoading(true)
+    const cached = getCachedWeekDiaries(weekFrom, weekTo)
+    // 有缓存的周不再播骨架：先展示旧数据，请求返回后静默替换
+    setDiariesLoading(cached === null)
     void diaryApi.list(weekFrom, weekTo)
       .then((items) => {
         if (!cancelled) {
           setDiaries(items)
           setDiariesLoading(false)
+          setCachedWeekDiaries(weekFrom, weekTo, items)
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setDiaries([])
+          // 请求失败时保留缓存/已有数据，避免闪回空态
+          setDiaries((current) => (cached ? cached : current))
           setDiariesLoading(false)
         }
       })

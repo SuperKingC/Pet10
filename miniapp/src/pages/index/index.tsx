@@ -19,6 +19,7 @@ import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
 import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
 import { MiniappJournalView } from '../../features/main/MiniappJournalView'
+import { clearCachedWeekDiaries, prefetchCurrentWeekDiaries } from '../../features/main/journalWeekCache'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappCodewordModal } from '../../features/main/MiniappCodewordModal'
@@ -168,6 +169,8 @@ export default function Index() {
   useEffect(() => {
     if (getAccessToken()) {
       void prepareLaunch()
+      // 已登录启动时后台预取本周日记，首次进小记也能直接命中缓存
+      prefetchCurrentWeekDiaries()
     } else {
       // 未登录时后台静默预热首屏资源（不驱动进度条），登录后进度条直接命中缓存
       void prepareLaunchAssets(authenticatedLaunchAssets, undefined).catch(() => undefined)
@@ -194,6 +197,7 @@ export default function Index() {
     setLaunchError('')
     try {
       await authApi.loginWithWechat()
+      prefetchCurrentWeekDiaries()
       const ready = await prepareLaunch()
       if (ready) setAccessToken(getAccessToken())
     } catch (error) {
@@ -260,6 +264,7 @@ export default function Index() {
 
   const logout = () => {
     clearAccessToken()
+    clearCachedWeekDiaries()
     setAccessToken('')
     setContext(null)
     setPet(null)
