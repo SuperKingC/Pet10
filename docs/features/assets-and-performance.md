@@ -40,7 +40,7 @@ flowchart LR
 1. **出生即分层**（首选）：分组 SVG / 分层位图源，所有部件同一画布、同一位姿。
 2. **原图直出 + 覆盖件**（小多利现行方案）：底图直接使用原图、一个像素不改；可动部件用**确定性裁切 + 羽化边 + 平滑区域采样填充**从同一原图生成覆盖层——静止时与原图逐像素一致、完全隐形，动画时靠覆盖件自身表达（瞳孔滑动、眼睑淡入等）。
 
-- **出件**：`miniapp/tools/build-xiaoduoli-parts.mjs`（零依赖）从 `design-assets/nest/xiaoduoli-peek-source.png` 直出 `xiaoduoli-body.png`（原图）与眼部木偶三层 `xiaoduoli-eyes.png`（眼眶，瞳孔原位以采样虹膜色填充）/ `xiaoduoli-pupils.png`（瞳孔圆盘）/ `xiaoduoli-lids.png`（闭眼眼睑）（均 446×314 全画布、同坐标叠放，运行时显式 rpx 尺寸对位，无需手工标定百分比）。
+- **出件**：`miniapp/tools/build-xiaoduoli-parts.mjs`（零依赖）从 `design-assets/nest/xiaoduoli-peek-source.png`（缺失时回退用与其逐像素同源的 `xiaoduoli-body.png` 作像素源）直出 `xiaoduoli-body.png`（原图）与眼部木偶三层 `xiaoduoli-eyes.png`（眼眶，瞳孔原位以采样虹膜色填充）/ `xiaoduoli-pupils.png`（瞳孔圆盘）/ `xiaoduoli-underlay.png`（眼窝底毛：逐角度采样椭圆外纯毛区毛色，先按 smoothstep 混回原图色、后 alpha 渐隐——覆盖层边界在合成结果中逐像素不可见，这是「无切边」的硬约束）（均 446×314 全画布、同坐标叠放，运行时显式 rpx 尺寸对位，无需手工标定百分比）。覆盖层半透明边必须直写直色（非预乘）RGBA：累积式 `blendPx` 会把颜色按 alpha 预乘变暗，运行时按直色合成会显出暗弧（旧版眨眼圆形切边的直接成因）。
 - **几何自动生成**：瞳孔支点等几何由脚本按眼部标定计算，写入 `miniapp/src/features/main/xiaoduoli-box-parts.generated.scss`（勿手改）和 `miniapp/tools/xiaoduoli-parts.report.json`（供测试断言与文档登记）。
 - **复用优先**：新增表情/动作优先用领域时间线 + CSS 变换组合现有图层实现；只有确需新部件时才改源并重跑脚本。改完源必须重跑脚本并同步 manifest 与文档。
 

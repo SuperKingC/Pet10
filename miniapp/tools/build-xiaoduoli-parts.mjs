@@ -8,7 +8,7 @@
 // 禁止修补式反抠（inpaint 补洞 / 阈值抠 alpha）；所有填充只用采样到的平滑色。改完必须重跑并同步文档。
 // 用法：node tools/build-xiaoduoli-parts.mjs（全量，会重写全部四层）
 //      node tools/build-xiaoduoli-parts.mjs --only=eyes,underlay（只重生成指定层，保留已压缩的其他层）
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { inflateSync, deflateSync } from 'node:zlib'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -17,6 +17,9 @@ const here = dirname(fileURLToPath(import.meta.url))
 const srcPath = resolve(here, '../../design-assets/nest/xiaoduoli-peek-source.png')
 const outDir = resolve(here, '../src/assets/nest')
 const reportPath = resolve(here, './xiaoduoli-parts.report.json')
+// design-assets 为 gitignore 的 source-only 目录，可能缺失；身体层=原图直出逐像素同源，可作像素源回退
+const bodyPath = resolve(outDir, 'xiaoduoli-body.png')
+const effectiveSrcPath = existsSync(srcPath) ? srcPath : bodyPath
 
 const CANVAS = { width: 446, height: 314 }
 const FEATHER = 6
@@ -27,11 +30,15 @@ const EYES = [
   { name: 'right', rect: { x: 260, y: 136, w: 64, h: 70 } },
 ]
 const PAD = 14
-// 眼窝底毛参数：椭圆比眼区外扩 UNDERLAY.grow，d<UNDERLAY.solid 全不透明、到椭圆边渐隐；
-// 椭圆必须整体落在眼眶层的不透明核心内（静止时被完全遮蔽），且实心半径须盖住眼球深色区域
-const UNDERLAY = { grow: 7, solid: 0.88 }
+// 眼窝底毛参数：椭圆比眼区外扩 UNDERLAY.grow，alpha 在 solid→1 间 1-smoothstep 渐隐。
+// 次序约束 blendFrom < blendTo ≤ solid：颜色先于 alpha 混回原图——alpha 带内颜色已==原图，
+// 合成结果（src*a + src*(1-a)）不受影响，椭圆边界逐像素不可见；任何半径上都不产生半透明弧。
+// grow=7：椭圆边仍在眼眶层不透明核心内（眼区+PAD=14、羽化 6 → 核心约 +8px）；
+// ring=1.03/1.06/1.09：纯毛区环采样半径（睫毛暗环在 d≈0.5..0.85，d≥0.95 才是纯毛）；
+// 核心毛色填到 blendFrom=0.6（盖住眼球），0.6..0.92 平滑混回原图（横跨睫毛暗环，无硬弧）
+const UNDERLAY = { grow: 7, solid: 0.94, blendFrom: 0.6, blendTo: 0.92, ring: [1.03, 1.06, 1.09] }
 
-// ---------- PNG 解码（RGBA 8bit 非隔行） ----------
+// ---------- PNG 解码（8bit 非隔行：RGBA / RGB / 调色板+可选 tRNS） ----------
 function readPngRgba(path) {
   const buf = readFileSync(path)
   if (buf.readUInt32BE(0) !== 0x89504e47) throw new Error('不是 PNG 文件')
@@ -42,6 +49,8 @@ function readPngRgba(path) {
   let colorType = 0
   let interlace = 0
   const idat = []
+  let trns = null
+  let palette = null
   while (pos < buf.length) {
     const length = buf.readUInt32BE(pos)
     const type = buf.toString('ascii', pos + 4, pos + 8)
@@ -52,14 +61,20 @@ function readPngRgba(path) {
       bitDepth = data[8]
       colorType = data[9]
       interlace = data[12]
-    } else if (type === 'IDAT') idat.push(data)
+    } else if (type === 'PLTE') palette = data
+    else if (type === 'tRNS') trns = data
+    else if (type === 'IDAT') idat.push(data)
     else if (type === 'IEND') break
     pos += 12 + length
   }
-  if (bitDepth !== 8 || interlace !== 0 || (colorType !== 6 && colorType !== 2)) {
+  const paletteMode = colorType === 3
+  if (
+    bitDepth !== 8 || interlace !== 0 ||
+    (colorType !== 6 && colorType !== 2 && !paletteMode)
+  ) {
     throw new Error(`暂不支持的 PNG 格式：bit=${bitDepth} color=${colorType} interlace=${interlace}`)
   }
-  const channels = colorType === 6 ? 4 : 3
+  const channels = colorType === 6 ? 4 : colorType === 2 ? 3 : 1
   const raw = inflateSync(Buffer.concat(idat))
   const stride = width * channels
   const rgba = Buffer.alloc(width * height * 4)
@@ -88,10 +103,18 @@ function readPngRgba(path) {
     for (let x = 0; x < width; x += 1) {
       const si = x * channels
       const di = (y * width + x) * 4
-      rgba[di] = cur[si]
-      rgba[di + 1] = cur[si + 1]
-      rgba[di + 2] = cur[si + 2]
-      rgba[di + 3] = channels === 4 ? cur[si + 3] : 255
+      if (paletteMode) {
+        const idx = cur[si]
+        rgba[di] = palette[idx * 3]
+        rgba[di + 1] = palette[idx * 3 + 1]
+        rgba[di + 2] = palette[idx * 3 + 2]
+        rgba[di + 3] = trns && idx < trns.length ? trns[idx] : 255
+      } else {
+        rgba[di] = cur[si]
+        rgba[di + 1] = cur[si + 1]
+        rgba[di + 2] = cur[si + 2]
+        rgba[di + 3] = channels === 4 ? cur[si + 3] : 255
+      }
     }
     prev = cur
   }
@@ -146,10 +169,11 @@ function writePngRgba(path, width, height, rgba) {
   return png.length
 }
 
-const src = readPngRgba(srcPath)
+const src = readPngRgba(effectiveSrcPath)
 if (src.width !== CANVAS.width || src.height !== CANVAS.height) {
   throw new Error(`原图尺寸 ${src.width}x${src.height} 与画布不符`)
 }
+console.log(`[source] ${effectiveSrcPath === srcPath ? 'peek-source 原图' : '回退：身体层（与原图逐像素同源）'}`)
 const srcAt = (x, y) => {
   const i = (y * CANVAS.width + x) * 4
   return [src.rgba[i], src.rgba[i + 1], src.rgba[i + 2], src.rgba[i + 3]]
@@ -177,6 +201,11 @@ const rig = EYES.map((eye) => ({
   },
   center: [eye.rect.x + Math.floor(eye.rect.w / 2), eye.rect.y + Math.floor(eye.rect.h / 2)],
 }))
+
+const smoothstep = (t) => {
+  const x = Math.max(0, Math.min(1, t))
+  return x * x * (3 - 2 * x)
+}
 
 // ---------- 1) 身体层：原图直出 ----------
 const bodyBytes = wants('body')
@@ -255,91 +284,88 @@ const pupilsBytes = wants('pupils')
     })()
   : 0
 
-// ---------- 4) 眼窝底毛：椭圆毛色垫层（常驻藏于眼眶层下，眨眼压扁后露出） ----------
-// 形状：眼区外扩 UNDERLAY.grow 的椭圆，d<UNDERLAY.solid 全不透明、到椭圆边渐隐；填色中心为
-// 眼上/下方毛色竖向渐变，靠近边缘渐变到紧贴眼球上下的睫毛/眼窝阴影色，使垫层与眼窝阴影环
-// 无缝衔接（否则浅色圆盘嵌在深色眼窝环里会显形）；不画闭眼线（由压扁的眼眶+瞳孔层自然形成）。
+// ---------- 4) 眼窝底毛：逐角度毛色垫层（常驻藏于眼眶层下，眨眼压扁后露出） ----------
+// 形状：眼区外扩 UNDERLAY.grow 的椭圆，alpha 在 solid→1 间 1-smoothstep 渐隐。
+// 颜色（可显性的关键是「边界处与四周毛色连续」）：
+//   逐角度采样椭圆外纯毛区（d=ring 1.03/1.06/1.09 三半径取均值）的真实毛色（±win 角度平滑，
+//   保留毛发纹理的角向变化），填满核心直到 blendFrom=0.85——睫毛暗环一并被毛色替换，
+//   闭眼 = 毛色眼睑 + 压扁眼层形成的中缝线，无亮盘嵌暗环的圆形对比；
+//   0.85..0.99 按 smoothstep 混向该像素原图色，d ≥ blendTo 处颜色==原图，其外 alpha 渐隐
+//   不影响合成结果（src*a + src*(1-a) == src）——椭圆边界在合成结果中逐像素不可见。
 const underlayBytes = wants('underlay')
   ? (() => {
       const underlay = Buffer.alloc(CANVAS.width * CANVAS.height * 4)
-      // 眼窝底毛填充源：两眼之间的鼻梁纯毛矩形（真实毛发纹理，实测色调与眼周一致
-      // 243,197,143 vs 眼周 238-242,196-199,141-148），双眼共用同一源带，按椭圆 mask 裁形；
-      // 源带向内收缩 5px 避开靠眼侧的暗边列；逐通道色彩对齐兜底；垫层全不透明。
-      const srcX0 = 202
-      const srcX1 = 248
-      const srcInsetY = 8
-      const bandSum = [0, 0, 0]
-      let bandN = 0
-      for (let py = 0; py < 40; py += 1) {
-        for (let px = srcX0; px <= srcX1; px += 1) {
-          const [pr, pg, pb, pa] = srcAt(px, 150 + py)
-          if (pa < 200) continue
-          bandSum[0] += pr; bandSum[1] += pg; bandSum[2] += pb
-          bandN += 1
-        }
-      }
-      const ringSum = [0, 0, 0]
-      let ringN = 0
-      for (const eye of EYES) {
-        const cx = eye.rect.x + eye.rect.w / 2
-        const cy = eye.rect.y + eye.rect.h / 2
-        const aAxis = eye.rect.w / 2 + UNDERLAY.grow
-        const bAxis = eye.rect.h / 2 + UNDERLAY.grow
-        for (let py = Math.floor(cy - bAxis); py <= Math.ceil(cy + bAxis); py += 1) {
-          for (let px = Math.floor(cx - aAxis); px <= Math.ceil(cx + aAxis); px += 1) {
-            const dx = (px - cx) / aAxis
-            const dy = (py - cy) / bAxis
-            const d = Math.sqrt(dx * dx + dy * dy)
-            // 只取最外圈纯毛环（避开眼球深色边缘把参考均值拉暗）
-            if (d < 0.92 || d > 1) continue
-            const [pr, pg, pb, pa] = srcAt(px, py)
-            if (pa < 200) continue
-            ringSum[0] += pr; ringSum[1] += pg; ringSum[2] += pb
-            ringN += 1
-          }
-        }
-      }
-      if (ringN === 0 || bandN === 0) throw new Error('眼窝底毛色彩采样失败')
-      const toneFactor = [0, 1, 2].map((c) =>
-        Math.max(0.9, Math.min(1.1, ringSum[c] / ringN / (bandSum[c] / bandN))),
-      )
-      console.log(`[underlay] 源带均值 vs 眼周环均值 toneFactor=${toneFactor.map((f) => f.toFixed(3)).join(',')}`)
+      const BUCKETS = 720
+      const HALFwin = 8 // 角度平滑半窗（桶数）：±4°，抹噪声但保留毛发的角向明暗变化
       for (const eye of EYES) {
         const { x, y, w, h } = eye.rect
         const cx = x + w / 2
         const cy = y + h / 2
         const aAxis = w / 2 + UNDERLAY.grow
         const bAxis = h / 2 + UNDERLAY.grow
-        const x0 = Math.floor(cx - aAxis)
-        const x1 = Math.ceil(cx + aAxis)
-        const y0 = Math.floor(cy - bAxis)
-        const y1 = Math.ceil(cy + bAxis)
-        const srcY0 = Math.max(1, y - 16) + srcInsetY
-        for (let py = y0; py <= y1; py += 1) {
-          for (let px = x0; px <= x1; px += 1) {
+        const ring = new Array(BUCKETS)
+        for (let b = 0; b < BUCKETS; b += 1) {
+          const th = (b / BUCKETS) * Math.PI * 2
+          let sr = 0; let sg = 0; let sb = 0; let n = 0
+          for (const rd of UNDERLAY.ring) {
+            const sx = Math.max(0, Math.min(CANVAS.width - 1, Math.round(cx + Math.cos(th) * aAxis * rd)))
+            const sy = Math.max(0, Math.min(CANVAS.height - 1, Math.round(cy + Math.sin(th) * bAxis * rd)))
+            const [r, g, bl, a] = srcAt(sx, sy)
+            if (a < 200) continue
+            sr += r; sg += g; sb += bl; n += 1
+          }
+          ring[b] = n ? [sr / n, sg / n, sb / n] : null
+        }
+        // 环上偶发半透明采样点用邻桶均值补齐
+        for (let b = 0; b < BUCKETS; b += 1) {
+          if (ring[b]) continue
+          let sr = 0; let sg = 0; let sb = 0; let n = 0
+          for (const db of [-3, -2, -1, 1, 2, 3]) {
+            const v = ring[(b + db + BUCKETS) % BUCKETS]
+            if (v) { sr += v[0]; sg += v[1]; sb += v[2]; n += 1 }
+          }
+          ring[b] = n ? [Math.round(sr / n), Math.round(sg / n), Math.round(sb / n)] : [189, 168, 130]
+        }
+        const ringSmooth = ring.map((_, b) => {
+          let sr = 0; let sg = 0; let sb = 0
+          for (let db = -HALFwin; db <= HALFwin; db += 1) {
+            const v = ring[(b + db + BUCKETS) % BUCKETS]
+            sr += v[0]; sg += v[1]; sb += v[2]
+          }
+          const n = HALFwin * 2 + 1
+          return [sr / n, sg / n, sb / n]
+        })
+        const ringAt = (th) => {
+          const f = ((th / (Math.PI * 2)) % 1 + 1) % 1 * BUCKETS
+          const b0 = Math.floor(f) % BUCKETS
+          const b1 = (b0 + 1) % BUCKETS
+          const fr = f - Math.floor(f)
+          return [0, 1, 2].map((c) => ringSmooth[b0][c] * (1 - fr) + ringSmooth[b1][c] * fr)
+        }
+        for (let py = Math.floor(cy - bAxis); py <= Math.ceil(cy + bAxis); py += 1) {
+          for (let px = Math.floor(cx - aAxis); px <= Math.ceil(cx + aAxis); px += 1) {
             const dx = (px - cx) / aAxis
             const dy = (py - cy) / bAxis
             const d = Math.sqrt(dx * dx + dy * dy)
             if (d >= 1) continue
-            const mask = d <= UNDERLAY.solid
-              ? 255
-              : Math.round(255 * (1 - (d - UNDERLAY.solid) / (1 - UNDERLAY.solid)))
-            if (mask <= 0) continue
-            // 双线性采样鼻梁源带（横向按带宽比例压缩）
-            const gx = (px - x0) / (x1 - x0)
-            const gy = (py - y0) / (y1 - y0)
-            const fx = srcX0 + gx * (srcX1 - srcX0)
-            const fy = srcY0 + gy * (2 * bAxis - srcInsetY * 2)
-            const sx0 = Math.min(CANVAS.width - 2, Math.floor(fx))
-            const sy0 = Math.min(CANVAS.height - 2, Math.floor(fy))
-            const txr = fx - sx0
-            const tyr = fy - sy0
-            const rgb = [0, 1, 2].map((c) => {
-              const c00 = srcAt(sx0, sy0)[c] * (1 - txr) + srcAt(sx0 + 1, sy0)[c] * txr
-              const c01 = srcAt(sx0, sy0 + 1)[c] * (1 - txr) + srcAt(sx0 + 1, sy0 + 1)[c] * txr
-              return Math.min(255, Math.round((c00 * (1 - tyr) + c01 * tyr) * toneFactor[c]))
-            })
-            blendPx(underlay, px, py, rgb, mask)
+            const ta = d <= UNDERLAY.solid
+              ? 0
+              : smoothstep((d - UNDERLAY.solid) / (1 - UNDERLAY.solid))
+            const alpha = Math.round(255 * (1 - ta))
+            if (alpha <= 0) continue
+            const ringC = ringAt(Math.atan2(dy, dx))
+            const tb = d <= UNDERLAY.blendFrom
+              ? 0
+              : smoothstep((d - UNDERLAY.blendFrom) / (UNDERLAY.blendTo - UNDERLAY.blendFrom))
+            const [br, bg, bb] = srcAt(px, py)
+            // 直写 RGBA（直色非预乘）：blendPx 的累积式会把颜色按 alpha 预乘变暗，
+            // 运行时按直色合成会在半透明边缘显出暗弧（旧版圆形切边的直接成因）；
+            // 双眼椭圆不相交，每像素至多写一次，直写安全。
+            const di = (py * CANVAS.width + px) * 4
+            underlay[di] = Math.round(ringC[0] * (1 - tb) + br * tb)
+            underlay[di + 1] = Math.round(ringC[1] * (1 - tb) + bg * tb)
+            underlay[di + 2] = Math.round(ringC[2] * (1 - tb) + bb * tb)
+            underlay[di + 3] = Math.max(underlay[di + 3], alpha)
           }
         }
       }
