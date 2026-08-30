@@ -1,18 +1,27 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
+import { createCoRaiseService } from './coRaiseService.js'
 import { createRoomService } from './roomService.js'
+
+async function seedPetRoom(repositories: ReturnType<typeof createMemoryRepositories>) {
+  const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
+  const second = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
+  const friendship = createFriendshipService(repositories)
+  const relationship = await friendship.sendRequest(first.id, second.username)
+  await friendship.acceptRequest(second.id, relationship.id)
+  const coRaise = createCoRaiseService(repositories)
+  await coRaise.invite(first.id, relationship.id)
+  await coRaise.confirm(second.id, relationship.id)
+  const room = await repositories.rooms.findByRelationshipId(relationship.id)
+  if (!room) throw new Error('room missing')
+  return { first, room }
+}
 
 describe('room service', () => {
   it('stores a user message and creates a pet reply in the same room', async () => {
     const repositories = createMemoryRepositories()
-    const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
-    const second = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
-    const friendship = createFriendshipService(repositories)
-    const relationship = await friendship.sendRequest(first.id, second.username)
-    await friendship.acceptRequest(second.id, relationship.id)
-    const room = await repositories.rooms.findByRelationshipId(relationship.id)
-    if (!room) throw new Error('room missing')
+    const { first, room } = await seedPetRoom(repositories)
 
     const service = createRoomService({
       repositories,
@@ -39,13 +48,7 @@ describe('room service', () => {
 
   it('logs the AI failure before returning the fallback reply', async () => {
     const repositories = createMemoryRepositories()
-    const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
-    const second = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: 'B' })
-    const friendship = createFriendshipService(repositories)
-    const relationship = await friendship.sendRequest(first.id, second.username)
-    await friendship.acceptRequest(second.id, relationship.id)
-    const room = await repositories.rooms.findByRelationshipId(relationship.id)
-    if (!room) throw new Error('room missing')
+    const { first, room } = await seedPetRoom(repositories)
     const logError = vi.fn()
     const service = createRoomService({
       repositories,

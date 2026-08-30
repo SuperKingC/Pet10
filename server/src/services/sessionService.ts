@@ -101,7 +101,8 @@ export function createSessionService(repositories: RepositoryBundle, options?: {
         user: {
           id: user.id,
           displayName: user.displayName,
-          avatarUrl: user.avatarUrl
+          avatarUrl: user.avatarUrl,
+          uid: user.uid
         },
         rooms,
         pendingInvitations,

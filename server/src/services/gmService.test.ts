@@ -11,7 +11,7 @@ function setup() {
 }
 
 describe('gm service', () => {
-  it('adds accepted friendships with room and pet for each friend', async () => {
+  it('adds accepted friendships with rooms for each friend (no pets without co-raise confirm)', async () => {
     const { repositories, gm } = setup()
     const me = await repositories.users.create({ email: 'me@example.com', username: 'me', displayName: '我' })
 
@@ -23,7 +23,7 @@ describe('gm service', () => {
     for (const relationship of relationships) {
       const room = await repositories.rooms.findByRelationshipId(relationship.id)
       expect(room).toBeDefined()
-      expect(await repositories.pets.findByRoomId(room!.id)).toBeDefined()
+      expect(await repositories.pets.findByRoomId(room!.id)).toBeUndefined()
     }
   })
 

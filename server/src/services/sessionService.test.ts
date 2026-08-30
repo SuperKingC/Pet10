@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
+import { createCoRaiseService } from './coRaiseService.js'
 import { createSessionService } from './sessionService.js'
 
 describe('session service', () => {
@@ -50,6 +51,9 @@ describe('session service', () => {
     const friendship = createFriendshipService(repositories)
     const relationship = await friendship.sendRequest(first.id, second.username)
     await friendship.acceptRequest(second.id, relationship.id)
+    const coRaise = createCoRaiseService(repositories)
+    await coRaise.invite(first.id, relationship.id)
+    await coRaise.confirm(second.id, relationship.id)
     const service = createSessionService(repositories)
 
     const result = await service.getHome(first.id)

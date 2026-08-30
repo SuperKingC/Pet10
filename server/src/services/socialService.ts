@@ -207,6 +207,55 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
     },
 
     // ---------- 动态（小多利圈） ----------
+    /** 跨房间动态流：自己所有共养小窝的动态（用户 + 小多利），倒序合并 */
+    async listCircleFeed(userId: string, limit = 50) {
+      const relationships = await repositories.relationships.listAcceptedForUser(userId)
+      type FeedPost = {
+        id: string
+        roomId: string
+        authorType: 'user' | 'pet'
+        authorId?: string | null
+        authorName: string
+        authorAvatarUrl: string | null
+        text: string
+        imageUrl?: string | null
+        createdAt: string
+        likes: { count: number; likedByMe: boolean }
+        roomLabel: string
+      }
+      const feed: FeedPost[] = []
+      for (const relationship of relationships) {
+        const room = await repositories.rooms.findByRelationshipId(relationship.id)
+        if (!room) continue
+        const friendId = relationship.requesterId === userId ? relationship.addresseeId : relationship.requesterId
+        const friend = await repositories.users.findById(friendId)
+        const posts = await repositories.posts.listByRoom(room.id, limit)
+        for (const post of posts) {
+          const isPet = post.authorType === 'pet'
+          const author = !isPet && post.authorId
+            ? (post.authorId === userId
+              ? await repositories.users.findById(userId)
+              : friend)
+            : undefined
+          feed.push({
+            id: post.id,
+            roomId: post.roomId,
+            authorType: post.authorType,
+            authorId: post.authorId ?? null,
+            authorName: isPet ? '小多利' : (author?.displayName ?? '好友'),
+            authorAvatarUrl: isPet ? PET_AVATAR : (author?.avatarUrl ?? null),
+            text: post.text,
+            imageUrl: post.imageUrl ?? null,
+            createdAt: post.createdAt.toISOString(),
+            likes: await repositories.posts.likeStats(post.id, userId),
+            roomLabel: friend ? `${friend.displayName} 的小窝` : '小窝'
+          })
+        }
+      }
+      feed.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+      return feed.slice(0, limit)
+    },
+
     async listPosts(roomId: string, userId: string, limit = 50) {
       await assertMember(roomId, userId)
       const posts = await repositories.posts.listByRoom(roomId, limit)

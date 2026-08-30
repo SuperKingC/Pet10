@@ -10,8 +10,11 @@ export function createFriendshipService(repositories: RepositoryBundle, options?
       const trimmed = identifier.trim()
       const normalized = trimmed.toLowerCase()
       let addressee: Awaited<ReturnType<RepositoryBundle['users']['findById']>>
-      if (/^[2-9A-HJ-NP-Z]{8}$/i.test(trimmed)) {
-        // 依次按 公开码 → username → email 解析
+      if (/^\d{1,8}$/.test(trimmed)) {
+        // 八位数字 UID 精确匹配
+        addressee = await repositories.users.findByUid(trimmed.padStart(8, '0'))
+      } else if (/^[2-9A-HJ-NP-Z]{8}$/i.test(trimmed)) {
+        // 兼容旧公开码：依次按 公开码 → username 解析
         addressee = await repositories.users.findByPublicCode(trimmed)
         if (!addressee) addressee = await repositories.users.findByUsername(normalized)
       } else if (normalized.includes('@')) {
@@ -26,16 +29,20 @@ export function createFriendshipService(repositories: RepositoryBundle, options?
       }
       const relationship = await repositories.relationships.create(requesterId, addressee.id)
       const requester = await repositories.users.findById(requesterId)
-      notify(addressee.id, 'friend_request', { fromUserId: requesterId, fromName: requester?.displayName ?? '' })
+      notify(addressee.id, 'friend_request', {
+        fromUserId: requesterId,
+        fromName: requester?.displayName ?? '',
+        fromUid: requester?.uid ?? ''
+      })
       return relationship
     },
 
     async acceptRequest(userId: string, relationshipId: string) {
       const relationship = await repositories.relationships.findById(relationshipId)
       if (!relationship || relationship.addresseeId !== userId) throw new Error('relationship_not_found')
+      // 加好友只建立关系与聊天房间；小多利只能与唯一好友共养，需对方在小窝另发合养邀请并确认后才创建
       const accepted = await repositories.relationships.accept(relationshipId)
-      const room = await repositories.rooms.createForRelationship(accepted.id)
-      await repositories.pets.createForRelationship(accepted.id, room.id)
+      await repositories.rooms.createForRelationship(accepted.id)
       const accepter = await repositories.users.findById(userId)
       notify(accepted.requesterId, 'friend_accepted', { byUserId: userId, byName: accepter?.displayName ?? '' })
       return accepted

@@ -32,6 +32,7 @@ interface MiniappMeViewProps {
 export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeViewProps) {
   const profilePresentation = getProfilePresentation(context?.user || null)
   const displayName = profilePresentation.displayName
+  const uid = context?.user.uid || ''
   const [nameDraft, setNameDraft] = useState(displayName)
   const [birthday, setBirthday] = useState('')
   const [mbti, setMbti] = useState('')
@@ -121,6 +122,11 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
     }
   }
 
+  const showUidToast = () => {
+    const ordinal = uid ? String(Number(uid)) : ''
+    void showInfo(ordinal ? `你是第 ${ordinal} 位小多利用户~` : 'UID 暂不可用，请稍后再试', 1600)
+  }
+
   const copyContactEmail = () => {
     Taro.setClipboardData({ data: CONTACT_EMAIL })
       .then(() => void showInfo('邮箱已复制'))
@@ -185,9 +191,16 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
         <View className="miniapp-me__avatar" onClick={() => setAvatarEditing(true)}>
           {avatarUrl ? <Image className="miniapp-me__avatar-image" src={avatarUrl} mode="aspectFill" /> : <MiniappAvatarPreview config={avatarConfig} compact />}
         </View>
-        <View className="miniapp-me__name-row" onClick={() => setNameEditing(true)}>
-          <Text className="miniapp-me__name">{nameDraft || displayName}</Text>
-          <Text className="miniapp-me__name-hint">修改 <Text className="miniapp-me__arrow">›</Text></Text>
+        <View className="miniapp-me__profile-info">
+          <View className="miniapp-me__name-row" onClick={() => setNameEditing(true)}>
+            <Text className="miniapp-me__name">{nameDraft || displayName}</Text>
+            <Text className="miniapp-me__name-hint">修改 <Text className="miniapp-me__arrow">›</Text></Text>
+          </View>
+          {uid && (
+            <View className="miniapp-me__uid-row" onClick={showUidToast} hoverClass="miniapp-me__uid-row--hover" hoverStayTime={80}>
+              <Text className="miniapp-me__uid">UID: {uid}</Text>
+            </View>
+          )}
         </View>
       </View>
       <View className="miniapp-me__list">

@@ -5,6 +5,8 @@ export interface LaunchContext {
     id: string
     displayName: string
     avatarUrl?: string | null
+    /** 八位数字用户编号（00000001 起），用于加好友与“第 N 位用户”展示 */
+    uid?: string | null
   }
   rooms: Array<{
     id: string

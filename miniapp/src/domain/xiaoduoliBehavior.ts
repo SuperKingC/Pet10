@@ -13,8 +13,9 @@ export const XIAODUOLI_DOUBLE_BLINK_MS = 380
 export const XIAODUOLI_GLANCE_MS = 750
 export const XIAODUOLI_LOOK_MS = 1700
 export const XIAODUOLI_HOP_MS = 900
-export const XIAODUOLI_IDLE_DELAY_MIN_MS = 1800
-export const XIAODUOLI_IDLE_DELAY_MAX_MS = 6000
+// 动画间隔收紧：更频繁地表演（原 1800–6000ms 偏安静）
+export const XIAODUOLI_IDLE_DELAY_MIN_MS = 800
+export const XIAODUOLI_IDLE_DELAY_MAX_MS = 2600
 
 export function hashXiaoduoliSeed(value: string) {
   let hash = 2166136261

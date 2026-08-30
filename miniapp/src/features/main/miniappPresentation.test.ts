@@ -287,7 +287,7 @@ describe('miniapp ui presentation rules', () => {
     expect(manifest).toContain('moods/mood-4-v6.png')
   })
 
-  it('presents the message tab empty state with an invite illustration and share action', () => {
+  it('presents the message tab empty state with an invite illustration and add-friend action', () => {
     const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
     const styles = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.scss'), 'utf8')
     const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
@@ -296,9 +296,10 @@ describe('miniapp ui presentation rules', () => {
     expect(component).not.toContain('messages-plant.png')
     expect(component).toContain('hasFriendConversations')
     expect(component).toContain('你们的每一句温暖都由小多帮您记住')
-    expect(component).toContain('搜索好友并通过后，这里会显示你们的聊天。')
-    expect(component).toContain('去邀请好友')
-    expect(component).toContain('openType="share"')
+    expect(component).toContain('添加好友并通过后，这里会显示你们的聊天。')
+    expect(component).toContain('去添加好友')
+    expect(component).toContain('MiniappAddFriendModal')
+    expect(component).toContain('MiniappCirclePage')
     expect(component).toContain("mode=\"widthFix\"")
     expect(styles).not.toContain('.miniapp-messages__plant')
     expect(styles).toContain('.miniapp-messages__empty-card')

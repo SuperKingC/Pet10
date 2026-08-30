@@ -90,6 +90,11 @@ export function createSocialRoutes(dependencies: {
     try { response.json(await dependencies.social.deleteAnniversary(routeParam(request.params.roomId), request.userId!, routeParam(request.params.anniversaryId))) } catch (error) { next(error) }
   })
 
+  // 小多利圈（跨房间动态流）
+  router.get('/circle', async (request: AuthenticatedRequest, response, next) => {
+    try { response.json(await dependencies.social.listCircleFeed(request.userId!)) } catch (error) { next(error) }
+  })
+
   // 小多利圈（动态）
   router.get('/rooms/:roomId/posts', async (request: AuthenticatedRequest, response, next) => {
     try { response.json(await dependencies.social.listPosts(routeParam(request.params.roomId), request.userId!)) } catch (error) { next(error) }

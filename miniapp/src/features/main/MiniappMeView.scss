@@ -40,6 +40,14 @@
   border-radius: 20px;
 }
 
+// 头像右侧的纵向信息区：名字 + UID
+.miniapp-me__profile-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .miniapp-me__avatar-image {
   display: block;
   width: 112px;
@@ -69,6 +77,26 @@
 .miniapp-me__name-hint {
   color: #b8a499;
   font-size: var(--font-size-aux);
+}
+
+// UID 行：名字下方，点击弹“第 N 位小多利用户”
+.miniapp-me__uid-row {
+  margin-top: 10px;
+  align-self: flex-start;
+  padding: 4px 14px;
+  background: #fff4e6;
+  border: 1px solid #f2dfc8;
+  border-radius: 999px;
+}
+
+.miniapp-me__uid-row--hover {
+  opacity: .72;
+}
+
+.miniapp-me__uid {
+  color: #a1795b;
+  font-size: var(--font-size-aux);
+  letter-spacing: 1px;
 }
 
 .miniapp-rename__title {

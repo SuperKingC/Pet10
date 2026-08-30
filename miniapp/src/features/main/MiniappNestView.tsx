@@ -26,6 +26,8 @@ interface MiniappNestViewProps {
   onOpenMemories(): void
   onSceneModeChange(mode: NestSceneMode): void
   onJumpFinished(): void
+  /** 空状态/锁定态点击底部邀请按钮时触发（打开选择合养好友弹窗） */
+  onInvitePress?(): void
   /** 底部操作区（反馈文案 + 邀请/解锁按钮），锁定态时渲染进固定层 */
   footer?: ReactNode
 }
@@ -39,6 +41,7 @@ export function MiniappNestView({
   onOpenMemories,
   onSceneModeChange,
   onJumpFinished,
+  onInvitePress,
   footer,
 }: MiniappNestViewProps) {
   const [contributions, setContributions] = useState<MiniappContribution[]>([])

@@ -3,7 +3,7 @@ import { createFriendshipService } from './friendshipService.js'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 
 describe('friendship service', () => {
-  it('creates a shared room and 小多利 when a request is accepted', async () => {
+  it('creates a chat room but no pet when a request is accepted (pet needs co-raise confirm)', async () => {
     const repositories = createMemoryRepositories()
     const first = await repositories.users.create({
       email: 'first@example.com',
@@ -24,7 +24,7 @@ describe('friendship service', () => {
 
     expect(accepted.status).toBe('accepted')
     expect(room).toBeDefined()
-    expect(pet?.name).toBe('小多利')
+    expect(pet).toBeUndefined()
   })
 
   it('allows a user to bind multiple friends', async () => {

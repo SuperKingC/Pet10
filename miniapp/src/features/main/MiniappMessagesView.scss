@@ -32,6 +32,174 @@
   font-size: var(--font-size-aux);
 }
 
+/* ========== 消息页操作行：添加好友 / 小多利圈 ========== */
+
+.miniapp-messages__actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 14rpx;
+}
+
+.miniapp-messages__action {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 12rpx 26rpx;
+  background: #fff;
+  border: 1px solid #ead5c2;
+  border-radius: 999rpx;
+}
+
+.miniapp-messages__action--hover {
+  opacity: .72;
+}
+
+.miniapp-messages__action-icon {
+  color: #d9845d;
+  font-size: 26rpx;
+}
+
+.miniapp-messages__action-label {
+  color: #6b5138;
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+/* ========== 合养邀请提示入口（收到 co_raise_invitation 通知时展示） ========== */
+
+.miniapp-messages__invite-banner {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 18rpx 2px 8rpx;
+  padding: 20rpx 22rpx;
+  background: linear-gradient(135deg, #fff3df, #ffe8d6);
+  border: 1px solid #f2d9b8;
+  border-radius: 22rpx;
+  box-shadow: 0 6px 16rpx rgba(88, 57, 39, .08);
+}
+
+.miniapp-messages__invite-banner--hover {
+  opacity: .8;
+}
+
+.miniapp-messages__invite-pet {
+  flex-shrink: 0;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+}
+
+.miniapp-messages__invite-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.miniapp-messages__invite-title {
+  color: #5e3b1d;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.miniapp-messages__invite-copy {
+  margin-top: 4rpx;
+  color: #a1795b;
+  font-size: 22rpx;
+}
+
+.miniapp-messages__invite-arrow {
+  flex-shrink: 0;
+  color: #c08a5a;
+  font-size: 36rpx;
+}
+
+/* ========== 确认合养弹窗（再想想 / 确认） ========== */
+
+.miniapp-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+}
+
+.miniapp-confirm-overlay .miniapp-confirm-panel,
+.miniapp-confirm-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 560rpx;
+  padding: 36rpx 30rpx 28rpx;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 26rpx;
+  box-shadow: 0 18px 48rpx rgba(88, 57, 39, .24);
+}
+
+.miniapp-confirm-pet {
+  width: 150rpx;
+  height: 150rpx;
+  margin-bottom: 6rpx;
+}
+
+.miniapp-confirm-title {
+  color: #5e3b1d;
+  font-size: 31rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.miniapp-confirm-copy {
+  margin-top: 12rpx;
+  color: #a08a7a;
+  font-size: 24rpx;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.miniapp-confirm-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 30rpx;
+  width: 100%;
+}
+
+.miniapp-confirm-cancel,
+.miniapp-confirm-ok {
+  flex: 1;
+  margin: 0;
+  padding: 16rpx 0;
+  border: 0;
+  border-radius: 999rpx;
+  font-size: 27rpx;
+  line-height: 1.4;
+}
+
+.miniapp-confirm-cancel {
+  color: #8c7566;
+  background: #f4ece2;
+
+  &::after {
+    border: 0;
+  }
+}
+
+.miniapp-confirm-ok {
+  color: #fff;
+  background: linear-gradient(135deg, #eeb356, #e88d5a);
+
+  &::after {
+    border: 0;
+  }
+}
+
+
 /* ========== 会话列表（PWA 末版 ConversationList：头像 + 未读角标 + 时间 + 单行预览） ========== */
 
 .miniapp-messages__conversation-list {

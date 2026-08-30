@@ -19,6 +19,8 @@ import { prepareLaunchContext } from '../../services/launchPreparation'
 import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
 import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
+import { MiniappCoRaisePickerModal } from '../../features/main/MiniappCoRaisePickerModal'
+import { MiniappAddFriendModal } from '../../features/main/MiniappAddFriendModal'
 import { MiniappJournalView } from '../../features/main/MiniappJournalView'
 import { clearCachedWeekDiaries, prefetchCurrentWeekDiaries } from '../../features/main/journalWeekCache'
 import { clearCachedConversations } from '../../features/main/conversationListCache'
@@ -71,6 +73,9 @@ export default function Index() {
   const [boxPhase, setBoxPhase] = useState<'idle' | 'jumping'>('idle')
   // 消息页当前打开的全屏聊天页房间 ID（'' 表示停在会话列表），用于隐藏底部 tab 栏
   const [chatRoomId, setChatRoomId] = useState('')
+  // 选择一起养的好友弹窗（小窝空状态邀请入口）与无好友时的添加好友弹窗
+  const [coRaisePickerOpen, setCoRaisePickerOpen] = useState(false)
+  const [addFriendOpen, setAddFriendOpen] = useState(false)
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -312,6 +317,9 @@ export default function Index() {
   const invitationButton = getInvitationButtonState(Boolean(shareInvitation), preparingShare)
   const nestAction = getNestActionButton(nestSceneMode, invitationButton, boxPhase === 'jumping')
 
+  // 小多利一人一只：已在养（任一房间带 pet）时小窝空态邀请入口不再出现
+  const hasPetSomewhere = Boolean(context?.rooms.some((room) => room.pet))
+
   // 小窝底部操作区（反馈 + 邀请/解锁按钮）：锁定/空状态时由 NestView 渲染进固定全屏层
   const nestFooter = hasAuthenticatedSession(accessToken) && activeTab === 'nest' ? (
     <>
@@ -320,12 +328,13 @@ export default function Index() {
         <Button className="share-button" disabled={nestAction.disabled} onClick={() => setBoxPhase('jumping')}>
           {nestAction.label}
         </Button>
-      ) : nestAction.shareReady ? (
-        <Button className="share-button" openType="share">
-          {nestAction.label}
+      ) : nestAction.kind === 'invite' && !hasPetSomewhere ? (
+        // 空状态：点「邀请好友一起养」打开选择一起养的好友弹窗（不再直接走微信分享）
+        <Button className="share-button" onClick={() => setCoRaisePickerOpen(true)}>
+          邀请好友一起养小多利吧~
         </Button>
       ) : (
-        <Button className="share-button" disabled={nestAction.disabled} onClick={() => void prepareInvitation()}>
+        <Button className="share-button" openType="share">
           {nestAction.label}
         </Button>
       )}
@@ -338,8 +347,10 @@ export default function Index() {
         roomId={roomId}
         viewerId={context?.user.id || ''}
         friendName={context?.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
+        hasPet={hasPetSomewhere}
         onOpenRoom={loadRoomContext}
         onChatOpenChange={setChatRoomId}
+        onContextChanged={() => void loadContext(roomId)}
       />
     }
     if (activeTab === 'calendar') {
@@ -410,6 +421,22 @@ export default function Index() {
         roomId={roomId}
         onClose={() => { setTarotOpen(false); setTarotShareTitle('') }}
         onShareTitleChange={setTarotShareTitle}
+      />
+    )}
+    {coRaisePickerOpen && (
+      <MiniappCoRaisePickerModal
+        onClose={() => setCoRaisePickerOpen(false)}
+        onNeedAddFriend={() => setAddFriendOpen(true)}
+        onInvited={(name) => {
+          Taro.showToast({ title: `已向 ${name} 发出邀请，等 Ta 确认吧`, icon: 'none', duration: 1600 })
+        }}
+      />
+    )}
+    {addFriendOpen && (
+      <MiniappAddFriendModal
+        candidates={[]}
+        onClose={() => setAddFriendOpen(false)}
+        onFriendAdded={() => void loadContext(roomId)}
       />
     )}
     {hasAuthenticatedSession(accessToken) && <MiniappTabBar

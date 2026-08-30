@@ -1,0 +1,158 @@
+// 添加好友弹窗：UID 搜索 + 推荐好友 + 微信分享邀请
+.miniapp-add-friend {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.miniapp-add-friend__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(50, 32, 16, .45);
+}
+
+.miniapp-add-friend__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 18px 48px rgba(88, 57, 39, .22);
+}
+
+.miniapp-add-friend__title {
+  margin-bottom: 6px;
+  color: #5e3b1d;
+  font-size: 34px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.miniapp-add-friend__intro {
+  margin-bottom: 18px;
+  color: #a08a7a;
+  font-size: 24px;
+  text-align: center;
+}
+
+.miniapp-add-friend__search {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.miniapp-add-friend__input {
+  flex: 1;
+  padding: 14px 18px;
+  box-sizing: border-box;
+  background: #fff8ee;
+  border: 1px solid #ead5c2;
+  border-radius: 14px;
+  font-size: 27px;
+}
+
+.miniapp-add-friend__search-btn {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 28px;
+  color: #fff;
+  background: #d9845d;
+  border: 0;
+  border-radius: 14px;
+  font-size: 26px;
+  line-height: 66px;
+}
+
+.miniapp-add-friend__error {
+  margin: 8px 2px 0;
+  color: #d05b3c;
+  font-size: 23px;
+}
+
+.miniapp-add-friend__recommend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.miniapp-add-friend__section {
+  margin-bottom: 8px;
+  color: #8c7566;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.miniapp-add-friend__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 8px;
+  border-radius: 16px;
+}
+
+.miniapp-add-friend__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  background: #fff1de;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.miniapp-add-friend__avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.miniapp-add-friend__avatar-letter {
+  color: #c08a5a;
+  font-size: 30px;
+}
+
+.miniapp-add-friend__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #5e3b1d;
+  font-size: 28px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.miniapp-add-friend__state {
+  color: #b8a499;
+  font-size: 22px;
+}
+
+.miniapp-add-friend__state--raising {
+  color: #d9845d;
+}
+
+.miniapp-add-friend__share {
+  margin: 24px 0 0;
+  padding: 16px 0;
+  color: #fff;
+  background: linear-gradient(135deg, #eeb356, #e88d5a);
+  border: 0;
+  border-radius: 999px;
+  font-size: 28px;
+  line-height: 1.4;
+
+  &::after {
+    border: 0;
+  }
+}
