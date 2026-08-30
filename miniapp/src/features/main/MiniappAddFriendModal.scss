@@ -1,104 +1,135 @@
-// 添加好友弹窗：UID 搜索 + 推荐好友 + 微信分享邀请
+// 添加好友弹窗（页面根层级，z 高于底部 tab 栏）
 .miniapp-add-friend {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 56rpx;
 }
 
 .miniapp-add-friend__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(50, 32, 16, .45);
+  background: rgba(50, 32, 16, .5);
 }
 
 .miniapp-add-friend__panel {
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 560px;
-  max-height: 80vh;
-  padding: 28px 24px;
+  max-width: 640rpx;
+  max-height: 82vh;
+  padding: 0 40rpx 40rpx;
   box-sizing: border-box;
   overflow-y: auto;
   background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 18px 48px rgba(88, 57, 39, .22);
+  border-radius: 32rpx;
+  box-shadow: 0 24rpx 64rpx rgba(88, 57, 39, .26);
+}
+
+// 顶部探出的小多利
+.miniapp-add-friend__pet {
+  width: 168rpx;
+  height: 168rpx;
+  margin-top: -84rpx;
+  margin-bottom: 4rpx;
+  filter: drop-shadow(0 10rpx 18rpx rgba(88, 57, 39, .18));
 }
 
 .miniapp-add-friend__title {
-  margin-bottom: 6px;
   color: #5e3b1d;
-  font-size: 34px;
+  font-size: 38rpx;
   font-weight: 700;
-  text-align: center;
 }
 
 .miniapp-add-friend__intro {
-  margin-bottom: 18px;
+  margin-top: 10rpx;
   color: #a08a7a;
-  font-size: 24px;
+  font-size: 25rpx;
+  line-height: 1.6;
   text-align: center;
 }
 
 .miniapp-add-friend__search {
   display: flex;
-  gap: 12px;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: 16rpx;
+  width: 100%;
+  margin-top: 30rpx;
 }
 
 .miniapp-add-friend__input {
   flex: 1;
-  padding: 14px 18px;
+  min-width: 0;
+  height: 88rpx;
+  padding: 0 26rpx;
   box-sizing: border-box;
   background: #fff8ee;
-  border: 1px solid #ead5c2;
-  border-radius: 14px;
-  font-size: 27px;
+  border: 2rpx solid #ead5c2;
+  border-radius: 20rpx;
+  font-size: 29rpx;
+  color: #5e3b1d;
+}
+
+.miniapp-add-friend__placeholder {
+  color: #c3b0a2;
+  font-size: 26rpx;
 }
 
 .miniapp-add-friend__search-btn {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
   margin: 0;
-  padding: 0 28px;
+  padding: 0 44rpx;
   color: #fff;
-  background: #d9845d;
+  background: linear-gradient(135deg, #eeb356, #e88d5a);
   border: 0;
-  border-radius: 14px;
-  font-size: 26px;
-  line-height: 66px;
+  border-radius: 20rpx;
+  font-size: 29rpx;
+  line-height: 88rpx;
+
+  &::after {
+    border: 0;
+  }
 }
 
 .miniapp-add-friend__error {
-  margin: 8px 2px 0;
+  align-self: flex-start;
+  margin-top: 14rpx;
   color: #d05b3c;
-  font-size: 23px;
+  font-size: 24rpx;
 }
 
 .miniapp-add-friend__recommend {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 18px;
+  width: 100%;
+  margin-top: 30rpx;
+  padding: 22rpx 24rpx 10rpx;
+  background: #fff8ee;
+  border: 2rpx solid #f2e3d1;
+  border-radius: 22rpx;
 }
 
 .miniapp-add-friend__section {
-  margin-bottom: 8px;
+  margin-bottom: 12rpx;
   color: #8c7566;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 25rpx;
+  font-weight: 700;
 }
 
 .miniapp-add-friend__row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 8px;
-  border-radius: 16px;
+  gap: 18rpx;
+  padding: 12rpx 0;
 }
 
 .miniapp-add-friend__avatar {
@@ -106,8 +137,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
+  width: 80rpx;
+  height: 80rpx;
   background: #fff1de;
   border-radius: 50%;
   overflow: hidden;
@@ -120,7 +151,7 @@
 
 .miniapp-add-friend__avatar-letter {
   color: #c08a5a;
-  font-size: 30px;
+  font-size: 32rpx;
 }
 
 .miniapp-add-friend__name {
@@ -128,14 +159,15 @@
   min-width: 0;
   overflow: hidden;
   color: #5e3b1d;
-  font-size: 28px;
+  font-size: 29rpx;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .miniapp-add-friend__state {
+  flex-shrink: 0;
   color: #b8a499;
-  font-size: 22px;
+  font-size: 23rpx;
 }
 
 .miniapp-add-friend__state--raising {
@@ -143,14 +175,20 @@
 }
 
 .miniapp-add-friend__share {
-  margin: 24px 0 0;
-  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 92rpx;
+  margin: 36rpx 0 0;
+  padding: 0;
   color: #fff;
   background: linear-gradient(135deg, #eeb356, #e88d5a);
   border: 0;
-  border-radius: 999px;
-  font-size: 28px;
-  line-height: 1.4;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 92rpx;
 
   &::after {
     border: 0;

@@ -1,0 +1,88 @@
+// 确认合养弹窗（页面根层级，z 高于底部 tab 栏）
+.miniapp-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56rpx;
+}
+
+.miniapp-confirm-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600rpx;
+  padding: 40rpx 36rpx 32rpx;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 32rpx;
+  box-shadow: 0 24rpx 64rpx rgba(88, 57, 39, .26);
+}
+
+.miniapp-confirm-pet {
+  width: 170rpx;
+  height: 170rpx;
+  margin-top: -120rpx;
+  margin-bottom: 8rpx;
+  filter: drop-shadow(0 10rpx 18rpx rgba(88, 57, 39, .18));
+}
+
+.miniapp-confirm-title {
+  color: #5e3b1d;
+  font-size: 34rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.miniapp-confirm-copy {
+  margin-top: 14rpx;
+  color: #a08a7a;
+  font-size: 25rpx;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.miniapp-confirm-actions {
+  display: flex;
+  gap: 22rpx;
+  margin-top: 36rpx;
+  width: 100%;
+}
+
+.miniapp-confirm-cancel,
+.miniapp-confirm-ok {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999rpx;
+  font-size: 29rpx;
+  font-weight: 600;
+  line-height: 88rpx;
+}
+
+.miniapp-confirm-cancel {
+  color: #8c7566;
+  background: #f4ece2;
+
+  &::after {
+    border: 0;
+  }
+}
+
+.miniapp-confirm-ok {
+  color: #fff;
+  background: linear-gradient(135deg, #eeb356, #e88d5a);
+
+  &::after {
+    border: 0;
+  }
+}

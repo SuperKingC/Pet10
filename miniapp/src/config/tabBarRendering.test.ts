@@ -31,15 +31,15 @@ describe('miniapp tab bar rendering', () => {
     expect(styles).not.toMatch(/\.miniapp-tab--active \.miniapp-tab__icon\s*\{[\s\S]*transition:/)
   })
 
-  it('hides the tab bar while the fullscreen chat page is open', () => {
+  it('hides the tab bar while the fullscreen chat page or circle page is open', () => {
     const source = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.tsx'), 'utf8')
     const pageSource = fs.readFileSync(path.join(root, 'pages', 'index', 'index.tsx'), 'utf8')
     const messagesSource = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappMessagesView.tsx'), 'utf8')
 
-    // tab 栏支持 hidden 隐藏（直接不渲染），页面在聊天页打开时传入
+    // tab 栏支持 hidden 隐藏（直接不渲染），页面在聊天页或圈层打开时传入
     expect(source).toMatch(/hidden\s*[?:]/)
     expect(source).toContain('if (hidden) return null')
-    expect(pageSource).toContain('hidden={activeTab === \'messages\' && Boolean(chatRoomId)}')
+    expect(pageSource).toContain("hidden={(activeTab === 'messages' && Boolean(chatRoomId)) || overlayHidesTabBar}")
     // 消息视图把聊天页开关上报给页面
     expect(messagesSource).toContain('onChatOpenChange?.(openRoomId)')
     expect(pageSource).toContain('onChatOpenChange={setChatRoomId}')

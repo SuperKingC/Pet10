@@ -17,10 +17,13 @@ import { launchContextApi, type LaunchContext } from '../../services/launchConte
 import { petApi } from '../../services/petApi'
 import { prepareLaunchContext } from '../../services/launchPreparation'
 import { MiniappTabBar, type MiniappTab } from '../../components/MiniappTabBar'
+import { friendApi } from '../../services/socialCircleApi'
 import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
 import { MiniappCoRaisePickerModal } from '../../features/main/MiniappCoRaisePickerModal'
+import { MiniappCoRaiseConfirmModal } from '../../features/main/MiniappCoRaiseConfirmModal'
 import { MiniappAddFriendModal } from '../../features/main/MiniappAddFriendModal'
+import { MiniappCirclePage } from '../../features/main/MiniappCirclePage'
 import { MiniappJournalView } from '../../features/main/MiniappJournalView'
 import { clearCachedWeekDiaries, prefetchCurrentWeekDiaries } from '../../features/main/journalWeekCache'
 import { clearCachedConversations } from '../../features/main/conversationListCache'
@@ -33,6 +36,9 @@ import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
 import { MiniappTarotFlow } from '../../features/tarot/MiniappTarotFlow'
 import { getInvitationButtonState, getNestActionButton, shouldShowNestFeedback, type NestSceneMode } from '../../features/main/miniappViewModel'
 import './index.scss'
+
+// 确认弹窗顶部的小多利头像（头部裁切版，圆形/大图统一用这张）
+const petAvatarSource = require('../../assets/xiaoduoli-avatar-v2.png')
 
 const activeRoomKey = 'pet10_active_room_id'
 const invitationKey = 'pet10_invitation_token'
@@ -73,9 +79,16 @@ export default function Index() {
   const [boxPhase, setBoxPhase] = useState<'idle' | 'jumping'>('idle')
   // 消息页当前打开的全屏聊天页房间 ID（'' 表示停在会话列表），用于隐藏底部 tab 栏
   const [chatRoomId, setChatRoomId] = useState('')
-  // 选择一起养的好友弹窗（小窝空状态邀请入口）与无好友时的添加好友弹窗
-  const [coRaisePickerOpen, setCoRaisePickerOpen] = useState(false)
-  const [addFriendOpen, setAddFriendOpen] = useState(false)
+  // 页面根层级全屏覆盖层：添加好友/小多利圈/选择合养好友/确认合养（必须盖过 tab 栏 z20，
+  // 且渲染在消息页 z19 固定层之外，否则被压在下层——真机截图已验证）
+  const [overlay, setOverlay] = useState<'' | 'addFriend' | 'circle' | 'coRaisePicker' | 'confirm'>('')
+  // 小窝空状态邀请入口打开的选择合养好友弹窗（同样走 overlay）
+  const [nestCoRaiseOpen, setNestCoRaiseOpen] = useState(false)
+  // 待确认的合养邀请通知（确认弹窗数据）与确认请求状态
+  const [coRaiseConfirmInvitation, setCoRaiseConfirmInvitation] = useState<{ relationshipId: string; fromName: string } | null>(null)
+  const [coRaiseConfirmBusy, setCoRaiseConfirmBusy] = useState(false)
+  // 圈层打开时隐藏 tab 栏
+  const overlayHidesTabBar = overlay === 'circle'
 
   Taro.useLoad((options) => {
     const token = resolveInvitationLaunchToken(options)
@@ -231,6 +244,24 @@ export default function Index() {
     })
   }
 
+  // 确认合养：服务端校验唯一共养名额后补建小多利，成功刷新上下文进活跃小窝
+  const confirmCoRaiseInvitation = async () => {
+    const invitation = coRaiseConfirmInvitation
+    if (!invitation || coRaiseConfirmBusy) return
+    setCoRaiseConfirmBusy(true)
+    try {
+      await friendApi.confirmCoRaise(invitation.relationshipId)
+      setCoRaiseConfirmInvitation(null)
+      setOverlay('')
+      await loadContext()
+      setBoxPhase((current) => current === 'idle' ? 'jumping' : current)
+    } catch {
+      Taro.showToast({ title: '确认失败，可能对方已和其他人一起养了小多利', icon: 'none', duration: 1800 })
+    } finally {
+      setCoRaiseConfirmBusy(false)
+    }
+  }
+
   const handleAction = async (action: PetAction) => {
     if (!pet || !roomId) return
     setLoading(true)
@@ -330,7 +361,7 @@ export default function Index() {
         </Button>
       ) : nestAction.kind === 'invite' && !hasPetSomewhere ? (
         // 空状态：点「邀请好友一起养」打开选择一起养的好友弹窗（不再直接走微信分享）
-        <Button className="share-button" onClick={() => setCoRaisePickerOpen(true)}>
+        <Button className="share-button" onClick={() => setNestCoRaiseOpen(true)}>
           邀请好友一起养小多利吧~
         </Button>
       ) : (
@@ -348,9 +379,16 @@ export default function Index() {
         viewerId={context?.user.id || ''}
         friendName={context?.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
         hasPet={hasPetSomewhere}
+        overlay={overlay}
+        onOverlayChange={setOverlay}
+        onConfirmRequest={(invitation) => {
+          setCoRaiseConfirmInvitation({
+            relationshipId: String(invitation.payload?.relationshipId ?? ''),
+            fromName: String(invitation.payload?.fromName || '好友'),
+          })
+        }}
         onOpenRoom={loadRoomContext}
         onChatOpenChange={setChatRoomId}
-        onContextChanged={() => void loadContext(roomId)}
       />
     }
     if (activeTab === 'calendar') {
@@ -423,20 +461,35 @@ export default function Index() {
         onShareTitleChange={setTarotShareTitle}
       />
     )}
-    {coRaisePickerOpen && (
+    {overlay === 'coRaisePicker' && (
       <MiniappCoRaisePickerModal
-        onClose={() => setCoRaisePickerOpen(false)}
-        onNeedAddFriend={() => setAddFriendOpen(true)}
+        onClose={() => setOverlay('')}
+        onNeedAddFriend={() => setOverlay('addFriend')}
         onInvited={(name) => {
+          setOverlay('')
           Taro.showToast({ title: `已向 ${name} 发出邀请，等 Ta 确认吧`, icon: 'none', duration: 1600 })
         }}
       />
     )}
-    {addFriendOpen && (
+    {overlay === 'addFriend' && (
       <MiniappAddFriendModal
-        candidates={[]}
-        onClose={() => setAddFriendOpen(false)}
-        onFriendAdded={() => void loadContext(roomId)}
+        onClose={() => setOverlay('')}
+      />
+    )}
+    {overlay === 'circle' && (
+      <MiniappCirclePage
+        onBack={() => setOverlay('')}
+        onOpenAddFriend={() => setOverlay('addFriend')}
+      />
+    )}
+    {nestCoRaiseOpen && (
+      <MiniappCoRaisePickerModal
+        onClose={() => setNestCoRaiseOpen(false)}
+        onNeedAddFriend={() => setNestCoRaiseOpen(false)}
+        onInvited={(name) => {
+          setNestCoRaiseOpen(false)
+          Taro.showToast({ title: `已向 ${name} 发出邀请，等 Ta 确认吧`, icon: 'none', duration: 1600 })
+        }}
       />
     )}
     {hasAuthenticatedSession(accessToken) && <MiniappTabBar
@@ -444,7 +497,19 @@ export default function Index() {
       onChange={(tab) => { setPawMenuOpen(false); setActiveTab(tab) }}
       onOpenPawMenu={() => setPawMenuOpen((open) => !open)}
       unreadCount={context?.rooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0)}
-      hidden={activeTab === 'messages' && Boolean(chatRoomId)}
+      hidden={(activeTab === 'messages' && Boolean(chatRoomId)) || overlayHidesTabBar}
     />}
+    {overlay === 'confirm' && (
+      <MiniappCoRaiseConfirmModal
+        busy={coRaiseConfirmBusy}
+        friendName={String(coRaiseConfirmInvitation?.fromName || '好友')}
+        petAvatarSource={petAvatarSource}
+        onCancel={() => {
+          setCoRaiseConfirmInvitation(null)
+          setOverlay('')
+        }}
+        onConfirm={() => void confirmCoRaiseInvitation()}
+      />
+    )}
   </View>
 }
