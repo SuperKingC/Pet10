@@ -3,12 +3,7 @@ import { Button, Image, Input, ScrollView, Text, View } from '@tarojs/components
 import { roomApi, type RoomMessage } from '../../services/roomApi'
 import { startSingleFlightPolling } from '../../services/singleFlightPolling'
 import { socialApi, type MiniappConversation, type MiniappNotification } from '../../services/socialApi'
-import { friendApi } from '../../services/socialCircleApi'
-import { showInfo } from '../../services/feedback'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
-import { MiniappAddFriendModal } from './MiniappAddFriendModal'
-import { MiniappCoRaisePickerModal } from './MiniappCoRaisePickerModal'
-import { MiniappCirclePage } from './MiniappCirclePage'
 import { fetchConversationsWithCache, getCachedConversations as fetchCachedConversations } from './conversationListCache'
 import { getMessagePresentation, hasFriendConversations } from './miniappViewModel'
 import {
@@ -21,7 +16,8 @@ import {
 import './MiniappMessagesView.scss'
 
 const messagesEmpty = require('../../assets/messages-empty-v2.png')
-const petAvatar = require('../../assets/xiaoduoli.png')
+// 头像框（圆形 aspectFill）统一用头部裁切版：全身图裁中间会落在胸口、脑袋显示偏下
+const petAvatar = require('../../assets/xiaoduoli-avatar-v2.png')
 
 const CHAT_BOTTOM_ANCHOR_ID = 'miniapp-chat-bottom'
 
@@ -31,18 +27,21 @@ interface MiniappMessagesViewProps {
   friendName: string
   /** 是否已在任一小窝养小多利（共养后不再展示合养邀请入口） */
   hasPet: boolean
+  /** 页面根层级全屏覆盖层开关（弹窗/圈要盖过 tab 栏，必须渲染在消息页固定层之外） */
+  overlay: '' | 'addFriend' | 'circle' | 'coRaisePicker' | 'confirm'
+  onOverlayChange(overlay: '' | 'addFriend' | 'circle' | 'coRaisePicker' | 'confirm'): void
+  /** 用户点了邀请提示入口，携带待确认邀请给页面根层级渲染确认弹窗 */
+  onConfirmRequest?(invitation: MiniappNotification): void
   onOpenRoom(roomId: string): void
   /** 全屏聊天页打开/关闭时上报，页面据此隐藏底部 tab 栏 */
   onChatOpenChange?(chatRoomId: string): void
-  /** 收到合养邀请并确认后刷新全局上下文 */
-  onContextChanged?(): void
 }
 
 function isOwnMessage(message: { senderType?: 'user' | 'pet'; senderId?: string }, viewerId: string) {
   return message.senderType === 'user' && (!message.senderId || message.senderId === viewerId)
 }
 
-export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOpenRoom, onChatOpenChange, onContextChanged }: MiniappMessagesViewProps) {
+export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, overlay, onOverlayChange, onConfirmRequest, onOpenRoom, onChatOpenChange }: MiniappMessagesViewProps) {
   // tab 切换会重挂载本组件：初始化 state 时先查会话缓存，命中就直出列表（不闪无好友空态页）
   const [conversations, setConversations] = useState<MiniappConversation[]>(() => fetchCachedConversations() ?? [])
   const [conversationsLoaded, setConversationsLoaded] = useState(() => fetchCachedConversations() !== null)
@@ -57,15 +56,8 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOp
   // 各房间已读到的最新消息 ID：轮询发现更新的他人消息时计未读，打开会话即清零
   const lastSeenRef = useRef<Record<string, string>>({})
   const initializedRef = useRef(false)
-  // 添加好友弹窗 / 小多利圈 / 选择合养好友弹窗
-  const [addFriendOpen, setAddFriendOpen] = useState(false)
-  const [circleOpen, setCircleOpen] = useState(false)
-  const [coRaisePickerOpen, setCoRaisePickerOpen] = useState(false)
-  // 收到的合养邀请通知（小窝邀请提示入口数据源）
+  // 收到的合养邀请通知（小窝邀请提示入口数据源）；确认弹窗由页面根层级渲染
   const [coRaiseInvitations, setCoRaiseInvitations] = useState<MiniappNotification[]>([])
-  // 确认合养弹窗（再想想 / 确认）
-  const [confirmInvitation, setConfirmInvitation] = useState<MiniappNotification | null>(null)
-  const [confirmBusy, setConfirmBusy] = useState(false)
 
   // 会话列表 3 秒轮询：刷新预览与排序，并按最新消息累计未读角标
   useEffect(() => {
@@ -143,23 +135,6 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOp
     return () => { mounted = false }
   }, [hasPet, viewerId])
 
-  const acceptCoRaise = async (invitation: MiniappNotification) => {
-    const relationshipId = String(invitation.payload?.relationshipId ?? '')
-    if (!relationshipId || confirmBusy) return
-    setConfirmBusy(true)
-    try {
-      await friendApi.confirmCoRaise(relationshipId)
-      await socialApi.markNotificationsRead().catch(() => undefined)
-      setConfirmInvitation(null)
-      setCoRaiseInvitations((current) => current.filter((item) => item.id !== invitation.id))
-      onContextChanged?.()
-    } catch {
-      setError('确认失败，可能对方已和其他人一起养了小多利')
-    } finally {
-      setConfirmBusy(false)
-    }
-  }
-
   const openConversation = (conversation: MiniappConversation) => {
     lastSeenRef.current[conversation.roomId] = conversation.latestMessage?.id ?? ''
     setUnread((current) => {
@@ -215,7 +190,7 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOp
             className="miniapp-messages__action"
             hoverClass="miniapp-messages__action--hover"
             hoverStayTime={80}
-            onClick={() => setAddFriendOpen(true)}
+            onClick={() => onOverlayChange('addFriend')}
           >
             <Text className="miniapp-messages__action-icon">＋</Text>
             <Text className="miniapp-messages__action-label">添加好友</Text>
@@ -224,19 +199,24 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOp
             className="miniapp-messages__action"
             hoverClass="miniapp-messages__action--hover"
             hoverStayTime={80}
-            onClick={() => setCircleOpen(true)}
+            onClick={() => onOverlayChange('circle')}
           >
             <Text className="miniapp-messages__action-icon">🐾</Text>
             <Text className="miniapp-messages__action-label">小多利圈</Text>
           </View>
         </View>
       </View>
-      {!hasPet && coRaiseInvitations.length > 0 && !openRoomId && (
+      {!hasPet && coRaiseInvitations.length > 0 && !openRoomId && overlay !== 'confirm' && (
         <View
           className="miniapp-messages__invite-banner"
           hoverClass="miniapp-messages__invite-banner--hover"
           hoverStayTime={80}
-          onClick={() => setConfirmInvitation(coRaiseInvitations[0])}
+          onClick={() => {
+            const invitation = coRaiseInvitations[0]
+            setPendingInvitation(invitation)
+            onConfirmRequest?.(invitation)
+            onOverlayChange('confirm')
+          }}
         >
           <Image className="miniapp-messages__invite-pet" src={petAvatar} mode="aspectFill" fadeIn={false} />
           <View className="miniapp-messages__invite-body">
@@ -256,7 +236,7 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOp
           />
           <Text className="miniapp-messages__empty-title">还没有消息</Text>
           <Text className="miniapp-messages__empty-copy">添加好友并通过后，这里会显示你们的聊天。</Text>
-          <Button className="miniapp-messages__empty-action" onClick={() => setAddFriendOpen(true)}>去添加好友</Button>
+          <Button className="miniapp-messages__empty-action" onClick={() => onOverlayChange('addFriend')}>去添加好友</Button>
         </View>
       ) : (
         <View className="miniapp-messages__conversation-list">
@@ -421,55 +401,6 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, onOp
                 onConfirm={send}
               />
               <Button className="miniapp-chat__send" loading={busy} onClick={send}>发送</Button>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {addFriendOpen && (
-        <MiniappAddFriendModal
-          candidates={[]}
-          onClose={() => setAddFriendOpen(false)}
-        />
-      )}
-      {circleOpen && (
-        <MiniappCirclePage
-          onBack={() => setCircleOpen(false)}
-          onOpenAddFriend={() => setAddFriendOpen(true)}
-        />
-      )}
-      {coRaisePickerOpen && (
-        <MiniappCoRaisePickerModal
-          onClose={() => setCoRaisePickerOpen(false)}
-          onNeedAddFriend={() => setAddFriendOpen(true)}
-          onInvited={(name) => {
-            setCoRaisePickerOpen(false)
-            void showInfo(`已向 ${name} 发出邀请，等 Ta 确认吧`, 1600)
-          }}
-        />
-      )}
-      {confirmInvitation && (
-        <View className="miniapp-confirm-overlay">
-          <View className="miniapp-confirm-panel">
-            <Image className="miniapp-confirm-pet" src={petAvatar} mode="aspectFit" fadeIn={false} />
-            <Text className="miniapp-confirm-title">和 {String(confirmInvitation.payload?.fromName || '好友')} 一起养小多利？</Text>
-            <Text className="miniapp-confirm-copy">小多利全世界只有一只，只能与唯一的一位好友共养哦。确认选择和 Ta 一起养了吗？</Text>
-            <View className="miniapp-confirm-actions">
-              <Button
-                className="miniapp-confirm-cancel"
-                disabled={confirmBusy}
-                onClick={() => setConfirmInvitation(null)}
-              >
-                再想想
-              </Button>
-              <Button
-                className="miniapp-confirm-ok"
-                loading={confirmBusy}
-                disabled={confirmBusy}
-                onClick={() => void acceptCoRaise(confirmInvitation)}
-              >
-                确认
-              </Button>
             </View>
           </View>
         </View>

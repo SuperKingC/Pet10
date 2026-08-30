@@ -38,7 +38,7 @@ flowchart LR
 ### 小程序主界面补充
 
 - UID 与好友系统：每个用户注册时分配全局递增的八位数字 UID（`users.uid`，数据库序列 `users_uid_seq` 从 00000001 起，存量用户按创建时间回填）。「我的」页名字下方展示 `UID: 12345678` 胶囊（`miniapp-me__uid-row`），点击弹 toast「你是第 N 位小多利用户~」（N 取去前导零的数字）。消息页标题下有两枚胶囊操作「＋ 添加好友」「🐾 小多利圈」；添加好友弹窗（`MiniappAddFriendModal`）输入 8 位数字 UID 精确搜索并直接发送好友申请（服务端 `/api/friendships` 优先按 UID 解析，兼容旧公开码/用户名/邮箱；通知 payload 带 `fromUid`），下方列推荐好友（已接受关系，带「已共养小多利/已加好友」状态）与「邀请微信好友」分享按钮。加好友只建立关系与聊天房间，不再自动创建小多利。
-- 小多利圈（`MiniappCirclePage`，消息页内整页层）：聚合用户所有已接受关系的房间动态（用户 + 小多利，含升级庆祝等 pet 帖），按时间倒序；每条卡片带头像/昵称/「xx 的小窝 · 时间」、正文与点赞（♥ 计数，可切换），服务端接口 `/api/social/circle`（`listCircleFeed`）。无动态时空态引导「去添加好友」。
+- 小多利圈（`MiniappCirclePage`，消息页内整页层）：聚合用户所有已接受关系的房间动态（用户 + 小多利，含升级庆祝等 pet 帖），按时间倒序；每条卡片带头像/昵称（圆形头像框统一用头部裁切版 `xiaoduoli-avatar-v2.png`：全身竖图 aspectFill 居中裁切会落在胸口、脑袋偏下）/「xx 的小窝 · 时间」、正文与点赞（♥ 计数，可切换），服务端接口 `/api/social/circle`（`listCircleFeed`）。无动态时空态引导「去添加好友」。
 - 合养邀请流程：小窝空状态的底部按钮改为「邀请好友一起养小多利吧~」，点击弹「选择一起养的好友」弹窗（`MiniappCoRaisePickerModal`，数据 `/api/co-raise/candidates`，过滤已共养项）；列表为空时引导打开添加好友弹窗。点「邀请」调 `/api/co-raise/relationships/:id/invite`，对方在小窝（未共养时）的消息页顶部收到邀请提示入口（横幅条：小多利头像 + 「xx想和你一起养小多利」+ 引导句，数据来自通知类型 `co_raise_invitation`）。点提示弹确认框：「小多利全世界只有一只，只能与唯一的一位好友共养哦。确认选择和 Ta 一起养了吗？」，按钮「再想想 / 确认」；确认调 `/api/co-raise/relationships/:id/confirm` 服务端校验双方共养名额（任一方已有小多利则 400 `pet_quota_used`/`friend_pet_quota_used`，同房已有则 `already_co_raising`）后在该房间补建唯一小多利并写初见记忆，随后刷新上下文进入活跃小窝（boxPhase 跳箱解锁流程不变）。
 - 箱中小多利待机动画间隔收紧（`xiaoduoliBehavior.ts`：`XIAODUOLI_IDLE_DELAY_MIN/MAX_MS` 由 1800–6000ms 改为 800–2600ms），表演更频繁；动作概率与时长不变。
 - 小窝、消息、我的页标题下保留简介（句尾不带句号）；主内容区上边距收紧，底部导航位置不变；底部 tab 图标下的文字相对原位上移 4rpx（图标位置不变）。
@@ -149,11 +149,12 @@ npm run build:weapp --prefix miniapp
 | 文件 | 原始尺寸 | 体积 | 小程序用途 |
 | --- | --- | --- | --- |
 | `xiaoduoli.png` | 436×700 | 79 KB | 宠物场景主图；解锁跳出后的站立小多利 |
+| `xiaoduoli-avatar-v2.png` | 240×240 | 30 KB | 圆形头像框用头部裁切版（会话列表/聊天页/小多利圈/合养邀请条） |
 | `action-feed.png` | 445×474 | 23 KB | 喂食动作 |
 | `action-play.png` | 449×474 | 22 KB | 玩耍动作 |
 | `action-clean.png` | 448×474 | 24 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 22 KB | 睡觉动作 |
-| `room-background.jpg` | 1152×1152 | 106 KB | 小窝宠物场景背景 |
+| `room-background.jpg` | 720×981 | 76 KB | 小窝宠物场景背景（按显示比例 345:470 裁切） |
 | `navigation/game.png` | 256×256 | 12 KB | 爪印菜单游戏入口图标 |
 | `navigation/tarot.png` | 256×256 | 16 KB | 爪印菜单塔罗占卜入口图标 |
 | `navigation/gobang.png` | 256×256 | 18 KB | 游戏中心五子棋入口图标 |

@@ -4,7 +4,8 @@ import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { socialCircleApi, type MiniappCirclePost } from '../../services/socialCircleApi'
 import './MiniappCirclePage.scss'
 
-const petAvatar = require('../../assets/xiaoduoli.png')
+// 头像框（圆形 aspectFill）用头部裁切版：全身图裁中间会落在胸口、脑袋显示偏下
+const petAvatar = require('../../assets/xiaoduoli-avatar-v2.png')
 const emptyPaw = require('../../assets/messages-empty-v2.png')
 
 interface MiniappCirclePageProps {

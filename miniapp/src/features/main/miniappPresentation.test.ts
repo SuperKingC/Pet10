@@ -289,6 +289,7 @@ describe('miniapp ui presentation rules', () => {
 
   it('presents the message tab empty state with an invite illustration and add-friend action', () => {
     const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
+    const pageSource = fs.readFileSync(path.resolve(__dirname, '../../pages/index/index.tsx'), 'utf8')
     const styles = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.scss'), 'utf8')
     const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
 
@@ -298,8 +299,14 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('你们的每一句温暖都由小多帮您记住')
     expect(component).toContain('添加好友并通过后，这里会显示你们的聊天。')
     expect(component).toContain('去添加好友')
-    expect(component).toContain('MiniappAddFriendModal')
-    expect(component).toContain('MiniappCirclePage')
+    // 弹窗与圈层在页面根层级渲染（盖过 tab 栏），消息页只上报开关
+    expect(component).toContain("onOverlayChange('addFriend')")
+    expect(component).toContain("onOverlayChange('circle')")
+    expect(pageSource).toContain('<MiniappAddFriendModal')
+    expect(pageSource).toContain('<MiniappCirclePage')
+    expect(pageSource).toContain('<MiniappCoRaiseConfirmModal')
+    expect(pageSource).toContain("overlay === 'addFriend'")
+    expect(pageSource).toContain("overlay === 'circle'")
     expect(component).toContain("mode=\"widthFix\"")
     expect(styles).not.toContain('.miniapp-messages__plant')
     expect(styles).toContain('.miniapp-messages__empty-card')
@@ -325,6 +332,24 @@ describe('miniapp ui presentation rules', () => {
     expect(cache).toContain('export function getCachedConversations')
     expect(cache).toContain('export function clearCachedConversations')
     expect(indexPage).toContain('clearCachedConversations()')
+  })
+
+  it('shows the full puppy head in every circular pet avatar frame', () => {
+    const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
+    const circlePage = fs.readFileSync(path.resolve(__dirname, 'MiniappCirclePage.tsx'), 'utf8')
+    const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
+    const avatarStat = fs.statSync(path.resolve(__dirname, '../../assets/xiaoduoli-avatar-v2.png'))
+
+    // 圆形头像框（aspectFill 居中裁切）统一用头部裁切版：全身竖图裁中间落在胸口、脑袋偏下
+    expect(component).toContain("require('../../assets/xiaoduoli-avatar-v2.png')")
+    expect(circlePage).toContain("require('../../assets/xiaoduoli-avatar-v2.png')")
+    // 整狗展示场景（状态卡/登录加载/五子棋/箱中站立）仍用全身图
+    expect(fs.readFileSync(path.resolve(__dirname, '../../components/PetStatusCard.tsx'), 'utf8'))
+      .toContain("require('../assets/xiaoduoli.png')")
+    expect(fs.readFileSync(path.resolve(__dirname, 'XiaoduoliBoxScene.tsx'), 'utf8'))
+      .toContain("require('../../assets/xiaoduoli.png')")
+    expect(manifest).toContain('xiaoduoli-avatar-v2.png')
+    expect(avatarStat.size).toBeLessThan(80 * 1024)
   })
 
   it('labels friend senders in shared rooms and keeps a single room entry list', () => {

@@ -95,6 +95,11 @@
       "purpose": "Shared modal close button, rounded X only without the outer circle ring, SVG-to-PNG via miniapp/tools/make-modal-close.mjs"
     },
     {
+      "path": "miniapp/src/assets/xiaoduoli-avatar-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Puppy head crop for circular avatar frames (aspectFill center-crop of the full-body art lands on the chest and shows the head too low), square 436px head window from the full-body source resized to 240px dithered palette PNG"
+    },
+    {
       "path": "miniapp/src/assets/moods/mood-1-v6.png",
       "category": "runtime-feature",
       "purpose": "Journal editor mood picker sad puppy crying under a rain cloud, flood-flooded to true transparency from the four-mood source sheet with cheek-width head normalization, 200px dithered palette PNG"
@@ -433,6 +438,11 @@
       "path": "miniapp/src/assets/anniversaries/anniv-balloon.png",
       "category": "runtime-feature",
       "purpose": "Anniversary balloon sticker icon, hand-drawn rose balloon with brown outline, string and sparkle accents, transparent background"
+    },
+    {
+      "path": "miniapp/src/assets/room-background.jpg",
+      "category": "runtime-feature",
+      "purpose": "Nest pet scene background, center-cropped to the 345:470 display ratio at 720x981 mozjpeg q80"
     },
     {
       "path": "miniapp/src/assets/login-background.jpg",
