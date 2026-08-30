@@ -8,6 +8,7 @@ import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
 import { MiniappContributionBoard } from './MiniappContributionBoard'
 import { MiniappNestLetter } from './MiniappNestLetter'
+import { MiniappNestTaskPanel } from './MiniappNestTaskPanel'
 import { getNestSceneMode, shouldLockNestPageScroll, type NestSceneMode } from './miniappViewModel'
 import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import { reconcileStoredUnlock, writeUnlockState } from '../../services/xiaoduoliUnlockStorage'
@@ -41,6 +42,7 @@ export function MiniappNestView({
   footer,
 }: MiniappNestViewProps) {
   const [contributions, setContributions] = useState<MiniappContribution[]>([])
+  const [taskPanelOpen, setTaskPanelOpen] = useState(false)
   const [unlock, setUnlock] = useState(() => reconcileStoredUnlock(
     (context?.rooms ?? []).filter((room) => room.pet).map((room) => room.id),
   ))
@@ -85,7 +87,7 @@ export function MiniappNestView({
     <View className="miniapp-page-header miniapp-nest__header">
       <Text className="miniapp-page-title miniapp-nest__title">小窝</Text>
       <Text className="miniapp-page-caption miniapp-nest__greeting">
-        {sceneMode === 'active' ? '记录你们和小多利的共同生活。' : '记录你和小多利的共同生活。'}
+        {sceneMode === 'active' ? '记录你们和小多利的共同生活' : '记录你和小多利的共同生活'}
       </Text>
     </View>
   )
@@ -125,17 +127,22 @@ export function MiniappNestView({
               <View className="miniapp-nest__shortcut">
                 <Image src={photoWall} mode="aspectFit" />
               </View>
-              <View className="miniapp-nest__shortcut">
+              <View className="miniapp-nest__shortcut" onClick={() => setTaskPanelOpen(true)}>
                 <Image src={tasks} mode="aspectFit" />
               </View>
             </View>
           )}
         </View>
 
-        {sceneMode === 'active' && pet && <PetActionBar onAction={onAction} />}
+        {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} onAction={onAction} />}
 
         {sceneMode === 'active' && <MiniappContributionBoard contributions={contributions} names={names} />}
       </View>
+      {taskPanelOpen && (
+        <View className="journal-anniv-overlay">
+          <MiniappNestTaskPanel roomId={roomId} onClose={() => setTaskPanelOpen(false)} />
+        </View>
+      )}
       {footer}
     </>
   )

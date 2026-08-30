@@ -3,6 +3,7 @@ import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
+import { insufficientMessage } from '../../domain/nestTaskModel'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
 import { hasAuthenticatedSession, isAccountMissingError } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
@@ -20,6 +21,7 @@ import { MiniappNestView } from '../../features/main/MiniappNestView'
 import { MiniappMessagesView } from '../../features/main/MiniappMessagesView'
 import { MiniappJournalView } from '../../features/main/MiniappJournalView'
 import { clearCachedWeekDiaries, prefetchCurrentWeekDiaries } from '../../features/main/journalWeekCache'
+import { clearCachedConversations } from '../../features/main/conversationListCache'
 import { MiniappMeView } from '../../features/main/MiniappMeView'
 import { MiniappPawMenu } from '../../features/main/MiniappPawMenu'
 import { MiniappCodewordModal } from '../../features/main/MiniappCodewordModal'
@@ -231,7 +233,11 @@ export default function Index() {
       setPet(await petApi.applyAction(roomId, action))
       setMessage(actionMessages[action])
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '动作失败')
+      const reason = error instanceof Error ? error.message : ''
+      // 道具不足（服务端 409 insufficient_item）：提示去做任务
+      setMessage(reason.includes('insufficient_item')
+        ? `${insufficientMessage(action)}，去做任务可以获得道具`
+        : (reason || '动作失败'))
     } finally {
       setLoading(false)
     }
@@ -267,6 +273,7 @@ export default function Index() {
   const logout = () => {
     clearAccessToken()
     clearCachedWeekDiaries()
+    clearCachedConversations()
     setAccessToken('')
     setContext(null)
     setPet(null)
