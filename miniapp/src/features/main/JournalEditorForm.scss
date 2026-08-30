@@ -168,11 +168,13 @@
   color: #b0896c;
   font-size: var(--font-size-aux);
 }
-/* 用户照片白框可见外径 292×284（264 + 14×2 内衬、高含 20 底衬的 250 + 14+20），倾角与默认奔跑邮票一致（实测约 +6.2°） */
+/* 用户照片白框可见外径 264×256（236 + 14×2 内衬、高含 20 底衬的 222 + 14+20），
+   比默认邮票可见面再收一档——实心白块与带透明留白的邮票同数值时视觉偏大；
+   倾角与默认奔跑邮票一致（实测约 +6.2°） */
 .journal-editor__polaroid--user {
   box-sizing: content-box;
-  width: 264rpx;
-  height: 250rpx;
+  width: 236rpx;
+  height: 222rpx;
   padding: 14rpx 14rpx 20rpx;
   background: #fffdf8;
   border: 0;
@@ -181,8 +183,8 @@
   transform: rotate(6deg);
 }
 .journal-editor__polaroid--user .journal-editor__polaroid-image {
-  width: 264rpx;
-  height: 250rpx;
+  width: 236rpx;
+  height: 222rpx;
   border-radius: 8rpx;
 }
 .journal-editor__photos {

@@ -27,11 +27,11 @@ const OUTPUT_SIZE = 200
 // 源图像素，狗脸约占窗口 78%，上方留乌云/彩纸空间）。四张同一窗口同一锚点，
 // 同一只狗同尺寸绘制（眼距 182/177/184/187 ±3%），不缩放只对齐 → 天然一致
 const OUTPUT_SIZE_SQ = 200
-const EYE_CX_PCT = 50
-const EYE_CY_PCT = 45
-const WINDOW_SCALE = 0.44
+// 头部归一化基准：狗头（暖色主体）映射到画布高度百分比与头顶留白百分比
+const HEAD_TARGET_PCT = 84
+const HEAD_TOP_PCT = 8
 // 输出文件名：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
-const OUTPUT_VERSION = 'v6'
+const OUTPUT_VERSION = 'v7'
 // 洪泛容差：对参考白（卡白/盘底）的 RGB 欧氏色距；雨滴色距 ~34、灰环 ~42，须远大于卡白-盘底差 (~5)
 const FLOOD_TOL = 14
 // 边缘 alpha 渐变：色距 EDGE_FROM 全透明 → EDGE_TO 全不透明
@@ -574,18 +574,19 @@ for (const card of CARDS_2048) {
     }
   }
 
-  // 6) 归一化（统一裁窗，不缩放）：源图四格为同一只狗同尺寸绘制（1280 归档实测眼距
-  //    182/177/184/187，±3%），任何「按轮廓宽度缩放」的方案都会被姿势（耳外撇、低头、
-  //    胸毛长度）带偏——v2..v6 各版根源。改为以**眼心**为公共锚点开统一窗口：
-  //    深色组件按固定序 [耳L, 眼L, 鼻嘴, 眼R, 耳R] 判读（源图构图确定性成立），
-  //    窗口 = OUTPUT_SIZE_SQ × scale，眼心落在 (EYE_CX_PCT, EYE_CY_PCT)。
-  //    scale=1 时为源图原始像素密度直裁，零形变零缩放。
-  const scale = WINDOW_SCALE
+  // 6) 归一化（每卡按狗头主体高度归一）：早期版本用统一窗口+眼心锚，但四格姿势差异
+  //    （mood-4 低头扑姿头占 92% 卡高 vs mood-1 只有 72%）使 mood-4 头顶触边裁耳、
+  //    视觉主体偏小。改为洪泛透明化后测暖色主体（狗头，装饰不满足暖色判定不参与）：
+  //    头高统一映射到 HEAD_TARGET_PCT 画布（84% = 168px），头顶贴 HEAD_TOP_PCT（8% = 16px），
+  //    水平眼心 cx 对齐 50%。装饰（彩纸/乌云/雨滴）按同一 scale 变换，超出画布自然裁掉。
+  const head = measureHead(rgba, w, h)
+  const headH = head.bottom - head.top
+  const scale = OUTPUT_SIZE_SQ * HEAD_TARGET_PCT / 100 / headH
   const sideW = OUTPUT_SIZE_SQ
   const sideH = OUTPUT_SIZE_SQ
-  const canvasX = Math.round(sideW * EYE_CX_PCT / 100 - eyes.cx * scale)
+  const canvasX = Math.round(sideW * 50 / 100 - head.cx * scale)
   const canvas = Buffer.alloc(sideW * sideH * 4)
-  const pasteY = Math.round(sideH * EYE_CY_PCT / 100 - eyes.cy * scale)
+  const pasteY = Math.round(sideH * HEAD_TOP_PCT / 100 - head.top * scale)
   // 全内容按窗口贴入（乌云/彩纸超出窗口边缘时自然裁掉）；resizeArea 返回裸 Buffer
   const scaledW = Math.round(w * scale)
   const scaledH = Math.round(h * scale)
