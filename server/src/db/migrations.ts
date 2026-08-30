@@ -151,9 +151,13 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
     -- 八位数字 UID：从 00000001 起递增，存量用户按创建时间顺序回填
     CREATE SEQUENCE IF NOT EXISTS users_uid_seq START 1;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS uid text;
-    UPDATE users SET uid = format('%08s', nextval('users_uid_seq'))
-      WHERE uid IS NULL
-      ORDER BY created_at, id;
+    -- PG 的 UPDATE 不支持 ORDER BY，用 CTE 按序取号（lpad 补零，format 的 %08s 是空格填充）
+    WITH ordered AS (
+      SELECT id, row_number() OVER (ORDER BY created_at, id) AS seq
+      FROM users WHERE uid IS NULL
+    )
+    UPDATE users SET uid = lpad(nextval('users_uid_seq')::text, 8, '0')
+      FROM ordered WHERE users.id = ordered.id;
     -- 回填完再补唯一约束与 NOT NULL，幂等（重复执行时无 NULL 行可更新）
     CREATE UNIQUE INDEX IF NOT EXISTS users_uid_key ON users (uid);
     ALTER TABLE users ALTER COLUMN uid SET NOT NULL;

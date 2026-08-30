@@ -35,12 +35,12 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       findByEmail: (email) => one('SELECT * FROM users WHERE email=$1', [email.toLowerCase()]),
       findByUsername: (username) => one('SELECT * FROM users WHERE username=$1', [username]),
       findByPublicCode: (code) => one('SELECT * FROM users WHERE public_code=$1', [code.toUpperCase()]),
-      findByUid: (uid) => one('SELECT * FROM users WHERE uid=$1', [uid.replace(/^0+/, '') || '0']),
+      findByUid: (uid) => one('SELECT * FROM users WHERE uid=$1', [uid.replace(/^0+/, '').padStart(8, '0')]),
       create: async (input) => {
         for (let attempt = 0; attempt < 5; attempt++) {
           try {
             return await one(
-              'INSERT INTO users(email,username,display_name,public_code,uid) VALUES($1,$2,$3,$4,format(\'%08s\', nextval(\'users_uid_seq\'))) RETURNING *',
+              'INSERT INTO users(email,username,display_name,public_code,uid) VALUES($1,$2,$3,$4,lpad(nextval(\'users_uid_seq\')::text, 8, \'0\')) RETURNING *',
               [input.email.toLowerCase(), input.username, input.displayName, makePublicCode()]
             )
           } catch (error) {
