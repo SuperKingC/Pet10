@@ -18,6 +18,7 @@ import './MiniappMessagesView.scss'
 const messagesEmpty = require('../../assets/messages-empty-v2.png')
 // 头像框（圆形 aspectFill）统一用头部裁切版：全身图裁中间会落在胸口、脑袋显示偏下
 const petAvatar = require('../../assets/xiaoduoli-avatar-v2.png')
+const pawIcon = require('../../assets/navigation/paw.png')
 
 const CHAT_BOTTOM_ANCHOR_ID = 'miniapp-chat-bottom'
 
@@ -192,8 +193,14 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
             hoverStayTime={80}
             onClick={() => onOverlayChange('addFriend')}
           >
-            <Text className="miniapp-messages__action-icon">＋</Text>
-            <Text className="miniapp-messages__action-label">添加好友</Text>
+            <View className="miniapp-messages__action-badge miniapp-messages__action-badge--add">
+              <Text className="miniapp-messages__action-glyph">＋</Text>
+            </View>
+            <View className="miniapp-messages__action-text">
+              <Text className="miniapp-messages__action-label">添加好友</Text>
+              <Text className="miniapp-messages__action-sub">用 UID 找到 Ta</Text>
+            </View>
+            <Text className="miniapp-messages__action-arrow">›</Text>
           </View>
           <View
             className="miniapp-messages__action"
@@ -201,8 +208,14 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
             hoverStayTime={80}
             onClick={() => onOverlayChange('circle')}
           >
-            <Text className="miniapp-messages__action-icon">🐾</Text>
-            <Text className="miniapp-messages__action-label">小多利圈</Text>
+            <View className="miniapp-messages__action-badge miniapp-messages__action-badge--circle">
+              <Image className="miniapp-messages__action-paw" src={pawIcon} mode="aspectFit" fadeIn={false} />
+            </View>
+            <View className="miniapp-messages__action-text">
+              <Text className="miniapp-messages__action-label">小多利圈</Text>
+              <Text className="miniapp-messages__action-sub">看看新鲜事</Text>
+            </View>
+            <Text className="miniapp-messages__action-arrow">›</Text>
           </View>
         </View>
       </View>
@@ -236,7 +249,6 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
           />
           <Text className="miniapp-messages__empty-title">还没有消息</Text>
           <Text className="miniapp-messages__empty-copy">添加好友并通过后，这里会显示你们的聊天。</Text>
-          <Button className="miniapp-messages__empty-action" onClick={() => onOverlayChange('addFriend')}>去添加好友</Button>
         </View>
       ) : (
         <View className="miniapp-messages__conversation-list">

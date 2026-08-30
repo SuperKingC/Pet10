@@ -32,37 +32,112 @@
   font-size: var(--font-size-aux);
 }
 
-/* ========== 消息页操作行：添加好友 / 小多利圈 ========== */
+/* ========== 消息页操作行：添加好友 / 小多利圈（烤漆质感卡） ========== */
 
 .miniapp-messages__actions {
   display: flex;
-  gap: 16rpx;
-  margin-top: 14rpx;
+  flex: 1;
+  gap: 20rpx;
+  margin-top: 18rpx;
 }
 
 .miniapp-messages__action {
+  position: relative;
   display: flex;
+  flex: 1;
   align-items: center;
-  gap: 10rpx;
-  padding: 12rpx 26rpx;
-  background: #fff;
-  border: 1px solid #ead5c2;
-  border-radius: 999rpx;
+  gap: 16rpx;
+  padding: 18rpx 24rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #fdf6ec 100%);
+  border: 2rpx solid #f0dcc4;
+  border-radius: 24rpx;
+  box-shadow:
+    0 8rpx 20rpx rgba(88, 57, 39, .08),
+    0 2rpx 6rpx rgba(88, 57, 39, .05),
+    inset 0 2rpx 0 rgba(255, 255, 255, .9);
+  overflow: hidden;
+}
+
+// 顶部镜面高光
+.miniapp-messages__action::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0));
+  content: '';
+  pointer-events: none;
 }
 
 .miniapp-messages__action--hover {
-  opacity: .72;
+  transform: translateY(2rpx);
+  box-shadow:
+    0 4rpx 10rpx rgba(88, 57, 39, .08),
+    inset 0 2rpx 0 rgba(255, 255, 255, .9);
 }
 
-.miniapp-messages__action-icon {
-  color: #d9845d;
-  font-size: 26rpx;
+// 图标座：圆角方形渐变底 + 内圈白描边
+.miniapp-messages__action-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border: 2rpx solid rgba(255, 255, 255, .85);
+  border-radius: 18rpx;
+  box-shadow: 0 4rpx 10rpx rgba(88, 57, 39, .14);
+}
+
+.miniapp-messages__action-badge--add {
+  background: linear-gradient(135deg, #f5b96e 0%, #e88d5a 100%);
+}
+
+.miniapp-messages__action-badge--circle {
+  background: linear-gradient(135deg, #f9d386 0%, #efab60 100%);
+}
+
+.miniapp-messages__action-glyph {
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2rpx 4rpx rgba(120, 70, 30, .25);
+}
+
+.miniapp-messages__action-paw {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.miniapp-messages__action-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .miniapp-messages__action-label {
-  color: #6b5138;
-  font-size: 25rpx;
-  font-weight: 600;
+  color: #5e3b1d;
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.miniapp-messages__action-sub {
+  margin-top: 2rpx;
+  color: #b8a499;
+  font-size: 20rpx;
+  line-height: 1.2;
+}
+
+// 右侧箭头
+.miniapp-messages__action-arrow {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #d9bfa8;
+  font-size: 30rpx;
 }
 
 /* ========== 合养邀请提示入口（收到 co_raise_invitation 通知时展示） ========== */
@@ -230,7 +305,7 @@
   white-space: nowrap;
 }
 
-/* ========== 无好友空态（保留原邀请引导） ========== */
+/* ========== 无好友空态（插画 + 文案居中，入口在上方「添加好友」卡，不再重复放按钮） ========== */
 
 .miniapp-messages__empty-card {
   display: flex;
@@ -270,22 +345,6 @@
   color: #b29a8b;
   font-size: var(--font-size-aux);
   line-height: 1.6;
-}
-
-.miniapp-messages__empty-action {
-  min-width: 240px;
-  margin-top: 28px;
-  padding: 12px 24px;
-  color: #fff;
-  background: linear-gradient(180deg, #e8a06f 0%, #d37b52 100%);
-  border: 0;
-  border-radius: 999px;
-  box-shadow: 0 8px 16px rgba(211, 109, 61, .18);
-  font-size: var(--font-size-body);
-}
-
-.miniapp-messages__empty-action::after {
-  border: 0;
 }
 
 /* ========== 聊天页（PWA 末版 ChatView：返回栏 + 日期分隔 + 带头像气泡 + 输入行） ========== */

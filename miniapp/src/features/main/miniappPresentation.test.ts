@@ -298,7 +298,10 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('hasFriendConversations')
     expect(component).toContain('你们的每一句温暖都由小多帮您记住')
     expect(component).toContain('添加好友并通过后，这里会显示你们的聊天。')
-    expect(component).toContain('去添加好友')
+    // 空态卡只保留插画与文案，添加好友入口由顶部质感卡承担（不再重复放按钮）
+    expect(component).not.toContain('去添加好友')
+    expect(component).toContain('miniapp-messages__action-badge--add')
+    expect(component).toContain('miniapp-messages__action-badge--circle')
     // 弹窗与圈层在页面根层级渲染（盖过 tab 栏），消息页只上报开关
     expect(component).toContain("onOverlayChange('addFriend')")
     expect(component).toContain("onOverlayChange('circle')")
@@ -313,8 +316,9 @@ describe('miniapp ui presentation rules', () => {
     expect(styles).toContain('.miniapp-messages__empty-illustration')
     expect(styles).toMatch(/\.miniapp-messages__empty-illustration \{[^}]*width:\s*360px;/)
     expect(styles).toMatch(/\.miniapp-messages__empty-illustration \{[^}]*margin-bottom:\s*20px;/)
-    expect(styles).toContain('.miniapp-messages__empty-action')
-    expect(styles).toMatch(/\.miniapp-messages__empty-action \{[^}]*linear-gradient/)
+    expect(styles).not.toContain('.miniapp-messages__empty-action')
+    expect(styles).toMatch(/\.miniapp-messages__action-badge--add \{[^}]*linear-gradient/)
+    expect(styles).toMatch(/\.miniapp-messages__action \{[^}]*box-shadow:[^;]*inset/)
     expect(manifest).toContain('messages-empty-v2.png')
     expect(manifest).not.toContain('messages-plant.png')
   })
