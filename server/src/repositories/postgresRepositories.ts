@@ -323,6 +323,87 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         await database.query("UPDATE pet_tasks SET status='failed', updated_at=now() WHERE id=$1", [id])
       }
     },
+    nestTasks: {
+      listByRoom: (roomId) => many(
+        "SELECT * FROM nest_tasks WHERE room_id=$1 AND archived=false ORDER BY created_at",
+        [roomId]
+      ),
+      findById: (roomId, taskId) => one('SELECT * FROM nest_tasks WHERE room_id=$1 AND id=$2', [roomId, taskId]),
+      create: (input) => one(
+        `INSERT INTO nest_tasks(room_id,created_by,title,icon,repeat_rule,reward_items,reward_exp)
+         VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [input.roomId, input.createdBy, input.title, input.icon, input.repeatRule, JSON.stringify(input.rewardItems), input.rewardExp]
+      ),
+      update: (roomId, taskId, patch) => one(
+        `UPDATE nest_tasks SET
+           title = CASE WHEN $3 THEN $4 ELSE title END,
+           icon = CASE WHEN $5 THEN $6 ELSE icon END,
+           repeat_rule = CASE WHEN $7 THEN $8 ELSE repeat_rule END,
+           reward_items = CASE WHEN $9 THEN $10 ELSE reward_items END,
+           reward_exp = CASE WHEN $11 THEN $12 ELSE reward_exp END,
+           archived = CASE WHEN $13 THEN $14 ELSE archived END,
+           updated_at = now()
+         WHERE room_id=$1 AND id=$2 RETURNING *`,
+        [
+          roomId, taskId,
+          patch.title !== undefined, patch.title,
+          patch.icon !== undefined, patch.icon,
+          patch.repeatRule !== undefined, patch.repeatRule,
+          patch.rewardItems !== undefined, JSON.stringify(patch.rewardItems),
+          patch.rewardExp !== undefined, patch.rewardExp,
+          patch.archived !== undefined, patch.archived
+        ]
+      ),
+      markCompleted: (roomId, taskId, day, userId) => one(
+        `UPDATE nest_tasks SET last_completed_day=$3, last_completed_by=$4, updated_at=now()
+         WHERE room_id=$1 AND id=$2 RETURNING *`,
+        [roomId, taskId, day, userId]
+      ),
+      countActive: async (roomId) => {
+        const row = await one(
+          'SELECT count(*)::int AS count FROM nest_tasks WHERE room_id=$1 AND archived=false',
+          [roomId]
+        )
+        return row?.count ?? 0
+      }
+    },
+    inventory: {
+      listByRoom: (roomId) => many('SELECT * FROM room_inventory WHERE room_id=$1', [roomId]),
+      consume: async (roomId, itemId) => {
+        const result = await database.query(
+          'UPDATE room_inventory SET count=count-1, updated_at=now() WHERE room_id=$1 AND item_id=$2 AND count>0',
+          [roomId, itemId]
+        )
+        return result.rowCount === 1
+      },
+      add: async (roomId, itemId, count) => {
+        await database.query(
+          `INSERT INTO room_inventory(room_id,item_id,count) VALUES($1,$2,$3)
+           ON CONFLICT(room_id,item_id) DO UPDATE SET count = room_inventory.count + $3, updated_at=now()`,
+          [roomId, itemId, count]
+        )
+      },
+      async addBatch(roomId, items) {
+        for (const item of items) await database.query(
+          `INSERT INTO room_inventory(room_id,item_id,count) VALUES($1,$2,$3)
+           ON CONFLICT(room_id,item_id) DO UPDATE SET count = room_inventory.count + $3, updated_at=now()`,
+          [roomId, item.itemId, item.count]
+        )
+      },
+      grantStarterPouchOnce: async (roomId, items) => {
+        const inserted = await database.query(
+          'INSERT INTO room_pouches(room_id) VALUES($1) ON CONFLICT (room_id) DO NOTHING',
+          [roomId]
+        )
+        if (inserted.rowCount !== 1) return false
+        for (const item of items) await database.query(
+          `INSERT INTO room_inventory(room_id,item_id,count) VALUES($1,$2,$3)
+           ON CONFLICT(room_id,item_id) DO UPDATE SET count = room_inventory.count + $3, updated_at=now()`,
+          [roomId, item.itemId, item.count]
+        )
+        return true
+      }
+    },
     moods: {
       upsert: (roomId, userId, day, level) => one(
         `INSERT INTO moods(room_id,user_id,day,level) VALUES($1,$2,$3,$4)

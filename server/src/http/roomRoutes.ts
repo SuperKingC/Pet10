@@ -10,6 +10,7 @@ function routeParam(value: string | string[]) {
 export function createRoomRoutes(dependencies: {
   rooms: ReturnType<typeof import('../services/roomService.js')['createRoomService']>
   pets: ReturnType<typeof import('../services/petService.js')['createPetService']>
+  nestTasks?: ReturnType<typeof import('../services/nestTaskService.js')['createNestTaskService']>
   emit: (roomId: string, event: string, payload: unknown) => void
 }) {
   const router = Router()
@@ -40,6 +41,8 @@ export function createRoomRoutes(dependencies: {
     try {
       const { action } = z.object({ action: z.enum(['feed', 'play', 'clean', 'sleep']) }).parse(request.body)
       const roomId = routeParam(request.params.roomId)
+      // 照顾动作是道具的消耗口（睡觉免费）：未接任务服务时保持旧行为
+      if (dependencies.nestTasks) await dependencies.nestTasks.consumeForAction(roomId, request.userId!, action)
       const pet = await dependencies.pets.applyAction(roomId, request.userId!, action as PetAction)
       dependencies.emit(roomId, 'pet.updated', pet)
       response.json(pet)

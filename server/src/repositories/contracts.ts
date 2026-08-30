@@ -9,6 +9,8 @@ import type {
   Invitation,
   MapLight,
   MoodEntry,
+  NestTask,
+  NestTaskRewardItem,
   Pet,
   PetEventStat,
   PetMemory,
@@ -16,6 +18,7 @@ import type {
   Post,
   Relationship,
   Room,
+  RoomInventoryItem,
   User,
   WechatIdentity
 } from '../domain/models.js'
@@ -118,6 +121,40 @@ export interface TaskRepository {
   fail(id: string): Promise<void>
 }
 
+export interface NestTaskRepository {
+  listByRoom(roomId: string): Promise<NestTask[]>
+  findById(roomId: string, taskId: string): Promise<NestTask | undefined>
+  create(input: {
+    roomId: string
+    createdBy: string
+    title: string
+    icon: string
+    repeatRule: NestTask['repeatRule']
+    rewardItems: NestTaskRewardItem[]
+    rewardExp: number
+  }): Promise<NestTask>
+  update(roomId: string, taskId: string, patch: {
+    title?: string
+    icon?: string
+    repeatRule?: NestTask['repeatRule']
+    rewardItems?: NestTaskRewardItem[]
+    rewardExp?: number
+    archived?: boolean
+  }): Promise<NestTask | undefined>
+  markCompleted(roomId: string, taskId: string, day: string, userId: string): Promise<NestTask | undefined>
+  countActive(roomId: string): Promise<number>
+}
+
+export interface InventoryRepository {
+  listByRoom(roomId: string): Promise<RoomInventoryItem[]>
+  /** 条件扣减：库存足够时扣 1 并返回 true，不足返回 false（不抛错） */
+  consume(roomId: string, itemId: string): Promise<boolean>
+  add(roomId: string, itemId: string, count: number): Promise<void>
+  addBatch(roomId: string, items: Array<{ itemId: string; count: number }>): Promise<void>
+  /** 新手礼包：未发过则发放并返回 true，已发过返回 false */
+  grantStarterPouchOnce(roomId: string, items: Array<{ itemId: string; count: number }>): Promise<boolean>
+}
+
 export interface MoodRepository {
   upsert(roomId: string, userId: string, day: string, level: number): Promise<MoodEntry>
   listForRange(roomId: string, fromDay: string, toDay: string): Promise<MoodEntry[]>
@@ -200,6 +237,8 @@ export interface RepositoryBundle {
   messages: MessageRepository
   memories: MemoryRepository
   tasks: TaskRepository
+  nestTasks: NestTaskRepository
+  inventory: InventoryRepository
   moods: MoodRepository
   anniversaries: AnniversaryRepository
   diaries: DiaryRepository

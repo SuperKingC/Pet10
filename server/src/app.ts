@@ -30,6 +30,8 @@ import { createDiaryService } from './services/diaryService.js'
 import type { AiService } from './services/aiService.js'
 import type { createUploadService } from './services/uploadService.js'
 import { createReminderService } from './services/reminderService.js'
+import { createNestTaskService } from './services/nestTaskService.js'
+import { createNestTaskRoutes } from './http/nestTaskRoutes.js'
 import { createGobangRoutes } from './http/gobangRoutes.js'
 import type { GobangService } from './services/gobangService.js'
 
@@ -109,6 +111,12 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     emitUser,
     getInvitation: (token) => invitationService.get(token)
   })
+  const nestTaskService = createNestTaskService(repositories, {
+    onTaskCompleted: (roomId, _userId, pet, leveledUp) => {
+      emit(roomId, 'pet.updated', pet)
+      if (leveledUp) emit(roomId, 'pet.leveled_up', { pet })
+    }
+  })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
   app.use('/api/auth', createAuthRoutes({
     loginWithWechat: wechatAuthService
@@ -122,9 +130,11 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   app.use('/api/invitations', authenticate, createInvitationRoutes(invitationService))
   app.use('/api/social', authenticate, createSocialRoutes({ social: socialService, pets: petService, push: pushService }))
   app.use('/api/diaries', authenticate, createDiaryRoutes(diaryService))
+  app.use('/api', authenticate, createNestTaskRoutes(nestTaskService))
   app.use('/api/rooms', authenticate, createRoomRoutes({
     rooms: roomService,
     pets: petService,
+    nestTasks: nestTaskService,
     emit
   }))
   if (gobang) app.use('/api/games/gobang', authenticate, createGobangRoutes(gobang))

@@ -9,6 +9,7 @@ import type {
   InviteCode,
   Invitation,
   MoodEntry,
+  NestTask,
   Pet,
   PetEventStat,
   PetMemory,
@@ -19,7 +20,7 @@ import type {
   User,
   WechatIdentity
 } from '../domain/models.js'
-import type { RepositoryBundle } from './contracts.js'
+import type { RepositoryBundle, InventoryRepository, NestTaskRepository } from './contracts.js'
 
 function now() {
   return new Date()
@@ -39,6 +40,9 @@ export function createMemoryRepositories(): RepositoryBundle {
   const messages = new Map<string, ChatMessage[]>()
   const memories = new Map<string, PetMemory[]>()
   const tasks = new Map<string, PetTask>()
+  const nestTasks = new Map<string, NestTask>()
+  const inventories = new Map<string, Map<string, number>>()
+  const pouchesGranted = new Set<string>()
   const moods = new Map<string, MoodEntry>()
   const anniversaries = new Map<string, Anniversary>()
   const diaries = new Map<string, DiaryEntry>()
@@ -334,6 +338,94 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
+  const nestTaskRepo: NestTaskRepository = {
+    async listByRoom(roomId: string) {
+      return [...nestTasks.values()]
+        .filter((task) => task.roomId === roomId && !task.archived)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    },
+    async findById(roomId: string, taskId: string) {
+      const task = nestTasks.get(taskId)
+      return task && task.roomId === roomId ? task : undefined
+    },
+    async create(input) {
+      const timestamp = now()
+      const task: NestTask = {
+        ...input,
+        id: randomUUID(),
+        lastCompletedDay: null,
+        lastCompletedBy: null,
+        archived: false,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      }
+      nestTasks.set(task.id, task)
+      return task
+    },
+    async update(roomId, taskId, patch) {
+      const task = nestTasks.get(taskId)
+      if (!task || task.roomId !== roomId) return undefined
+      const updated: NestTask = {
+        ...task,
+        title: patch.title ?? task.title,
+        icon: patch.icon ?? task.icon,
+        repeatRule: patch.repeatRule ?? task.repeatRule,
+        rewardItems: patch.rewardItems ?? task.rewardItems,
+        rewardExp: patch.rewardExp ?? task.rewardExp,
+        archived: patch.archived ?? task.archived,
+        updatedAt: now()
+      }
+      nestTasks.set(taskId, updated)
+      return updated
+    },
+    async markCompleted(roomId, taskId, day, userId) {
+      const task = nestTasks.get(taskId)
+      if (!task || task.roomId !== roomId) return undefined
+      task.lastCompletedDay = day
+      task.lastCompletedBy = userId
+      task.updatedAt = now()
+      return task
+    },
+    async countActive(roomId: string) {
+      return [...nestTasks.values()].filter((task) => task.roomId === roomId && !task.archived).length
+    }
+  }
+
+  function inventoryOf(roomId: string) {
+    let items = inventories.get(roomId)
+    if (!items) {
+      items = new Map()
+      inventories.set(roomId, items)
+    }
+    return items
+  }
+
+  const inventoryRepo: InventoryRepository = {
+    async listByRoom(roomId) {
+      return [...inventoryOf(roomId).entries()].map(([itemId, count]) => ({ roomId, itemId, count }))
+    },
+    async consume(roomId, itemId) {
+      const items = inventoryOf(roomId)
+      const current = items.get(itemId) ?? 0
+      if (current <= 0) return false
+      items.set(itemId, current - 1)
+      return true
+    },
+    async add(roomId, itemId, count) {
+      const items = inventoryOf(roomId)
+      items.set(itemId, (items.get(itemId) ?? 0) + count)
+    },
+    async addBatch(roomId, entries) {
+      for (const entry of entries) await inventoryRepo.add(roomId, entry.itemId, entry.count)
+    },
+    async grantStarterPouchOnce(roomId, entries) {
+      if (pouchesGranted.has(roomId)) return false
+      pouchesGranted.add(roomId)
+      await inventoryRepo.addBatch(roomId, entries)
+      return true
+    }
+  }
+
   const moodRepo = {
     async upsert(roomId: string, userId: string, day: string, level: number) {
       const key = `${roomId}:${userId}:${day}`
@@ -549,6 +641,8 @@ export function createMemoryRepositories(): RepositoryBundle {
     messages: messageRepo,
     memories: memoryRepo,
     tasks: taskRepo,
+    nestTasks: nestTaskRepo,
+    inventory: inventoryRepo,
     moods: moodRepo,
     anniversaries: anniversaryRepo,
     diaries: diaryRepo,

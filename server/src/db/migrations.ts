@@ -119,5 +119,37 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
 
     CREATE INDEX IF NOT EXISTS diaries_user_day_idx
       ON diaries (user_id, day DESC);
+
+    CREATE TABLE IF NOT EXISTS nest_tasks (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      created_by uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title text NOT NULL,
+      icon text NOT NULL DEFAULT 'paw',
+      repeat_rule text NOT NULL DEFAULT 'daily' CHECK (repeat_rule IN ('daily', 'weekly', 'none')),
+      reward_items jsonb NOT NULL DEFAULT '[]',
+      reward_exp int NOT NULL DEFAULT 10,
+      last_completed_day date,
+      last_completed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+      archived boolean NOT NULL DEFAULT false,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS nest_tasks_room_idx
+      ON nest_tasks (room_id, archived, created_at);
+
+    CREATE TABLE IF NOT EXISTS room_inventory (
+      room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      item_id text NOT NULL,
+      count int NOT NULL DEFAULT 0 CHECK (count >= 0),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY (room_id, item_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS room_pouches (
+      room_id uuid PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+      granted_at timestamptz NOT NULL DEFAULT now()
+    );
   `)
 }

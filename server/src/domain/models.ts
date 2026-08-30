@@ -121,6 +121,35 @@ export interface PetTask {
   updatedAt: Date
 }
 
+export type NestTaskRepeat = 'daily' | 'weekly' | 'none'
+
+export interface NestTaskRewardItem {
+  itemId: string
+  count: number
+}
+
+export interface NestTask {
+  id: Id
+  roomId: Id
+  createdBy: Id
+  title: string
+  icon: string
+  repeatRule: NestTaskRepeat
+  rewardItems: NestTaskRewardItem[]
+  rewardExp: number
+  lastCompletedDay: string | null
+  lastCompletedBy: Id | null
+  archived: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface RoomInventoryItem {
+  roomId: Id
+  itemId: string
+  count: number
+}
+
 export interface MoodEntry {
   id: Id
   roomId: Id
