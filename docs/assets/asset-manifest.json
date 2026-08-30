@@ -90,6 +90,11 @@
       "purpose": "Journal editor bottom yard background"
     },
     {
+      "path": "miniapp/src/assets/common/modal-close-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Shared modal close button, rounded X only without the outer circle ring, SVG-to-PNG via miniapp/tools/make-modal-close.mjs"
+    },
+    {
       "path": "miniapp/src/assets/moods/mood-1-v5.png",
       "category": "runtime-feature",
       "purpose": "Journal editor mood picker sad puppy crying under a rain cloud, flood-flooded to true transparency from the four-mood source sheet with cheek-width head normalization, 200px dithered palette PNG"
@@ -433,6 +438,21 @@
       "path": "miniapp/src/assets/login-background.jpg",
       "category": "runtime-feature",
       "purpose": "Full-screen login page background: hand-painted gouache morning living room with Xiaoduoli waving on a rug; quiet bottom third reserved for the login CTA"
+    },
+    {
+      "path": "miniapp/src/assets/items/item-dog_food-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Task reward item icon: dog food bowl with brown biscuits, hand-drawn sticker style with brown outline, blue bowl and sparkle accents, transparent background"
+    },
+    {
+      "path": "miniapp/src/assets/items/item-ball-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Task reward item icon: red-white rubber ball, hand-drawn sticker style with brown outline and sparkle accents, transparent background"
+    },
+    {
+      "path": "miniapp/src/assets/items/item-soap-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Task reward item icon: rose soap bar with bubbles, hand-drawn sticker style with brown outline and sparkle accents, transparent background"
     }
   ]
 }

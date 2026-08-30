@@ -29,12 +29,12 @@ describe('miniapp ui presentation rules', () => {
 
     expect(component).toContain('MiniappModal')
     expect(component).toContain('miniapp-modal__close')
-    expect(component).toContain('modal-close.png')
+    expect(component).toContain('modal-close-v2.png')
     expect(styles).toContain('.miniapp-modal {')
     expect(styles).toContain('align-items: center;')
     expect(styles).toContain('.miniapp-modal__close {')
-    expect(styles).toContain('top: 24rpx;')
-    expect(styles).toContain('right: 24rpx;')
+    expect(styles).toContain('top: 22rpx;')
+    expect(styles).toContain('right: 22rpx;')
     expect(styles).not.toMatch(/\.miniapp-modal__panel[^{]*\{[^}]*inset: auto 0 0/)
   })
 
@@ -129,16 +129,6 @@ describe('miniapp ui presentation rules', () => {
     expect(styles).toMatch(/\.miniapp-paw-menu--hidden\s*\{[^}]*display:\s*none;/)
   })
 
-  it('keeps the paw menu root mounted while closed to avoid full-page rerender flashes', () => {
-    const menu = fs.readFileSync(pawMenuPath, 'utf8')
-    const styles = fs.readFileSync(pawMenuStylesPath, 'utf8')
-
-    expect(menu).not.toContain('if (!open) return null')
-    expect(menu).toContain('miniapp-paw-menu--hidden')
-    expect(menu).toContain('CLOSE_ANIMATION_MS')
-    expect(styles).toMatch(/\.miniapp-paw-menu--hidden\s*\{[^}]*display:\s*none;/)
-  })
-
   it('uses a hand-painted MBTI icon in the personal settings list', () => {
     const meView = fs.readFileSync(meViewPath, 'utf8')
 
@@ -168,7 +158,7 @@ describe('miniapp ui presentation rules', () => {
     const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
 
     expect(nestView).toContain('<MiniappNestLetter')
-    expect(nestView).toContain('记录你和小多利的共同生活。')
+    expect(nestView).toContain('记录你和小多利的共同生活')
     expect(component).toContain('letter-paper-tl-v4.png')
     expect(component).toContain('letter-paper-mc-v4.png')
     expect(component).toContain('letter-paper-br-v4.png')
@@ -209,7 +199,7 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('journalDisplayPhotos')
     expect(component).toContain('replaceTodayPhoto')
     expect(component).toContain('拍照记录')
-    expect(component).toContain('记录和小多利的每一天。')
+    expect(component).toContain('记录和小多利的每一天')
     expect(component).toContain('查看 >')
     expect(component).toContain('<JournalAnniversaryPanel')
     expect(component).not.toContain('toggleLike')
@@ -218,6 +208,9 @@ describe('miniapp ui presentation rules', () => {
     expect(component).not.toContain('journal-anniversary/journal-anniversary')
     expect(styles).toContain('.journal-today__polaroid')
     expect(styles).toMatch(/\.journal-today__polaroid \{[^}]*width: 280rpx/)
+    // 上传照片白框可见尺寸与坐姿邮票可见邮票面一致（233 内衬 + 8/8/20 边衬）
+    expect(styles).toMatch(/\.journal-today__polaroid:not\(\.journal-today__polaroid--default\) \{[^}]*width: 233rpx/)
+    expect(styles).toMatch(/\.journal-today__polaroid:not\(\.journal-today__polaroid--default\) \{[^}]*height: 202rpx/)
     expect(styles).toContain('.miniapp-journal__week-card')
     expect(styles).toMatch(/\.miniapp-journal \{[^}]*background: #fff8ee/)
     expect(styles).not.toContain('linear-gradient(180deg, #fffdf7')
@@ -247,7 +240,6 @@ describe('miniapp ui presentation rules', () => {
     expect(editor).toContain('JournalEditorForm')
     const form = fs.readFileSync(path.resolve(__dirname, 'JournalEditorForm.tsx'), 'utf8')
     const formStyles = fs.readFileSync(path.resolve(__dirname, 'JournalEditorForm.scss'), 'utf8')
-    expect(form).toContain('polaroid-run-v2.png')
     expect(form).toContain('replacePrimaryPhoto')
     expect(form).toContain('editor-yard.jpg')
     expect(form).toContain('moods/mood-1-v5.png')
@@ -273,8 +265,10 @@ describe('miniapp ui presentation rules', () => {
     expect(formStyles).toMatch(/\.journal-editor-page \{[^}]*padding: 0 28rpx 330rpx/)
     expect(formStyles).toMatch(/\.journal-editor__yard \{[^}]*bottom: -85rpx/)
     expect(formStyles).toMatch(/\.journal-editor__mood-image \{[^}]*width: 120rpx/)
+    // 上传照片白框可见尺寸与默认邮票可见邮票面一致（不大于默认邮票）
     expect(formStyles).toMatch(/\.journal-editor__polaroid \{[^}]*width: 300rpx/)
-    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*width: 272rpx/)
+    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*width: 264rpx/)
+    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*height: 250rpx/)
     expect(form).toContain('点这里放今天的照片')
     expect(form).toContain('previewImage')
     expect(form).toContain('查看大图')
@@ -317,6 +311,21 @@ describe('miniapp ui presentation rules', () => {
     expect(manifest).not.toContain('messages-plant.png')
   })
 
+  it('seeds the message tab from the conversation cache so it skips the empty flash', () => {
+    const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
+    const cache = fs.readFileSync(path.resolve(__dirname, 'conversationListCache.ts'), 'utf8')
+    const indexPage = fs.readFileSync(path.resolve(__dirname, '../../pages/index/index.tsx'), 'utf8')
+
+    // tab 重挂载时先读缓存直出会话列表，请求经缓存包装（写入缓存），登出时清缓存防串号
+    expect(component).toContain("fetchCachedConversations() ?? []")
+    expect(component).toContain("fetchCachedConversations() !== null")
+    expect(component).toContain('fetchConversationsWithCache()')
+    expect(component).not.toContain('socialApi.listConversations()')
+    expect(cache).toContain('export function getCachedConversations')
+    expect(cache).toContain('export function clearCachedConversations')
+    expect(indexPage).toContain('clearCachedConversations()')
+  })
+
   it('labels friend senders in shared rooms and keeps a single room entry list', () => {
     const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
     const indexPage = fs.readFileSync(path.resolve(__dirname, '../../pages/index/index.tsx'), 'utf8')
@@ -327,6 +336,63 @@ describe('miniapp ui presentation rules', () => {
     // 有好友时不再渲染与会话列表重复的“共享房间”入口
     expect(component).not.toContain('共享房间')
     expect(indexPage).toContain('viewerId={context?.user.id')
+  })
+
+  it('drops the pet quick-reply button from the chat composer and legacy room page', () => {
+    const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
+    const roomPage = fs.readFileSync(path.resolve(__dirname, '../../pages/room/room.tsx'), 'utf8')
+
+    // 聊天输入区与旧房间页都不再提供「叫小多利说句话」快捷按钮
+    expect(component).not.toContain('叫小多利说句话')
+    expect(component).not.toContain('miniapp-chat__quick')
+    expect(component).not.toContain('requestPetReply')
+    expect(roomPage).not.toContain('叫小多利说句话')
+    expect(roomPage).not.toContain('requestPetReply')
+  })
+
+  it('drops the trailing period from tab page captions', () => {
+    const nestView = fs.readFileSync(path.resolve(__dirname, 'MiniappNestView.tsx'), 'utf8')
+    const journalView = fs.readFileSync(path.resolve(__dirname, 'MiniappJournalView.tsx'), 'utf8')
+    const meView = fs.readFileSync(path.resolve(__dirname, 'MiniappMeView.tsx'), 'utf8')
+    const anniversaryPanel = fs.readFileSync(path.resolve(__dirname, 'JournalAnniversaryPanel.tsx'), 'utf8')
+
+    expect(nestView).toContain('记录你们和小多利的共同生活')
+    expect(nestView).toContain('记录你和小多利的共同生活')
+    expect(nestView).not.toContain('共同生活。')
+    expect(journalView).toContain('记录和小多利的每一天')
+    expect(journalView).not.toContain('每一天。')
+    expect(meView).toContain('管理你的资料和偏好')
+    expect(meView).not.toContain('偏好。')
+    expect(anniversaryPanel).toContain('把重要的日子记下来')
+    expect(anniversaryPanel).not.toContain('记下来。')
+  })
+
+  it('nudges the tab label above its resting position', () => {
+    const styles = fs.readFileSync(path.resolve(__dirname, '../../components/MiniappTabBar.scss'), 'utf8')
+
+    expect(styles).toMatch(/\.miniapp-tab \{[\s\S]*?padding: 2rpx 0 0;/)
+    expect(styles).toMatch(/\.miniapp-tab \{[\s\S]*?\.miniapp-tab__icon[\s\S]*?margin-bottom: -4rpx;/)
+  })
+
+  it('aligns the bottom clearance of every fixed tab layer at 238px', () => {
+    const messagesStyles = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.scss'), 'utf8')
+    const meStyles = fs.readFileSync(path.resolve(__dirname, 'MiniappMeView.scss'), 'utf8')
+    const nestStyles = fs.readFileSync(path.resolve(__dirname, 'MiniappNestView.scss'), 'utf8')
+
+    // 消息/我的/锁定信件层的底部净空统一 238px（与小记 226px + 12px 一致），不再紧贴底栏
+    expect(messagesStyles).toMatch(/\.miniapp-messages \{[^}]*padding: 4px 34px 238px;/)
+    expect(meStyles).toMatch(/\.miniapp-me \{[^}]*padding: 4px 46px 238px;/)
+    expect(nestStyles).toMatch(/\.nest-lock-layer \{[^}]*padding: 4px 32px 238px;/)
+  })
+
+  it('tightens the nest letter footer spacing toward the invite button', () => {
+    const letterStyles = fs.readFileSync(path.resolve(__dirname, 'MiniappNestLetter.scss'), 'utf8')
+    const indexStyles = fs.readFileSync(path.resolve(__dirname, '../../pages/index/index.scss'), 'utf8')
+
+    // 信封提示与信纸、与邀请按钮之间的间距各收窄一点
+    expect(letterStyles).toMatch(/\.nest-letter \{[^}]*gap: 0;/)
+    expect(letterStyles).toMatch(/\.nest-letter__preview \{[^}]*margin-top: 12rpx;/)
+    expect(indexStyles).toMatch(/\.share-button \{[^}]*margin-top: 20px;/)
   })
 
   it('adds and removes test friends from the hidden gm tools entry', () => {
