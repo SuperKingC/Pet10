@@ -23,15 +23,15 @@ const outDir = resolve(here, '../src/assets/moods')
 const SOURCE_ARCHIVE_MAX = 1280
 // 输出贴纸边长：日记心情选择器展示 120rpx（@3x ≈ 200px）
 const OUTPUT_SIZE = 200
-// 归一化画布：固定正方形，四张贴纸画布同尺寸 → 无逐张二次缩放形变；
-// 腮宽基准 72%（画布视觉占比更大，120rpx 下狗脸更饱满）、头顶 12%（上方留乌云/彩纸空间，
-// 底部自然落至 ~175px 视觉居中）
+// 统一裁窗：眼心落在画布 (50%, 45%)；窗口缩放 = 0.44（1280 归档卡 499px → 窗 220px
+// 源图像素，狗脸约占窗口 78%，上方留乌云/彩纸空间）。四张同一窗口同一锚点，
+// 同一只狗同尺寸绘制（眼距 182/177/184/187 ±3%），不缩放只对齐 → 天然一致
 const OUTPUT_SIZE_SQ = 200
-const CHEEK_NORM_PCT = 72
-const HEAD_TOP_PCT = 12
-const HEAD_CX_PCT = 50
+const EYE_CX_PCT = 50
+const EYE_CY_PCT = 45
+const WINDOW_SCALE = 0.44
 // 输出文件名：同路径图片会被开发者工具缓存供旧图（cache --clean 清不掉），换图必须升文件名
-const OUTPUT_VERSION = 'v5'
+const OUTPUT_VERSION = 'v6'
 // 洪泛容差：对参考白（卡白/盘底）的 RGB 欧氏色距；雨滴色距 ~34、灰环 ~42，须远大于卡白-盘底差 (~5)
 const FLOOD_TOL = 14
 // 边缘 alpha 渐变：色距 EDGE_FROM 全透明 → EDGE_TO 全不透明
@@ -48,6 +48,115 @@ const CARDS_2048 = [
   { name: 'mood-4', x: 1119, y: 1027, disc: { cx: 1518.5, cy: 1426.5, r: 357.5 } },
 ]
 const CARD_SIZE = 799
+
+// 耳带测量：主体（暖色最大连通域）顶部 12–26% 高度带内的最大行宽（双耳外缘跨）
+// 与该行中点。带窗下限避开头顶弧（那里宽度过窄），上限避开 mood-3 外撇脸侧毛（28%+ 起的宽峰）。
+function measureEarBand(rgba, w, h, head) {
+  let best = null
+  const warm = new Uint8Array(w * h)
+  for (let i = 0; i < w * h; i += 1) {
+    if (rgba[i * 4 + 3] < 128) continue
+    if (rgba[i * 4] >= rgba[i * 4 + 2] + 12) warm[i] = 1
+  }
+  // 重新做一次主体连通域（measureHead 未返回行数据，这里带行统计重扫；代价可接受）
+  const label = new Int32Array(w * h).fill(-1)
+  const stack = []
+  for (let seed = 0; seed < w * h; seed += 1) {
+    if (!warm[seed] || label[seed] >= 0) continue
+    const q = [seed]
+    label[seed] = 1
+    let count = 0
+    const rowMin = new Map()
+    const rowMax = new Map()
+    let minY = h
+    let maxY = -1
+    stack.push(seed)
+    while (stack.length) {
+      const p = stack.pop()
+      const px = p % w
+      const py = (p / w) | 0
+      count += 1
+      if (py < minY) minY = py
+      if (py > maxY) maxY = py
+      if (!rowMin.has(py) || px < rowMin.get(py)) rowMin.set(py, px)
+      if (!rowMax.has(py) || px > rowMax.get(py)) rowMax.set(py, px)
+      if (px > 0 && warm[p - 1] && label[p - 1] < 0) { label[p - 1] = 1; stack.push(p - 1) }
+      if (px < w - 1 && warm[p + 1] && label[p + 1] < 0) { label[p + 1] = 1; stack.push(p + 1) }
+      if (py > 0 && warm[p - w] && label[p - w] < 0) { label[p - w] = 1; stack.push(p - w) }
+      if (py < h - 1 && warm[p + w] && label[p + w] < 0) { label[p + w] = 1; stack.push(p + w) }
+    }
+    if (!best || count > best.count) best = { count, minY, maxY, rowMin, rowMax }
+  }
+  if (!best) throw new Error('耳带测量失败：无主体')
+  const span = best.maxY - best.minY + 1
+  const y0 = best.minY + Math.round(span * 0.12)
+  const y1 = best.minY + Math.round(span * 0.26)
+  let width = 0
+  let cx = best.rowMin.get(best.minY) !== undefined
+    ? (best.rowMin.get(best.minY) + best.rowMax.get(best.minY)) / 2
+    : w / 2
+  for (let y = y0; y <= y1; y += 1) {
+    if (!best.rowMin.has(y)) continue
+    const wd = best.rowMax.get(y) - best.rowMin.get(y) + 1
+    if (wd > width) {
+      width = wd
+      cx = (best.rowMin.get(y) + best.rowMax.get(y)) / 2
+    }
+  }
+  if (width <= 0) throw new Error('耳带测量失败：带内无主体行')
+  return { width, cx }
+}
+
+// 眼睛测量（五组件结构判读）：深色（RGB 均 <110）连通域按 minX 排序后恰为
+// [耳内L, 眼L, 鼻嘴区, 眼R, 耳内R] 五块（源图构图确定性成立，1280 归档实测：
+// 四张均为 5 块、眼距 182/177/184/187 ±3%）。取中间鼻嘴区，其左右邻即双眼；
+// 眼锚 = 两眼外缘中点（水平）与两眼面积中心均高（垂直）。
+function measureEyes(rgba, w, h) {
+  const dark = new Uint8Array(w * h)
+  for (let i = 0; i < w * h; i += 1) {
+    if (rgba[i * 4 + 3] < 128) continue
+    const R = rgba[i * 4]
+    const G = rgba[i * 4 + 1]
+    const B = rgba[i * 4 + 2]
+    if (R < 110 && G < 110 && B < 110) dark[i] = 1
+  }
+  const label = new Int32Array(w * h).fill(-1)
+  const comps = []
+  for (let seed = 0; seed < w * h; seed += 1) {
+    if (!dark[seed] || label[seed] >= 0) continue
+    const stack = [seed]
+    label[seed] = comps.length
+    let count = 0
+    let minX = w
+    let maxX = -1
+    let sumY = 0
+    while (stack.length) {
+      const p = stack.pop()
+      const px = p % w
+      const py = (p / w) | 0
+      count += 1
+      if (px < minX) minX = px
+      if (px > maxX) maxX = px
+      sumY += py
+      if (px > 0 && dark[p - 1] && label[p - 1] < 0) { label[p - 1] = comps.length; stack.push(p - 1) }
+      if (px < w - 1 && dark[p + 1] && label[p + 1] < 0) { label[p + 1] = comps.length; stack.push(p + 1) }
+      if (py > 0 && dark[p - w] && label[p - w] < 0) { label[p - w] = comps.length; stack.push(p - w) }
+      if (py < h - 1 && dark[p + w] && label[p + w] < 0) { label[p + w] = comps.length; stack.push(p + w) }
+    }
+    if (count >= 80) comps.push({ count, minX, maxX, cy: sumY / count })
+  }
+  // 噪声小斑（泪滴高光、睫毛碎点）剔除后取面积前 5，按 minX 排序即为
+  // [耳内L, 眼L, 鼻嘴, 眼R, 耳内R]（源图构图确定性成立，实测四张全部命中）
+  const big = comps
+    .filter((c) => c.count >= 300)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+    .sort((a, b) => a.minX - b.minX)
+  if (big.length !== 5) return null
+  const [earL, eyeL, nose, eyeR, earR] = big
+  return { span: eyeR.maxX - eyeL.minX + 1, cy: (eyeL.cy + eyeR.cy) / 2, cx: (eyeL.minX + eyeR.maxX) / 2 }
+}
+
 
 // 主体（狗头）测量：在透明化后的 RGBA 上取「暖色不透明像素」的最大 4 连通域。
 // 缩放基准用**腮宽**（连通域内最大行宽，同一只狗四张几何相同）与腮宽行的水平中点；
@@ -367,6 +476,11 @@ for (const card of CARDS_2048) {
   const cardImg = cropImg(image, box)
   const { width: w, height: h, rgba } = cardImg
 
+  // 2.5) 眼睛测量：必须在透明化前做——源图裁片上深色组件干净的五块结构
+  //      [耳内L, 眼L, 鼻嘴, 眼R, 耳内R]；透明化后泪滴/阴影与眼粘连会破坏判读
+  const eyes = measureEyes(rgba, w, h)
+  if (!eyes) throw new Error(`${card.name} 眼睛测量失败`)
+
   // 参考白色 = 四角 5x5 均值（卡白与圆盘底都在容差内）
   let rr = 0
   let rg = 0
@@ -460,24 +574,22 @@ for (const card of CARDS_2048) {
     }
   }
 
-  // 6) 归一化：自动测量主体连通域（狗头，暖色最大连通域），以**腮宽**为缩放基准——
-  //    同一只狗四张腮宽几何一致，表情/装饰（乌云、彩纸、汗滴）不影响它；
-  //    统一缩放到 CHEEK_NORM_PCT、头顶对齐 HEAD_TOP_PCT、腮中点对齐 HEAD_CX_PCT。
-  const head = measureHead(rgba, w, h)
-  const scale = (CHEEK_NORM_PCT / 100) * OUTPUT_SIZE / head.cheekW
-  const topPad = Math.round((HEAD_TOP_PCT / 100) * OUTPUT_SIZE)
-  // 画布固定正方形 OUTPUT_SIZE_SQ：四张画布同尺寸 → 贴完后一次等比缩回，无逐张形变；
-  // 装饰（乌云/彩纸）超宽超顶时允许裁出画布外（沿用在裁线外的像素自然丢弃）
-  const scaledW = Math.round(w * scale)
-  const cxInScaled = Math.round(head.cx * scale)
+  // 6) 归一化（统一裁窗，不缩放）：源图四格为同一只狗同尺寸绘制（1280 归档实测眼距
+  //    182/177/184/187，±3%），任何「按轮廓宽度缩放」的方案都会被姿势（耳外撇、低头、
+  //    胸毛长度）带偏——v2..v6 各版根源。改为以**眼心**为公共锚点开统一窗口：
+  //    深色组件按固定序 [耳L, 眼L, 鼻嘴, 眼R, 耳R] 判读（源图构图确定性成立），
+  //    窗口 = OUTPUT_SIZE_SQ × scale，眼心落在 (EYE_CX_PCT, EYE_CY_PCT)。
+  //    scale=1 时为源图原始像素密度直裁，零形变零缩放。
+  const scale = WINDOW_SCALE
   const sideW = OUTPUT_SIZE_SQ
-  const canvasX = Math.round(sideW * HEAD_CX_PCT / 100 - cxInScaled)
   const sideH = OUTPUT_SIZE_SQ
-  // 全内容缩放（含乌云/汗滴/彩纸），头顶对齐 topPad；resizeArea 返回裸 Buffer
-  const scaledH = Math.round(h * scale)
-  const scaled = resizeArea(rgba, w, h, scaledW, scaledH)
+  const canvasX = Math.round(sideW * EYE_CX_PCT / 100 - eyes.cx * scale)
   const canvas = Buffer.alloc(sideW * sideH * 4)
-  const pasteY = topPad - Math.round(head.top * scale)
+  const pasteY = Math.round(sideH * EYE_CY_PCT / 100 - eyes.cy * scale)
+  // 全内容按窗口贴入（乌云/彩纸超出窗口边缘时自然裁掉）；resizeArea 返回裸 Buffer
+  const scaledW = Math.round(w * scale)
+  const scaledH = Math.round(h * scale)
+  const scaled = scale === 1 ? rgba : resizeArea(rgba, w, h, scaledW, scaledH)
   for (let y = 0; y < scaledH; y += 1) {
     const ty = pasteY + y
     if (ty < 0 || ty >= sideH) continue
@@ -490,7 +602,7 @@ for (const card of CARDS_2048) {
     scaled.copy(canvas, (ty * sideW + dx) * 4, srcStart + sx * 4, srcStart + (sx + copyW) * 4)
   }
 
-  // 7) 画布即输出尺寸（等比缩放无二次形变，直接使用）
+  // 7) 画布即输出尺寸（无二次缩放，直接使用）
   const out = canvas
 
   // 8) 写文件：有 sharp 量化 PNG8，否则真彩 PNG
@@ -506,8 +618,8 @@ for (const card of CARDS_2048) {
   } catch {
     bytes = writePngRgba(outPath, OUTPUT_SIZE, OUTPUT_SIZE, out)
   }
-  results.push({ file: outFile, box, ref, ringErased, head: { top: head.top, bottom: head.bottom, cx: Math.round(head.cx) }, scale: Number(scale.toFixed(3)), kb: Number((bytes / 1024).toFixed(1)) })
-  console.log(`${card.name}: ref=${ref} ringErased=${ringErased} scale=${scale.toFixed(3)} -> ${OUTPUT_SIZE}x${OUTPUT_SIZE} ${results[results.length - 1].kb}KB`)
+  results.push({ file: outFile, box, ref, ringErased, eyes: { span: Math.round(eyes.span), cy: Math.round(eyes.cy), cx: Math.round(eyes.cx) }, kb: Number((bytes / 1024).toFixed(1)) })
+  console.log(`${card.name}: ref=${ref} ringErased=${ringErased} eye=[cx ${Math.round(eyes.cx)}, cy ${Math.round(eyes.cy)}, span ${Math.round(eyes.span)}] -> ${OUTPUT_SIZE}x${OUTPUT_SIZE} ${results[results.length - 1].kb}KB`)
 }
 
 // 9) 调试蒙太奇：暖色底上四张贴纸（查边缘光晕/残留）+ 棋盘格透明底（查 alpha）
