@@ -13,17 +13,19 @@ interface MiniappCoRaiseConfirmModalProps {
 export function MiniappCoRaiseConfirmModal({ friendName, petAvatarSource, busy, onCancel, onConfirm }: MiniappCoRaiseConfirmModalProps) {
   return (
     <View className="miniapp-confirm-overlay">
-      <View className="miniapp-confirm-panel">
+      <View className="miniapp-confirm-wrap">
         <Image className="miniapp-confirm-pet" src={petAvatarSource} mode="aspectFit" fadeIn={false} />
-        <Text className="miniapp-confirm-title">和 {friendName} 一起养小多利？</Text>
-        <Text className="miniapp-confirm-copy">小多利全世界只有一只，只能与唯一的一位好友共养哦。确认选择和 Ta 一起养了吗？</Text>
-        <View className="miniapp-confirm-actions">
-          <Button className="miniapp-confirm-cancel" disabled={busy} onClick={onCancel}>
-            再想想
-          </Button>
-          <Button className="miniapp-confirm-ok" loading={busy} disabled={busy} onClick={onConfirm}>
-            确认
-          </Button>
+        <View className="miniapp-confirm-panel">
+          <Text className="miniapp-confirm-title">和 {friendName} 一起养小多利？</Text>
+          <Text className="miniapp-confirm-copy">小多利全世界只有一只，只能与唯一的一位好友共养哦。确认选择和 Ta 一起养了吗？</Text>
+          <View className="miniapp-confirm-actions">
+            <Button className="miniapp-confirm-cancel" disabled={busy} onClick={onCancel}>
+              再想想
+            </Button>
+            <Button className="miniapp-confirm-ok" loading={busy} disabled={busy} onClick={onConfirm}>
+              确认
+            </Button>
+          </View>
         </View>
       </View>
     </View>

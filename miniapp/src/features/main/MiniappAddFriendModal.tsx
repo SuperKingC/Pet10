@@ -56,57 +56,59 @@ export function MiniappAddFriendModal({ onClose }: MiniappAddFriendModalProps) {
   return (
     <View className="miniapp-add-friend">
       <View className="miniapp-add-friend__backdrop" onClick={onClose} />
-      <View className="miniapp-add-friend__panel">
+      <View className="miniapp-add-friend__wrap">
         <Image className="miniapp-add-friend__pet" src={petAvatar} mode="aspectFit" fadeIn={false} />
-        <Text className="miniapp-add-friend__title">添加好友</Text>
-        <Text className="miniapp-add-friend__intro">输入对方的 UID 直接添加，或把小多利介绍给你的微信好友。</Text>
-        <View className="miniapp-add-friend__search">
-          <Input
-            className="miniapp-add-friend__input"
-            value={uidDraft}
-            type="number"
-            maxlength={8}
-            placeholder="输入好友 UID"
-            placeholderClass="miniapp-add-friend__placeholder"
-            onInput={(event) => setUidDraft(event.detail.value)}
-            onConfirm={() => void submitSearch()}
-          />
-          <Button
-            className="miniapp-add-friend__search-btn"
-            loading={busy}
-            disabled={busy || !uidDraft.trim()}
-            onClick={() => void submitSearch()}
-          >
-            搜索
+        <View className="miniapp-add-friend__panel">
+          <Text className="miniapp-add-friend__title">添加好友</Text>
+          <Text className="miniapp-add-friend__intro">输入对方的 UID 直接添加，或把小多利介绍给你的微信好友。</Text>
+          <View className="miniapp-add-friend__search">
+            <Input
+              className="miniapp-add-friend__input"
+              value={uidDraft}
+              type="number"
+              maxlength={8}
+              placeholder="输入好友 UID"
+              placeholderClass="miniapp-add-friend__placeholder"
+              onInput={(event) => setUidDraft(event.detail.value)}
+              onConfirm={() => void submitSearch()}
+            />
+            <Button
+              className="miniapp-add-friend__search-btn"
+              loading={busy}
+              disabled={busy || !uidDraft.trim()}
+              onClick={() => void submitSearch()}
+            >
+              搜索
+            </Button>
+          </View>
+          {error ? <Text className="miniapp-add-friend__error">{error}</Text> : null}
+          {recommended.length > 0 && (
+            <View className="miniapp-add-friend__recommend">
+              <Text className="miniapp-add-friend__section">我的好友</Text>
+              {recommended.map((candidate) => (
+                <View key={candidate.relationshipId} className="miniapp-add-friend__row">
+                  <View className="miniapp-add-friend__avatar">
+                    {candidate.friend.avatarUrl ? (
+                      <Image className="miniapp-add-friend__avatar-image" src={candidate.friend.avatarUrl} mode="aspectFill" />
+                    ) : (
+                      <Text className="miniapp-add-friend__avatar-letter">{candidate.friend.displayName.slice(0, 1)}</Text>
+                    )}
+                  </View>
+                  <Text className="miniapp-add-friend__name">{candidate.friend.displayName}</Text>
+                  <Text className={candidate.coRaising
+                    ? 'miniapp-add-friend__state miniapp-add-friend__state--raising'
+                    : 'miniapp-add-friend__state'}
+                  >
+                    {candidate.coRaising ? '已共养小多利' : '已加好友'}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          <Button className="miniapp-add-friend__share" openType="share">
+            邀请微信好友
           </Button>
         </View>
-        {error ? <Text className="miniapp-add-friend__error">{error}</Text> : null}
-        {recommended.length > 0 && (
-          <View className="miniapp-add-friend__recommend">
-            <Text className="miniapp-add-friend__section">我的好友</Text>
-            {recommended.map((candidate) => (
-              <View key={candidate.relationshipId} className="miniapp-add-friend__row">
-                <View className="miniapp-add-friend__avatar">
-                  {candidate.friend.avatarUrl ? (
-                    <Image className="miniapp-add-friend__avatar-image" src={candidate.friend.avatarUrl} mode="aspectFill" />
-                  ) : (
-                    <Text className="miniapp-add-friend__avatar-letter">{candidate.friend.displayName.slice(0, 1)}</Text>
-                  )}
-                </View>
-                <Text className="miniapp-add-friend__name">{candidate.friend.displayName}</Text>
-                <Text className={candidate.coRaising
-                  ? 'miniapp-add-friend__state miniapp-add-friend__state--raising'
-                  : 'miniapp-add-friend__state'}
-                >
-                  {candidate.coRaising ? '已共养小多利' : '已加好友'}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-        <Button className="miniapp-add-friend__share" openType="share">
-          邀请微信好友
-        </Button>
       </View>
     </View>
   )

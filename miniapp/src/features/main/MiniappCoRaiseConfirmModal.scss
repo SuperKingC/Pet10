@@ -1,4 +1,5 @@
 // 确认合养弹窗（页面根层级，z 高于底部 tab 栏）
+// 头像放在外层 wrap，面板内不再用负 margin 探出（会被 overflow 或相邻元素裁掉）
 .miniapp-confirm-overlay {
   position: fixed;
   inset: 0;
@@ -9,47 +10,55 @@
   padding: 56rpx;
 }
 
-.miniapp-confirm-panel {
+.miniapp-confirm-wrap {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 600rpx;
-  padding: 40rpx 36rpx 32rpx;
-  box-sizing: border-box;
-  background: #fff;
-  border-radius: 32rpx;
-  box-shadow: 0 24rpx 64rpx rgba(88, 57, 39, .26);
+  max-width: 640rpx;
 }
 
 .miniapp-confirm-pet {
-  width: 170rpx;
-  height: 170rpx;
-  margin-top: -120rpx;
-  margin-bottom: 8rpx;
+  position: relative;
+  z-index: 1;
+  width: 190rpx;
+  height: 190rpx;
+  margin-bottom: -95rpx;
   filter: drop-shadow(0 10rpx 18rpx rgba(88, 57, 39, .18));
+}
+
+.miniapp-confirm-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 118rpx 40rpx 36rpx;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 36rpx;
+  box-shadow: 0 24rpx 64rpx rgba(88, 57, 39, .26);
 }
 
 .miniapp-confirm-title {
   color: #5e3b1d;
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 700;
   text-align: center;
 }
 
 .miniapp-confirm-copy {
-  margin-top: 14rpx;
+  margin-top: 16rpx;
   color: #a08a7a;
-  font-size: 25rpx;
+  font-size: 27rpx;
   line-height: 1.7;
   text-align: center;
 }
 
 .miniapp-confirm-actions {
   display: flex;
-  gap: 22rpx;
-  margin-top: 36rpx;
+  gap: 24rpx;
+  margin-top: 40rpx;
   width: 100%;
 }
 
@@ -59,14 +68,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 88rpx;
+  height: 96rpx;
   margin: 0;
   padding: 0;
   border: 0;
   border-radius: 999rpx;
-  font-size: 29rpx;
+  font-size: 31rpx;
   font-weight: 600;
-  line-height: 88rpx;
+  line-height: 96rpx;
 }
 
 .miniapp-confirm-cancel {
