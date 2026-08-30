@@ -4,7 +4,7 @@
   "description": "Pet10 微信小程序体验版",
   "appid": "wxf0ba7afb8efc218d",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "es6": false,
     "enhance": true,
     "compileHotReLoad": false,

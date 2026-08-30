@@ -34,7 +34,14 @@
     },
     "underlay": {
       "grow": 7,
-      "solid": 0.88
+      "solid": 0.94,
+      "blendFrom": 0.6,
+      "blendTo": 0.92,
+      "ring": [
+        1.03,
+        1.06,
+        1.09
+      ]
     }
   },
   "parts": {
@@ -52,7 +59,7 @@
     },
     "underlay": {
       "file": "src/assets/nest/xiaoduoli-underlay.png",
-      "bytes": 19024
+      "bytes": 21294
     }
   },
   "generated": {
