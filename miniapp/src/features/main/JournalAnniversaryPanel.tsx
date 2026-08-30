@@ -77,7 +77,7 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
         <MiniappBackButton onClick={onClose} />
         <Text className="journal-anniv-panel__title">纪念日</Text>
       </View>
-      <Text className="journal-anniv-panel__caption">把重要的日子记下来。</Text>
+      <Text className="journal-anniv-panel__caption">把重要的日子记下来</Text>
       {form ? (
         <AnniversaryForm
           defaultDay={form.day}

@@ -89,20 +89,6 @@ export default function Room() {
     }
   }
 
-  const requestPetReply = async () => {
-    if (!roomId || submitting) return
-    setSubmitting(true)
-    try {
-      const reply = await roomApi.requestPetReply(roomId)
-      setMessages((current) => [...current.filter((message) => message.id !== reply.id), reply])
-      setStatus('小多利来啦')
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : '小多利暂时没有回应')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   const senderName = (message: RoomMessage) => {
     if (message.senderType === 'pet') return bootstrap?.pet?.name || '小多利'
     if (message.senderId === context?.user.id) return '我'
@@ -166,9 +152,6 @@ export default function Room() {
         <Button className="send-button" loading={submitting} onClick={sendMessage}>发送</Button>
       </View>
 
-      <Button className="pet-reply-button" loading={submitting} onClick={requestPetReply}>
-        叫小多利说句话
-      </Button>
       <Text className="room-status">{status}</Text>
     </View>
   )

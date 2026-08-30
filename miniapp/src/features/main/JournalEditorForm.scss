@@ -147,7 +147,9 @@
   font-size: var(--font-size-body);
   line-height: 1.8;
 }
-/* 空态与上传照片外框同为 300rpx 宽、326rpx 高，切换不跳变；提示文字收在框内下方，不遮工具栏 */
+/* 空态拍立得 300rpx 宽居中；上传照片白框可见尺寸与默认奔跑邮票可见邮票面一致：
+   邮票 420 容器显示 300rpx，可见邮票面 410/420×300 ≈ 293 宽、398/410 比例 ≈ 284 高（含底部白边），
+   切换不跳变、不显大；提示文字收在框内下方，不遮工具栏 */
 .journal-editor__polaroid {
   display: flex;
   flex-direction: column;
@@ -166,12 +168,12 @@
   color: #b0896c;
   font-size: var(--font-size-aux);
 }
-/* 用户照片白框外径同为 300×326（272 + 14×2 内衬），倾角与默认奔跑邮票一致（实测约 +6.2°） */
+/* 用户照片白框可见外径 292×284（264 + 14×2 内衬、高含 20 底衬的 250 + 14+20），倾角与默认奔跑邮票一致（实测约 +6.2°） */
 .journal-editor__polaroid--user {
   box-sizing: content-box;
-  width: 272rpx;
-  height: 272rpx;
-  padding: 14rpx 14rpx 40rpx;
+  width: 264rpx;
+  height: 250rpx;
+  padding: 14rpx 14rpx 20rpx;
   background: #fffdf8;
   border: 0;
   border-radius: 12rpx;
@@ -179,8 +181,8 @@
   transform: rotate(6deg);
 }
 .journal-editor__polaroid--user .journal-editor__polaroid-image {
-  width: 272rpx;
-  height: 272rpx;
+  width: 264rpx;
+  height: 250rpx;
   border-radius: 8rpx;
 }
 .journal-editor__photos {

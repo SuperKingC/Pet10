@@ -2,7 +2,8 @@ import { Image, View } from '@tarojs/components'
 import type { ReactNode } from 'react'
 import './MiniappModal.scss'
 
-const closeIcon = require('../assets/common/modal-close.png')
+// v2 起去掉外圈、只保留 X 叉本体；同路径图会被工具缓存，换图必须升文件名
+const closeIcon = require('../assets/common/modal-close-v2.png')
 
 interface MiniappModalProps {
   children: ReactNode

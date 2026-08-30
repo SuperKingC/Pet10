@@ -51,7 +51,7 @@
   justify-content: center;
   gap: 0;
   margin: 0;
-  padding: 2rpx 0 6rpx;
+  padding: 2rpx 0 0;
   color: #80695c;
   background: transparent;
   border: 0;
@@ -62,6 +62,11 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+}
+
+/* 文字相对原位上移 4rpx：图标下方负外边距把文字拉高，图标本身位置不变 */
+.miniapp-tab .miniapp-tab__icon {
+  margin-bottom: -4rpx;
 }
 
 .miniapp-tab::after {

@@ -27,10 +27,13 @@
 
 .miniapp-modal__close {
   position: absolute;
-  top: 24rpx;
-  right: 24rpx;
+  top: 22rpx;
+  right: 22rpx;
   z-index: 1;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
+  /* v2 图去掉了外圈白边，X 占画布比例变大（61% vs 原 42%），
+     显示尺寸按比例收窄，X 视觉大小与 v1 一致 */
+  width: 46rpx;
+  height: 46rpx;
+  padding: 6rpx;
+  box-sizing: content-box;
 }

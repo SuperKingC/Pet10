@@ -63,13 +63,13 @@
 }
 
 /* 锁定/空状态信件场景独立成固定层：内容不足一屏时页面文档流为空、整页锁死不可拖动；
-   超矮机型由层内 overflow-y 兜底滚动。padding 与 .home-page 一致，视觉不变。 */
+   超矮机型由层内 overflow-y 兜底滚动。padding 与 .home-page 一致、底部净空与其他 tab 对齐（238px）。 */
 .nest-lock-layer {
   position: fixed;
   inset: 0;
   z-index: 19;
   box-sizing: border-box;
   overflow-y: auto;
-  padding: 4px 32px 220px;
+  padding: 4px 32px 238px;
   background: #fff8ee;
 }

@@ -115,16 +115,7 @@
   line-height: 84px;
 }
 
-.pet-reply-button {
-  margin-top: 14px;
-  border: 1px solid #d9b99c;
-  border-radius: 18px;
-  background: #fffaf6;
-  color: #765c47;
-  font-size: var(--font-size-body);
-}
-
-.send-button::after, .pet-reply-button::after {
+.send-button::after {
   border: 0;
 }
 

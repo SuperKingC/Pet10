@@ -1,5 +1,5 @@
 /* 消息页固定全屏层：页面文档流高度归零，真机整页不可拖动；会话列表超一屏由层内滚动兜底。
-   padding 复刻原 .home-page(4px 32px 220px) + 自身 2px 的几何。 */
+   padding 复刻原 .home-page(4px 32px 220px) + 自身 2px 的几何；底部净空与小记 226px + 12px 对齐。 */
 .miniapp-messages {
   position: fixed;
   inset: 0;
@@ -9,7 +9,7 @@
   gap: 16px;
   box-sizing: border-box;
   overflow-y: auto;
-  padding: 4px 34px 220px;
+  padding: 4px 34px 238px;
   background: #fff8ee;
 }
 
@@ -403,24 +403,6 @@
   padding: 12rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
   background: rgba(255, 250, 246, .96);
   border-top: 1rpx solid rgba(96, 67, 50, .08);
-}
-
-.miniapp-chat__quick {
-  display: flex;
-  margin-bottom: 12rpx;
-}
-
-.miniapp-chat__quick-button {
-  padding: 8rpx 20rpx;
-  color: #925e43;
-  background: #fff0dc;
-  border: 0;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-}
-
-.miniapp-chat__quick-button::after {
-  border: 0;
 }
 
 .miniapp-chat__error {

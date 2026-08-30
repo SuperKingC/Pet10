@@ -78,13 +78,15 @@
   border-radius: 20rpx;
 }
 .journal-today__stage { display: flex; align-items: center; gap: 20rpx; height: 292rpx; }
-/* 默认邮票与上传照片白框同尺寸 280×292，切换不跳变；白框倾角与坐姿邮票一致（实测约 -6.3°） */
-.journal-today__polaroid { flex: 0 0 280rpx; width: 280rpx; height: 292rpx; }
+/* 上传照片白框可见尺寸与默认坐姿邮票可见邮票面一致：邮票 420 容器显示 280rpx，
+   可见邮票面 410/420×280 ≈ 273 宽、363/410 比例 ≈ 242 高（含底部白边），切换不跳变、不显大；
+   白框倾角与坐姿邮票一致（实测约 -6.3°） */
+.journal-today__polaroid { flex: 0 0 280rpx; width: 280rpx; height: 292rpx; display: flex; align-items: center; justify-content: center; }
 .journal-today__polaroid-image { width: 100%; height: 100%; }
 .journal-today__polaroid:not(.journal-today__polaroid--default) {
   box-sizing: content-box;
-  width: 264rpx;
-  height: 264rpx;
+  width: 233rpx;
+  height: 202rpx;
   padding: 8rpx 8rpx 20rpx;
   background: #fffdf8;
   border: 0;
@@ -151,6 +153,8 @@
   gap: 16rpx;
   box-sizing: border-box;
   min-height: 96rpx;
+  /* 底部留 24rpx 外边距，让运势条在固定一屏布局里整体上移一点 */
+  margin-bottom: 24rpx;
   padding: 22rpx 24rpx;
   background: linear-gradient(135deg, #fff3d8 0%, #f8dfbe 100%);
   border: 1px solid #ecd0aa;

@@ -188,7 +188,7 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
       <View className="miniapp-journal__body">
         <View className="miniapp-page-header miniapp-journal__top">
           <Text className="miniapp-page-title miniapp-journal__title">小记</Text>
-          <Text className="miniapp-page-caption miniapp-journal__caption">记录和小多利的每一天。</Text>
+          <Text className="miniapp-page-caption miniapp-journal__caption">记录和小多利的每一天</Text>
           <View className="miniapp-journal__tabs">
             <Button className="miniapp-journal__tab miniapp-journal__tab--active">日记</Button>
             <Button className="miniapp-journal__tab" onClick={() => setAnniversaryOpen(true)}>纪念日</Button>

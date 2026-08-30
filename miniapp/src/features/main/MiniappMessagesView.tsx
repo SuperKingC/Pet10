@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Button, Image, Input, ScrollView, Text, View } from '@tarojs/components'
 import { roomApi, type RoomMessage } from '../../services/roomApi'
 import { startSingleFlightPolling } from '../../services/singleFlightPolling'
-import { socialApi, type MiniappConversation } from '../../services/socialApi'
+import { type MiniappConversation } from '../../services/socialApi'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
+import { fetchConversationsWithCache, getCachedConversations as fetchCachedConversations } from './conversationListCache'
 import { getMessagePresentation, hasFriendConversations } from './miniappViewModel'
 import {
   getConversationPreviewText,
@@ -33,8 +34,9 @@ function isOwnMessage(message: { senderType?: 'user' | 'pet'; senderId?: string 
 }
 
 export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom, onChatOpenChange }: MiniappMessagesViewProps) {
-  const [conversations, setConversations] = useState<MiniappConversation[]>([])
-  const [conversationsLoaded, setConversationsLoaded] = useState(false)
+  // tab 切换会重挂载本组件：初始化 state 时先查会话缓存，命中就直出列表（不闪无好友空态页）
+  const [conversations, setConversations] = useState<MiniappConversation[]>(() => fetchCachedConversations() ?? [])
+  const [conversationsLoaded, setConversationsLoaded] = useState(() => fetchCachedConversations() !== null)
   // '' 表示停在会话列表页；非空表示打开了对应会话的全屏聊天页（PWA 末版两层结构）
   const [openRoomId, setOpenRoomId] = useState('')
   const [messages, setMessages] = useState<RoomMessage[]>([])
@@ -50,7 +52,7 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom, 
   // 会话列表 3 秒轮询：刷新预览与排序，并按最新消息累计未读角标
   useEffect(() => {
     const stopPolling = startSingleFlightPolling(async (isCurrent) => {
-      const result = await socialApi.listConversations()
+      const result = await fetchConversationsWithCache()
       if (!isCurrent()) return
       setConversations(result)
       setConversationsLoaded(true)
@@ -133,21 +135,6 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom, 
       setError('')
     } catch (sendError) {
       setError(sendError instanceof Error ? sendError.message : '消息发送失败')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const requestPetReply = async () => {
-    if (!openRoomId || busy) return
-    setBusy(true)
-    try {
-      const message = await roomApi.requestPetReply(openRoomId)
-      setMessages((current) => [...current.filter((item) => item.id !== message.id), message])
-      lastSeenRef.current[openRoomId] = message.id
-      setError('')
-    } catch (replyError) {
-      setError(replyError instanceof Error ? replyError.message : '小多利暂时没有回复')
     } finally {
       setBusy(false)
     }
@@ -340,9 +327,6 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, onOpenRoom, 
           </ScrollView>
           <View className="miniapp-chat__composer">
             {error && <Text className="miniapp-chat__error">{error}</Text>}
-            <View className="miniapp-chat__quick">
-              <Button className="miniapp-chat__quick-button" loading={busy} onClick={requestPetReply}>叫小多利说句话</Button>
-            </View>
             <View className="miniapp-chat__composer-row">
               <Input
                 className="miniapp-chat__input"
