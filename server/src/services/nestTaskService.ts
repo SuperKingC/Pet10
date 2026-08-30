@@ -1,11 +1,21 @@
-import type { NestTask, NestTaskRewardItem, Pet } from '../domain/models.js'
-import { ACTION_COST, ITEM_CATALOG, NEST_TASK_LIMIT, REWARD_LIMITS, STARTER_POUCH, isItemId } from '../domain/itemCatalog.js'
-import { applyTaskReward, isDoneToday, validateReward } from '../domain/nestTaskRules.js'
+import type { NestTaskDef, NestTaskProgress, Pet, PetEventStat } from '../domain/models.js'
+import { ACTION_COST, ITEM_CATALOG, STARTER_POUCH, isItemId } from '../domain/itemCatalog.js'
+import { NEST_TASK_DEFS, findTaskDef, taskDefOrder } from '../domain/nestTaskCatalog.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 
-export interface NestTaskPresentation extends NestTask {
-  doneToday: boolean
-  doneByName: string | null
+export interface NestTaskView {
+  key: string
+  scope: NestTaskDef['scope']
+  title: string
+  icon: string
+  target: number
+  metric: NestTaskDef['metric']
+  rewardItems: NestTaskDef['rewardItems']
+  rewardNames: string[]
+  progress: number
+  complete: boolean
+  claimed: boolean
+  locked: boolean
 }
 
 export interface InventoryPresentation {
@@ -13,7 +23,6 @@ export interface InventoryPresentation {
 }
 
 function todayKey(now: Date) {
-  // 与小程序端一致的简化口径：服务器本地时区的年月日
   const year = now.getFullYear()
   const month = `${now.getMonth() + 1}`.padStart(2, '0')
   const day = `${now.getDate()}`.padStart(2, '0')
@@ -22,10 +31,10 @@ function todayKey(now: Date) {
 
 export function createNestTaskService(repositories: RepositoryBundle, options?: {
   now?: () => Date
-  onTaskCompleted?: (roomId: string, userId: string, pet: Pet, leveledUp: boolean, grantedItems: NestTaskRewardItem[]) => void
+  onRewardGranted?: (roomId: string, userId: string, taskKey: string, items: NestTaskDef['rewardItems']) => void
 }) {
   const now = options?.now ?? (() => new Date())
-  const onTaskCompleted = options?.onTaskCompleted ?? (() => undefined)
+  const onRewardGranted = options?.onRewardGranted ?? (() => undefined)
 
   async function assertMember(roomId: string, userId: string) {
     if (!(await repositories.rooms.isMember(roomId, userId))) throw new Error('room_forbidden')
@@ -38,111 +47,93 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
     )
   }
 
-  function present(task: NestTask, today: string, names: Map<string, string>): NestTaskPresentation {
-    return {
-      ...task,
-      doneToday: isDoneToday(task, today),
-      doneByName: task.lastCompletedBy ? names.get(task.lastCompletedBy) ?? null : null
-    }
+  /** 成就任务的累计事件基数（进度在事件计数基础上累计存储） */
+  function statTotal(stats: PetEventStat[], action: string) {
+    return stats.filter((stat) => stat.action === action).reduce((sum, stat) => sum + stat.count, 0)
   }
 
   return {
-    async list(roomId: string, userId: string): Promise<NestTaskPresentation[]> {
+    /** 任务列表：每日任务（进度按当天事件实时计算）+ 成就任务（进度=累计事件计数） */
+    async list(roomId: string, userId: string): Promise<NestTaskView[]> {
       await assertMember(roomId, userId)
       await pouchGranted(roomId)
       const today = todayKey(now())
-      const tasks = await repositories.nestTasks.listByRoom(roomId)
-      const names = new Map<string, string>()
-      for (const task of tasks) {
-        if (task.lastCompletedBy && !names.has(task.lastCompletedBy)) {
-          const user = await repositories.users.findById(task.lastCompletedBy)
-          names.set(task.lastCompletedBy, user?.displayName ?? '好友')
+      const pet = await repositories.pets.findByRoomId(roomId)
+      const stats = pet ? await repositories.petEvents.statsByRoom(pet.id) : []
+      const rows = await repositories.nestTaskProgress.listByRoom(roomId)
+      const rowByKey = new Map(rows.map((row) => [row.taskKey, row]))
+      const claimedAchievement = new Set(
+        rows.filter((row) => row.claimed && row.periodKey === '').map((row) => row.taskKey)
+      )
+
+      return NEST_TASK_DEFS.map((def) => {
+        const row = rowByKey.get(def.key)
+        if (def.scope === 'daily') {
+          // 每日进度行为准（动作/签到钩子写入当天周期）；无行时回退事件总量>0（历史行为当天补记）
+          const progress = row?.periodKey === today
+            ? row.progress
+            : (def.metric !== 'checkin' && statTotal(stats, def.metric) > 0 ? 1 : 0)
+          const claimedToday = Boolean(row?.claimed && row.periodKey === today)
+          return {
+            key: def.key, scope: def.scope, title: def.title, icon: def.icon,
+            target: def.target, metric: def.metric, rewardItems: def.rewardItems,
+            rewardNames: def.rewardItems.map((item) => ITEM_CATALOG[item.itemId as keyof typeof ITEM_CATALOG]?.name ?? item.itemId),
+            progress: Math.min(progress, def.target),
+            complete: progress >= def.target, claimed: claimedToday, locked: false
+          }
         }
-      }
-      return tasks.map((task) => present(task, today, names))
+        const requires = def.requires ? claimedAchievement.has(def.requires) || Boolean(rowByKey.get(def.requires)?.claimed) : true
+        const progress = Math.min(statTotal(stats, def.metric), def.target)
+        return {
+          key: def.key, scope: def.scope, title: def.title, icon: def.icon,
+          target: def.target, metric: def.metric, rewardItems: def.rewardItems,
+          rewardNames: def.rewardItems.map((item) => ITEM_CATALOG[item.itemId as keyof typeof ITEM_CATALOG]?.name ?? item.itemId),
+          progress, complete: progress >= def.target,
+          claimed: claimedAchievement.has(def.key) || Boolean(row?.claimed && row.periodKey === ''),
+          locked: !requires
+        }
+      }).sort((first, second) => taskDefOrder(first.key) - taskDefOrder(second.key))
     },
 
-    async create(roomId: string, userId: string, input: {
-      title: string
-      icon?: string
-      repeatRule: NestTask['repeatRule']
-      rewardItems: NestTaskRewardItem[]
-      rewardExp: number
-    }): Promise<NestTask> {
-      await assertMember(roomId, userId)
-      const active = await repositories.nestTasks.countActive(roomId)
-      if (active >= NEST_TASK_LIMIT) throw new Error('nest_task_limit')
-      for (const item of input.rewardItems) {
-        if (!isItemId(item.itemId)) throw new Error('invalid_item')
-      }
-      if (!validateReward(input.repeatRule, input.rewardItems, input.rewardExp, REWARD_LIMITS[input.repeatRule])) {
-        throw new Error('invalid_reward')
-      }
-      return repositories.nestTasks.create({
-        roomId,
-        createdBy: userId,
-        title: input.title,
-        icon: input.icon ?? 'paw',
-        repeatRule: input.repeatRule,
-        rewardItems: input.rewardItems,
-        rewardExp: input.rewardExp
-      })
-    },
-
-    async update(roomId: string, userId: string, taskId: string, patch: {
-      title?: string
-      icon?: string
-      repeatRule?: NestTask['repeatRule']
-      rewardItems?: NestTaskRewardItem[]
-      rewardExp?: number
-      archived?: boolean
-    }): Promise<NestTask> {
-      await assertMember(roomId, userId)
-      if (patch.repeatRule && (patch.rewardItems || patch.rewardExp !== undefined)) {
-        const existing = await repositories.nestTasks.findById(roomId, taskId)
-        if (!existing) throw new Error('nest_task_not_found')
-        const repeatRule = patch.repeatRule ?? existing.repeatRule
-        const rewardItems = patch.rewardItems ?? existing.rewardItems
-        const rewardExp = patch.rewardExp ?? existing.rewardExp
-        for (const item of rewardItems) {
-          if (!isItemId(item.itemId)) throw new Error('invalid_item')
-        }
-        if (!validateReward(repeatRule, rewardItems, rewardExp, REWARD_LIMITS[repeatRule])) {
-          throw new Error('invalid_reward')
-        }
-      }
-      const updated = await repositories.nestTasks.update(roomId, taskId, patch)
-      if (!updated) throw new Error('nest_task_not_found')
-      return updated
-    },
-
-    async complete(roomId: string, userId: string, taskId: string): Promise<{
-      task: NestTask
-      pet: Pet
-      leveledUp: boolean
-      grantedItems: NestTaskRewardItem[]
+    /** 领取奖励：任务完成且未领过（每日按周期、成就按永久）才发道具 */
+    async claim(roomId: string, userId: string, taskKey: string): Promise<{
+      taskKey: string
+      grantedItems: NestTaskDef['rewardItems']
     }> {
       await assertMember(roomId, userId)
-      const task = await repositories.nestTasks.findById(roomId, taskId)
-      if (!task || task.archived) throw new Error('nest_task_not_found')
+      const def = findTaskDef(taskKey)
+      if (!def) throw new Error('nest_task_not_found')
       const today = todayKey(now())
-      if (isDoneToday(task, today)) throw new Error('nest_task_already_done')
-
       const pet = await repositories.pets.findByRoomId(roomId)
-      if (!pet) throw new Error('pet_not_found')
+      const stats = pet ? await repositories.petEvents.statsByRoom(pet.id) : []
+      const row = await repositories.nestTaskProgress.findByKey(roomId, taskKey)
 
-      await repositories.inventory.addBatch(roomId, task.rewardItems)
-      const marked = await repositories.nestTasks.markCompleted(roomId, taskId, today, userId)
-      const reward = applyTaskReward(pet, task.rewardExp)
-      const leveledUp = reward.leveledUp
-      const saved = await repositories.pets.update({
-        ...pet,
-        level: reward.level,
-        experience: reward.experience,
-        experienceToNextLevel: reward.experienceToNextLevel
-      })
-      onTaskCompleted(roomId, userId, saved, leveledUp, task.rewardItems)
-      return { task: marked ?? task, pet: saved, leveledUp, grantedItems: task.rewardItems }
+      let complete = false
+      let alreadyClaimed = false
+      if (def.scope === 'daily') {
+        // 与 list() 同口径：每日进度行为准，无行回退事件总量>0
+        const progress = row?.periodKey === today
+          ? row.progress
+          : (def.metric !== 'checkin' && statTotal(stats, def.metric) > 0 ? 1 : 0)
+        complete = progress >= def.target
+        alreadyClaimed = Boolean(row?.claimed && row.periodKey === today)
+      } else {
+        complete = statTotal(stats, def.metric) >= def.target
+        alreadyClaimed = Boolean(row?.claimed && row.periodKey === '')
+        if (def.requires) {
+          const requiredRow = await repositories.nestTaskProgress.findByKey(roomId, def.requires)
+          if (!requiredRow?.claimed) throw new Error('nest_task_locked')
+        }
+      }
+      if (alreadyClaimed) throw new Error('nest_task_already_claimed')
+      if (!complete) throw new Error('nest_task_not_complete')
+
+      await repositories.inventory.addBatch(roomId, def.rewardItems)
+      // 每日任务领取要绑定当天周期，次日周期变化后可再领
+      await repositories.nestTaskProgress.setDailyProgress(roomId, taskKey, def.scope === 'daily' ? today : '', def.scope === 'daily' ? def.target : def.target)
+      await repositories.nestTaskProgress.markClaimed(roomId, taskKey, userId)
+      onRewardGranted(roomId, userId, taskKey, def.rewardItems)
+      return { taskKey, grantedItems: def.rewardItems }
     },
 
     async inventory(roomId: string, userId: string): Promise<InventoryPresentation> {
@@ -165,6 +156,34 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
       const consumed = await repositories.inventory.consume(roomId, itemId)
       if (!consumed) throw new Error('insufficient_item')
       return itemId
+    },
+
+    /** 照顾动作完成后记录每日任务进度（petService 调用；动作名即 metric 名） */
+    async recordActionProgress(roomId: string, action: string): Promise<void> {
+      const def = NEST_TASK_DEFS.find((entry) => entry.scope === 'daily' && entry.metric === action)
+      if (!def) return
+      await repositories.nestTaskProgress.setDailyProgress(roomId, def.key, todayKey(now()), 1)
+    },
+
+    /** 签到：每天一次，写 checkin 每日进度并累计成就事件 */
+    async checkin(roomId: string, userId: string): Promise<{ consecutiveDay: number }> {
+      await assertMember(roomId, userId)
+      const today = todayKey(now())
+      const row = await repositories.nestTaskProgress.findByKey(roomId, 'daily_checkin')
+      if (row && row.periodKey === today && row.progress >= 1) throw new Error('checkin_already_done')
+      const pet = await repositories.pets.findByRoomId(roomId)
+      if (!pet) throw new Error('pet_not_found')
+      // 事件表累计（成就用），动作名 checkin
+      await repositories.petEvents.record(pet.id, userId, 'checkin')
+      await repositories.nestTaskProgress.setDailyProgress(roomId, 'daily_checkin', today, 1)
+      return { consecutiveDay: 1 }
+    },
+
+    /** 默契换装钩子（衣柜期接入）：每完成一次默契打卡累计一次成就进度 */
+    async recordOutfitMatch(roomId: string, userId: string): Promise<void> {
+      const pet = await repositories.pets.findByRoomId(roomId)
+      if (!pet) throw new Error('pet_not_found')
+      await repositories.petEvents.record(pet.id, userId, 'outfit_match')
     }
   }
 }

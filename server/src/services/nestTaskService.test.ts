@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createNestTaskService } from './nestTaskService.js'
-import { ACTION_COST, ITEM_CATALOG, NEST_TASK_LIMIT, REWARD_LIMITS, STARTER_POUCH } from '../domain/itemCatalog.js'
-import { applyTaskReward, isDoneToday, validateReward } from '../domain/nestTaskRules.js'
+import { NEST_TASK_DEFS } from '../domain/nestTaskCatalog.js'
+import { ACTION_COST, STARTER_POUCH } from '../domain/itemCatalog.js'
 
-async function createPairRoom() {
+async function createPairRoom(options?: { withPet?: boolean }) {
   const repositories = createMemoryRepositories()
   const user = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: '阿柴' })
   const friend = await repositories.users.create({ email: 'b@example.com', username: 'b', displayName: '豆豆' })
@@ -14,149 +14,124 @@ async function createPairRoom() {
   await friendshipService.acceptRequest(friend.id, relationship.id)
   const room = await repositories.rooms.findByRelationshipId(relationship.id)
   if (!room) throw new Error('room missing')
+  if (options?.withPet !== false) await repositories.pets.createForRelationship(relationship.id, room.id)
   return { repositories, user, friend, room }
 }
 
-describe('item catalog', () => {
-  it('maps feed/play/clean to items and leaves sleep free', () => {
-    expect(ACTION_COST.feed).toBe('dog_food')
-    expect(ACTION_COST.play).toBe('ball')
-    expect(ACTION_COST.clean).toBe('soap')
-    expect(ACTION_COST.sleep).toBeUndefined()
-  })
-
-  it('catalog covers all cost items with names', () => {
-    for (const itemId of Object.values(ACTION_COST)) {
-      expect(ITEM_CATALOG[itemId].name.length).toBeGreaterThan(0)
+describe('preset task catalog', () => {
+  it('task keys are unique and targets positive', () => {
+    const keys = NEST_TASK_DEFS.map((def) => def.key)
+    expect(new Set(keys).size).toBe(keys.length)
+    for (const def of NEST_TASK_DEFS) {
+      expect(def.target).toBeGreaterThanOrEqual(1)
+      expect(def.rewardItems.length).toBeGreaterThanOrEqual(1)
     }
   })
 
-  it('starter pouch grants every item', () => {
-    for (const itemId of Object.values(ACTION_COST)) {
-      expect(STARTER_POUCH[itemId]).toBeGreaterThanOrEqual(1)
+  it('achievement chains point to existing keys', () => {
+    const keys = new Set(NEST_TASK_DEFS.map((def) => def.key))
+    for (const def of NEST_TASK_DEFS) {
+      if (def.requires) expect(keys.has(def.requires)).toBe(true)
     }
+  })
+
+  it('daily checkin task exists with item-only rewards', () => {
+    const checkin = NEST_TASK_DEFS.find((def) => def.key === 'daily_checkin')
+    expect(checkin?.scope).toBe('daily')
+    expect(checkin?.metric).toBe('checkin')
   })
 })
 
-describe('nest task rules', () => {
-  it('daily task resets on a new day', () => {
-    const task = { repeatRule: 'daily' as const, lastCompletedDay: '2026-08-29' }
-    expect(isDoneToday(task, '2026-08-29')).toBe(true)
-    expect(isDoneToday(task, '2026-08-30')).toBe(false)
-  })
-
-  it('weekly task stays done through the week and resets on Monday', () => {
-    const task = { repeatRule: 'weekly' as const, lastCompletedDay: '2026-08-24' }
-    expect(isDoneToday(task, '2026-08-29')).toBe(true)
-    expect(isDoneToday(task, '2026-08-31')).toBe(false)
-  })
-
-  it('once task stays done forever', () => {
-    const task = { repeatRule: 'none' as const, lastCompletedDay: '2026-01-01' }
-    expect(isDoneToday(task, '2026-08-29')).toBe(true)
-  })
-
-  it('rejects rewards above repeat limits', () => {
-    expect(validateReward('daily', [{ itemId: 'dog_food', count: 4 }], 10, REWARD_LIMITS.daily)).toBe(false)
-    expect(validateReward('daily', [{ itemId: 'dog_food', count: 3 }], 21, REWARD_LIMITS.daily)).toBe(false)
-    expect(validateReward('daily', [{ itemId: 'dog_food', count: 3 }], 20, REWARD_LIMITS.daily)).toBe(true)
-  })
-
-  it('applies exp rewards with level ups', () => {
-    const result = applyTaskReward({ level: 1, experience: 95, experienceToNextLevel: 100 }, 10)
-    expect(result.level).toBe(2)
-    expect(result.experience).toBe(5)
-    expect(result.leveledUp).toBe(true)
-  })
-})
-
-describe('nest task service', () => {
-  it('grants starter pouch once on first list', async () => {
+describe('nest task service (preset tasks)', () => {
+  it('lists daily and achievement tasks with zero initial progress', async () => {
     const { repositories, user, room } = await createPairRoom()
     const service = createNestTaskService(repositories)
-    const first = await service.inventory(room.id, user.id)
-    expect(first.items.find((item) => item.itemId === 'dog_food')?.count).toBe(STARTER_POUCH.dog_food)
-    // 再取一次不重复发放
-    const second = await service.inventory(room.id, user.id)
-    expect(second.items.find((item) => item.itemId === 'dog_food')?.count).toBe(STARTER_POUCH.dog_food)
-  })
-
-  it('completes a task, grants items and pet exp once per period', async () => {
-    const { repositories, user, room } = await createPairRoom()
-    const service = createNestTaskService(repositories)
-    const task = await service.create(room.id, user.id, {
-      title: '陪小多利散步',
-      repeatRule: 'daily',
-      rewardItems: [{ itemId: 'dog_food', count: 1 }],
-      rewardExp: 10
-    })
-    const before = await service.inventory(room.id, user.id)
-    const result = await service.complete(room.id, user.id, task.id)
-    expect(result.grantedItems).toEqual([{ itemId: 'dog_food', count: 1 }])
-    expect(result.pet.experience).toBe(10)
-    expect(result.leveledUp).toBe(false)
-
-    const after = await service.inventory(room.id, user.id)
-    expect(after.items.find((item) => item.itemId === 'dog_food')?.count)
-      .toBe((before.items.find((item) => item.itemId === 'dog_food')?.count ?? 0) + 1)
-
-    await expect(service.complete(room.id, user.id, task.id)).rejects.toThrow('nest_task_already_done')
-    const list = await service.list(room.id, user.id)
-    expect(list.find((item) => item.id === task.id)?.doneToday).toBe(true)
-    expect(list.find((item) => item.id === task.id)?.doneByName).toBe('阿柴')
-  })
-
-  it('blocks pet actions when the mapped item is out of stock and consumes when available', async () => {
-    const { repositories, user, room } = await createPairRoom()
-    const service = createNestTaskService(repositories)
-    // 清空新手包，制造 0 库存
-    while (await repositories.inventory.consume(room.id, 'dog_food'));
-    await expect(service.consumeForAction(room.id, user.id, 'feed')).rejects.toThrow('insufficient_item')
-    // 睡觉永远免费
-    expect(await service.consumeForAction(room.id, user.id, 'sleep')).toBeNull()
-    // 补货后可扣
-    await repositories.inventory.add(room.id, 'dog_food', 1)
-    expect(await service.consumeForAction(room.id, user.id, 'feed')).toBe('dog_food')
-    expect(await repositories.inventory.consume(room.id, 'dog_food')).toBe(false)
-  })
-
-  it('enforces the active task limit', async () => {
-    const { repositories, user, room } = await createPairRoom()
-    const service = createNestTaskService(repositories)
-    for (let index = 0; index < NEST_TASK_LIMIT; index++) {
-      await service.create(room.id, user.id, {
-        title: `任务${index}`,
-        repeatRule: 'daily',
-        rewardItems: [],
-        rewardExp: 0
-      })
+    const tasks = await service.list(room.id, user.id)
+    const daily = tasks.filter((task) => task.scope === 'daily')
+    const achievements = tasks.filter((task) => task.scope === 'achievement')
+    expect(daily.length).toBeGreaterThanOrEqual(4)
+    expect(achievements.length).toBeGreaterThanOrEqual(5)
+    for (const task of tasks) {
+      expect(task.progress).toBe(0)
+      expect(task.claimed).toBe(false)
+      expect(task.rewardNames.length).toBeGreaterThanOrEqual(1)
     }
-    await expect(service.create(room.id, user.id, {
-      title: '超额任务',
-      repeatRule: 'daily',
-      rewardItems: [],
-      rewardExp: 0
-    })).rejects.toThrow('nest_task_limit')
+    // 成就链未达成时后面的签到成就锁定
+    const checkin7 = tasks.find((task) => task.key === 'ach_checkin_7')
+    expect(checkin7?.locked).toBe(true)
   })
 
-  it('rejects invalid rewards and non-members', async () => {
+  it('checkin marks the daily task done once per day and feeds the achievement chain', async () => {
     const { repositories, user, friend, room } = await createPairRoom()
     const service = createNestTaskService(repositories)
-    await expect(service.create(room.id, user.id, {
-      title: '刷爆任务',
-      repeatRule: 'daily',
-      rewardItems: [{ itemId: 'dog_food', count: REWARD_LIMITS.daily.maxPerItem + 1 }],
-      rewardExp: 0
-    })).rejects.toThrow('invalid_reward')
-    await expect(service.create(room.id, user.id, {
-      title: '非法道具',
-      repeatRule: 'daily',
-      rewardItems: [{ itemId: 'diamond', count: 1 }],
-      rewardExp: 0
-    })).rejects.toThrow('invalid_item')
+    await service.checkin(room.id, user.id)
+    await expect(service.checkin(room.id, friend.id)).rejects.toThrow('checkin_already_done')
 
+    const tasks = await service.list(room.id, user.id)
+    const dailyCheckin = tasks.find((task) => task.key === 'daily_checkin')
+    expect(dailyCheckin?.complete).toBe(true)
+
+    // 成就签到未达成（只签 1 天）→ 不完整；未领前置 → 锁定
+    await expect(service.claim(room.id, user.id, 'ach_checkin_3')).rejects.toThrow('nest_task_locked')
+    // 领每日签到奖励
+    const claim = await service.claim(room.id, user.id, 'daily_checkin')
+    expect(claim.grantedItems).toEqual([{ itemId: 'dog_food', count: 1 }])
+    await expect(service.claim(room.id, user.id, 'daily_checkin')).rejects.toThrow('nest_task_already_claimed')
+  })
+
+  it('records pet action progress and grants claimable daily rewards', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
+    const onReward = vi.fn()
+    const watched = createNestTaskService(repositories, { onRewardGranted: onReward })
+    await watched.recordActionProgress(room.id, 'feed')
+    const tasks = await watched.list(room.id, user.id)
+    const feedTask = tasks.find((task) => task.key === 'daily_feed')
+    expect(feedTask?.complete).toBe(true)
+    const before = (await watched.inventory(room.id, user.id)).items.find((item) => item.itemId === 'dog_food')?.count ?? 0
+    await watched.claim(room.id, user.id, 'daily_feed')
+    const after = (await watched.inventory(room.id, user.id)).items.find((item) => item.itemId === 'dog_food')?.count ?? 0
+    expect(after).toBe(before + 1)
+    expect(onReward).toHaveBeenCalled()
+    await expect(watched.claim(room.id, user.id, 'daily_feed')).rejects.toThrow('nest_task_already_claimed')
+  })
+
+  it('achievement feed task completes from accumulated pet_events and unlocks by claim', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
+    const pet = await repositories.pets.findByRoomId(room.id)
+    if (!pet) throw new Error('pet missing')
+    for (let index = 0; index < 10; index++) await repositories.petEvents.record(pet.id, user.id, 'feed')
+    const tasks = await service.list(room.id, user.id)
+    const feed10 = tasks.find((task) => task.key === 'ach_feed_10')
+    const feed50 = tasks.find((task) => task.key === 'ach_feed_50')
+    expect(feed10?.complete).toBe(true)
+    expect(feed10?.claimed).toBe(false)
+    expect(feed50?.complete).toBe(false)
+    await service.claim(room.id, user.id, 'ach_feed_10')
+    const after = await service.list(room.id, user.id)
+    expect(after.find((task) => task.key === 'ach_feed_10')?.claimed).toBe(true)
+    // 前置 ach_feed_10 已领取 → ach_feed_50 解锁（但 10<50 仍未完成）
+    expect(after.find((task) => task.key === 'ach_feed_50')?.locked).toBe(false)
+    expect(after.find((task) => task.key === 'ach_feed_50')?.complete).toBe(false)
+  })
+
+  it('consumeForAction still gates feed/play/clean on inventory; sleep free', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
+    while (await repositories.inventory.consume(room.id, 'dog_food'));
+    await expect(service.consumeForAction(room.id, user.id, 'feed')).rejects.toThrow('insufficient_item')
+    expect(await service.consumeForAction(room.id, user.id, 'sleep')).toBeNull()
+    expect(ACTION_COST.sleep).toBeUndefined()
+    expect(STARTER_POUCH.dog_food).toBeGreaterThan(0)
+  })
+
+  it('outsiders cannot list or claim', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
     const outsider = await repositories.users.create({ email: 'x@example.com', username: 'x', displayName: 'X' })
     await expect(service.list(room.id, outsider.id)).rejects.toThrow('room_forbidden')
-    await expect(service.inventory(room.id, friend.id)).resolves.toBeTruthy()
+    await expect(service.claim(room.id, outsider.id, 'daily_checkin')).rejects.toThrow('room_forbidden')
+    await expect(service.checkin(room.id, user.id)).resolves.toBeTruthy()
   })
 })

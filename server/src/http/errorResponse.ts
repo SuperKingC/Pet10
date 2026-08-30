@@ -8,7 +8,9 @@ export function resolveErrorResponse(error: unknown) {
     message.includes('not_configured') ? 503 :
     message.includes('forbidden') || message.includes('not_allowed') ? 403 :
     message.includes('unauthorized') ? 401 :
-    message.includes('insufficient_item') || message.includes('already_done') ? 409 :
+    message.includes('insufficient_item') ||
+      message.includes('already_done') ||
+      message.includes('already_claimed') ? 409 :
     message.includes('invalid') ||
       message.includes('limit') ||
       message.includes('exists') ||

@@ -11,6 +11,8 @@ export interface User {
   email: string
   username: string
   displayName: string
+  /** 八位数字用户编号（00000001 起递增），用于加好友与“第 N 位用户”展示 */
+  uid: string
   publicCode: string
   avatarUrl?: string | null
   avatarConfig?: string | null
@@ -141,6 +143,41 @@ export interface NestTask {
   lastCompletedBy: Id | null
   archived: boolean
   createdAt: Date
+  updatedAt: Date
+}
+
+/** 系统预设任务定义（模板，代码常量，用户不可创建） */
+export type NestTaskMetric =
+  | 'checkin'            // 连续/累计签到（每日：当天签到）
+  | 'feed'               // 喂食次数
+  | 'play'               // 玩耍次数
+  | 'clean'              // 清洁（洗澡）次数
+  | 'sleep'              // 睡觉次数
+  | 'outfit_match'       // 默契换装次数（衣柜期接入，暂为占位）
+
+export type NestTaskScope = 'daily' | 'achievement'
+
+export interface NestTaskDef {
+  key: string
+  scope: NestTaskScope
+  title: string
+  icon: string
+  metric: NestTaskMetric
+  target: number
+  rewardItems: NestTaskRewardItem[]
+  /** 成就型任务的前置任务 key（链式解锁：签到 3 天 → 签到 7 天） */
+  requires?: string
+}
+
+/** 房间内某预设任务的进度与领取状态 */
+export interface NestTaskProgress {
+  id: Id
+  roomId: Id
+  taskKey: string
+  periodKey: string
+  progress: number
+  claimed: boolean
+  claimedBy: Id | null
   updatedAt: Date
 }
 

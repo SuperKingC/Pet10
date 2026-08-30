@@ -120,24 +120,16 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
     CREATE INDEX IF NOT EXISTS diaries_user_day_idx
       ON diaries (user_id, day DESC);
 
-    CREATE TABLE IF NOT EXISTS nest_tasks (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    CREATE TABLE IF NOT EXISTS nest_task_progress (
       room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-      created_by uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      title text NOT NULL,
-      icon text NOT NULL DEFAULT 'paw',
-      repeat_rule text NOT NULL DEFAULT 'daily' CHECK (repeat_rule IN ('daily', 'weekly', 'none')),
-      reward_items jsonb NOT NULL DEFAULT '[]',
-      reward_exp int NOT NULL DEFAULT 10,
-      last_completed_day date,
-      last_completed_by uuid REFERENCES users(id) ON DELETE SET NULL,
-      archived boolean NOT NULL DEFAULT false,
-      created_at timestamptz NOT NULL DEFAULT now(),
-      updated_at timestamptz NOT NULL DEFAULT now()
+      task_key text NOT NULL,
+      period_key text NOT NULL DEFAULT '',       -- 每日任务存日期（如 2026-08-30），成就型留空串
+      progress int NOT NULL DEFAULT 0,
+      claimed boolean NOT NULL DEFAULT false,
+      claimed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY (room_id, task_key)
     );
-
-    CREATE INDEX IF NOT EXISTS nest_tasks_room_idx
-      ON nest_tasks (room_id, archived, created_at);
 
     CREATE TABLE IF NOT EXISTS room_inventory (
       room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
@@ -151,5 +143,20 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
       room_id uuid PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
       granted_at timestamptz NOT NULL DEFAULT now()
     );
+
+    -- v1 的用户自建任务表已废弃：旧环境直接删掉（新环境不会创建），
+    -- 数据无保留价值（任务定义全部来自代码模板）
+    DROP TABLE IF EXISTS nest_tasks;
+
+    -- 八位数字 UID：从 00000001 起递增，存量用户按创建时间顺序回填
+    CREATE SEQUENCE IF NOT EXISTS users_uid_seq START 1;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS uid text;
+    UPDATE users SET uid = format('%08s', nextval('users_uid_seq'))
+      WHERE uid IS NULL
+      ORDER BY created_at, id;
+    -- 回填完再补唯一约束与 NOT NULL，幂等（重复执行时无 NULL 行可更新）
+    CREATE UNIQUE INDEX IF NOT EXISTS users_uid_key ON users (uid);
+    ALTER TABLE users ALTER COLUMN uid SET NOT NULL;
+    ALTER SEQUENCE users_uid_seq OWNED BY users.uid;
   `)
 }

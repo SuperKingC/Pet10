@@ -9,7 +9,7 @@ import type {
   InviteCode,
   Invitation,
   MoodEntry,
-  NestTask,
+  NestTaskProgress,
   Pet,
   PetEventStat,
   PetMemory,
@@ -20,7 +20,7 @@ import type {
   User,
   WechatIdentity
 } from '../domain/models.js'
-import type { RepositoryBundle, InventoryRepository, NestTaskRepository } from './contracts.js'
+import type { RepositoryBundle, InventoryRepository, NestTaskProgressRepository } from './contracts.js'
 
 function now() {
   return new Date()
@@ -40,7 +40,7 @@ export function createMemoryRepositories(): RepositoryBundle {
   const messages = new Map<string, ChatMessage[]>()
   const memories = new Map<string, PetMemory[]>()
   const tasks = new Map<string, PetTask>()
-  const nestTasks = new Map<string, NestTask>()
+  const nestTaskProgress = new Map<string, NestTaskProgress>()
   const inventories = new Map<string, Map<string, number>>()
   const pouchesGranted = new Set<string>()
   const moods = new Map<string, MoodEntry>()
@@ -64,13 +64,20 @@ export function createMemoryRepositories(): RepositoryBundle {
     return code
   }
 
+  let uidSequence = 0
+  function nextUid() {
+    uidSequence += 1
+    return String(uidSequence).padStart(8, '0')
+  }
+
   const userRepo = {
     async findById(id: string) { return users.get(id) },
     async findByEmail(email: string) { return [...users.values()].find((user) => user.email === email.toLowerCase()) },
     async findByUsername(username: string) { return [...users.values()].find((user) => user.username === username) },
     async findByPublicCode(code: string) { return [...users.values()].find((user) => user.publicCode === code.toUpperCase()) },
+    async findByUid(uid: string) { return [...users.values()].find((user) => user.uid === uid.replace(/^0+/, '').padStart(8, '0')) },
     async create(input: Pick<User, 'email' | 'username' | 'displayName'>) {
-      const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), publicCode: makePublicCode(), gender: 'private' as const, createdAt: now() }
+      const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), uid: nextUid(), publicCode: makePublicCode(), gender: 'private' as const, createdAt: now() }
       users.set(user.id, user)
       return user
     },
@@ -338,56 +345,54 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
-  const nestTaskRepo: NestTaskRepository = {
-    async listByRoom(roomId: string) {
-      return [...nestTasks.values()]
-        .filter((task) => task.roomId === roomId && !task.archived)
-        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+  const nestTaskProgressRepo: NestTaskProgressRepository = {
+    async listByRoom(roomId) {
+      return [...nestTaskProgress.values()].filter((row) => row.roomId === roomId)
     },
-    async findById(roomId: string, taskId: string) {
-      const task = nestTasks.get(taskId)
-      return task && task.roomId === roomId ? task : undefined
+    async findByKey(roomId, taskKey) {
+      const row = [...nestTaskProgress.values()].find((item) => item.roomId === roomId && item.taskKey === taskKey)
+      return row
     },
-    async create(input) {
-      const timestamp = now()
-      const task: NestTask = {
-        ...input,
-        id: randomUUID(),
-        lastCompletedDay: null,
-        lastCompletedBy: null,
-        archived: false,
-        createdAt: timestamp,
-        updatedAt: timestamp
+    async addProgress(roomId, taskKey, delta) {
+      const existing = await this.findByKey(roomId, taskKey)
+      if (existing) {
+        existing.progress += delta
+        existing.updatedAt = now()
+        return existing
       }
-      nestTasks.set(task.id, task)
-      return task
-    },
-    async update(roomId, taskId, patch) {
-      const task = nestTasks.get(taskId)
-      if (!task || task.roomId !== roomId) return undefined
-      const updated: NestTask = {
-        ...task,
-        title: patch.title ?? task.title,
-        icon: patch.icon ?? task.icon,
-        repeatRule: patch.repeatRule ?? task.repeatRule,
-        rewardItems: patch.rewardItems ?? task.rewardItems,
-        rewardExp: patch.rewardExp ?? task.rewardExp,
-        archived: patch.archived ?? task.archived,
-        updatedAt: now()
+      const row: NestTaskProgress = {
+        id: randomUUID(), roomId, taskKey, periodKey: '', progress: delta, claimed: false, claimedBy: null, updatedAt: now()
       }
-      nestTasks.set(taskId, updated)
-      return updated
+      nestTaskProgress.set(row.id, row)
+      return row
     },
-    async markCompleted(roomId, taskId, day, userId) {
-      const task = nestTasks.get(taskId)
-      if (!task || task.roomId !== roomId) return undefined
-      task.lastCompletedDay = day
-      task.lastCompletedBy = userId
-      task.updatedAt = now()
-      return task
+    async setDailyProgress(roomId, taskKey, periodKey, progress) {
+      const existing = await this.findByKey(roomId, taskKey)
+      // 周期已过期则重置计数（每天从 0 重新累计）
+      if (existing && existing.periodKey !== periodKey) {
+        existing.periodKey = periodKey
+        existing.progress = 0
+        existing.claimed = false
+        existing.claimedBy = null
+      }
+      if (existing) {
+        existing.progress = Math.max(existing.progress, progress)
+        existing.updatedAt = now()
+        return existing
+      }
+      const row: NestTaskProgress = {
+        id: randomUUID(), roomId, taskKey, periodKey, progress, claimed: false, claimedBy: null, updatedAt: now()
+      }
+      nestTaskProgress.set(row.id, row)
+      return row
     },
-    async countActive(roomId: string) {
-      return [...nestTasks.values()].filter((task) => task.roomId === roomId && !task.archived).length
+    async markClaimed(roomId, taskKey, userId) {
+      const row = await this.findByKey(roomId, taskKey)
+      if (!row) return undefined
+      row.claimed = true
+      row.claimedBy = userId
+      row.updatedAt = now()
+      return row
     }
   }
 
@@ -641,7 +646,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     messages: messageRepo,
     memories: memoryRepo,
     tasks: taskRepo,
-    nestTasks: nestTaskRepo,
+    nestTaskProgress: nestTaskProgressRepo,
     inventory: inventoryRepo,
     moods: moodRepo,
     anniversaries: anniversaryRepo,

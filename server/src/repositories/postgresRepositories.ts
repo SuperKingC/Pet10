@@ -35,16 +35,17 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       findByEmail: (email) => one('SELECT * FROM users WHERE email=$1', [email.toLowerCase()]),
       findByUsername: (username) => one('SELECT * FROM users WHERE username=$1', [username]),
       findByPublicCode: (code) => one('SELECT * FROM users WHERE public_code=$1', [code.toUpperCase()]),
+      findByUid: (uid) => one('SELECT * FROM users WHERE uid=$1', [uid.replace(/^0+/, '') || '0']),
       create: async (input) => {
         for (let attempt = 0; attempt < 5; attempt++) {
           try {
             return await one(
-              'INSERT INTO users(email,username,display_name,public_code) VALUES($1,$2,$3,$4) RETURNING *',
+              'INSERT INTO users(email,username,display_name,public_code,uid) VALUES($1,$2,$3,$4,format(\'%08s\', nextval(\'users_uid_seq\'))) RETURNING *',
               [input.email.toLowerCase(), input.username, input.displayName, makePublicCode()]
             )
           } catch (error) {
             const constraint = (error as { constraint?: string }).constraint
-            if (constraint !== 'users_public_code_key' || attempt === 4) throw error
+            if ((constraint !== 'users_public_code_key' && constraint !== 'users_uid_key') || attempt === 4) throw error
           }
         }
         throw new Error('public_code_collision')
@@ -323,49 +324,34 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
         await database.query("UPDATE pet_tasks SET status='failed', updated_at=now() WHERE id=$1", [id])
       }
     },
-    nestTasks: {
-      listByRoom: (roomId) => many(
-        "SELECT * FROM nest_tasks WHERE room_id=$1 AND archived=false ORDER BY created_at",
-        [roomId]
+    nestTaskProgress: {
+      listByRoom: (roomId) => many('SELECT * FROM nest_task_progress WHERE room_id=$1', [roomId]),
+      findByKey: (roomId, taskKey) => one('SELECT * FROM nest_task_progress WHERE room_id=$1 AND task_key=$2', [roomId, taskKey]),
+      addProgress: (roomId, taskKey, delta) => one(
+        `INSERT INTO nest_task_progress(room_id,task_key,period_key,progress) VALUES($1,$2,'',$3)
+         ON CONFLICT(room_id,task_key) DO UPDATE SET progress = nest_task_progress.progress + $3, updated_at=now()
+         RETURNING *`,
+        [roomId, taskKey, delta]
       ),
-      findById: (roomId, taskId) => one('SELECT * FROM nest_tasks WHERE room_id=$1 AND id=$2', [roomId, taskId]),
-      create: (input) => one(
-        `INSERT INTO nest_tasks(room_id,created_by,title,icon,repeat_rule,reward_items,reward_exp)
-         VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [input.roomId, input.createdBy, input.title, input.icon, input.repeatRule, JSON.stringify(input.rewardItems), input.rewardExp]
-      ),
-      update: (roomId, taskId, patch) => one(
-        `UPDATE nest_tasks SET
-           title = CASE WHEN $3 THEN $4 ELSE title END,
-           icon = CASE WHEN $5 THEN $6 ELSE icon END,
-           repeat_rule = CASE WHEN $7 THEN $8 ELSE repeat_rule END,
-           reward_items = CASE WHEN $9 THEN $10 ELSE reward_items END,
-           reward_exp = CASE WHEN $11 THEN $12 ELSE reward_exp END,
-           archived = CASE WHEN $13 THEN $14 ELSE archived END,
+      setDailyProgress: (roomId, taskKey, periodKey, progress) => one(
+        `INSERT INTO nest_task_progress(room_id,task_key,period_key,progress) VALUES($1,$2,$3,$4)
+         ON CONFLICT(room_id,task_key) DO UPDATE SET
+           period_key = EXCLUDED.period_key,
+           progress = CASE WHEN nest_task_progress.period_key = EXCLUDED.period_key
+             THEN GREATEST(nest_task_progress.progress, EXCLUDED.progress) ELSE EXCLUDED.progress END,
+           claimed = CASE WHEN nest_task_progress.period_key = EXCLUDED.period_key
+             THEN nest_task_progress.claimed ELSE false END,
+           claimed_by = CASE WHEN nest_task_progress.period_key = EXCLUDED.period_key
+             THEN nest_task_progress.claimed_by ELSE NULL END,
            updated_at = now()
-         WHERE room_id=$1 AND id=$2 RETURNING *`,
-        [
-          roomId, taskId,
-          patch.title !== undefined, patch.title,
-          patch.icon !== undefined, patch.icon,
-          patch.repeatRule !== undefined, patch.repeatRule,
-          patch.rewardItems !== undefined, JSON.stringify(patch.rewardItems),
-          patch.rewardExp !== undefined, patch.rewardExp,
-          patch.archived !== undefined, patch.archived
-        ]
+         RETURNING *`,
+        [roomId, taskKey, periodKey, progress]
       ),
-      markCompleted: (roomId, taskId, day, userId) => one(
-        `UPDATE nest_tasks SET last_completed_day=$3, last_completed_by=$4, updated_at=now()
-         WHERE room_id=$1 AND id=$2 RETURNING *`,
-        [roomId, taskId, day, userId]
-      ),
-      countActive: async (roomId) => {
-        const row = await one(
-          'SELECT count(*)::int AS count FROM nest_tasks WHERE room_id=$1 AND archived=false',
-          [roomId]
-        )
-        return row?.count ?? 0
-      }
+      markClaimed: (roomId, taskKey, userId) => one(
+        `UPDATE nest_task_progress SET claimed=true, claimed_by=$3, updated_at=now()
+         WHERE room_id=$1 AND task_key=$2 RETURNING *`,
+        [roomId, taskKey, userId]
+      )
     },
     inventory: {
       listByRoom: (roomId) => many('SELECT * FROM room_inventory WHERE room_id=$1', [roomId]),

@@ -41,9 +41,12 @@ export function createRoomRoutes(dependencies: {
     try {
       const { action } = z.object({ action: z.enum(['feed', 'play', 'clean', 'sleep']) }).parse(request.body)
       const roomId = routeParam(request.params.roomId)
-      // 照顾动作是道具的消耗口（睡觉免费）：未接任务服务时保持旧行为
-      if (dependencies.nestTasks) await dependencies.nestTasks.consumeForAction(roomId, request.userId!, action)
+      // 照顾动作是道具的消耗口（睡觉免费）；动作完成记录每日任务进度
+      if (dependencies.nestTasks) {
+        await dependencies.nestTasks.consumeForAction(roomId, request.userId!, action)
+      }
       const pet = await dependencies.pets.applyAction(roomId, request.userId!, action as PetAction)
+      if (dependencies.nestTasks) await dependencies.nestTasks.recordActionProgress(roomId, action)
       dependencies.emit(roomId, 'pet.updated', pet)
       response.json(pet)
     } catch (error) { next(error) }

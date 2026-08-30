@@ -1,16 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import {
   ACTION_ITEM,
-  REWARD_LIMITS,
   getActionAvailability,
+  getTaskButton,
+  groupTasks,
   insufficientMessage,
   itemCount,
   rewardSummary,
-  validateTaskInput,
+  type MiniappNestTask,
 } from './nestTaskModel'
-import { getPetMood } from './petRules'
 
-describe('nest task model', () => {
+function task(overrides: Partial<MiniappNestTask>): MiniappNestTask {
+  return {
+    key: 'daily_feed',
+    scope: 'daily',
+    title: '给小多利喂食 1 次',
+    icon: 'feed',
+    target: 1,
+    metric: 'feed',
+    rewardItems: [{ itemId: 'dog_food', count: 1 }],
+    rewardNames: ['狗粮'],
+    progress: 0,
+    complete: false,
+    claimed: false,
+    locked: false,
+    ...overrides
+  }
+}
+
+describe('nest task model (preset tasks)', () => {
   it('maps feed/play/clean to consumable items and leaves sleep free', () => {
     expect(ACTION_ITEM.feed).toBe('dog_food')
     expect(ACTION_ITEM.play).toBe('ball')
@@ -29,23 +47,24 @@ describe('nest task model', () => {
   })
 
   it('summarizes rewards and insufficient messages in Chinese', () => {
-    expect(rewardSummary({ rewardItems: [{ itemId: 'dog_food', count: 2 }], rewardExp: 10 }))
-      .toBe('狗粮×2 · 经验+10')
+    expect(rewardSummary(task({ rewardItems: [{ itemId: 'dog_food', count: 2 }] }))).toBe('狗粮×2')
+    expect(rewardSummary(task({ rewardItems: [{ itemId: 'ball', count: 1 }, { itemId: 'soap', count: 1 }] }))).toBe('皮球×1 + 香皂×1')
     expect(insufficientMessage('feed')).toContain('狗粮')
-    expect(insufficientMessage('sleep')).toBe('不够啦，去做任务获得一些吧')
   })
 
-  it('validates task input against repeat limits', () => {
-    const base = { title: '散步', icon: 'paw', rewardItems: [{ itemId: 'dog_food' as const, count: 1 }], rewardExp: 10 }
-    expect(validateTaskInput({ ...base, repeatRule: 'daily' })).toBeNull()
-    expect(validateTaskInput({ ...base, repeatRule: 'daily', rewardExp: REWARD_LIMITS.daily.maxExp + 1 }))
-      .toBe('奖励经验超出上限')
-    expect(validateTaskInput({ ...base, repeatRule: 'daily', rewardItems: [{ itemId: 'dog_food', count: 4 }] }))
-      .toBe('道具数量超出上限')
-    expect(validateTaskInput({ ...base, title: '  ' })).toBe('给任务起个名字吧')
+  it('derives the task button state by priority: claimed > locked > claim > progress', () => {
+    expect(getTaskButton(task({ claimed: true })).kind).toBe('claimed')
+    expect(getTaskButton(task({ locked: true })).kind).toBe('locked')
+    expect(getTaskButton(task({ complete: true })).kind).toBe('claim')
+    expect(getTaskButton(task({ progress: 0, target: 7 })).kind).toBe('progress')
   })
 
-  it('keeps pet mood helper importable from the same domain folder', () => {
-    expect(getPetMood({ energy: 80, hunger: 80, mood: 80 })).toBe('happy')
+  it('groups daily above achievement', () => {
+    const { daily, achievement } = groupTasks([
+      task({ key: 'ach_feed_10', scope: 'achievement', title: '累计喂食 10 次', target: 10, metric: 'feed' }),
+      task({ key: 'daily_checkin', title: '连续签到 1 天', metric: 'checkin' })
+    ])
+    expect(daily.map((item) => item.key)).toEqual(['daily_checkin'])
+    expect(achievement.map((item) => item.key)).toEqual(['ach_feed_10'])
   })
 })

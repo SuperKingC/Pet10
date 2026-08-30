@@ -1,19 +1,22 @@
-import type { PetState } from './types'
+/** 系统预设任务（用户只完成不创建）的前端模型，与服务端 nestTaskCatalog/service 同口径 */
 
-export type NestTaskRepeat = 'daily' | 'weekly' | 'none'
 export type ItemId = 'dog_food' | 'ball' | 'soap'
+export type NestTaskScope = 'daily' | 'achievement'
+export type NestTaskMetric = 'checkin' | 'feed' | 'play' | 'clean' | 'sleep' | 'outfit_match'
 
 export interface MiniappNestTask {
-  id: string
+  key: string
+  scope: NestTaskScope
   title: string
   icon: string
-  repeatRule: NestTaskRepeat
-  rewardItems: Array<{ itemId: string; count: number }>
-  rewardExp: number
-  lastCompletedDay: string | null
-  doneToday: boolean
-  doneByName: string | null
-  archived: boolean
+  target: number
+  metric: NestTaskMetric
+  rewardItems: Array<{ itemId: ItemId; count: number }>
+  rewardNames: string[]
+  progress: number
+  complete: boolean
+  claimed: boolean
+  locked: boolean
 }
 
 export interface MiniappInventory {
@@ -39,7 +42,6 @@ export function itemCount(inventory: MiniappInventory | null, itemId: ItemId): n
 
 export type ActionAvailability = 'ready' | 'missing_item' | 'free'
 
-/** 照顾面板按钮可用性：睡觉永远可用；其他动作需要对应道具 */
 export function getActionAvailability(
   action: 'feed' | 'play' | 'clean' | 'sleep',
   inventory: MiniappInventory | null,
@@ -49,41 +51,24 @@ export function getActionAvailability(
   return itemCount(inventory, itemId) > 0 ? 'ready' : 'missing_item'
 }
 
-export function rewardSummary(task: Pick<MiniappNestTask, 'rewardItems' | 'rewardExp'>): string {
-  const parts = task.rewardItems.map((item) => `${ITEM_NAMES[item.itemId as ItemId] ?? item.itemId}×${item.count}`)
-  if (task.rewardExp > 0) parts.push(`经验+${task.rewardExp}`)
-  return parts.join(' · ') || '小多利很开心'
+export function rewardSummary(task: Pick<MiniappNestTask, 'rewardItems'>): string {
+  return task.rewardItems
+    .map((item) => `${ITEM_NAMES[item.itemId] ?? item.itemId}×${item.count}`)
+    .join(' + ') || '小多利很开心'
 }
 
-export const REPEAT_LABELS: Record<NestTaskRepeat, string> = {
-  daily: '每天',
-  weekly: '每周',
-  none: '一次'
-}
+/** 任务按钮状态：已领 → done；完成未领 → 可领奖；进行中 → 进度文案；锁定 → 锁 */
+export type TaskButtonState =
+  | { kind: 'claimed' }
+  | { kind: 'claim' }
+  | { kind: 'progress' }
+  | { kind: 'locked' }
 
-export interface NestTaskInput {
-  title: string
-  icon: string
-  repeatRule: NestTaskRepeat
-  rewardItems: Array<{ itemId: ItemId; count: number }>
-  rewardExp: number
-}
-
-/** 每周期奖励上限（与服务端 REWARD_LIMITS 一致，前端先挡一道） */
-export const REWARD_LIMITS: Record<NestTaskRepeat, { maxPerItem: number; maxExp: number }> = {
-  daily: { maxPerItem: 3, maxExp: 20 },
-  weekly: { maxPerItem: 7, maxExp: 60 },
-  none: { maxPerItem: 5, maxExp: 40 }
-}
-
-export function validateTaskInput(input: NestTaskInput): string | null {
-  if (!input.title.trim()) return '给任务起个名字吧'
-  const limits = REWARD_LIMITS[input.repeatRule]
-  if (input.rewardExp < 0 || input.rewardExp > limits.maxExp) return '奖励经验超出上限'
-  for (const item of input.rewardItems) {
-    if (item.count < 1 || item.count > limits.maxPerItem) return '道具数量超出上限'
-  }
-  return null
+export function getTaskButton(task: MiniappNestTask): TaskButtonState {
+  if (task.claimed) return { kind: 'claimed' }
+  if (task.locked) return { kind: 'locked' }
+  if (task.complete) return { kind: 'claim' }
+  return { kind: 'progress' }
 }
 
 export function insufficientMessage(action: 'feed' | 'play' | 'clean' | 'sleep'): string {
@@ -92,7 +77,10 @@ export function insufficientMessage(action: 'feed' | 'play' | 'clean' | 'sleep')
   return `${name}不够啦，去做任务获得一些吧`
 }
 
-/** 供测试注入的 PetState 最小形状（避免循环依赖具体组件） */
-export function petExpPreview(pet: Pick<PetState, 'level' | 'experience' | 'experienceToNextLevel'>) {
-  return { level: pet.level, experience: pet.experience, experienceToNextLevel: pet.experienceToNextLevel }
+/** 任务分组：每日在上、成就在下（服务端已按目录排序，这里兜底） */
+export function groupTasks(tasks: MiniappNestTask[]) {
+  return {
+    daily: tasks.filter((task) => task.scope === 'daily'),
+    achievement: tasks.filter((task) => task.scope === 'achievement')
+  }
 }

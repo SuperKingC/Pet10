@@ -7,6 +7,7 @@ import { resolveErrorResponse } from './http/errorResponse.js'
 import { createAuthRoutes } from './http/authRoutes.js'
 import { createAccountRoutes } from './http/accountRoutes.js'
 import { createFriendshipRoutes } from './http/friendshipRoutes.js'
+import { createCoRaiseRoutes } from './http/coRaiseRoutes.js'
 import { createGmRoutes } from './http/gmRoutes.js'
 import { createInvitationRoutes } from './http/invitationRoutes.js'
 import { createRoomRoutes } from './http/roomRoutes.js'
@@ -18,6 +19,7 @@ import { createImageRoutes } from './http/imageRoutes.js'
 import { createAccountService } from './services/accountService.js'
 import { createWechatAuthService } from './services/wechatAuthService.js'
 import { createFriendshipService } from './services/friendshipService.js'
+import { createCoRaiseService } from './services/coRaiseService.js'
 import { createGmService } from './services/gmService.js'
 import { createInvitationService } from './services/invitationService.js'
 import { createPetBrain } from './services/petBrain.js'
@@ -100,6 +102,9 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   const friendshipService = createFriendshipService(repositories, {
     notify: (userId, type, payload) => void socialService.notify(userId, type, payload)
   })
+  const coRaiseService = createCoRaiseService(repositories, {
+    notify: (userId, type, payload) => void socialService.notify(userId, type, payload)
+  })
   const diaryService = createDiaryService(repositories)
   const gmService = createGmService(repositories, friendshipService)
   const invitationService = createInvitationService(repositories)
@@ -112,9 +117,8 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     getInvitation: (token) => invitationService.get(token)
   })
   const nestTaskService = createNestTaskService(repositories, {
-    onTaskCompleted: (roomId, _userId, pet, leveledUp) => {
-      emit(roomId, 'pet.updated', pet)
-      if (leveledUp) emit(roomId, 'pet.leveled_up', { pet })
+    onRewardGranted: (roomId, _userId, _taskKey, items) => {
+      emit(roomId, 'task.reward', { items })
     }
   })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
@@ -126,6 +130,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   app.use('/api/session', authenticate, createSessionRoutes(sessionService))
   app.use('/api/account', authenticate, createAccountRoutes(createAccountService(repositories)))
   app.use('/api/friendships', authenticate, createFriendshipRoutes(friendshipService))
+  app.use('/api/co-raise', authenticate, createCoRaiseRoutes(coRaiseService))
   app.use('/api/gm', authenticate, createGmRoutes(gmService))
   app.use('/api/invitations', authenticate, createInvitationRoutes(invitationService))
   app.use('/api/social', authenticate, createSocialRoutes({ social: socialService, pets: petService, push: pushService }))

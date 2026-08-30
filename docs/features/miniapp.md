@@ -86,13 +86,12 @@ flowchart LR
 
 ## 任务与道具系统（已实现第一期）
 
-- 小窝右上快捷区的「任务」图标（`MiniappNestView.tsx`）在已养宠态可点，打开当前页全屏任务面板（复用纪念日覆盖层模式：`journal-anniv-overlay` 定高一屏不可滑动、共享返回按钮、微光骨架）。
-- 任务是「照顾计划」：双方都可创建/完成，字段为标题（≤20 字）、图标、重复规则（每天/每周/一次）与奖励（道具 1–3 件 + 小多利经验，每日上限 3 件/20 经验，每周 7 件/60，单次 5 件/40）；活跃任务每房间上限 8 条，超出返回 `nest_task_limit`。完成按周期防重复（每天/每周一重置，单次永久），重复完成返回 409 `nest_task_already_done`。
-- 完成任务发放道具并给小多利加经验（复用照顾动作的升级链路，面板内 toast 反馈「获得 狗粮×1…」）。首次读取任务列表或库存时自动发放新手礼包（狗粮×3、皮球×2、香皂×2，`room_pouches` 保证只发一次）。
-- 照顾动作改为消耗道具（服务端 `POST /pet-actions` 先扣道具再生效）：喂食耗狗粮、玩耍耗皮球、清洁（洗澡）耗香皂；**睡觉永远免费**（防「没道具→没法挣道具」死锁）。库存不足返回 409 `insufficient_item`，首页消息提示「狗粮不够啦，去做任务可以获得道具」。
-- 照顾面板（`PetActionBar`）按动作显示道具库存角标（`×N`），0 库存按钮灰置，点击 toast 提示去任务面板获取。
-- 服务端新表 `nest_tasks`（任务）、`room_inventory`（房间道具库存，`count>0` 条件更新防并发刷）、`room_pouches`（新手礼包发放标记）；与旧 `pet_tasks`（聊天提醒定时器）互不相干。路由挂在 `/api/rooms/:roomId/tasks`、`/api/rooms/:roomId/inventory`。领域规则在 `server/src/domain/nestTaskRules.ts` 与 `server/src/domain/itemCatalog.ts`（动作-道具映射、奖励上限、新手礼包常量）。
-- 小程序侧纯函数在 `miniapp/src/domain/nestTaskModel.ts`（动作映射、库存可用性、奖励文案与上限校验），API 封装在 `miniapp/src/services/nestTaskApi.ts`，面板组件为 `MiniappNestTaskPanel`。道具图标为手绘贴纸风透明底 PNG（256×256，4–8KB），由 `miniapp/tools/make-item-icons.mjs` 出件，与纪念日/心情图标同语言。
+- 任务是**系统预设**的（`server/src/domain/nestTaskCatalog.ts`），用户只完成不创建：**每日任务**（连续签到 1 天 / 给小多利喂食 1 次 / 陪小多利玩耍 1 次 / 给小多利洗澡 1 次，每天刷新）+ **成就任务**（连续签到 3/7 天、累计喂食 10/50 次、累计洗澡 10 次、累计玩耍 20 次、和好友完成默契换装 1 次，链式解锁——前置成就领取后下一级才解锁）。奖励**只有道具**（狗粮/皮球/香皂），不发经验。
+- 小窝右上「任务」图标打开全屏面板（复用纪念日覆盖层模式）：顶部道具库存条 + 「签到」按钮，下方「每日任务」「成就」两组任务卡。任务卡展示标题、奖励、进度（成就带进度条）；状态流转为「进行中 N/M → 可领取（金色按钮）→ 已领取」；未解锁成就显示灰置「未解锁」。
+- 进度由服务端自动派生：照顾动作在 `POST /pet-actions` 内先扣道具、成功后写每日进度（`nest_task_progress` 表，每日任务按日期周期、次日自动重置）；签到走 `POST /api/rooms/:roomId/checkin`（每天一次，重复返回 409 `checkin_already_done`，同时向 `pet_events` 累计成就计数）；成就任务的进度 = `pet_events` 按 action 的累计计数（喂食/玩耍/清洁/睡觉/签到/默契换装）。领取走 `POST /tasks/:key/claim`（未完成 `nest_task_not_complete`、已领 409 `nest_task_already_claimed`、前置未领 `nest_task_locked`）。
+- 照顾动作消耗道具（喂食耗狗粮、玩耍耗皮球、清洁耗香皂；**睡觉永远免费**防死锁）；库存不足返回 409 `insufficient_item`，首页消息提示去任务。照顾面板按钮显示道具库存角标，0 库存灰置。首次读取任务/库存自动发新手礼包（狗粮×3 皮球×2 香皂×2，只发一次）。
+- 服务端表：`nest_task_progress`（房间×任务 key 的进度/领取状态，periodKey 区分每日周期与成就永久）、`room_inventory`（库存，条件更新防并发刷）、`room_pouches`（新手包标记）；v1 的用户自建任务表 `nest_tasks` 已在迁移中 `DROP TABLE IF EXISTS` 移除。领域规则在 `nestTaskCatalog.ts`（任务模板）与 `itemCatalog.ts`（道具/动作映射/新手包）。
+- 小程序纯函数在 `miniapp/src/domain/nestTaskModel.ts`（按钮状态、分组、库存可用性、奖励文案），API 在 `nestTaskApi.ts`（list/claim/checkin/inventory），面板组件 `MiniappNestTaskPanel`。道具图标由 `miniapp/tools/make-item-icons.mjs` 出件（手绘贴纸风，与纪念日/心情图标同语言）。
 
 ## 代码入口
 

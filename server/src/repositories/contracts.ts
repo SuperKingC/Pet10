@@ -9,8 +9,7 @@ import type {
   Invitation,
   MapLight,
   MoodEntry,
-  NestTask,
-  NestTaskRewardItem,
+  NestTaskProgress,
   Pet,
   PetEventStat,
   PetMemory,
@@ -37,6 +36,8 @@ export interface UserRepository {
   findByEmail(email: string): Promise<User | undefined>
   findByUsername(username: string): Promise<User | undefined>
   findByPublicCode(code: string): Promise<User | undefined>
+  /** 按八位数字 UID 精确查找（输入允许带前导零） */
+  findByUid(uid: string): Promise<User | undefined>
   create(input: Pick<User, 'email' | 'username' | 'displayName'>): Promise<User>
   updateUsername(id: string, username: string): Promise<User>
   updateProfile(id: string, patch: UserProfilePatch): Promise<User>
@@ -121,28 +122,14 @@ export interface TaskRepository {
   fail(id: string): Promise<void>
 }
 
-export interface NestTaskRepository {
-  listByRoom(roomId: string): Promise<NestTask[]>
-  findById(roomId: string, taskId: string): Promise<NestTask | undefined>
-  create(input: {
-    roomId: string
-    createdBy: string
-    title: string
-    icon: string
-    repeatRule: NestTask['repeatRule']
-    rewardItems: NestTaskRewardItem[]
-    rewardExp: number
-  }): Promise<NestTask>
-  update(roomId: string, taskId: string, patch: {
-    title?: string
-    icon?: string
-    repeatRule?: NestTask['repeatRule']
-    rewardItems?: NestTaskRewardItem[]
-    rewardExp?: number
-    archived?: boolean
-  }): Promise<NestTask | undefined>
-  markCompleted(roomId: string, taskId: string, day: string, userId: string): Promise<NestTask | undefined>
-  countActive(roomId: string): Promise<number>
+export interface NestTaskProgressRepository {
+  listByRoom(roomId: string): Promise<NestTaskProgress[]>
+  findByKey(roomId: string, taskKey: string): Promise<NestTaskProgress | undefined>
+  /** 累加进度（成就型）；不存在则建 0+delta 行 */
+  addProgress(roomId: string, taskKey: string, delta: number): Promise<NestTaskProgress>
+  /** 每日任务置进度并标记周期（当天签到等一次性计数，重复写不叠加） */
+  setDailyProgress(roomId: string, taskKey: string, periodKey: string, progress: number): Promise<NestTaskProgress>
+  markClaimed(roomId: string, taskKey: string, userId: string): Promise<NestTaskProgress | undefined>
 }
 
 export interface InventoryRepository {
@@ -237,7 +224,7 @@ export interface RepositoryBundle {
   messages: MessageRepository
   memories: MemoryRepository
   tasks: TaskRepository
-  nestTasks: NestTaskRepository
+  nestTaskProgress: NestTaskProgressRepository
   inventory: InventoryRepository
   moods: MoodRepository
   anniversaries: AnniversaryRepository
