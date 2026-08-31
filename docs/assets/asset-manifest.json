@@ -548,6 +548,11 @@
       "path": "miniapp/src/assets/wardrobe/scarf-v1.png",
       "category": "runtime-feature",
       "purpose": "Bundled wardrobe scarf suit render, the only suit shipped in the main package (package budget)"
+    },
+    {
+      "path": "design-assets/nest/letter-paper-source.png",
+      "category": "source-only",
+      "purpose": "Full letter-paper source illustration the v4 nine-slice letter assets were cut from"
     }
   ]
 }
