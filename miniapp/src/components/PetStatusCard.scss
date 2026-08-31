@@ -1,12 +1,12 @@
-/* 小窝状态卡：上半场景（背景整图完整呈现 + 小多利踩地毯阴影 + 说话飘字 + 名片入口），下半紧凑状态区。
-   背景不放大不裁剪（aspectFit 完整展示整张室内图）；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
+/* 小窝状态卡：上半场景（背景通栏顶对齐裁底 + 小多利踩地脚线 + 说话飘字 + 名片入口），下半紧凑状态区。
+   场景收矮到 560px 让名片/状态区/下方卡片整体上移；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
-.pet-card-scene { position: relative; height: 640px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
+.pet-card-scene { position: relative; height: 560px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
 .pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
-/* 整图等比完整放入（720×981 竖图 → 显示约 469×640，居中，两侧暖渐变补边） */
-.pet-card-background { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* 小多利居中偏下，脚部落进地毯阴影区（阴影中心约在场景中线右 45px、y 510 处） */
-.pet-avatar-image { position: absolute; bottom: 122px; left: calc(50% + 45px); z-index: 2; width: 240px; height: 283px; transform: translateX(-50%); }
+/* 背景通栏（658rpx 宽 → 高约 896rpx），顶部对齐，底部溢出裁掉 */
+.pet-card-background { position: absolute; top: 0; left: 0; width: 100%; }
+/* 小多利居中偏下踩在地脚线上（地毯阴影随底裁不可见，按画面中线右 60px 对位），脚距底 16px */
+.pet-avatar-image { position: absolute; bottom: 16px; left: calc(50% + 60px); z-index: 2; width: 240px; height: 283px; transform: translateX(-50%); }
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
 
@@ -32,10 +32,10 @@
 .pet-name-card__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .pet-name-card__hint { color: #b08d67; font-size: 20rpx; letter-spacing: 2rpx; }
 
-/* 小多利说话飘字：头顶气泡，换文案时重新弹入，常态轻轻上下浮动 */
+/* 小多利说话飘字：头顶上方气泡（狗头顶约 y 300，双行气泡底不超过 260），换文案重新弹入 + 轻微浮动 */
 .pet-speech {
   position: absolute;
-  top: 168px;
+  top: 160px;
   left: 50%;
   z-index: 3;
   max-width: 76%;

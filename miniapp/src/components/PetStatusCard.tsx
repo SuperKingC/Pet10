@@ -38,8 +38,8 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard }: Prop
   return (
     <View className="pet-status-card">
       <View className="pet-card-scene">
-        {/* 背景整图 aspectFit 完整呈现不裁剪不放大，水平居中留奶油渐变边 */}
-        <Image className="pet-card-background" src={roomBackground} mode="aspectFit" />
+        {/* 背景通栏铺满宽度、顶部对齐，底部超出部分裁掉 */}
+        <Image className="pet-card-background" src={roomBackground} mode="widthFix" />
         <Text className="pet-level">Lv.{pet.level}</Text>
         <View className="pet-avatar-image">
           <MiniappOutfitPortrait suitKey={suitKey} />
