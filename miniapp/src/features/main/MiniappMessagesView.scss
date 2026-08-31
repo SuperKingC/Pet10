@@ -300,7 +300,10 @@
 }
 
 .miniapp-messages__conversation-copy {
+  // 微信 Text 默认内联渲染，缺 display:block 时单行省略失效、长文案会把会话行撑高
+  display: block;
   overflow: hidden;
+  height: 40rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

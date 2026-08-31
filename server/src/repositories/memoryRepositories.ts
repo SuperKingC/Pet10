@@ -89,6 +89,10 @@ export function createMemoryRepositories(): RepositoryBundle {
     async findByUsername(username: string) { return [...users.values()].find((user) => user.username === username) },
     async findByPublicCode(code: string) { return [...users.values()].find((user) => user.publicCode === code.toUpperCase()) },
     async findByUid(uid: string) { return [...users.values()].find((user) => user.uid === uid.replace(/^0+/, '').padStart(8, '0')) },
+    async listRecent(limit: number) {
+      // uid 单调递增：创建时间同毫秒时按 uid 倒序兜底，保证「最新注册」顺序稳定
+      return [...users.values()].sort((a, b) => (b.createdAt.getTime() - a.createdAt.getTime()) || (b.uid > a.uid ? 1 : -1)).slice(0, limit)
+    },
     async create(input: Pick<User, 'email' | 'username' | 'displayName'>) {
       const user = { ...input, id: randomUUID(), email: input.email.toLowerCase(), uid: nextUid(), publicCode: makePublicCode(), gender: 'private' as const, createdAt: now() }
       users.set(user.id, user)

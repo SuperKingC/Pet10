@@ -1,5 +1,6 @@
 // 添加好友弹窗（页面根层级，z 高于底部 tab 栏）
 // 头像放在外层 wrap，面板内 overflow 不再裁掉探出的头部
+// 主包预算极紧：本文件改动后需重编译核对 dist 字节余量
 .miniapp-add-friend {
   position: fixed;
   inset: 0;
@@ -23,6 +24,8 @@
   align-items: center;
   width: 100%;
   max-width: 660rpx;
+  // 弹入：轻微回弹的缩放+上浮，与背景淡入分层
+  animation: add-friend-pop .34s cubic-bezier(.34, 1.56, .64, 1) both;
 }
 
 // 顶部探出的小多利（在面板外层，不会被面板 overflow 裁掉）
@@ -53,11 +56,15 @@
   font-weight: 700;
 }
 
-.miniapp-add-friend__intro {
+.miniapp-add-friend__intro,
+.miniapp-add-friend__card-hint {
   margin-top: 14rpx;
   color: #a08a7a;
-  font-size: 27rpx;
+  font-size: 25rpx;
   line-height: 1.65;
+}
+
+.miniapp-add-friend__intro {
   text-align: center;
 }
 
@@ -87,6 +94,20 @@
   font-size: 28rpx;
 }
 
+// 四枚按钮共用一套橙色渐变皮肤（合并选择器省包体），布局差异各写各的
+.miniapp-add-friend__search-btn,
+.miniapp-add-friend__card-btn,
+.miniapp-add-friend__row-btn,
+.miniapp-add-friend__share {
+  color: #fff;
+  background: linear-gradient(135deg, #eeb356, #e88d5a);
+  border: 0;
+
+  &::after {
+    border: 0;
+  }
+}
+
 .miniapp-add-friend__search-btn {
   flex-shrink: 0;
   display: flex;
@@ -95,17 +116,10 @@
   height: 96rpx;
   margin: 0;
   padding: 0 50rpx;
-  color: #fff;
-  background: linear-gradient(135deg, #eeb356, #e88d5a);
-  border: 0;
   border-radius: 22rpx;
   font-size: 31rpx;
   font-weight: 600;
   line-height: 96rpx;
-
-  &::after {
-    border: 0;
-  }
 }
 
 .miniapp-add-friend__error {
@@ -115,19 +129,111 @@
   font-size: 25rpx;
 }
 
+/* ========== 搜索结果信息卡：先看人再发申请 ========== */
+
+.miniapp-add-friend__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 30rpx;
+  padding: 28rpx 28rpx 30rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #fff9f0, #fff3e2);
+  border: 2rpx solid #f2e0c8;
+  border-radius: 26rpx;
+  animation: add-friend-in .28s ease-out both;
+}
+
+// 卡片头像与推荐行头像共用圆形底
+.miniapp-add-friend__card-avatar,
+.miniapp-add-friend__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #fff1de;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.miniapp-add-friend__card-avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border: 4rpx solid #fff;
+}
+
+.miniapp-add-friend__avatar {
+  width: 84rpx;
+  height: 84rpx;
+}
+
+.miniapp-add-friend__card-avatar-image,
+.miniapp-add-friend__avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.miniapp-add-friend__avatar-letter,
+.miniapp-add-friend__card-avatar-letter {
+  color: #c08a5a;
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.miniapp-add-friend__card-id {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.miniapp-add-friend__card-name,
+.miniapp-add-friend__name {
+  overflow: hidden;
+  color: #5e3b1d;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.miniapp-add-friend__card-name {
+  font-size: 33rpx;
+  font-weight: 700;
+}
+
+.miniapp-add-friend__card-uid {
+  align-self: flex-start;
+  padding: 4rpx 16rpx;
+  color: #a3805d;
+  background: #f8ead5;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+}
+
+.miniapp-add-friend__card-btn {
+  height: 84rpx;
+  margin: 24rpx 0 0;
+  border-radius: 999rpx;
+  font-size: 29rpx;
+  font-weight: 700;
+  line-height: 84rpx;
+}
+
+/* ========== 推荐好友（非好友新用户） ========== */
+
 .miniapp-add-friend__recommend {
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-top: 34rpx;
-  padding: 26rpx 28rpx 12rpx;
+  margin-top: 30rpx;
+  padding: 24rpx 28rpx 16rpx;
   background: #fff8ee;
   border: 2rpx solid #f2e3d1;
   border-radius: 24rpx;
 }
 
 .miniapp-add-friend__section {
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
   color: #8c7566;
   font-size: 27rpx;
   font-weight: 700;
@@ -137,49 +243,38 @@
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 12rpx 0;
+  padding: 14rpx 0;
+  // 行级错帧入场：延迟由行内 style 注入
+  animation: add-friend-in .32s ease-out both;
 }
 
-.miniapp-add-friend__avatar {
+.miniapp-add-friend__row-id {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 88rpx;
-  height: 88rpx;
-  background: #fff1de;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.miniapp-add-friend__avatar-image {
-  width: 100%;
-  height: 100%;
-}
-
-.miniapp-add-friend__avatar-letter {
-  color: #c08a5a;
-  font-size: 34rpx;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
 .miniapp-add-friend__name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  color: #5e3b1d;
-  font-size: 31rpx;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  font-size: 30rpx;
+  font-weight: 600;
 }
 
-.miniapp-add-friend__state {
+.miniapp-add-friend__row-btn {
   flex-shrink: 0;
-  color: #b8a499;
+  height: 58rpx;
+  margin: 0;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
   font-size: 24rpx;
+  font-weight: 600;
+  line-height: 58rpx;
 }
 
-.miniapp-add-friend__state--raising {
-  color: #d9845d;
+.miniapp-add-friend__row-btn--done {
+  background: #f1e3d2;
+  color: #b49a86;
 }
 
 .miniapp-add-friend__share {
@@ -188,18 +283,50 @@
   justify-content: center;
   width: 100%;
   height: 100rpx;
-  margin: 40rpx 0 0;
+  margin: 36rpx 0 0;
   padding: 0;
-  color: #fff;
-  background: linear-gradient(135deg, #eeb356, #e88d5a);
-  border: 0;
   border-radius: 999rpx;
+  box-shadow: 0 10rpx 22rpx rgba(232, 141, 90, .3), inset 0 2rpx 0 rgba(255, 255, 255, .35);
   font-size: 32rpx;
   font-weight: 700;
   line-height: 100rpx;
-  letter-spacing: 2rpx;
+}
 
-  &::after {
-    border: 0;
+// 按压反馈：弹窗内所有可点元素共用
+.miniapp-add-friend__press {
+  opacity: .88;
+  transform: scale(.97);
+}
+
+/* ========== 动效 ========== */
+
+@keyframes add-friend-pop {
+  from {
+    opacity: 0;
+    transform: translateY(30rpx) scale(.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// 信息卡与推荐行共用的淡入上浮入场（行用行内 style 错帧）
+@keyframes add-friend-in {
+  from {
+    opacity: 0;
+    transform: translateY(16rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .miniapp-add-friend__wrap,
+  .miniapp-add-friend__card,
+  .miniapp-add-friend__row {
+    animation: none;
   }
 }

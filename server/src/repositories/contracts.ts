@@ -42,6 +42,8 @@ export interface UserRepository {
   findByPublicCode(code: string): Promise<User | undefined>
   /** 按八位数字 UID 精确查找（输入允许带前导零） */
   findByUid(uid: string): Promise<User | undefined>
+  /** 最新注册的用户（创建时间倒序），供添加好友弹窗推荐候选 */
+  listRecent(limit: number): Promise<User[]>
   create(input: Pick<User, 'email' | 'username' | 'displayName'>): Promise<User>
   updateUsername(id: string, username: string): Promise<User>
   updateProfile(id: string, patch: UserProfilePatch): Promise<User>

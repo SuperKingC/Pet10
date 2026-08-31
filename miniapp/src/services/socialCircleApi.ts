@@ -12,6 +12,23 @@ export interface MiniappFriendCandidate {
   coRaising: boolean
 }
 
+/** UID 搜索结果：对方公开信息 + 与我的关系状态（搜索只展示，不发申请） */
+export interface MiniappFriendLookup {
+  id: string
+  uid: string
+  displayName: string
+  avatarUrl?: string | null
+  relation: 'self' | 'friends' | 'request_sent' | 'request_received' | 'none'
+}
+
+/** 推荐好友：最新注册且与我尚无好友关系/申请的用户 */
+export interface MiniappFriendSuggestion {
+  id: string
+  uid: string
+  displayName: string
+  avatarUrl?: string | null
+}
+
 export interface MiniappCirclePost {
   id: string
   roomId: string
@@ -42,6 +59,14 @@ export const friendApi = {
   /** 通过 UID / 旧公开码 / 用户名 加好友（好友申请，不含小多利） */
   sendRequest(identifier: string) {
     return apiRequest<unknown>('/api/friendships', { method: 'POST', body: { identifier } })
+  },
+  /** 搜索用户：只返回公开信息与关系状态，不发送好友申请 */
+  lookupUser(identifier: string) {
+    return apiRequest<MiniappFriendLookup>(`/api/friendships/lookup?identifier=${encodeURIComponent(identifier)}`)
+  },
+  /** 推荐好友：最新注册且还不是好友的用户 */
+  listSuggestions() {
+    return apiRequest<MiniappFriendSuggestion[]>('/api/friendships/suggestions')
   },
   /** 可一起养小多利的好友列表（选择弹窗数据源） */
   listCoRaiseCandidates() {

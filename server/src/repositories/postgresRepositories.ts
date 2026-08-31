@@ -36,6 +36,7 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       findByUsername: (username) => one('SELECT * FROM users WHERE username=$1', [username]),
       findByPublicCode: (code) => one('SELECT * FROM users WHERE public_code=$1', [code.toUpperCase()]),
       findByUid: (uid) => one('SELECT * FROM users WHERE uid=$1', [uid.replace(/^0+/, '').padStart(8, '0')]),
+      listRecent: (limit) => many('SELECT * FROM users ORDER BY created_at DESC, uid DESC LIMIT $1', [limit]),
       create: async (input) => {
         for (let attempt = 0; attempt < 5; attempt++) {
           try {
