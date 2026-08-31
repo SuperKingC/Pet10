@@ -17,7 +17,6 @@ interface MiniappWardrobePanelProps {
 
 const CLOUD_PENDING_HINT = '这件的画稿在云端，联网打开衣柜会自动取回来'
 
-const hangerImage = require('../../assets/wardrobe/hanger-v2.png')
 const DECOR_INTERIOR_FILE = 'wardrobe-interior-v2.jpg'
 
 // 衣柜面板：左侧「试衣间」拍立得舞台实时预览，右侧默契换装气泡；下方服装挂杆网格。
@@ -176,16 +175,13 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
                   <View className="wardrobe-card__tick"><Text>✓</Text></View>
                 )}
                 {item.unlocked ? (
-                  <>
-                    <Image className="wardrobe-card__hanger" src={hangerImage} mode="widthFix" />
-                    {iconSrc ? (
-                      <Image className="wardrobe-card__suit" src={iconSrc} mode="aspectFit" />
-                    ) : (
-                      <View className="wardrobe-card__suit wardrobe-card__suit--pending">
-                        <Text className="wardrobe-card__pending-text">云端准备中</Text>
-                      </View>
-                    )}
-                  </>
+                  iconSrc ? (
+                    <Image className="wardrobe-card__suit" src={iconSrc} mode="aspectFit" />
+                  ) : (
+                    <View className="wardrobe-card__suit wardrobe-card__suit--pending">
+                      <Text className="wardrobe-card__pending-text">云端准备中</Text>
+                    </View>
+                  )
                 ) : (
                   <View className="wardrobe-card__suit wardrobe-card__suit--locked">
                     <Text className="wardrobe-card__lock">🔒</Text>
