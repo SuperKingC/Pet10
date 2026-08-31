@@ -17,6 +17,9 @@ interface MiniappWardrobePanelProps {
 
 const CLOUD_PENDING_HINT = '这件的画稿在云端，联网打开衣柜会自动取回来'
 
+const wardrobeInterior = require('../../assets/wardrobe/wardrobe-interior-v1.png')
+const hangerImage = require('../../assets/wardrobe/hanger-v1.png')
+
 // 衣柜面板：左侧「试衣间」拍立得舞台实时预览，右侧默契换装气泡；下方服装挂杆网格。
 // 默契换装每天一次，双方一致即达成。解锁判定全部来自服务端，面板只展示与提交。
 export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWardrobePanelProps) {
@@ -89,6 +92,7 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
 
   return (
     <View className="wardrobe-panel">
+      <Image className="wardrobe-panel__backdrop" src={wardrobeInterior} mode="widthFix" />
       <View className="wardrobe-panel__top">
         <MiniappBackButton onClick={onClose} />
         <Text className="wardrobe-panel__title">衣柜</Text>
@@ -162,13 +166,16 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
                   <View className="wardrobe-card__tick"><Text>✓</Text></View>
                 )}
                 {item.unlocked ? (
-                  iconSrc ? (
-                    <Image className="wardrobe-card__suit" src={iconSrc} mode="aspectFit" />
-                  ) : (
-                    <View className="wardrobe-card__suit wardrobe-card__suit--pending">
-                      <Text className="wardrobe-card__pending-text">云端准备中</Text>
-                    </View>
-                  )
+                  <>
+                    <Image className="wardrobe-card__hanger" src={hangerImage} mode="widthFix" />
+                    {iconSrc ? (
+                      <Image className="wardrobe-card__suit" src={iconSrc} mode="aspectFit" />
+                    ) : (
+                      <View className="wardrobe-card__suit wardrobe-card__suit--pending">
+                        <Text className="wardrobe-card__pending-text">云端准备中</Text>
+                      </View>
+                    )}
+                  </>
                 ) : (
                   <View className="wardrobe-card__suit wardrobe-card__suit--locked">
                     <Text className="wardrobe-card__lock">🔒</Text>
@@ -188,12 +195,16 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
 
       <View className="wardrobe-panel__actions">
         <View
+          hoverClass="wardrobe-btn--press"
+          hoverStayTime={120}
           className={`wardrobe-btn wardrobe-btn--save${currentItem?.unlocked ? '' : ' wardrobe-btn--disabled'}`}
           onClick={() => void save()}
         >
           <Text>{saving ? '保存中…' : '保存装扮'}</Text>
         </View>
         <View
+          hoverClass="wardrobe-btn--press"
+          hoverStayTime={120}
           className={`wardrobe-btn wardrobe-btn--match${view?.match.myPick || !currentItem?.unlocked ? ' wardrobe-btn--disabled' : ''}`}
           onClick={() => void submitMatch()}
         >

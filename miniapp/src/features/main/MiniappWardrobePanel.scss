@@ -1,16 +1,30 @@
-/* 衣柜面板：暖调「试衣间」——左侧胶带拍立得舞台 + 右侧默契气泡，下方挂杆服装格 */
+/* 衣柜面板：暖调「试衣间」——衣柜内景背景 + 胶带拍立得舞台 + 默契气泡，下方挂杆衣架服装格 */
 .wardrobe-panel {
+  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   padding: 12rpx 32rpx 36rpx;
   box-sizing: border-box;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(232, 175, 106, .16), transparent 34%),
-    radial-gradient(circle at 90% 22%, rgba(240, 196, 138, .12), transparent 30%),
-    linear-gradient(180deg, #fff1df 0%, #fff8ee 420rpx);
+  background: linear-gradient(180deg, #fff6e8 0%, #fff8ee 40%, #fdf3e3 100%);
 }
+.wardrobe-panel__backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 520rpx;
+  z-index: 0;
+  animation: wardrobe-fade .32s ease-out both;
+}
+@keyframes wardrobe-fade { from { opacity: 0; } to { opacity: 1; } }
+.wardrobe-panel__top,
+.wardrobe-panel__caption,
+.wardrobe-showcase,
+.wardrobe-rack,
+.wardrobe-panel__hint,
+.wardrobe-panel__actions { position: relative; z-index: 1; }
 
 .wardrobe-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
 .wardrobe-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
@@ -50,7 +64,17 @@
   box-shadow: 0 4rpx 8rpx rgba(84, 55, 28, .14);
   transform: rotate(-3deg);
 }
-.wardrobe-stage__inner { position: relative; width: 100%; height: 328rpx; }
+.wardrobe-stage__inner {
+  position: relative;
+  width: 100%;
+  height: 328rpx;
+  animation: wardrobe-breathe 3.4s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+@keyframes wardrobe-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.014); }
+}
 .wardrobe-stage__floor {
   width: 176rpx;
   height: 22rpx;
@@ -81,9 +105,12 @@
   gap: 14rpx;
   padding: 22rpx 24rpx;
   border-radius: 24rpx;
-  background: #fffdf8;
+  background: rgba(255, 253, 248, .96);
   border: 2rpx dashed #e8cfa8;
+  box-shadow: 0 8rpx 20rpx rgba(84, 55, 28, .1);
+  animation: wardrobe-pop .34s cubic-bezier(.34, 1.56, .64, 1) both;
 }
+@keyframes wardrobe-pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
 .wardrobe-bubble__tail {
   position: absolute;
   left: -14rpx;
@@ -152,23 +179,36 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx 10rpx 14rpx;
+  padding: 14rpx 10rpx 14rpx;
   border-radius: 22rpx;
   background: #fffdf8;
   border: 3rpx solid #f3e3cd;
   box-shadow: 0 6rpx 16rpx rgba(113, 77, 38, .08);
-  animation: wardrobe-card-in .4s ease-out both;
+  transform-origin: 50% -16rpx;
+  animation: wardrobe-hang-in .5s cubic-bezier(.3, 1.35, .6, 1) both;
 }
-.wardrobe-card:nth-child(3n + 2) { animation-delay: .06s; }
-.wardrobe-card:nth-child(3n) { animation-delay: .12s; }
-@keyframes wardrobe-card-in { from { opacity: 0; transform: translateY(16rpx); } to { opacity: 1; transform: none; } }
-
+.wardrobe-card:nth-child(3n + 2) { animation-delay: .07s; }
+.wardrobe-card:nth-child(3n) { animation-delay: .14s; }
+@keyframes wardrobe-hang-in {
+  0% { opacity: 0; transform: translateY(-30rpx) rotate(-3deg); }
+  70% { opacity: 1; transform: translateY(2rpx) rotate(1.6deg); }
+  100% { opacity: 1; transform: none; }
+}
 .wardrobe-card--selected {
   border-color: #e88f3c;
   background: #fff6e8;
   box-shadow: 0 12rpx 26rpx rgba(232, 143, 60, .3);
   transform: translateY(-4rpx);
+  animation: wardrobe-swing .7s ease-in-out;
 }
+@keyframes wardrobe-swing {
+  0% { transform: translateY(-4rpx) rotate(0); }
+  30% { transform: translateY(-4rpx) rotate(2.4deg); }
+  62% { transform: translateY(-4rpx) rotate(-1.8deg); }
+  85% { transform: translateY(-4rpx) rotate(.8deg); }
+  100% { transform: translateY(-4rpx) rotate(0); }
+}
+.wardrobe-card__hanger { width: 60rpx; height: 52rpx; margin-bottom: -14rpx; z-index: 1; }
 .wardrobe-card--locked { background: #f6f0e5; border-color: #eadfcd; }
 .wardrobe-card__ribbon {
   position: absolute;
@@ -252,10 +292,14 @@
   box-shadow: 0 8rpx 20rpx rgba(226, 105, 124, .3), inset 0 2rpx 0 rgba(255, 255, 255, .4);
 }
 .wardrobe-btn--disabled { opacity: .45; box-shadow: none; }
+.wardrobe-btn--press { transform: scale(.96); filter: brightness(.95); }
 
 @media (prefers-reduced-motion: reduce) {
   .wardrobe-grid__skeleton { animation: none; }
   .wardrobe-card { animation: none; }
+  .wardrobe-card--selected { animation: none; transform: translateY(-4rpx); }
   .wardrobe-stage { transform: none; }
-  .wardrobe-card--selected { transform: none; }
+  .wardrobe-stage__inner { animation: none; }
+  .wardrobe-bubble { animation: none; }
+  .wardrobe-panel__backdrop { animation: none; }
 }

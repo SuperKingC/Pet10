@@ -357,14 +357,14 @@ async function rectCut(name, box, maxSize = 240, colors = 192) {
   }
   return sharp(out, { raw: { width: cw, height: ch, channels: 4 } })
     .resize(maxSize, maxSize, { fit: 'inside', kernel: 'lanczos3' })
-    .png({ palette: true, colors, compressionLevel: 9 })
+    .png({ palette: true, colors, compressionLevel: 9, dither: 0 })
     .toBuffer()
 }
 
 async function png8(rawBuffer, width, height, maxSize = 240, colors = 192) {
   return sharp(rawBuffer, { raw: { width, height, channels: 4 } })
     .resize(maxSize, maxSize, { fit: 'inside', kernel: 'lanczos3' })
-    .png({ palette: true, colors, compressionLevel: 9 })
+    .png({ palette: true, colors, compressionLevel: 9, dither: 0 })
     .toBuffer()
 }
 
@@ -468,9 +468,12 @@ for (const [key, def] of Object.entries(overlaySuits)) {
   const dispScale = def.w / contentW
   const fileW = Math.round(nativeW * dispScale)
   const fileH = Math.round(nativeH * dispScale)
+  // 文件分辨率上限 232（展示尺寸由 style 标定，与文件分辨率解耦）
+  const renderW = Math.min(fileW, 208)
+  const renderH = Math.round(fileH * renderW / fileW)
   const png = await sharp(rawBuf, { raw: { width: nativeW, height: nativeH, channels: 4 } })
-    .resize(fileW, fileH, { kernel: 'lanczos3' })
-    .png({ palette: true, colors: 192, compressionLevel: 9 })
+    .resize(renderW, renderH, { kernel: 'lanczos3' })
+    .png({ palette: true, colors: 96, compressionLevel: 9, dither: 0 })
     .toBuffer()
   const file = `outfit-${key}-v2.png`
   await writeFile(path.join(cosOutDir, file), png)
@@ -504,7 +507,7 @@ for (const [key, def] of Object.entries(bodySuits)) {
   await writeFile(path.join(cosOutDir, iconFile), icon)
   // 整套穿装立绘：从源 PNG 文件直接裁透明边（raw 缓冲不能走 trim）
   const render = await sharp(path.join(srcDir, `${key}.png`)).trim().png().toBuffer()
-  const full = await sharp(render).resize({ height: 320, fit: 'inside' }).png({ palette: true, colors: 256, compressionLevel: 9 }).toBuffer()
+  const full = await sharp(render).resize({ height: 320, fit: 'inside' }).png({ palette: true, colors: 256, compressionLevel: 9, dither: 0 }).toBuffer()
   const fullFile = `${key}-v1.png`
   await writeFile(path.join(cosOutDir, fullFile), full)
   report.suits.push({ key, kind: 'full-render', icon: `public/wardrobe/${iconFile}`, full: `public/wardrobe/${fullFile}`, bundled: false, iconBytes: icon.byteLength, fullBytes: full.byteLength })

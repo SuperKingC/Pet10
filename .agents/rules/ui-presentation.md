@@ -41,3 +41,10 @@
 - [ ] 弹窗具有遮罩、关闭方式、键盘与返回操作的合理处理。
 - [ ] 整页具有明确的进入和返回路径。
 - [ ] 不确定的容器选择已经过用户确认。
+
+## Visual Design Quality
+
+- 用户要求「更好看 / 重新设计 / 优化界面」时，方案必须把**动画编排与图片资源**纳入考虑并主动提案，不得默认只做 CSS 颜色/间距微调后交差。
+- 新增图片资源必须遵守 `.agents/rules/miniapp-image.md`（PNG8/JPEG、禁本地 WebP、优化脚本与 TinyPNG 流程）与主包 2MB 预算；装饰性插画优先用 `miniapp/tools/` 的 SVG→sharp 生成脚本出件（体积可控、风格统一），AI 生图素材按 source-only 入 `design-assets/`。
+- 动效必须提供 `prefers-reduced-motion` 降级，且不阻塞交互。
+- 视觉结果经用户验收前不得合并或部署（既有门槛不变）。
