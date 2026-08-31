@@ -1,10 +1,10 @@
-/* 小窝底部「今日默契换装」横卡：拍立得预览 + 状态一句话 + 入口按钮 */
+/* 小窝底部「今日默契换装」横卡：拍立得预览 + 状态一句话 + 入口按钮（紧凑高度，保证小窝一屏放下） */
 .outfit-match-card {
   display: flex;
   align-items: center;
-  gap: 22rpx;
-  margin: 24rpx 28rpx 8rpx;
-  padding: 22rpx 24rpx;
+  gap: 18rpx;
+  margin: 0 0 8rpx;
+  padding: 16rpx 20rpx;
   border-radius: 28rpx;
   background: #fffdf8;
   border: 2rpx solid #f0dcc8;
@@ -16,14 +16,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 120rpx;
-  height: 140rpx;
+  width: 104rpx;
+  height: 122rpx;
   border-radius: 14rpx;
   background: #fff;
   box-shadow: 0 6rpx 14rpx rgba(84, 55, 28, .16);
   transform: rotate(-2.5deg);
 }
-.outfit-match-card__suit { width: 104rpx; height: 128rpx; }
+.outfit-match-card__suit { width: 92rpx; height: 114rpx; }
 .outfit-match-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
 .outfit-match-card__title-row { display: flex; align-items: center; gap: 12rpx; }
 .outfit-match-card__title { color: #382b23; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }

@@ -185,7 +185,6 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
     <View className="miniapp-me">
       <View className="miniapp-page-header miniapp-me__header">
         <Text className="miniapp-page-title miniapp-me__title">我的</Text>
-        <Text className="miniapp-page-caption miniapp-me__caption">管理你的资料和偏好</Text>
       </View>
       <View className="miniapp-me__profile">
         <View className="miniapp-me__avatar" onClick={() => setAvatarEditing(true)}>

@@ -1,8 +1,9 @@
-.pet-actions-panel { margin-top: 24px; padding: 20px 24px; border: 1px solid #e8bd91; border-radius: 22px; background: #fff7e9; }
+.pet-actions-panel { margin-top: 8px; padding: 16px 20px; border: 1px solid #e8bd91; border-radius: 22px; background: #fff7e9; }
 .pet-actions-title { color: #a98d7e; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
-.pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 10px; }
+.pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 8px; }
 .pet-action-button { position: relative; display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: var(--font-size-aux); }
-.pet-action-button image { width: 120px; height: 128px; }
+/* 只命中主贴片图（直接子级）：道具角标图标若被此规则命中，会按 120×128 铺满盖住按钮 */
+.pet-action-button > image { width: 120px; height: 128px; }
 .pet-action-button--locked image { opacity: .45; filter: grayscale(.6); }
 .pet-action-button__badge {
   position: absolute;

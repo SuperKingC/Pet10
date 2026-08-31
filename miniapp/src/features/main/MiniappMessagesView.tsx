@@ -185,7 +185,6 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
     <View className="miniapp-messages">
       <View className="miniapp-page-header miniapp-messages__header">
         <Text className="miniapp-page-title miniapp-messages__title">消息</Text>
-        <Text className="miniapp-page-caption miniapp-messages__caption">你们的每一句温暖都由小多帮您记住</Text>
         <View className="miniapp-messages__actions">
           <View
             className="miniapp-messages__action"

@@ -11,7 +11,8 @@ describe('miniapp main layout', () => {
     const nestStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.scss'), 'utf8')
 
     expect(pageSource).not.toContain('className="page-heading"')
-    expect(nestSource).toContain('记录你们和小多利的共同生活')
+    // tab 页标题下的介绍文案已整体去掉，页面内容上移
+    expect(nestSource).not.toContain('记录你们和小多利的共同生活')
     expect(nestSource).toContain('className="miniapp-nest__loading"')
     expect(nestSource).not.toContain("require('../../assets/room-background.jpg')")
     expect(nestSource).not.toContain('style={{ backgroundImage')
@@ -27,12 +28,12 @@ describe('miniapp main layout', () => {
     const meStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappMeView.scss'), 'utf8')
 
     expect(nestStyles).toMatch(/\.miniapp-nest__scene\s*\{[\s\S]*position:\s*relative;/)
-    // 快捷入口整列收进 470px 背景大图内，不再垂直居中溢出到卡片下方
+    // 快捷入口整列收进 560px 背景大图内，不再垂直居中溢出到卡片下方
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*position:\s*absolute;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*88px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*96px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*right:\s*8px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*flex-direction:\s*column;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*gap:\s*16px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*gap:\s*20px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcut\s*\{[\s\S]*width:\s*104px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcut image\s*\{[\s\S]*width:\s*104px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcut image\s*\{[\s\S]*height:\s*108px;/)
@@ -52,11 +53,10 @@ describe('miniapp main layout', () => {
     for (const source of sources) {
       expect(source).toContain('miniapp-page-header')
       expect(source).toContain('miniapp-page-title')
+      // 四个 tab 页均已去掉标题下介绍文案
+      expect(source).not.toContain('miniapp-page-caption')
     }
-    expect(sources[0]).toContain('miniapp-page-caption')
-    expect(sources[2]).toContain('miniapp-page-caption')
-    expect(sources[3]).toContain('miniapp-page-caption')
-    expect(indexStyles).toMatch(/\.miniapp-page-header\s*\{[\s\S]*padding:\s*2px 2px 4px;/)
+    expect(indexStyles).toMatch(/\.miniapp-page-header\s*\{[\s\S]*padding:\s*2px 2px 0;/)
     expect(indexStyles).toMatch(/\.miniapp-page-title\s*\{[\s\S]*font-size:\s*var\(--font-size-page-title\);[\s\S]*font-weight:\s*var\(--font-weight-bold\);/)
   })
 
@@ -73,7 +73,8 @@ describe('miniapp main layout', () => {
     const tabStyles = fs.readFileSync(path.join(root, 'components', 'MiniappTabBar.scss'), 'utf8')
 
     expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*background:\s*#fff8ee;/)
-    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*4px 32px 220px;/)
+    // 小窝文档流层底部 234px + 末张卡 8rpx 下边距 = 与固定 tab 层统一的 238px 净空
+    expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*0 32px 234px;/)
     expect(tabStyles).toMatch(/\.miniapp-tab-bar\s*\{[\s\S]*background:\s*#fff8ee;/)
   })
 })

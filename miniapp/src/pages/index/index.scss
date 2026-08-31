@@ -1,14 +1,14 @@
 .home-page {
   min-height: 100vh;
-  padding: 4px 32px 220px;
+  /* 顶部贴标题起排；底部 234px + 末张卡 8rpx 下边距 = 与其他 tab 层一致的 238px 净空 */
+  padding: 0 32px 234px;
   background: #fff8ee;
 }
 
 .miniapp-page-header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 2px 2px 4px;
+  padding: 2px 2px 0;
 }
 
 .miniapp-page-title {
@@ -16,12 +16,6 @@
   font-size: var(--font-size-page-title);
   font-weight: var(--font-weight-bold);
   line-height: 1.25;
-}
-
-.miniapp-page-caption {
-  color: #a89489;
-  font-size: var(--font-size-aux);
-  line-height: 1.4;
 }
 
 .miniapp-panel {

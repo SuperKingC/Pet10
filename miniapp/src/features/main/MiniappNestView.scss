@@ -21,11 +21,6 @@
   font-weight: var(--font-weight-bold);
 }
 
-.miniapp-nest__greeting {
-  color: #a89489;
-  font-size: var(--font-size-aux);
-}
-
 .miniapp-nest__scene {
   position: relative;
 }
@@ -39,15 +34,15 @@
   background: #fff8ee;
 }
 
-/* 快捷入口整列收进 470px 背景图内且避开右上「记忆」按钮：从按钮下方起排，三枚图标 108px + 间距 16px 共 356px，底部余 26px */
+/* 快捷入口整列收进 560px 背景图内且避开右上「记忆」按钮：从按钮下方起排，三枚图标 108px + 间距 20px 共 364px，底部余 96px */
 .miniapp-nest__shortcuts {
   position: absolute;
-  top: 88px;
+  top: 96px;
   right: 8px;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .miniapp-nest__shortcut {

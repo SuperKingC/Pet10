@@ -1,7 +1,7 @@
 /* 小记固定全屏层：不再依赖 .home-page 文档流（原 height calc(100vh - 220px) + 负边距出血），
-   页面文档流高度归零、真机整页不可拖动。padding 8px 28px 226px 精确复刻原内容区
-   （首屏起点 y=8、可用高度 100vh - 234、底部净空 226px），正常内容仍恰好一屏不滚动，
-   仅异常字号/机型下由 overflow-y 兜底。 */
+   页面文档流高度归零、真机整页不可拖动。padding 4px 28px 226px（首屏起点 y=4、
+   可用高度 100vh - 230、底部净空 226px + 12px = 与其他 tab 统一的 238px），
+   正常内容仍恰好一屏不滚动，仅异常字号/机型下由 overflow-y 兜底。 */
 .miniapp-journal {
   --journal-gap: 32rpx;
   position: fixed;
@@ -12,7 +12,7 @@
   gap: var(--journal-gap);
   box-sizing: border-box;
   overflow-y: auto;
-  padding: 8px 28px 226px;
+  padding: 4px 28px 226px;
   background: #fff8ee;
 }
 /* 内部全屏覆盖层（写日记 z-50 / 纪念日 z-50 / 运势 z-40）被封在本层层级上下文内，
@@ -29,7 +29,6 @@
 }
 .miniapp-journal__top { display: flex; flex-direction: column; align-items: stretch; padding: 2px 2px 0; }
 .miniapp-journal__title { display: block; color: #493326; text-align: left; }
-.miniapp-journal__caption { display: block; margin-top: 8rpx; color: #a89489; font-size: var(--font-size-aux); }
 .miniapp-journal__tabs { display: flex; justify-content: center; gap: 12rpx; margin-top: 16rpx; }
 .miniapp-journal__tab { min-width: 140rpx; margin: 0; padding: 8rpx 20rpx; color: #a48771; background: rgba(255, 253, 247, .62); border: 1px solid #ead7c2; border-radius: 12rpx; font-size: var(--font-size-secondary); line-height: 1.2; }
 .miniapp-journal__tab::after { border: 0; }

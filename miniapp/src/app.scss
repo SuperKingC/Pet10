@@ -23,3 +23,11 @@ text,
 button {
   box-sizing: border-box;
 }
+
+/* 全局隐藏滚动条（页面滚动与各固定层/面板的 overflow 滚动都走 webview，统一生效），滚动能力保留 */
+page ::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}

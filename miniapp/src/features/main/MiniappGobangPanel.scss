@@ -350,10 +350,18 @@
   grid-template-rows: repeat(15, 1fr);
   box-sizing: border-box;
   padding: 22rpx;
+  /* 网格线：用两层渐变把线画在每格中心（content-box 内 15 等分），棋子/星位落在格心即交叉点上；
+     木纹层保持 padding-box 铺满整块棋盘 */
   background:
+    linear-gradient(to right, transparent calc(50% - 1rpx), rgba(94, 59, 29, .5) calc(50% - 1rpx), rgba(94, 59, 29, .5) calc(50% + 1rpx), transparent calc(50% + 1rpx)),
+    linear-gradient(to bottom, transparent calc(50% - 1rpx), rgba(94, 59, 29, .5) calc(50% - 1rpx), rgba(94, 59, 29, .5) calc(50% + 1rpx), transparent calc(50% + 1rpx)),
     repeating-linear-gradient(98deg, rgba(140, 95, 50, .05) 0 3rpx, rgba(140, 95, 50, 0) 3rpx 26rpx),
     radial-gradient(120% 90% at 30% 12%, rgba(255, 244, 222, .5), rgba(255, 244, 222, 0) 46%),
     linear-gradient(155deg, #eccf9b 0%, #ddb87d 48%, #cda063 100%);
+  background-origin: content-box, content-box, padding-box, padding-box, padding-box;
+  background-clip: content-box, content-box, padding-box, padding-box, padding-box;
+  background-size: calc(100% / 15) 100%, 100% calc(100% / 15), auto, auto, auto;
+  background-repeat: repeat;
   border: 3rpx solid #9d7045;
   border-radius: 24rpx;
   box-shadow:
@@ -364,20 +372,9 @@
   animation: gobang-pop-in .5s cubic-bezier(.32, 1.3, .55, 1) .16s backwards;
 }
 
-/* 网格线：每格画右/下边线，首列补左边线、首行补上边线，四周线齐全 */
+/* 格子只承担点击热区：线与交叉点由棋盘背景绘制 */
 .miniapp-gobang__cell {
   position: relative;
-  box-sizing: border-box;
-  border-right: 1px solid rgba(94, 59, 29, .48);
-  border-bottom: 1px solid rgba(94, 59, 29, .48);
-}
-
-.miniapp-gobang__cell:nth-child(15n + 1) {
-  border-left: 1px solid rgba(94, 59, 29, .48);
-}
-
-.miniapp-gobang__cell:nth-child(-n + 15) {
-  border-top: 1px solid rgba(94, 59, 29, .48);
 }
 
 /* 星位与天元 */

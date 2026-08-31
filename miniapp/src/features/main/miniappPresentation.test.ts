@@ -158,7 +158,8 @@ describe('miniapp ui presentation rules', () => {
     const manifest = fs.readFileSync(path.resolve(__dirname, '../../../../docs/assets/asset-manifest.json'), 'utf8')
 
     expect(nestView).toContain('<MiniappNestLetter')
-    expect(nestView).toContain('记录你和小多利的共同生活')
+    // 页头介绍文案已整体去掉，只剩标题
+    expect(nestView).not.toContain('miniapp-page-caption')
     expect(component).toContain('letter-paper-tl-v4.png')
     expect(component).toContain('letter-paper-mc-v4.png')
     expect(component).toContain('letter-paper-br-v4.png')
@@ -203,7 +204,6 @@ describe('miniapp ui presentation rules', () => {
     // 今日运势只属于「日记」tab：纪念日 tab 不显示，不占用公共区域
     expect(component).toContain("{journalTab === 'diary' && (")
     expect(component).toContain('拍照记录')
-    expect(component).toContain('记录和小多利的每一天')
     expect(component).toContain('查看 >')
     expect(component).toContain('<JournalAnniversaryPanel')
     // 「纪念日」是页内分页 tab（点击原地刷新内容区），不再打开全屏覆盖层
@@ -227,7 +227,7 @@ describe('miniapp ui presentation rules', () => {
     // 小记根节点改为固定全屏层，页面文档流高度归零、真机整页不可拖动
     expect(styles).toMatch(/\.miniapp-journal \{[^}]*position: fixed;/)
     expect(styles).toMatch(/\.miniapp-journal \{[^}]*inset: 0;/)
-    expect(styles).toMatch(/\.miniapp-journal \{[^}]*padding: 8px 28px 226px;/)
+    expect(styles).toMatch(/\.miniapp-journal \{[^}]*padding: 4px 28px 226px;/)
     expect(styles).toMatch(/\.miniapp-journal__title \{[^}]*text-align: left;/)
     expect(styles).toMatch(/\.miniapp-journal__tabs \{[^}]*justify-content: center;/)
     expect(styles).toMatch(/\.journal-today__action-art \{[^}]*width: 112rpx/)
@@ -309,7 +309,6 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('messages-empty-v2.png')
     expect(component).not.toContain('messages-plant.png')
     expect(component).toContain('hasFriendConversations')
-    expect(component).toContain('你们的每一句温暖都由小多帮您记住')
     expect(component).toContain('添加好友并通过后，这里会显示你们的聊天。')
     // 空态卡只保留插画与文案，添加好友入口由顶部质感卡承担（不再重复放按钮）
     expect(component).not.toContain('去添加好友')
@@ -395,19 +394,17 @@ describe('miniapp ui presentation rules', () => {
     expect(roomPage).not.toContain('requestPetReply')
   })
 
-  it('drops the trailing period from tab page captions', () => {
+  it('drops the tab page captions and keeps inner card captions period-free', () => {
     const nestView = fs.readFileSync(path.resolve(__dirname, 'MiniappNestView.tsx'), 'utf8')
     const journalView = fs.readFileSync(path.resolve(__dirname, 'MiniappJournalView.tsx'), 'utf8')
     const meView = fs.readFileSync(path.resolve(__dirname, 'MiniappMeView.tsx'), 'utf8')
     const anniversaryPanel = fs.readFileSync(path.resolve(__dirname, 'JournalAnniversaryPanel.tsx'), 'utf8')
 
-    expect(nestView).toContain('记录你们和小多利的共同生活')
-    expect(nestView).toContain('记录你和小多利的共同生活')
-    expect(nestView).not.toContain('共同生活。')
-    expect(journalView).toContain('记录和小多利的每一天')
-    expect(journalView).not.toContain('每一天。')
-    expect(meView).toContain('管理你的资料和偏好')
-    expect(meView).not.toContain('偏好。')
+    // tab 页标题下的介绍文案已全部移除（见 miniappMainLayout 同名约定）
+    expect(nestView).not.toContain('记录你们和小多利的共同生活')
+    expect(nestView).not.toContain('记录你和小多利的共同生活')
+    expect(journalView).not.toContain('记录和小多利的每一天')
+    expect(meView).not.toContain('管理你的资料和偏好')
     expect(anniversaryPanel).toContain('把重要的日子记下来')
     expect(anniversaryPanel).not.toContain('记下来。')
   })
@@ -425,8 +422,8 @@ describe('miniapp ui presentation rules', () => {
     const nestStyles = fs.readFileSync(path.resolve(__dirname, 'MiniappNestView.scss'), 'utf8')
 
     // 消息/我的/锁定信件层的底部净空统一 238px（与小记 226px + 12px 一致），不再紧贴底栏
-    expect(messagesStyles).toMatch(/\.miniapp-messages \{[^}]*padding: 4px 34px 238px;/)
-    expect(meStyles).toMatch(/\.miniapp-me \{[^}]*padding: 4px 46px 238px;/)
+    expect(messagesStyles).toMatch(/\.miniapp-messages \{[^}]*padding: 0 34px 238px;/)
+    expect(meStyles).toMatch(/\.miniapp-me \{[^}]*padding: 0 46px 238px;/)
     expect(nestStyles).toMatch(/\.nest-lock-layer \{[^}]*padding: 4px 32px 238px;/)
   })
 

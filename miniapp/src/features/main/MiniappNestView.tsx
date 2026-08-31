@@ -116,9 +116,6 @@ export function MiniappNestView({
   const nestHeader = (
     <View className="miniapp-page-header miniapp-nest__header">
       <Text className="miniapp-page-title miniapp-nest__title">小窝</Text>
-      <Text className="miniapp-page-caption miniapp-nest__greeting">
-        {sceneMode === 'active' ? '记录你们和小多利的共同生活' : '记录你和小多利的共同生活'}
-      </Text>
     </View>
   )
 
