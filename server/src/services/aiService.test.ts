@@ -164,4 +164,42 @@ describe('AiService intelligent replies', () => {
     expect(body).toContain('MEMORY_05')
     expect(body).not.toContain('MEMORY_04')
   })
+
+  it('parses reminder fallback JSON strictly', async () => {
+    const fetchImpl = createFetchReply('```json\n{"content":"水烧开后关火","scheduleType":"once","nextRunAt":"2026-08-12T03:00:00.000Z"}\n```')
+    const ai = createAiService(config, { fetchImpl })
+    const now = new Date('2026-08-12T02:00:00.000Z')
+
+    await expect(ai.parseReminderFallback!('记得等水烧开了提醒我关火', now)).resolves.toEqual({
+      content: '水烧开后关火',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T03:00:00.000Z')
+    })
+  })
+
+  it('rejects unusable reminder fallback output', async () => {
+    const past = createAiService(config, {
+      fetchImpl: createFetchReply('{"content":"喂猫","scheduleType":"once","nextRunAt":"2020-01-01T00:00:00.000Z"}')
+    })
+    await expect(past.parseReminderFallback!('提醒我喂猫', new Date('2026-08-12T02:00:00.000Z'))).resolves.toBeNull()
+
+    const invalid = createAiService(config, {
+      fetchImpl: createFetchReply('这不是 JSON')
+    })
+    await expect(invalid.parseReminderFallback!('提醒我喂猫', new Date('2026-08-12T02:00:00.000Z'))).resolves.toBeNull()
+  })
+
+  it('writes a pet-toned reminder announcement', async () => {
+    const ai = createAiService(config, {
+      fetchImpl: createFetchReply('汪！锅还在烧呢，快去关火！')
+    })
+
+    await expect(ai.composeReminderAnnouncement!('关火')).resolves.toBe('汪！锅还在烧呢，快去关火！')
+  })
+
+  it('returns null for reminder helpers when AI is disabled', async () => {
+    const ai = createAiService({ ...config, enabled: false, apiKey: undefined }, { fetchImpl: createFetchReply('x') })
+    await expect(ai.parseReminderFallback!('提醒我喂猫', new Date())).resolves.toBeNull()
+    await expect(ai.composeReminderAnnouncement!('关火')).resolves.toBeNull()
+  })
 })

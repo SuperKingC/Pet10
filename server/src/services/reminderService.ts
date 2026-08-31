@@ -1,12 +1,14 @@
-import { parseReminderRequest } from '../domain/reminderRules.js'
+import { parseReminderCancel, parseReminderRequest } from '../domain/reminderRules.js'
 import type { PetTask } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
+import type { AiService } from './aiService.js'
 
 interface ReminderServiceDependencies {
   repositories: RepositoryBundle
   emit: (roomId: string, event: string, payload: unknown) => void
   emitUser: (userId: string, event: string, payload: unknown) => void
   notifyPush: (userId: string) => void | Promise<void>
+  ai?: Pick<AiService, 'parseReminderFallback' | 'composeReminderAnnouncement'>
   now?: () => Date
   logError?: (message: string, error: unknown) => void
 }
@@ -32,6 +34,7 @@ export function createReminderService({
   emit,
   emitUser,
   notifyPush,
+  ai,
   now = () => new Date(),
   logError = (message, error) => console.error(message, error)
 }: ReminderServiceDependencies) {
@@ -48,10 +51,36 @@ export function createReminderService({
 
   return {
     async handleMessage(roomId: string, userId: string, text: string) {
+      if (parseReminderCancel(text)) {
+        const pending = await repositories.tasks.listPendingByRoom(roomId)
+        if (pending.length === 0) {
+          await sendPetMessage(roomId, '汪？你现在没有待执行的提醒呀。')
+          return true
+        }
+        for (const task of pending) {
+          await repositories.tasks.cancelById(task.id)
+        }
+        const contents = pending.map((task) => task.content).slice(0, 5).join('、')
+        await sendPetMessage(roomId, `汪，好嘞，帮你取消了 ${pending.length} 条提醒：${contents}。`)
+        return true
+      }
       if (!text.includes('提醒我')) return false
       const parsed = parseReminderRequest(text, now())
       if (!parsed) {
-        await sendPetMessage(roomId, '汪，请告诉我具体时间，比如“30分钟后提醒我关火”或“明天早上8点提醒我带伞”。')
+        // 固定模板解析不了时交给 AI 兜底，说法可以更自由
+        const fallback = await ai?.parseReminderFallback?.(text, now()) ?? null
+        if (!fallback) {
+          await sendPetMessage(roomId, '汪，请告诉我具体时间，比如“30分钟后提醒我关火”或“明天早上8点提醒我带伞”。')
+          return true
+        }
+        await repositories.tasks.create({
+          roomId,
+          userId,
+          content: fallback.content,
+          scheduleType: fallback.scheduleType,
+          nextRunAt: fallback.nextRunAt
+        })
+        await sendPetMessage(roomId, `汪，提醒已设置：${formatShanghai(fallback.nextRunAt)}提醒你${fallback.content}。`)
         return true
       }
       await repositories.tasks.create({
@@ -69,7 +98,8 @@ export function createReminderService({
       const tasks = await repositories.tasks.claimDue(currentTime, 50)
       for (const task of tasks) {
         try {
-          const message = await sendPetMessage(task.roomId, `汪，到时间啦：${task.content}`)
+          const announcement = await ai?.composeReminderAnnouncement?.(task.content) ?? null
+          const message = await sendPetMessage(task.roomId, announcement ?? `汪，到时间啦：${task.content}`)
           const notification = await repositories.notifications.create(task.userId, 'pet_reminder', {
             roomId: task.roomId,
             taskId: task.id,

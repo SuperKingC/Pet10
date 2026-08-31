@@ -98,4 +98,95 @@ describe('reminder service', () => {
     expect(next).toHaveLength(1)
     expect(next[0].nextRunAt).toEqual(new Date('2026-08-13T15:00:00.000Z'))
   })
+
+  it('cancels every pending reminder in the room on request', async () => {
+    const { repositories, user, room } = await createContext()
+    const emit = vi.fn()
+    await repositories.tasks.create({
+      roomId: room.id,
+      userId: user.id,
+      content: '关火',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T02:30:00.000Z')
+    })
+    await repositories.tasks.create({
+      roomId: room.id,
+      userId: user.id,
+      content: '取快递',
+      scheduleType: 'daily',
+      nextRunAt: new Date('2026-08-12T10:00:00.000Z')
+    })
+    const service = createReminderService({ repositories, emit, emitUser: vi.fn(), notifyPush: vi.fn() })
+
+    await expect(service.handleMessage(room.id, user.id, '取消提醒')).resolves.toBe(true)
+
+    expect(emit).toHaveBeenCalledWith(room.id, 'message.created', expect.objectContaining({
+      text: expect.stringContaining('取消了 2 条提醒')
+    }))
+    expect(await repositories.tasks.listPendingByRoom(room.id)).toHaveLength(0)
+    expect(await repositories.tasks.claimDue(new Date('2026-08-13T00:00:00.000Z'), 10)).toHaveLength(0)
+  })
+
+  it('tells the user there is nothing to cancel', async () => {
+    const { repositories, user, room } = await createContext()
+    const emit = vi.fn()
+    const service = createReminderService({ repositories, emit, emitUser: vi.fn(), notifyPush: vi.fn() })
+
+    await expect(service.handleMessage(room.id, user.id, '取消提醒')).resolves.toBe(true)
+
+    expect(emit).toHaveBeenCalledWith(room.id, 'message.created', expect.objectContaining({
+      text: expect.stringContaining('没有待执行的提醒')
+    }))
+  })
+
+  it('falls back to AI parsing when the fixed template cannot parse', async () => {
+    const { repositories, user, room } = await createContext()
+    const emit = vi.fn()
+    const parseReminderFallback = vi.fn(async () => ({
+      content: '水烧开后关火',
+      scheduleType: 'once' as const,
+      nextRunAt: new Date('2026-08-12T03:00:00.000Z')
+    }))
+    const service = createReminderService({
+      repositories,
+      emit,
+      emitUser: vi.fn(),
+      notifyPush: vi.fn(),
+      ai: { parseReminderFallback, composeReminderAnnouncement: vi.fn(async () => null) }
+    })
+
+    await expect(service.handleMessage(room.id, user.id, '记得等水烧开了提醒我关火')).resolves.toBe(true)
+
+    expect(parseReminderFallback).toHaveBeenCalledTimes(1)
+    expect(emit).toHaveBeenCalledWith(room.id, 'message.created', expect.objectContaining({
+      text: expect.stringContaining('提醒已设置')
+    }))
+    expect(await repositories.tasks.listPendingByRoom(room.id)).toHaveLength(1)
+  })
+
+  it('announces due reminders with the AI wording when available', async () => {
+    const { repositories, user, room } = await createContext()
+    await repositories.tasks.create({
+      roomId: room.id,
+      userId: user.id,
+      content: '关火',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T02:30:00.000Z')
+    })
+    const service = createReminderService({
+      repositories,
+      emit: vi.fn(),
+      emitUser: vi.fn(),
+      notifyPush: vi.fn(),
+      ai: {
+        parseReminderFallback: vi.fn(async () => null),
+        composeReminderAnnouncement: vi.fn(async () => '汪！锅还在烧呢，快去关火！')
+      }
+    })
+
+    await service.runDue(new Date('2026-08-12T02:30:00.000Z'))
+
+    const recent = await repositories.messages.listRecent(room.id, 5)
+    expect(recent[recent.length - 1]?.text).toBe('汪！锅还在烧呢，快去关火！')
+  })
 })

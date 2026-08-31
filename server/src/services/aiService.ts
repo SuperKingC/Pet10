@@ -1,4 +1,5 @@
 import type { ChatMessage, Pet, PetMemory, User } from '../domain/models.js'
+import type { ParsedReminder } from '../domain/reminderRules.js'
 import type { ServerConfig } from '../config.js'
 import { buildSystemPrompt } from '../ai/persona.js'
 import { routeAiQuestion } from './aiRouting.js'
@@ -40,6 +41,10 @@ export interface AiService {
   composeProactiveMessage?(input: ComposeProactiveInput): Promise<string | null>
   /** 给小多利圈写一条动态文案（AI 不可用或失败返回 null） */
   composeMomentPost?(input: ComposeMomentInput): Promise<string | null>
+  /** 固定正则解析不了提醒时，用 AI 兜底解析（失败返回 null） */
+  parseReminderFallback?(text: string, now: Date): Promise<ParsedReminder | null>
+  /** 把提醒内容播报成一句小多利腔的话（失败返回 null，调用方回退模板） */
+  composeReminderAnnouncement?(content: string): Promise<string | null>
 }
 
 interface AiServiceDependencies {
@@ -227,6 +232,50 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
       try {
         const raw = await chat([{ role: 'user', content: prompt }])
         const text = raw.replace(/^["'“”]+|["'“”]+$/g, '').trim().slice(0, 120)
+        return text || null
+      } catch {
+        return null
+      }
+    },
+
+    async parseReminderFallback(text, now) {
+      if (!config.enabled || !config.apiKey) return null
+      const prompt = [
+        '你是提醒时间解析器。主人对宠物说了一句话，其中包含一个提醒请求，但固定时间模板没有解析出来。',
+        `当前时间（UTC ISO）：${now.toISOString()}，主人在东八区（Asia/Shanghai）。`,
+        `原话：${text}`,
+        '解析提醒内容和第一次触发时间，输出严格 JSON：',
+        '{"content":"提醒事项","scheduleType":"once|daily|weekly","nextRunAt":"第一次触发的 UTC ISO 时间"}',
+        'content 不超过 30 字；nextRunAt 必须晚于当前时间；daily/weekly 表示循环提醒，第一次触发时间按最近的未来时点。',
+        '无法可靠解析时输出 {"content":null}。只输出 JSON，不要解释。'
+      ].join('\n')
+      try {
+        const raw = await chat([{ role: 'user', content: prompt }])
+        const jsonText = raw.replace(/```(?:json)?/g, '').trim()
+        const data = JSON.parse(jsonText) as { content?: unknown; scheduleType?: unknown; nextRunAt?: unknown }
+        const content = typeof data.content === 'string' ? data.content.trim().slice(0, 30) : ''
+        if (!content) return null
+        const scheduleType = data.scheduleType === 'daily' || data.scheduleType === 'weekly'
+          ? data.scheduleType
+          : 'once' as const
+        const nextRunAt = new Date(String(data.nextRunAt))
+        if (Number.isNaN(nextRunAt.getTime()) || nextRunAt.getTime() <= now.getTime()) return null
+        return { content, scheduleType, nextRunAt }
+      } catch {
+        return null
+      }
+    },
+
+    async composeReminderAnnouncement(content) {
+      if (!config.enabled || !config.apiKey) return null
+      const prompt = [
+        '你是小多利，一只调皮的小狗幼崽。到点了，你要提醒主人一件事：',
+        content,
+        '写一句不超过 25 个字的提醒，带点小狗腔调；关键事项和时间必须原样保留、不能含糊；不要引号、不要解释，只输出这一句话。'
+      ].join('\n')
+      try {
+        const raw = await chat([{ role: 'user', content: prompt }])
+        const text = raw.replace(/^["'“”]+|["'“”]+$/g, '').trim().slice(0, 80)
         return text || null
       } catch {
         return null

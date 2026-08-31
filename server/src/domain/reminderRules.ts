@@ -85,3 +85,9 @@ export function parseReminderRequest(text: string, now = new Date()): ParsedRemi
 
   return null
 }
+
+/** 取消意图：话里带「提醒」并出现取消类措辞（确定性规则，宁可漏判不误伤正常设置） */
+export function parseReminderCancel(text: string): boolean {
+  if (!text.includes('提醒')) return false
+  return /取消|撤掉|不要了|别提醒/.test(text)
+}
