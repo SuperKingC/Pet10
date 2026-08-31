@@ -44,9 +44,9 @@ export function isBundledSuit(key: string): boolean {
  * 数值与 miniapp/tools/make-wardrobe-suits.mjs 的 cx/ty/w 标定一致，改素材必须同步。
  */
 export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hat: { left: '22.79%', top: '3.76%', width: '54.36%' },
-  scarf: { left: '17.38%', top: '47.83%', width: '65.14%' },
-  bag: { left: '18.35%', top: '73.14%', width: '32.11%' }
+  hat: { left: '28.67%', top: '7.43%', width: '42.66%' },
+  scarf: { left: '15.85%', top: '46.73%', width: '57.80%' },
+  bag: { left: '22.02%', top: '75.43%', width: '24.77%' }
 }
 
 export function isOverlaySuit(key: string): boolean {
