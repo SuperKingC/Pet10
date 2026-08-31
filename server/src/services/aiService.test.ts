@@ -96,6 +96,20 @@ describe('AiService intelligent replies', () => {
     expect(fetchImpl.mock.calls[0][1]?.body).not.toContain('https://example.com/price')
   })
 
+  it('demands a structured detailed answer in search mode', async () => {
+    const search = createSearch()
+    const fetchImpl = createFetchReply('详细整理后的回答')
+    const ai = createAiService(config, { search, fetchImpl })
+
+    await ai.reply(replyInput('索尼 A7C II 全新单机身现在多少钱？'))
+
+    const body = String(fetchImpl.mock.calls[0][1]?.body)
+    expect(body).toContain('一句话给出结论')
+    expect(body).toContain('分点')
+    expect(body).toContain('实用建议')
+    expect(body).toContain('不要含糊带过')
+  })
+
   it('does not call the answer model or invent facts when search has no usable evidence', async () => {
     const search = createSearch('empty')
     const fetchImpl = createFetchReply('不应该调用')

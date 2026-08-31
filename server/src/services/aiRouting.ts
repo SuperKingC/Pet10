@@ -39,13 +39,16 @@ function hasEnoughPriceDetails(question: string): boolean {
   return !genericProductOnly.test(question) && (hasProduct || hasModel)
 }
 
-function buildQueries(question: string, category: AiRouteCategory): string[] {
-  const suffix = category === 'price'
-    ? '当前价格 全新 中国'
-    : category === 'game'
-      ? '当前版本 主流阵容 攻略'
-      : '最新资料 详细说明'
-  return [`${question} ${suffix}`]
+/** 每类问题生成两条差异化检索视角：一条对准主问题，一条补对比/细节，提升证据覆盖面 */
+function buildQueries(question: string, category: Exclude<AiRouteCategory, 'casual'>): string[] {
+  const angles: Record<Exclude<AiRouteCategory, 'casual'>, [string, string]> = {
+    price: ['当前价格 全新 中国', '评测 优缺点 对比'],
+    game: ['当前版本 主流阵容 攻略', '版本更新 胜率 推荐'],
+    professional: ['最新资料 详细说明', '原理 对比 注意事项'],
+    current: ['最新进展 详细情况', '时间线 背景 说明']
+  }
+  const [primary, secondary] = angles[category]
+  return [`${question} ${primary}`, `${question} ${secondary}`]
 }
 
 export function routeAiQuestion(rawQuestion: string): AiRouteDecision {

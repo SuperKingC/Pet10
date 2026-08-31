@@ -30,6 +30,15 @@ describe('routeAiQuestion', () => {
     })
   })
 
+  it('builds two differentiated search angles for richer evidence', () => {
+    const route = routeAiQuestion('索尼 A7C II 全新单机身现在多少钱？')
+    expect(route.mode).toBe('search')
+    if (route.mode !== 'search') return
+    expect(route.searchQueries).toHaveLength(2)
+    expect(route.searchQueries[0]).toContain('当前价格')
+    expect(route.searchQueries[1]).toContain('对比')
+  })
+
   it('searches version-sensitive game questions', () => {
     expect(routeAiQuestion('蛋仔派对碰碰棋 S2 赛季主流阵容详情')).toMatchObject({
       mode: 'search',

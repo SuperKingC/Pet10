@@ -77,6 +77,34 @@ function normalizeResponse(data: TavilySearchResponse, maxSnippetLength: number,
 }
 
 export function createSearchService(config: SearchConfig, fetchImpl: typeof fetch = fetch): SearchService {
+  async function requestOnce(query: string, timeout: AbortSignal): Promise<SearchResult[]> {
+    const response = await fetchImpl(`${config.baseUrl}/search`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query,
+        search_depth: 'basic',
+        topic: 'general',
+        max_results: config.maxResults,
+        include_answer: false,
+        include_raw_content: false,
+        include_images: false,
+        auto_parameters: false
+      }),
+      signal: timeout
+    })
+    if (!response.ok) throw new Error(`search_request_failed:${response.status}`)
+    return normalizeResponse(
+      await response.json() as TavilySearchResponse,
+      config.maxSnippetLength,
+      config.maxResults
+    )
+  }
+
   return {
     async search(input) {
       if (!config.enabled || !config.apiKey) return { status: 'unavailable', results: [] }
@@ -86,32 +114,23 @@ export function createSearchService(config: SearchConfig, fetchImpl: typeof fetc
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), config.timeoutMs)
       try {
-        const response = await fetchImpl(`${config.baseUrl}/search`, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${config.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            query: queries.join('；'),
-            search_depth: 'basic',
-            topic: 'general',
-            max_results: config.maxResults,
-            include_answer: false,
-            include_raw_content: false,
-            include_images: false,
-            auto_parameters: false
-          }),
-          signal: controller.signal
-        })
-        if (!response.ok) throw new Error(`search_request_failed:${response.status}`)
-        const results = normalizeResponse(
-          await response.json() as TavilySearchResponse,
-          config.maxSnippetLength,
-          config.maxResults
-        )
-        return { status: results.length > 0 ? 'success' : 'empty', results }
+        // 每条查询独立请求并行执行；单条失败不拖垮其余查询
+        const settled = await Promise.allSettled(queries.map((query) => requestOnce(query, controller.signal)))
+        const merged: SearchResult[] = []
+        const seenUrls = new Set<string>()
+        for (const outcome of settled) {
+          if (outcome.status !== 'fulfilled') continue
+          for (const result of outcome.value) {
+            if (seenUrls.has(result.url)) continue
+            seenUrls.add(result.url)
+            merged.push(result)
+            if (merged.length >= config.maxResults) break
+          }
+          if (merged.length >= config.maxResults) break
+        }
+        const anySuccess = settled.some((outcome) => outcome.status === 'fulfilled')
+        if (!anySuccess) return { status: 'unavailable', results: [] }
+        return { status: merged.length > 0 ? 'success' : 'empty', results: merged }
       } catch {
         return { status: 'unavailable', results: [] }
       } finally {
