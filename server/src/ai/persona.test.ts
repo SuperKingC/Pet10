@@ -32,4 +32,33 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('可以分点')
     expect(prompt).toContain('准确和清楚优先')
   })
+
+  it('keeps the mischievous-child persona with bounded sassiness', () => {
+    const prompt = buildSystemPrompt({
+      pet,
+      memories: [],
+      owners: [],
+      roomType: 'pair',
+      hour: 12
+    })
+
+    expect(prompt).toContain('机灵调皮')
+    expect(prompt).toContain('阴阳怪气')
+    expect(prompt).toContain('没有恶意')
+    // 阴阳怪气必须被限定在心情/被惹到时，防止日常一直阴阳
+    expect(prompt).toContain('只在')
+  })
+
+  it('injects the pet mood tone hint when provided', () => {
+    const prompt = buildSystemPrompt({
+      pet,
+      memories: [],
+      owners: [],
+      moodText: '你现在很委屈，说话带点坏坏的阴阳怪气',
+      roomType: 'pair',
+      hour: 12
+    })
+
+    expect(prompt).toContain('小多利现在的心情：你现在很委屈')
+  })
 })
