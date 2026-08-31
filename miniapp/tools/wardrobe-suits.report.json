@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T08:12:19.704Z",
+  "generatedAt": "2026-08-31T08:41:22.670Z",
   "base": "436x700",
   "suits": [
     {
@@ -7,7 +7,7 @@
       "kind": "overlay",
       "file": "public/wardrobe/outfit-hat-v2.png",
       "bundled": true,
-      "bytes": 13979,
+      "bytes": 13769,
       "width": 186,
       "height": 131,
       "style": {
@@ -21,7 +21,7 @@
       "kind": "overlay",
       "file": "public/wardrobe/outfit-scarf-v2.png",
       "bundled": true,
-      "bytes": 17658,
+      "bytes": 12984,
       "width": 252,
       "height": 147,
       "style": {
@@ -35,7 +35,7 @@
       "kind": "overlay",
       "file": "public/wardrobe/outfit-bag-v2.png",
       "bundled": true,
-      "bytes": 7450,
+      "bytes": 7451,
       "width": 108,
       "height": 108,
       "style": {
@@ -51,7 +51,7 @@
       "full": "public/wardrobe/hoodie-v1.png",
       "bundled": false,
       "iconBytes": 11405,
-      "fullBytes": 39273
+      "fullBytes": 38736
     },
     {
       "key": "overalls",
@@ -59,8 +59,8 @@
       "icon": "public/wardrobe/overalls-icon-v1.png",
       "full": "public/wardrobe/overalls-v1.png",
       "bundled": false,
-      "iconBytes": 18191,
-      "fullBytes": 35485
+      "iconBytes": 17863,
+      "fullBytes": 34847
     },
     {
       "key": "dress",
@@ -68,8 +68,8 @@
       "icon": "public/wardrobe/dress-icon-v1.png",
       "full": "public/wardrobe/dress-v1.png",
       "bundled": false,
-      "iconBytes": 12898,
-      "fullBytes": 37098
+      "iconBytes": 12723,
+      "fullBytes": 36684
     },
     {
       "key": "raincoat",
@@ -77,8 +77,8 @@
       "icon": "public/wardrobe/raincoat-icon-v1.png",
       "full": "public/wardrobe/raincoat-v1.png",
       "bundled": false,
-      "iconBytes": 13262,
-      "fullBytes": 33883
+      "iconBytes": 13226,
+      "fullBytes": 33442
     },
     {
       "key": "pajamas",
@@ -86,8 +86,8 @@
       "icon": "public/wardrobe/pajamas-icon-v1.png",
       "full": "public/wardrobe/pajamas-v1.png",
       "bundled": false,
-      "iconBytes": 16043,
-      "fullBytes": 30518
+      "iconBytes": 16036,
+      "fullBytes": 30259
     }
   ]
 }
