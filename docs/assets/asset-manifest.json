@@ -600,14 +600,19 @@
       "purpose": "User-generated standalone gingham bandana illustration (AI), source for the v2 scarf garment cutout"
     },
     {
-      "path": "miniapp/src/assets/wardrobe/wardrobe-interior-v1.png",
+      "path": "public/wardrobe/wardrobe-interior-v2.jpg",
       "category": "runtime-feature",
-      "purpose": "Wardrobe panel flat interior backdrop (wood planks, hanging rail, backboard, sill) drawn as SVG and quantized to 128-color PNG8"
+      "purpose": "Wardrobe panel watercolor interior backdrop (AI-generated), served from COS and downloaded on panel open, not bundled"
     },
     {
-      "path": "miniapp/src/assets/wardrobe/hanger-v1.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe mini wooden hanger sticker shown on unlocked suit cards, 128-color PNG8"
+      "path": "design-assets/wardrobe/gen-wardrobe-interior-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated wardrobe interior source illustration (2496x1664), style reference for panel decor"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-hanger-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated wooden hanger with puppy face source illustration (2048x2048), source of the bundled hanger-v2 cutout"
     }
   ]
 }

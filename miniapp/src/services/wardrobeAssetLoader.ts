@@ -117,7 +117,25 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
     return results
   }
 
-  return { getCachedSuitFiles, resolveSuitDisplay, ensureSuitAssets }
+  /** 单文件素材（如面板装饰大图）的下载缓存：随包 → 本地缓存 → 下载；拿不到返回 null */
+  async function ensureFile(fileName: string): Promise<string | null> {
+    const bundled = bundledOf(fileName)
+    if (bundled) return bundled
+    const index = readIndex()
+    const cached = index[fileName]
+    if (cached && (await deps.fileExists(cached))) return cached
+    const saved = await downloadToUserPath(fileName)
+    if (!saved) return null
+    index[fileName] = saved
+    try {
+      deps.writeIndex(index)
+    } catch {
+      // 存储写失败不影响本次会话展示
+    }
+    return saved
+  }
+
+  return { getCachedSuitFiles, resolveSuitDisplay, ensureSuitAssets, ensureFile }
 }
 
 export type SuitAssetService = ReturnType<typeof createSuitAssetService>

@@ -70,6 +70,18 @@ describe('suit asset service', () => {
     expect(service.getCachedSuitFiles('dress')).toBeNull()
   })
 
+  it('ensures a single decor file with bundled short-circuit and silent failure', async () => {
+    const download = vi.fn(async () => 'wxfile://tmp/decor')
+    const service = createSuitAssetService(makeDeps({ download }))
+    // 随包命中
+    expect(await service.ensureFile('outfit-scarf-v2.png')).toBe('bundled-scarf.png')
+    // 远程下载并索引
+    expect(await service.ensureFile('wardrobe-interior-v2.jpg')).toBe('wxfile://usr/wardrobe-wardrobe-interior-v2.jpg')
+    expect(download).toHaveBeenCalledWith('wardrobe-interior-v2.jpg')
+    const failing = createSuitAssetService(makeDeps({ download: async () => { throw new Error('offline') } }))
+    await expect(failing.ensureFile('wardrobe-interior-v2.jpg')).resolves.toBeNull()
+  })
+
   it('re-downloads when the cached file disappeared from user storage', async () => {
     const download = vi.fn(async () => 'wxfile://tmp/again')
     const deps = makeDeps({ download, fileExists: async () => false })

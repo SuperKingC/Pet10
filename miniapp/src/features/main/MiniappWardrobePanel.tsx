@@ -17,8 +17,8 @@ interface MiniappWardrobePanelProps {
 
 const CLOUD_PENDING_HINT = '这件的画稿在云端，联网打开衣柜会自动取回来'
 
-const wardrobeInterior = require('../../assets/wardrobe/wardrobe-interior-v1.png')
-const hangerImage = require('../../assets/wardrobe/hanger-v1.png')
+const hangerImage = require('../../assets/wardrobe/hanger-v2.png')
+const DECOR_INTERIOR_FILE = 'wardrobe-interior-v2.jpg'
 
 // 衣柜面板：左侧「试衣间」拍立得舞台实时预览，右侧默契换装气泡；下方服装挂杆网格。
 // 默契换装每天一次，双方一致即达成。解锁判定全部来自服务端，面板只展示与提交。
@@ -26,8 +26,18 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
   const [view, setView] = useState<WardrobeView | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [assetMap, setAssetMap] = useState<Record<string, SuitFiles>>({})
+  const [backdropSrc, setBackdropSrc] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    // 内景装饰大图走 COS 按需下载（不占包体），失败回退面板渐变底
+    let cancelled = false
+    void suitAssets.ensureFile(DECOR_INTERIOR_FILE)
+      .then((path) => { if (!cancelled && path) setBackdropSrc(path) })
+      .catch(() => undefined)
+    return () => { cancelled = true }
+  }, [])
 
   const refresh = useCallback(() => {
     if (!roomId) return
@@ -92,7 +102,7 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
 
   return (
     <View className="wardrobe-panel">
-      <Image className="wardrobe-panel__backdrop" src={wardrobeInterior} mode="widthFix" />
+      {backdropSrc && <Image className="wardrobe-panel__backdrop" src={backdropSrc} mode="widthFix" />}
       <View className="wardrobe-panel__top">
         <MiniappBackButton onClick={onClose} />
         <Text className="wardrobe-panel__title">衣柜</Text>
