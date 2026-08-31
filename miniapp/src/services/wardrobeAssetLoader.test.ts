@@ -6,9 +6,9 @@ function makeDeps(overrides: Partial<SuitAssetDeps> = {}): SuitAssetDeps {
   return {
     bundledImages: {
       default: 'bundled-default.png',
-      'outfit-scarf-v1.png': 'bundled-scarf.png',
-      'outfit-hat-v1.png': 'bundled-hat.png',
-      'outfit-bag-v1.png': 'bundled-bag.png'
+      'outfit-scarf-v2.png': 'bundled-scarf.png',
+      'outfit-hat-v2.png': 'bundled-hat.png',
+      'outfit-bag-v2.png': 'bundled-bag.png'
     },
     readIndex: () => index,
     writeIndex: (next) => Object.assign(index, next),

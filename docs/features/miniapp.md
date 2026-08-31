@@ -216,9 +216,9 @@ npm run build:weapp --prefix miniapp
 | `moods/mood-2-v6.png` | 200×200 | 17 KB | 写日记心情选择：平静（侧边汗滴，透明抠图） |
 | `moods/mood-3-v6.png` | 200×200 | 19 KB | 写日记心情选择：开心（吐舌笑加短线，透明抠图） |
 | `moods/mood-4-v6.png` | 200×200 | 17 KB | 写日记心情选择：兴奋（眯眼腮红加爱心星星，透明抠图） |
-| `wardrobe/outfit-hat-v1.png` | 237×183 | 14 KB | 衣柜帽子叠穿件（网格图标+叠加图层共用，随包） |
-| `wardrobe/outfit-scarf-v1.png` | 284×116 | 13 KB | 衣柜围巾叠穿件（网格图标+叠加图层共用，随包） |
-| `wardrobe/outfit-bag-v1.png` | 140×140 | 8 KB | 衣柜小包叠穿件（网格图标+叠加图层共用，随包） |
+| `wardrobe/outfit-hat-v2.png` | 186×131 | 14 KB | 衣柜帽子叠穿件（网格图标+叠加图层共用，随包） |
+| `wardrobe/outfit-scarf-v2.png` | 252×147 | 17 KB | 衣柜围巾叠穿件（AI 生成独立围巾去底+折线切前襟，随包） |
+| `wardrobe/outfit-bag-v2.png` | 108×108 | 7 KB | 衣柜小包叠穿件（网格图标+叠加图层共用，随包） |
 
 本地包内资源禁止使用 WebP（微信 image 组件不解析本地 WebP，iOS 真机会整块不显示；WebP 仅用于塔罗 COS 网络资源并配合 `webp` 属性）。入库前用 `scripts/optimize-miniapp-assets.mjs` 统一压缩：带透明通道的图片转 256 色全色板 + 误差扩散抖动 PNG（禁止再压 64/128 小色板，2026-08 验收发现小色板把整体压灰；全量真彩 PNG 约 5.4MB 超包，256 全色板是包体约束下最接近原图色彩的方案），不透明背景转 JPEG（mozjpeg，4:4:4 色度保留），两张大背景按显示密度降采样（street 840px、room 1152px）。可选 TinyPNG 追加压缩：设置 `TINIFY_API_KEY` 环境变量后执行 `node scripts/optimize-miniapp-assets.mjs --write`，脚本在本地优化产物上再过一遍 TinyPNG，只覆盖收益 ≥2% 的文件，输出保持 PNG/JPEG（key 存环境变量，禁止进仓库）。运行时用户照片压缩走 `miniapp/src/services/imageCompression.ts`：单次压缩、quality 80、按宽度档位 `[1080, 900, 720]`（头像 `[640, 480, 360]`，日记/纪念日照片 720 仍超限时依次回退 540、420）降分辨率重试，禁止降质量和重复压缩（详见 `.agents/rules/miniapp-image.md`）。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内；主包构建产物必须低于微信 2MB 上限（照片墙/衣柜上线后实测 1.98MB / 2,082,203 字节，距上限仅约 15KB，继续膨胀前先把大图迁 COS 或做分包）。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载；衣柜套装除随包围巾外也从 COS 按需下载（`TARO_WARDROBE_ASSET_BASE_URL`，默认塔罗静态目录下 `wardrobe/`）。
 

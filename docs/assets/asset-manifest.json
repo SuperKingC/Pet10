@@ -535,17 +535,17 @@
       "purpose": "Full letter-paper source illustration the v4 nine-slice letter assets were cut from"
     },
     {
-      "path": "public/wardrobe/outfit-hat-v1.png",
+      "path": "public/wardrobe/outfit-hat-v2.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe beret garment cutout used both as grid icon and as the overlay layer on the default portrait, 192-color PNG8"
     },
     {
-      "path": "public/wardrobe/outfit-scarf-v1.png",
+      "path": "public/wardrobe/outfit-scarf-v2.png",
       "category": "runtime-feature",
-      "purpose": "Wardrobe scarf garment cutout (bandana with flower) used as grid icon and overlay layer, 192-color PNG8"
+      "purpose": "Wardrobe scarf garment AI-generated standalone art, background removed and bow/band cropped at the fold, grid icon plus overlay layer, 160-color PNG8"
     },
     {
-      "path": "public/wardrobe/outfit-bag-v1.png",
+      "path": "public/wardrobe/outfit-bag-v2.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe crossbody bag cutout used as grid icon and overlay layer, 192-color PNG8"
     },
@@ -575,17 +575,17 @@
       "purpose": "Wardrobe pajamas garment grid icon cut from the suit illustration, 128-color PNG8"
     },
     {
-      "path": "miniapp/src/assets/wardrobe/outfit-hat-v1.png",
+      "path": "miniapp/src/assets/wardrobe/outfit-hat-v2.png",
       "category": "runtime-feature",
       "purpose": "Bundled wardrobe beret garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
     },
     {
-      "path": "miniapp/src/assets/wardrobe/outfit-scarf-v1.png",
+      "path": "miniapp/src/assets/wardrobe/outfit-scarf-v2.png",
       "category": "runtime-feature",
       "purpose": "Bundled wardrobe scarf garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
     },
     {
-      "path": "miniapp/src/assets/wardrobe/outfit-bag-v1.png",
+      "path": "miniapp/src/assets/wardrobe/outfit-bag-v2.png",
       "category": "runtime-feature",
       "purpose": "Bundled wardrobe crossbody bag garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
     },
@@ -593,6 +593,11 @@
       "path": "design-assets/wardrobe/reference-sheet-v1.png",
       "category": "source-only",
       "purpose": "User-provided 2048px reference sheet of the eight suited puppies; high-res segmentation source for wardrobe garment cutouts starting with the scarf"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-scarf-v1.png",
+      "category": "source-only",
+      "purpose": "User-generated standalone gingham bandana illustration (AI), source for the v2 scarf garment cutout"
     }
   ]
 }

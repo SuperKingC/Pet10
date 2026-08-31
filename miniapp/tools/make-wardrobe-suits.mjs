@@ -107,6 +107,96 @@ function segmentReferenceSheet(raw, W, crop, seeds, blockBoxes, colorKeys) {
 }
 
 /**
+ * AI 生成独立服饰图处理：严格纯白洪泛去底（g≥244 严阈值避免吃掉暖白格纹）→
+ * 折线以上舍弃（蝴蝶结/环带后段）→ 最大连通成分清杂 → 紧贴 bbox 实心出件（上缘切口轻羽化）。
+ */
+function segmentGenerated(raw, W, H, fold) {
+  const at = (x, y) => {
+    const o = (y * W + x) * 4
+    return [raw[o], raw[o + 1], raw[o + 2], raw[o + 3]]
+  }
+  const bg = new Uint8Array(W * H)
+  const q = []
+  const isWhiteBg = (x, y) => {
+    const [r, g, b, a] = at(x, y)
+    return a < 20 || (r >= 246 && g >= 244 && b >= 242)
+  }
+  for (let x = 0; x < W; x++) { for (const y of [0, H - 1]) { const m = y * W + x; if (isWhiteBg(x, y) && !bg[m]) { bg[m] = 1; q.push(m) } } }
+  for (let y = 0; y < H; y++) { for (const x of [0, W - 1]) { const m = y * W + x; if (isWhiteBg(x, y) && !bg[m]) { bg[m] = 1; q.push(m) } } }
+  while (q.length) {
+    const m = q.pop()
+    const x = m % W, y = Math.floor(m / W)
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy
+      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue
+      const nm = ny * W + nx
+      if (!bg[nm] && isWhiteBg(nx, ny)) { bg[nm] = 1; q.push(nm) }
+    }
+  }
+  const foldYAt = (x) => {
+    if (x <= fold[0][0]) return fold[0][1]
+    for (let i = 0; i < fold.length - 1; i++) {
+      const [xa, ya] = fold[i]
+      const [xb, yb] = fold[i + 1]
+      if (x >= xa && x <= xb) return ya + ((yb - ya) * (x - xa)) / (xb - xa)
+    }
+    return fold[fold.length - 1][1]
+  }
+  const keep = new Uint8Array(W * H)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const m = y * W + x
+    if (bg[m]) continue
+    if (y < foldYAt(x)) continue
+    keep[m] = 1
+  }
+  // 最大连通成分
+  const compId = new Int32Array(W * H).fill(-1)
+  let bestId = -1, bestSize = 0, id = 0
+  for (let start = 0; start < W * H; start++) {
+    if (!keep[start] || compId[start] >= 0) continue
+    let size = 0
+    const cq = [start]
+    compId[start] = id
+    while (cq.length) {
+      const m = cq.pop()
+      size += 1
+      const x = m % W, y = Math.floor(m / W)
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue
+        const nm = ny * W + nx
+        if (keep[nm] && compId[nm] < 0) { compId[nm] = id; cq.push(nm) }
+      }
+    }
+    if (size > bestSize) { bestSize = size; bestId = id }
+    id += 1
+  }
+  for (let i = 0; i < W * H; i++) keep[i] = compId[i] === bestId ? 1 : 0
+  let minX = W, minY = H, maxX = -1, maxY = -1
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (!keep[y * W + x]) continue
+    if (x < minX) minX = x; if (x > maxX) maxX = x
+    if (y < minY) minY = y; if (y > maxY) maxY = y
+  }
+  const bw = maxX - minX + 1, bh = maxY - minY + 1
+  const out = Buffer.alloc(bw * bh * 4)
+  const masked = (mx, my) => (mx >= 0 && my >= 0 && mx < W && my < H) ? keep[my * W + mx] === 1 : 0
+  for (let y = 0; y < bh; y++) {
+    for (let x = 0; x < bw; x++) {
+      const gx = minX + x, gy = minY + y
+      const m = gy * W + gx
+      const o = (y * bw + x) * 4
+      if (!keep[m]) continue
+      const so = m * 4
+      const edge = (!masked(gx - 1, gy) || !masked(gx + 1, gy) || !masked(gx, gy - 1) || !masked(gx, gy + 1))
+      out[o] = raw[so]; out[o + 1] = raw[so + 1]; out[o + 2] = raw[so + 2]
+      out[o + 3] = edge ? 170 : 255
+    }
+  }
+  return { data: out, width: bw, height: bh }
+}
+
+/**
  * 高清参考图多边形切衣：手工标定的衣服轮廓多边形内全保留实心出件（格纹/印花零破坏），
  * blockBoxes 让位与衣色相同的特殊区（如舌头）。返回紧贴 bbox 的 RGBA。
  */
@@ -287,12 +377,12 @@ const isSheetYellow = (r, g, b) => r > 225 && g > 205 && (g - b) > 45 && (r - b)
 const overlaySuits = {
   // 帽子：紫色贝雷帽散件，戴在头顶
   hat: { rect: { src: 'purple-beret', box: { x1: 98, y1: 202, x2: 156, y2: 243 } }, cx: 218, ty: 52, w: 186 },
-  // 围巾：高清参考图精准切出（格纹+雏菊，舌头遮挡框按采样标定）
+  // 围巾：AI 生成的独立围巾图（design-assets/wardrobe/gen-scarf-v1.png，白底含蝴蝶结+环带）
+  // 处理：严格纯白洪泛去底 → 沿环带下缘折线切开（弃蝴蝶结/环带上部，只留前襟）→ 最大连通成分 → 实心出件
   scarf: {
-    sheetPolygon: {
-      crop: { x1: 60, y1: 990, x2: 255, y2: 1125 },
-      polygon: [[78, 1012], [150, 1022], [228, 1012], [233, 1030], [210, 1073], [203, 1096], [152, 1100], [86, 1072]],
-      blockBoxes: [{ x1: 140, y1: 1000, x2: 166, y2: 1032 }]
+    generated: {
+      src: 'gen-scarf-v1.png',
+      fold: [[700, 830], [751, 856], [1169, 960], [1628, 993], [2087, 939], [2421, 835], [2480, 810]]
     },
     cx: 218, ty: 344, w: 252
   },
@@ -321,7 +411,16 @@ const report = { generatedAt: new Date().toISOString(), base: `${BASE_W}x${BASE_
 // 三件叠穿件（随包）：按展示尺寸精确出图，style 标定与文件一一对应
 for (const [key, def] of Object.entries(overlaySuits)) {
   let rawBuf, nativeW, nativeH, contentW, feather
-  if (def.sheetPolygon) {
+  if (def.generated) {
+    const genRaw = (await sharp(path.join(srcDir, def.generated.src)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })).data
+    const genMeta = await sharp(path.join(srcDir, def.generated.src)).metadata()
+    const seg = segmentGenerated(genRaw, genMeta.width, genMeta.height, def.generated.fold)
+    rawBuf = seg.data
+    nativeW = seg.width
+    nativeH = seg.height
+    contentW = seg.width
+    feather = 0
+  } else if (def.sheetPolygon) {
     const sheetRaw = await loadRaw('reference-sheet-v1')
     const sheetMeta = await sharp(path.join(srcDir, 'reference-sheet-v1.png')).metadata()
     const seg = segmentPolygonSheet(sheetRaw, sheetMeta.width, def.sheetPolygon.crop, def.sheetPolygon.polygon, def.sheetPolygon.blockBoxes)
@@ -373,7 +472,7 @@ for (const [key, def] of Object.entries(overlaySuits)) {
     .resize(fileW, fileH, { kernel: 'lanczos3' })
     .png({ palette: true, colors: 192, compressionLevel: 9 })
     .toBuffer()
-  const file = `outfit-${key}-v1.png`
+  const file = `outfit-${key}-v2.png`
   await writeFile(path.join(cosOutDir, file), png)
   await copyFile(path.join(cosOutDir, file), path.join(bundledOutDir, file))
   const marginDisp = feather * dispScale

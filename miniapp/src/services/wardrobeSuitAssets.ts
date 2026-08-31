@@ -5,18 +5,18 @@ import {
   type SuitAssetDeps
 } from './wardrobeAssetLoader'
 
-// 随包文件：原装立绘 + 三件叠穿服装件（帽/巾/包，网格图标与叠加图层共用）
+// 随包文件：原装立绘 + 三件叠穿服装件（帽/巾/包 v2，网格图标与叠加图层共用）
 const defaultPortrait = require('../assets/xiaoduoli.png')
-const hatGarment = require('../assets/wardrobe/outfit-hat-v1.png')
-const scarfGarment = require('../assets/wardrobe/outfit-scarf-v1.png')
-const bagGarment = require('../assets/wardrobe/outfit-bag-v1.png')
+const hatGarment = require('../assets/wardrobe/outfit-hat-v2.png')
+const scarfGarment = require('../assets/wardrobe/outfit-scarf-v2.png')
+const bagGarment = require('../assets/wardrobe/outfit-bag-v2.png')
 
 const deps: SuitAssetDeps = {
   bundledImages: {
     default: defaultPortrait,
-    'outfit-hat-v1.png': hatGarment,
-    'outfit-scarf-v1.png': scarfGarment,
-    'outfit-bag-v1.png': bagGarment
+    'outfit-hat-v2.png': hatGarment,
+    'outfit-scarf-v2.png': scarfGarment,
+    'outfit-bag-v2.png': bagGarment
   },
   readIndex: () => Taro.getStorageSync(WARDROBE_ASSET_STORAGE_KEY),
   writeIndex: (index) => Taro.setStorageSync(WARDROBE_ASSET_STORAGE_KEY, index),

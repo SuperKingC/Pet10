@@ -60,10 +60,10 @@ export interface SuitAssetFiles {
   display: string
 }
 
-/** 每套的素材文件名（COS 与随包同名）：叠穿件一张文件，主体服装图标+立绘两张 */
+/** 每套的素材文件名（COS 与随包同名）：叠穿件一张文件（v2，缓存换图升版），主体服装图标+立绘两张 */
 export function suitAssetFiles(key: string): SuitAssetFiles {
   if (isOverlaySuit(key)) {
-    const file = `outfit-${key}-v1.png`
+    const file = `outfit-${key}-v2.png`
     return { icon: file, display: file }
   }
   return { icon: `${key}-icon-v1.png`, display: `${key}-v1.png` }

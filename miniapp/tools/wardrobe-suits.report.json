@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-31T07:41:07.729Z",
+  "generatedAt": "2026-08-31T08:12:19.704Z",
   "base": "436x700",
   "suits": [
     {
       "key": "hat",
       "kind": "overlay",
-      "file": "public/wardrobe/outfit-hat-v1.png",
+      "file": "public/wardrobe/outfit-hat-v2.png",
       "bundled": true,
       "bytes": 13979,
       "width": 186,
@@ -19,11 +19,11 @@
     {
       "key": "scarf",
       "kind": "overlay",
-      "file": "public/wardrobe/outfit-scarf-v1.png",
+      "file": "public/wardrobe/outfit-scarf-v2.png",
       "bundled": true,
-      "bytes": 17596,
+      "bytes": 17658,
       "width": 252,
-      "height": 143,
+      "height": 147,
       "style": {
         "left": "21.10%",
         "top": "49.14%",
@@ -33,7 +33,7 @@
     {
       "key": "bag",
       "kind": "overlay",
-      "file": "public/wardrobe/outfit-bag-v1.png",
+      "file": "public/wardrobe/outfit-bag-v2.png",
       "bundled": true,
       "bytes": 7450,
       "width": 108,

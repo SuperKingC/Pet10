@@ -41,7 +41,7 @@ describe('wardrobe model', () => {
       expect(style).toBeDefined()
       expect(Number.parseFloat(style!.width)).toBeLessThan(100)
       expect(Number.parseFloat(style!.top)).toBeLessThan(100)
-      expect(suitAssetFiles(key)).toEqual({ icon: `outfit-${key}-v1.png`, display: `outfit-${key}-v1.png` })
+      expect(suitAssetFiles(key)).toEqual({ icon: `outfit-${key}-v2.png`, display: `outfit-${key}-v2.png` })
     }
   })
 
