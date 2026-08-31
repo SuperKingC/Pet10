@@ -146,7 +146,7 @@ function segmentGenerated(raw, W, H, fold) {
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const m = y * W + x
     if (bg[m]) continue
-    if (y < foldYAt(x)) continue
+    if (fold && y < foldYAt(x)) continue
     keep[m] = 1
   }
   // 最大连通成分
@@ -357,14 +357,14 @@ async function rectCut(name, box, maxSize = 240, colors = 192) {
   }
   return sharp(out, { raw: { width: cw, height: ch, channels: 4 } })
     .resize(maxSize, maxSize, { fit: 'inside', kernel: 'lanczos3' })
-    .png({ palette: true, colors, compressionLevel: 9, dither: 0 })
+    .png({ palette: true, colors, compressionLevel: 9 })
     .toBuffer()
 }
 
 async function png8(rawBuffer, width, height, maxSize = 240, colors = 192) {
   return sharp(rawBuffer, { raw: { width, height, channels: 4 } })
     .resize(maxSize, maxSize, { fit: 'inside', kernel: 'lanczos3' })
-    .png({ palette: true, colors, compressionLevel: 9, dither: 0 })
+    .png({ palette: true, colors, compressionLevel: 9 })
     .toBuffer()
 }
 
@@ -411,15 +411,23 @@ const report = { generatedAt: new Date().toISOString(), base: `${BASE_W}x${BASE_
 // 三件叠穿件（随包）：按展示尺寸精确出图，style 标定与文件一一对应
 for (const [key, def] of Object.entries(overlaySuits)) {
   let rawBuf, nativeW, nativeH, contentW, feather
+  let extraIconPng = null
   if (def.generated) {
     const genRaw = (await sharp(path.join(srcDir, def.generated.src)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })).data
     const genMeta = await sharp(path.join(srcDir, def.generated.src)).metadata()
+    // 叠穿层：折线切前襟（完整版叠图会盖住脸）
     const seg = segmentGenerated(genRaw, genMeta.width, genMeta.height, def.generated.fold)
     rawBuf = seg.data
     nativeW = seg.width
     nativeH = seg.height
     contentW = seg.width
     feather = 0
+    // 网格图标：完整服饰（含蝴蝶结/环带，不切）
+    const full = segmentGenerated(genRaw, genMeta.width, genMeta.height, null)
+    extraIconPng = await sharp(full.data, { raw: { width: full.width, height: full.height, channels: 4 } })
+      .resize(Math.min(full.width, 176), null, { kernel: 'lanczos3' })
+      .png({ palette: true, colors: 160, compressionLevel: 9 })
+      .toBuffer()
   } else if (def.sheetPolygon) {
     const sheetRaw = await loadRaw('reference-sheet-v1')
     const sheetMeta = await sharp(path.join(srcDir, 'reference-sheet-v1.png')).metadata()
@@ -473,11 +481,18 @@ for (const [key, def] of Object.entries(overlaySuits)) {
   const renderH = Math.round(fileH * renderW / fileW)
   const png = await sharp(rawBuf, { raw: { width: nativeW, height: nativeH, channels: 4 } })
     .resize(renderW, renderH, { kernel: 'lanczos3' })
-    .png({ palette: true, colors: 96, compressionLevel: 9, dither: 0 })
+    .png({ palette: true, colors: 160, compressionLevel: 9 })
     .toBuffer()
-  const file = `outfit-${key}-v2.png`
+  const file = key === 'scarf' ? 'outfit-scarf-cut-v2.png' : `outfit-${key}-v2.png`
   await writeFile(path.join(cosOutDir, file), png)
   await copyFile(path.join(cosOutDir, file), path.join(bundledOutDir, file))
+  if (extraIconPng) {
+    const iconFile = `outfit-${key}-v2.png`
+    await writeFile(path.join(cosOutDir, iconFile), extraIconPng)
+    await copyFile(path.join(cosOutDir, iconFile), path.join(bundledOutDir, iconFile))
+    report.suits.push({ key, kind: 'overlay-icon', file: `public/wardrobe/${iconFile}`, bundled: true, bytes: extraIconPng.byteLength })
+    console.log(`${key} icon: ${(extraIconPng.byteLength / 1024).toFixed(1)}KB (bundled)`)
+  }
   const marginDisp = feather * dispScale
   const leftPct = ((def.cx - def.w / 2 - marginDisp) / BASE_W) * 100
   const topPct = ((def.ty - marginDisp) / BASE_H) * 100
@@ -507,7 +522,7 @@ for (const [key, def] of Object.entries(bodySuits)) {
   await writeFile(path.join(cosOutDir, iconFile), icon)
   // 整套穿装立绘：从源 PNG 文件直接裁透明边（raw 缓冲不能走 trim）
   const render = await sharp(path.join(srcDir, `${key}.png`)).trim().png().toBuffer()
-  const full = await sharp(render).resize({ height: 320, fit: 'inside' }).png({ palette: true, colors: 256, compressionLevel: 9, dither: 0 }).toBuffer()
+  const full = await sharp(render).resize({ height: 320, fit: 'inside' }).png({ palette: true, colors: 256, compressionLevel: 9 }).toBuffer()
   const fullFile = `${key}-v1.png`
   await writeFile(path.join(cosOutDir, fullFile), full)
   report.suits.push({ key, kind: 'full-render', icon: `public/wardrobe/${iconFile}`, full: `public/wardrobe/${fullFile}`, bundled: false, iconBytes: icon.byteLength, fullBytes: full.byteLength })
