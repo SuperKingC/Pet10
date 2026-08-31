@@ -91,6 +91,8 @@ export interface RoomRepository {
   findById(id: string): Promise<Room | undefined>
   findByRelationshipId(relationshipId: string): Promise<Room | undefined>
   listForUser(userId: string): Promise<Room[]>
+  /** 全量房间（后台 sweep 用，房间数量级很小） */
+  listAll(): Promise<Room[]>
   isMember(roomId: string, userId: string): Promise<boolean>
   setProactive(roomId: string, enabled: boolean): Promise<Room>
 }
@@ -126,6 +128,10 @@ export interface TaskRepository {
   complete(id: string): Promise<void>
   reschedule(id: string, nextRunAt: Date): Promise<void>
   fail(id: string): Promise<void>
+  /** 房间内待执行的提醒（按时间正序），供取消指令使用 */
+  listPendingByRoom(roomId: string): Promise<PetTask[]>
+  /** 取消待执行的提醒；任务不存在或不在待执行态时不做任何修改 */
+  cancelById(id: string): Promise<void>
 }
 
 export interface NestTaskProgressRepository {
@@ -199,6 +205,8 @@ export interface CodewordRepository {
 export interface PetEventRepository {
   record(petId: string, userId: string, action: string, payload?: Record<string, unknown>): Promise<void>
   statsByRoom(petId: string): Promise<PetEventStat[]>
+  /** 最近一次小窝动作时间（没有动作记录返回 undefined），供被冷落判定使用 */
+  lastAt(petId: string): Promise<Date | undefined>
 }
 
 export interface PhotoWallRepository {

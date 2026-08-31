@@ -32,6 +32,8 @@ import { createDiaryService } from './services/diaryService.js'
 import type { AiService } from './services/aiService.js'
 import type { createUploadService } from './services/uploadService.js'
 import { createReminderService } from './services/reminderService.js'
+import { createPetMoodService } from './services/petMoodService.js'
+import { createPetMoodSweepService } from './services/petMoodSweepService.js'
 import { createNestTaskService } from './services/nestTaskService.js'
 import { createNestTaskRoutes } from './http/nestTaskRoutes.js'
 import { createPhotoWallService } from './services/photoWallService.js'
@@ -94,7 +96,9 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     notifyPush: (userId) => pushService?.notifyUser(userId)
   })
   reminders.start()
-  const brain = createPetBrain({ repositories, ai, emit, reminders })
+  const mood = createPetMoodService({ repositories })
+  createPetMoodSweepService({ repositories, decayIfIdle: mood.decayIfIdle }).start()
+  const brain = createPetBrain({ repositories, ai, emit, reminders, mood })
   const socialService = createSocialService({
     repositories,
     ai,

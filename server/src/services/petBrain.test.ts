@@ -3,6 +3,7 @@ import type { ChatMessage } from '../domain/models.js'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createPetBrain } from './petBrain.js'
+import { createPetMoodService } from './petMoodService.js'
 
 async function createPairRoom() {
   const repositories = createMemoryRepositories()
@@ -207,5 +208,43 @@ describe('pet brain pair-room scheduling', () => {
     expect(emit).toHaveBeenCalledWith(room.id, 'message.created', expect.objectContaining({
       text: expect.stringContaining('记住')
     }))
+  })
+
+  it('passes the pet mood tone hint into the persona context', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    await repositories.pets.createForRelationship(room.relationshipId!, room.id)
+    const mood = createPetMoodService({ repositories })
+    const reply = vi.fn(async (_context: { moodText?: string }) => '好')
+    const brain = createPetBrain({
+      repositories,
+      ai: { reply, extractMemory: async () => null },
+      emit: vi.fn(),
+      mood
+    })
+
+    const message = await storeUserMessage(repositories, room.id, first.id, '你好呀')
+    await brain.onUserMessage(room.id, message)
+    await vi.advanceTimersByTimeAsync(1500)
+
+    expect(reply).toHaveBeenCalledTimes(1)
+    expect(reply.mock.calls[0]?.[0]).toMatchObject({ moodText: expect.stringContaining('心情很好') })
+  })
+
+  it('gives pet-dm rooms a fallback mood tone without a pet row', async () => {
+    const { repositories, first } = await createPairRoom()
+    const dmRoom = await repositories.rooms.createPetDm(first.id)
+    const reply = vi.fn(async (_context: { moodText?: string; roomType?: string }) => '汪')
+    const brain = createPetBrain({
+      repositories,
+      ai: { reply, extractMemory: async () => null },
+      emit: vi.fn()
+    })
+
+    const message = await storeUserMessage(repositories, dmRoom.id, first.id, '在干嘛')
+    await brain.onUserMessage(dmRoom.id, message)
+
+    expect(reply).toHaveBeenCalledTimes(1)
+    const context = reply.mock.calls[0]?.[0]
+    expect(context).toMatchObject({ roomType: 'pet_dm', moodText: expect.any(String) })
   })
 })

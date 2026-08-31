@@ -35,11 +35,12 @@ import type {
 
 const PHOTO_WALL_LIST_LIMIT = 60
 
-function now() {
-  return new Date()
+function nowFrom(options: { now?: () => Date }) {
+  return options.now?.() ?? new Date()
 }
 
-export function createMemoryRepositories(): RepositoryBundle {
+export function createMemoryRepositories(options: { now?: () => Date } = {}): RepositoryBundle {
+  const now = () => nowFrom(options)
   const users = new Map<string, User>()
   const inviteCodes = new Map<string, InviteCode>([
     ['PET10-DEMO', { code: 'PET10-DEMO', active: true, maxUses: 10, useCount: 0 }]
@@ -66,7 +67,7 @@ export function createMemoryRepositories(): RepositoryBundle {
   const notifications = new Map<string, AppNotification>()
   const fortunes = new Map<string, Fortune>()
   const codewords = new Map<string, CodewordAnswer>()
-  const petEvents = new Map<string, { petId: string; userId: string; action: string }[]>()
+  const petEvents = new Map<string, { petId: string; userId: string; action: string; at: Date }[]>()
   const pushSubscriptions = new Map<string, { userId: string; endpoint: string; p256dh: string; auth: string }>()
   const mapLights = new Map<string, { roomId: string; spotId: number; litBy: string; createdAt: Date }>()
 
@@ -258,6 +259,7 @@ export function createMemoryRepositories(): RepositoryBundle {
     },
     async findById(id: string) { return rooms.get(id) },
     async findByRelationshipId(relationshipId: string) { return [...rooms.values()].find((room) => room.relationshipId === relationshipId) },
+    async listAll() { return [...rooms.values()] },
     async listForUser(userId: string) {
       return [...rooms.values()].filter((room) => roomMembers.get(room.id)?.has(userId))
     },
@@ -358,6 +360,17 @@ export function createMemoryRepositories(): RepositoryBundle {
       const task = tasks.get(id)
       if (!task) return
       task.status = 'failed'
+      task.updatedAt = now()
+    },
+    async listPendingByRoom(roomId: string) {
+      return [...tasks.values()]
+        .filter((task) => task.roomId === roomId && task.status === 'pending')
+        .sort((first, second) => first.nextRunAt.getTime() - second.nextRunAt.getTime())
+    },
+    async cancelById(id: string) {
+      const task = tasks.get(id)
+      if (!task || task.status !== 'pending') return
+      task.status = 'cancelled'
       task.updatedAt = now()
     }
   }
@@ -613,7 +626,7 @@ export function createMemoryRepositories(): RepositoryBundle {
 
   const petEventRepo = {
     async record(petId: string, userId: string, action: string) {
-      petEvents.set(petId, [...(petEvents.get(petId) ?? []), { petId, userId, action }])
+      petEvents.set(petId, [...(petEvents.get(petId) ?? []), { petId, userId, action, at: now() }])
     },
     async statsByRoom(petId: string): Promise<PetEventStat[]> {
       const counts = new Map<string, PetEventStat>()
@@ -624,6 +637,13 @@ export function createMemoryRepositories(): RepositoryBundle {
         counts.set(key, stat)
       }
       return [...counts.values()]
+    },
+    async lastAt(petId: string): Promise<Date | undefined> {
+      let latest: Date | undefined
+      for (const event of petEvents.get(petId) ?? []) {
+        if (!latest || event.at.getTime() > latest.getTime()) latest = event.at
+      }
+      return latest
     }
   }
 

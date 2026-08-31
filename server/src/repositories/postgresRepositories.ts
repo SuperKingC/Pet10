@@ -242,6 +242,7 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       },
       findById: (id) => one('SELECT * FROM rooms WHERE id=$1', [id]),
       findByRelationshipId: (relationshipId) => one('SELECT * FROM rooms WHERE relationship_id=$1', [relationshipId]),
+      listAll: () => many('SELECT * FROM rooms ORDER BY created_at'),
       listForUser: (userId) => many(
         `SELECT r.* FROM rooms r JOIN room_members m ON m.room_id=r.id
          WHERE m.user_id=$1 ORDER BY r.created_at`,
@@ -323,6 +324,13 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       },
       async fail(id) {
         await database.query("UPDATE pet_tasks SET status='failed', updated_at=now() WHERE id=$1", [id])
+      },
+      listPendingByRoom: (roomId) => many(
+        "SELECT * FROM pet_tasks WHERE room_id=$1 AND status='pending' ORDER BY next_run_at",
+        [roomId]
+      ),
+      async cancelById(id) {
+        await database.query("UPDATE pet_tasks SET status='cancelled', updated_at=now() WHERE id=$1 AND status='pending'", [id])
       }
     },
     nestTaskProgress: {
@@ -515,7 +523,11 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
       statsByRoom: (petId) => many(
         `SELECT actor_user_id AS user_id, action, count(*)::int AS count FROM pet_events WHERE pet_id=$1 GROUP BY actor_user_id, action`,
         [petId]
-      )
+      ),
+      lastAt: async (petId) => {
+        const row = await one('SELECT max(created_at) AS last_at FROM pet_events WHERE pet_id=$1', [petId])
+        return row?.lastAt ?? undefined
+      }
     },
     pushSubscriptions: {
       async save(userId, endpoint, p256dh, auth) {

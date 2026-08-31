@@ -10,6 +10,8 @@ export interface AiReplyInput {
   pet: Pet
   owners?: User[]
   moodsText?: string
+  /** 小多利自己的心情腔调（来自 petMoodService），没有则省略 */
+  moodText?: string
   roomType?: 'pair' | 'pet_dm'
 }
 
@@ -70,7 +72,7 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
   }
 
   return {
-    async reply({ messages, memories, pet, owners = [], moodsText, roomType = 'pair' }) {
+    async reply({ messages, memories, pet, owners = [], moodsText, moodText, roomType = 'pair' }) {
       if (!config.enabled || !config.apiKey) {
         return '汪！我在认真听。等主人配置好 AI 接口后，我就能更聪明地陪你们聊天啦。'
       }
@@ -91,6 +93,7 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
         memories: prioritizedMemories,
         owners,
         moodsText,
+        moodText,
         roomType,
         hour: new Date().getHours()
       })

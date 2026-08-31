@@ -5,6 +5,8 @@ export interface PersonaContext {
   memories: PetMemory[]
   owners: User[]
   moodsText?: string
+  /** 小多利自己的心情腔调（如「你现在很委屈，说话带点坏坏的阴阳怪气…」） */
+  moodText?: string
   roomType: 'pair' | 'pet_dm'
   hour: number
 }
@@ -39,6 +41,7 @@ export function buildSystemPrompt(context: PersonaContext): string {
       : '7. 现在你在两位主人的共同房间里聊天，认识并点名两位主人互动。',
     `当前状态：等级${context.pet.level}，饱食${context.pet.hunger}，心情${context.pet.mood}，精力${context.pet.energy}，亲密度${context.pet.intimacy}。`,
     `现在时段：${timeGreeting(context.hour)}。`,
+    context.moodText ? `小多利现在的心情：${context.moodText}` : '',
     context.moodsText ? `主人心情：${context.moodsText}` : '',
     `共同记忆：${context.memories.map((memory) => memory.text).join('；') || '暂无'}`,
     ownerNames.length > 0 ? `主人：${ownerNames.join('、')}` : ''

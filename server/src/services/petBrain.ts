@@ -3,12 +3,15 @@ import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { PetActionOutcome } from './petService.js'
 import type { createReminderService } from './reminderService.js'
+import type { createPetMoodService } from './petMoodService.js'
+import { computeMoodState } from '../domain/petMoodRules.js'
 
 interface PetBrainDependencies {
   repositories: RepositoryBundle
   ai: AiService
   emit: (roomId: string, event: string, payload: unknown) => void
   reminders?: Pick<ReturnType<typeof createReminderService>, 'handleMessage'>
+  mood?: Pick<ReturnType<typeof createPetMoodService>, 'getMoodContext' | 'applyChatSentiment'>
   logError?: (message: string, error: unknown) => void
 }
 
@@ -39,7 +42,7 @@ function defaultPet(roomId: string): Pet {
   }
 }
 
-export function createPetBrain({ repositories, ai, emit, reminders, logError = (m, e) => console.error(m, e) }: PetBrainDependencies) {
+export function createPetBrain({ repositories, ai, emit, reminders, mood, logError = (m, e) => console.error(m, e) }: PetBrainDependencies) {
   const lastProactiveAt = new Map<string, number>()
   const lastMemoryExtractAt = new Map<string, number>()
   const memoryExtractionInFlight = new Set<string>()
@@ -76,6 +79,19 @@ export function createPetBrain({ repositories, ai, emit, reminders, logError = (
     }).join('；')
   }
 
+  /** 心情腔调：有宠物行走心情引擎；私聊房没有宠物行，用默认状态+闲置时长临时推导 */
+  async function resolveMoodText(roomId: string, roomType: 'pair' | 'pet_dm'): Promise<string | undefined> {
+    const context = await mood?.getMoodContext(roomId)
+    if (context) return context.state.toneHint
+    if (roomType === 'pet_dm') {
+      const recent = await repositories.messages.listRecent(roomId, 5)
+      const lastUserMessageAt = [...recent].reverse().find((message) => message.senderType === 'user')?.createdAt
+      const idleHours = lastUserMessageAt ? (Date.now() - lastUserMessageAt.getTime()) / 3_600_000 : 0
+      return computeMoodState({ mood: defaultPet(roomId).mood, idleHours }).toneHint
+    }
+    return undefined
+  }
+
   async function speak(roomId: string, triggerMessages: ChatMessage[], roomType: 'pair' | 'pet_dm'): Promise<ChatMessage | undefined> {
     const pet = (await repositories.pets.findByRoomId(roomId)) ?? defaultPet(roomId)
     emit(roomId, 'pet.typing', { roomId, typing: true })
@@ -91,7 +107,8 @@ export function createPetBrain({ repositories, ai, emit, reminders, logError = (
       }
       const memories = await repositories.memories.listByRoom(roomId)
       const moodsText = await buildMoodsText(roomId, owners)
-      const text = await ai.reply({ messages: triggerMessages, memories, pet, owners, moodsText, roomType })
+      const moodText = await resolveMoodText(roomId, roomType)
+      const text = await ai.reply({ messages: triggerMessages, memories, pet, owners, moodsText, moodText, roomType })
       const message = await repositories.messages.create({ roomId, senderType: 'pet', kind: 'pet', text })
       emit(roomId, 'message.created', message)
       void maybeExtractMemory(roomId)
@@ -236,6 +253,7 @@ export function createPetBrain({ repositories, ai, emit, reminders, logError = (
       if (!room) return
       if (message.senderId && await reminders?.handleMessage(roomId, message.senderId, message.text)) return
       if (await saveExplicitMemory(roomId, message)) return
+      void mood?.applyChatSentiment(roomId, message.text)
       const roomType = room.type === 'pet_dm' ? 'pet_dm' as const : 'pair' as const
 
       if (roomType === 'pet_dm') {
