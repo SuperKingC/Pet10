@@ -11,10 +11,12 @@ import './JournalAnniversaryPanel.scss'
 
 interface JournalAnniversaryPanelProps {
   roomId: string
-  onClose(): void
+  /** overlay：独立路由壳层全屏用法（自带返回栏）；inline：小记页内分页嵌入（无返回栏，内容区滚动） */
+  variant?: 'overlay' | 'inline'
+  onClose?(): void
 }
 
-export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: JournalAnniversaryPanelProps) {
+export function JournalAnniversaryPanel({ roomId: pairRoomId, variant = 'overlay', onClose }: JournalAnniversaryPanelProps) {
   const [roomId, setRoomId] = useState(pairRoomId)
   const [anniversaries, setAnniversaries] = useState<MiniappAnniversary[] | null>(null)
   const [form, setForm] = useState<{ day: string; edit?: MiniappAnniversary; pickDay?: boolean } | null>(null)
@@ -71,35 +73,46 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, onClose }: Journal
     } finally { setSaving(false) }
   }
 
+  const content = form ? (
+    <AnniversaryForm
+      defaultDay={form.day}
+      withDatePicker={form.pickDay}
+      initial={form.edit}
+      saving={saving}
+      onSubmit={(input) => void submit(input)}
+      onCancel={() => setForm(null)}
+      onDelete={form.edit ? () => void remove() : undefined}
+    />
+  ) : (
+    <AnniversaryListView
+      items={anniversaries ?? []}
+      loading={anniversaries === null}
+      today={today}
+      onAdd={() => setForm({ day: currentDay, pickDay: true })}
+      onEdit={(id) => {
+        const item = anniversaries?.find((entry) => entry.id === id)
+        if (item) setForm({ day: item.day, edit: item })
+      }}
+    />
+  )
+
+  if (variant === 'inline') {
+    return (
+      <View className="journal-anniv-panel journal-anniv-panel--inline">
+        <Text className="journal-anniv-panel__caption">把重要的日子记下来</Text>
+        <View className="journal-anniv-panel__scroll">{content}</View>
+      </View>
+    )
+  }
+
   return (
     <View className="journal-anniv-panel">
       <View className="journal-anniv-panel__top">
-        <MiniappBackButton onClick={onClose} />
+        <MiniappBackButton onClick={() => onClose?.()} />
         <Text className="journal-anniv-panel__title">纪念日</Text>
       </View>
       <Text className="journal-anniv-panel__caption">把重要的日子记下来</Text>
-      {form ? (
-        <AnniversaryForm
-          defaultDay={form.day}
-          withDatePicker={form.pickDay}
-          initial={form.edit}
-          saving={saving}
-          onSubmit={(input) => void submit(input)}
-          onCancel={() => setForm(null)}
-          onDelete={form.edit ? () => void remove() : undefined}
-        />
-      ) : (
-        <AnniversaryListView
-          items={anniversaries ?? []}
-          loading={anniversaries === null}
-          today={today}
-          onAdd={() => setForm({ day: currentDay, pickDay: true })}
-          onEdit={(id) => {
-            const item = anniversaries?.find((entry) => entry.id === id)
-            if (item) setForm({ day: item.day, edit: item })
-          }}
-        />
-      )}
+      {content}
     </View>
   )
 }

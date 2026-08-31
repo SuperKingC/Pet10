@@ -56,4 +56,20 @@ describe('anniversary photo presentation rules', () => {
     expect(panelStyles).toMatch(/\.journal-anniv-panel \{[^}]*height: 100%;/)
     expect(panelStyles).toMatch(/\.journal-anniv-panel \{[^}]*overflow: hidden;/)
   })
+
+  it('embeds the anniversary tab inline in the journal page with an inner scroll slot', () => {
+    const panel = fs.readFileSync(path.resolve(__dirname, 'JournalAnniversaryPanel.tsx'), 'utf8')
+    const panelStyles = fs.readFileSync(panelStylesPath, 'utf8')
+    const view = fs.readFileSync(path.resolve(__dirname, 'MiniappJournalView.tsx'), 'utf8')
+
+    // 「纪念日」是小记页内分页 tab：顶部标题/分页与底部运势条不动，面板弹性填充、内容区内部滚动
+    expect(panel).toContain("variant = 'overlay'")
+    expect(panel).toContain('journal-anniv-panel--inline')
+    expect(panel).toContain('journal-anniv-panel__scroll')
+    expect(panelStyles).toMatch(/\.journal-anniv-panel--inline \{[^}]*flex: 1;/)
+    expect(panelStyles).toMatch(/\.journal-anniv-panel--inline \{[^}]*min-height: 0;/)
+    expect(panelStyles).toMatch(/\.journal-anniv-panel__scroll \{[^}]*overflow-y: auto;/)
+    expect(view).toContain('<JournalAnniversaryPanel roomId={roomId} variant="inline" />')
+    expect(view).not.toContain('setAnniversaryOpen')
+  })
 })

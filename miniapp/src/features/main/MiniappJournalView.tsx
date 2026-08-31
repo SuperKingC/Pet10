@@ -49,7 +49,8 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
   const [fortuneOverlayOpen, setFortuneOverlayOpen] = useState(false)
   const [fortuneMessage, setFortuneMessage] = useState('')
   const [editor, setEditor] = useState<EditorSession | null>(null)
-  const [anniversaryOpen, setAnniversaryOpen] = useState(false)
+  // 「日记 / 纪念日」是页内分页 tab：顶部标题/分页与底部运势条、底部导航保持不动，只刷新中间内容区
+  const [journalTab, setJournalTab] = useState<'diary' | 'anniversary'>('diary')
   const [showMore, setShowMore] = useState(false)
   const [listTick, setListTick] = useState(0)
   const week = useMemo(() => getWeekDays(anchor), [anchor])
@@ -179,9 +180,9 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
     setShowMore((open) => !open)
   }
 
-  // 写日记/纪念日/运势覆盖层都在本层内部，被封在 z-index 19 的层级上下文里，
+  // 写日记/运势覆盖层在本层内部，被封在 z-index 19 的层级上下文里，
   // 会被爪印菜单（z-index 30）压住底部；覆盖层打开时把整层抬到菜单之上
-  const overlayOpen = editor !== null || anniversaryOpen || fortuneOverlayOpen
+  const overlayOpen = editor !== null || fortuneOverlayOpen
 
   return (
     <View className={overlayOpen ? 'miniapp-journal miniapp-journal--overlay-open' : 'miniapp-journal'}>
@@ -190,12 +191,22 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
           <Text className="miniapp-page-title miniapp-journal__title">小记</Text>
           <Text className="miniapp-page-caption miniapp-journal__caption">记录和小多利的每一天</Text>
           <View className="miniapp-journal__tabs">
-            <Button className="miniapp-journal__tab miniapp-journal__tab--active">日记</Button>
-            <Button className="miniapp-journal__tab" onClick={() => setAnniversaryOpen(true)}>纪念日</Button>
+            <Button
+              className={journalTab === 'diary' ? 'miniapp-journal__tab miniapp-journal__tab--active' : 'miniapp-journal__tab'}
+              onClick={() => setJournalTab('diary')}
+            >日记</Button>
+            <Button
+              className={journalTab === 'anniversary' ? 'miniapp-journal__tab miniapp-journal__tab--active' : 'miniapp-journal__tab'}
+              onClick={() => setJournalTab('anniversary')}
+            >纪念日</Button>
           </View>
         </View>
 
-        <View className="miniapp-journal__week-card">
+        {journalTab === 'anniversary' ? (
+          <JournalAnniversaryPanel roomId={roomId} variant="inline" />
+        ) : (
+          <>
+            <View className="miniapp-journal__week-card">
           <View className="miniapp-journal__week-bar">
             <Button onClick={() => shift(-1)}>‹</Button>
             <Text className="miniapp-journal__month-text">{weekMonthLabel(anchor)}</Text>
@@ -281,7 +292,9 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
             </View>
           </View>
         ))}
-        </View>
+            </View>
+          </>
+        )}
       </View>
 
       <View className="miniapp-journal__fortune" onClick={openFortune}>
@@ -307,12 +320,6 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
             onClose={closeEditor}
             onSaved={finishEditor}
           />
-        </View>
-      )}
-
-      {anniversaryOpen && (
-        <View className="journal-anniv-overlay">
-          <JournalAnniversaryPanel roomId={roomId} onClose={() => setAnniversaryOpen(false)} />
         </View>
       )}
     </View>

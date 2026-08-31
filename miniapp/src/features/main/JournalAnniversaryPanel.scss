@@ -1,3 +1,4 @@
+/* 全屏覆盖层容器（小窝任务面板等复用）：整层定高不可滚动，杜绝整页滑动 */
 .journal-anniv-overlay {
   position: fixed;
   inset: 0;
@@ -6,6 +7,7 @@
   overflow: hidden;
   background: #fff8ee;
 }
+/* 独立路由壳层（pages/journal-anniversary）全屏用法：整层定高不可滚动 */
 .journal-anniv-panel {
   height: 100%;
   display: flex;
@@ -18,3 +20,16 @@
 .journal-anniv-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
 .journal-anniv-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
 .journal-anniv-panel__caption { display: block; padding-bottom: 24rpx; color: #a89489; font-size: var(--font-size-aux); }
+
+/* 小记页内分页嵌入：无返回栏，说明行固定在上，列表/表单在剩余空间内滚动，
+   页面顶部标题/分页与底部运势条、底部导航保持不动 */
+.journal-anniv-panel--inline {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  background: transparent;
+}
+.journal-anniv-panel--inline .journal-anniv-panel__caption { flex-shrink: 0; padding: 0 4rpx 16rpx; }
+.journal-anniv-panel__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.journal-anniv-panel--inline .anniv-list { padding-bottom: 16rpx; }

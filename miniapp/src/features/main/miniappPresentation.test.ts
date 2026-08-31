@@ -202,6 +202,10 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('记录和小多利的每一天')
     expect(component).toContain('查看 >')
     expect(component).toContain('<JournalAnniversaryPanel')
+    // 「纪念日」是页内分页 tab（点击原地刷新内容区），不再打开全屏覆盖层
+    expect(component).toContain("journalTab === 'anniversary'")
+    expect(component).toContain('variant="inline"')
+    expect(component).not.toContain('journal-anniv-overlay')
     expect(component).not.toContain('toggleLike')
     expect(component).not.toContain('onShareTitleChange')
     expect(component).not.toContain('openType="share"')
