@@ -5,6 +5,7 @@
 ## 功能目录
 
 - [微信小程序](miniapp.md)
+- [小多利 AI 能力](xiaoduoli-ai.md)
 - [图片资源与性能](assets-and-performance.md)
 - [部署与服务器更新](deployment.md)
 
