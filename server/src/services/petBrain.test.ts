@@ -230,6 +230,31 @@ describe('pet brain pair-room scheduling', () => {
     expect(reply.mock.calls[0]?.[0]).toMatchObject({ moodText: expect.stringContaining('心情很好') })
   })
 
+  it('occasionally turns a fresh memory into a circle post', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    const emit = vi.fn()
+    const brain = createPetBrain({
+      repositories,
+      ai: {
+        reply: async () => '好',
+        extractMemory: async () => '主人喜欢摄影',
+        composeMomentPost: async (input) => `原来${input.memoryText}呀！`
+      },
+      emit
+    })
+
+    const message = await storeUserMessage(repositories, room.id, first.id, '我喜欢摄影')
+    await brain.onUserMessage(room.id, message)
+    await vi.advanceTimersByTimeAsync(1500)
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(emit).toHaveBeenCalledWith(room.id, 'post.new', expect.objectContaining({
+      authorType: 'pet',
+      roomId: room.id,
+      text: '原来主人喜欢摄影呀！'
+    }))
+  })
+
   it('gives pet-dm rooms a fallback mood tone without a pet row', async () => {
     const { repositories, first } = await createPairRoom()
     const dmRoom = await repositories.rooms.createPetDm(first.id)

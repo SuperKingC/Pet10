@@ -22,6 +22,7 @@ const environmentSchema = z.object({
   SEARCH_MAX_RESULTS: z.coerce.number().int().positive().max(20).default(8),
   SEARCH_MAX_SNIPPET_LENGTH: z.coerce.number().int().positive().max(2000).default(700),
   SEARCH_LOCALE: z.string().default('zh-cn'),
+  PROACTIVE_SWEEP_INTERVAL_MS: z.coerce.number().int().nonnegative().default(600000),
   OSS_REGION: z.string().optional(),
   OSS_BUCKET: z.string().optional(),
   OSS_ACCESS_KEY_ID: z.string().optional(),
@@ -73,6 +74,8 @@ export interface ServerConfig {
     maxSnippetLength: number
     locale: string
   }
+  /** 小多利主动行为（沉默找人说话/发朋友圈）的后台 sweep 间隔，0 表示关闭 */
+  proactiveSweepIntervalMs: number
   oss: {
     enabled: boolean
     region?: string
@@ -143,6 +146,7 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       maxSnippetLength: parsed.SEARCH_MAX_SNIPPET_LENGTH,
       locale: parsed.SEARCH_LOCALE
     },
+    proactiveSweepIntervalMs: parsed.PROACTIVE_SWEEP_INTERVAL_MS,
     oss: {
       enabled: Boolean(parsed.OSS_REGION && parsed.OSS_BUCKET && parsed.OSS_ACCESS_KEY_ID && parsed.OSS_ACCESS_KEY_SECRET),
       region: parsed.OSS_REGION,

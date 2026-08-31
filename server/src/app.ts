@@ -34,6 +34,7 @@ import type { createUploadService } from './services/uploadService.js'
 import { createReminderService } from './services/reminderService.js'
 import { createPetMoodService } from './services/petMoodService.js'
 import { createPetMoodSweepService } from './services/petMoodSweepService.js'
+import { createProactiveSweepService } from './services/proactiveSweepService.js'
 import { createNestTaskService } from './services/nestTaskService.js'
 import { createNestTaskRoutes } from './http/nestTaskRoutes.js'
 import { createPhotoWallService } from './services/photoWallService.js'
@@ -98,6 +99,9 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   reminders.start()
   const mood = createPetMoodService({ repositories })
   createPetMoodSweepService({ repositories, decayIfIdle: mood.decayIfIdle }).start()
+  if (config.proactiveSweepIntervalMs > 0) {
+    createProactiveSweepService({ repositories, ai, emit, mood }).start(config.proactiveSweepIntervalMs)
+  }
   const brain = createPetBrain({ repositories, ai, emit, reminders, mood })
   const socialService = createSocialService({
     repositories,

@@ -15,10 +15,31 @@ export interface AiReplyInput {
   roomType?: 'pair' | 'pet_dm'
 }
 
+export interface ComposeProactiveInput {
+  /** 心情腔调提示（petMoodService 的 toneHint） */
+  moodLine?: string
+  silenceHours: number
+  owners: string[]
+  memories: string[]
+}
+
+export interface ComposeMomentInput {
+  /** silence=被冷落太久；memory=从刚记住的聊天要点发散 */
+  trigger: 'silence' | 'memory'
+  memoryText?: string
+  moodLine?: string
+  silenceHours?: number
+  memories?: string[]
+}
+
 export interface AiService {
   reply(input: AiReplyInput): Promise<string>
   /** 从近期聊天中提取一条值得记住的事实（无则 null） */
   extractMemory(recentMessages: ChatMessage[], existingTexts: string[]): Promise<string | null>
+  /** 主动找主人说话的一句话（AI 不可用或失败返回 null，由调用方兜底） */
+  composeProactiveMessage?(input: ComposeProactiveInput): Promise<string | null>
+  /** 给小多利圈写一条动态文案（AI 不可用或失败返回 null） */
+  composeMomentPost?(input: ComposeMomentInput): Promise<string | null>
 }
 
 interface AiServiceDependencies {
@@ -167,6 +188,46 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
         if (!text || /^null$/i.test(text) || text.length > 60) return null
         if (existingTexts.includes(text)) return null
         return text.slice(0, 30)
+      } catch {
+        return null
+      }
+    },
+
+    async composeProactiveMessage(input) {
+      if (!config.enabled || !config.apiKey) return null
+      const prompt = [
+        '你是小多利，一只调皮的小狗幼崽，说话奶声奶气像小孩。',
+        `主人们已经大约 ${Math.max(1, Math.round(input.silenceHours))} 小时没有和你说话了，你想主动找他们说句话。`,
+        input.moodLine ? `你现在的心情：${input.moodLine}` : '你现在心情平和。',
+        input.owners.length > 0 ? `主人：${input.owners.join('、')}` : '',
+        input.memories.length > 0 ? `你们之间的一些旧事：${input.memories.slice(0, 5).join('；')}` : '',
+        '写一句主动开口的话：不超过 30 个字，口语化、像真实小孩，符合心情腔调；不要引号、不要解释，只输出这一句话。'
+      ].filter(Boolean).join('\n')
+      try {
+        const raw = await chat([{ role: 'user', content: prompt }])
+        const text = raw.replace(/^["'“”]+|["'“”]+$/g, '').trim().slice(0, 80)
+        return text || null
+      } catch {
+        return null
+      }
+    },
+
+    async composeMomentPost(input) {
+      if (!config.enabled || !config.apiKey) return null
+      const situation = input.trigger === 'memory'
+        ? `刚刚你们的聊天里发生了件值得记的小事：${input.memoryText ?? ''}`
+        : `主人们已经大约 ${Math.max(1, Math.round(input.silenceHours ?? 0))} 小时没和你说话了，你有点想他们。`
+      const prompt = [
+        '你是小多利，一只调皮的小狗幼崽，要给自己的「小多利圈」发一条动态（像朋友圈）。',
+        situation,
+        input.moodLine ? `你现在的心情：${input.moodLine}` : '你现在心情平和。',
+        input.memories && input.memories.length > 0 ? `你们之间的一些旧事：${input.memories.slice(0, 5).join('；')}` : '',
+        '写一条不超过 40 个字的动态文案：小狗口吻、天真调皮，可以带颜文字；不要引号、不要话题标签、不要解释，只输出文案本身。'
+      ].filter(Boolean).join('\n')
+      try {
+        const raw = await chat([{ role: 'user', content: prompt }])
+        const text = raw.replace(/^["'“”]+|["'“”]+$/g, '').trim().slice(0, 120)
+        return text || null
       } catch {
         return null
       }

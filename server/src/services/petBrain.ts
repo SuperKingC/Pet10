@@ -1,4 +1,4 @@
-import type { ChatMessage, Pet, PetAction, User } from '../domain/models.js'
+import type { ChatMessage, Pet, PetAction, PetMemory, User } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { PetActionOutcome } from './petService.js'
@@ -18,6 +18,7 @@ interface PetBrainDependencies {
 const COOLDOWN_MS = 5 * 60 * 1000
 const MEMORY_COOLDOWN_MS = 10 * 60 * 1000
 const MEMORY_LIMIT = 60
+const MEMORY_MOMENT_CHANCE = 0.2
 const PAIR_REPLY_DEBOUNCE_MS = 1500
 const PAIR_CHATTER_MIN_MS = 10 * 60 * 1000
 const PAIR_CHATTER_MAX_MS = 20 * 60 * 1000
@@ -205,6 +206,7 @@ export function createPetBrain({ repositories, ai, emit, reminders, mood, logErr
       const memory = await repositories.memories.create({ roomId, text })
       lastMemoryExtractAt.set(roomId, Date.now())
       emit(roomId, 'memory.created', memory)
+      void maybePostMomentFromMemory(roomId, memory)
       // listByRoom 按时间倒序，超出上限时删尾部（最旧）
       if (memories.length + 1 > MEMORY_LIMIT) {
         for (const oldest of memories.slice(MEMORY_LIMIT - 1)) {
@@ -215,6 +217,31 @@ export function createPetBrain({ repositories, ai, emit, reminders, mood, logErr
       logError('petBrain memory extraction failed', error)
     } finally {
       memoryExtractionInFlight.delete(roomId)
+    }
+  }
+
+  /** 刚记住的聊天要点：小概率（每房每天至多一条）发散成一条小多利圈动态，AI 不可用就跳过 */
+  async function maybePostMomentFromMemory(roomId: string, memory: PetMemory) {
+    if (!ai.composeMomentPost) return
+    if (Math.random() >= MEMORY_MOMENT_CHANCE) return
+    try {
+      const recentPosts = await repositories.posts.listByRoom(roomId, 5)
+      const today = new Date().toISOString().slice(0, 10)
+      const postedToday = recentPosts.some((post) =>
+        post.authorType === 'pet' && post.createdAt.toISOString().slice(0, 10) === today
+      )
+      if (postedToday) return
+      const moodContext = await mood?.getMoodContext(roomId)
+      const text = await ai.composeMomentPost({
+        trigger: 'memory',
+        memoryText: memory.text,
+        moodLine: moodContext?.state.toneHint
+      })
+      if (!text) return
+      const post = await repositories.posts.createAsPet(roomId, text)
+      emit(roomId, 'post.new', post)
+    } catch (error) {
+      logError('petBrain memory moment failed', error)
     }
   }
 
