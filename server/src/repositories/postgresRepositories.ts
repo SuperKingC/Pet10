@@ -536,6 +536,87 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
          ON CONFLICT(room_id,spot_id) DO UPDATE SET lit_by=EXCLUDED.lit_by RETURNING *`,
         [roomId, spotId, userId]
       )
+    },
+    photoWall: {
+      listByRoom: (roomId, limit = 60) => many(
+        `SELECT id, room_id, user_id, origin, photo, caption, ref_key,
+           to_char(taken_day,'YYYY-MM-DD') AS taken_day, created_at
+         FROM photo_wall WHERE room_id=$1 ORDER BY created_at DESC LIMIT $2`,
+        [roomId, limit]
+      ),
+      findById: (roomId, photoId) => one(
+        `SELECT id, room_id, user_id, origin, photo, caption, ref_key,
+           to_char(taken_day,'YYYY-MM-DD') AS taken_day, created_at
+         FROM photo_wall WHERE room_id=$1 AND id=$2`,
+        [roomId, photoId]
+      ),
+      create: (input) => one(
+        `INSERT INTO photo_wall(room_id,user_id,origin,photo,caption,ref_key,taken_day)
+         VALUES($1,$2,$3,$4,$5,$6,CAST($7 AS date))
+         RETURNING id, room_id, user_id, origin, photo, caption, ref_key,
+           to_char(taken_day,'YYYY-MM-DD') AS taken_day, created_at`,
+        [input.roomId, input.userId, input.origin, input.photo, input.caption, input.refKey, input.takenDay]
+      ),
+      updateCaption: (roomId, photoId, caption) => one(
+        `UPDATE photo_wall SET caption=$3 WHERE room_id=$1 AND id=$2
+         RETURNING id, room_id, user_id, origin, photo, caption, ref_key,
+           to_char(taken_day,'YYYY-MM-DD') AS taken_day, created_at`,
+        [roomId, photoId, caption]
+      ),
+      async deleteById(roomId, photoId) {
+        await database.query('DELETE FROM photo_wall WHERE room_id=$1 AND id=$2', [roomId, photoId])
+      },
+      async deleteOldestManual(roomId) {
+        const result = await database.query(
+          `DELETE FROM photo_wall WHERE id = (
+             SELECT id FROM photo_wall WHERE room_id=$1 AND origin='manual' ORDER BY created_at LIMIT 1
+           )`,
+          [roomId]
+        )
+        return (result.rowCount ?? 0) > 0
+      },
+      countByRoom: async (roomId) => {
+        const row = await one('SELECT count(*)::int AS count FROM photo_wall WHERE room_id=$1', [roomId])
+        return row?.count ?? 0
+      }
+    },
+    wardrobe: {
+      getState: (roomId) => one(
+        'SELECT room_id, equipped, updated_at FROM pet_wardrobe WHERE room_id=$1',
+        [roomId]
+      ),
+      setEquipped: (roomId, equipped) => one(
+        `INSERT INTO pet_wardrobe(room_id,equipped) VALUES($1,$2)
+         ON CONFLICT(room_id) DO UPDATE SET equipped=EXCLUDED.equipped, updated_at=now()
+         RETURNING room_id, equipped, updated_at`,
+        [roomId, equipped]
+      )
+    },
+    outfitMatch: {
+      setPick: (roomId, day, userId, itemId) => one(
+        `INSERT INTO outfit_match_daily(room_id,day,user_id,item_id) VALUES($1,CAST($2 AS date),$3,$4)
+         ON CONFLICT(room_id,day,user_id) DO UPDATE SET item_id=EXCLUDED.item_id
+         RETURNING id, room_id, to_char(day,'YYYY-MM-DD') AS day, user_id, item_id, created_at`,
+        [roomId, day, userId, itemId]
+      ),
+      listPicks: (roomId, day) => many(
+        `SELECT id, room_id, to_char(day,'YYYY-MM-DD') AS day, user_id, item_id, created_at
+         FROM outfit_match_daily WHERE room_id=$1 AND day=CAST($2 AS date) ORDER BY created_at`,
+        [roomId, day]
+      ),
+      getStreak: (roomId) => one(
+        `SELECT room_id, streak, best_streak, to_char(last_match_day,'YYYY-MM-DD') AS last_match_day
+         FROM outfit_match_streak WHERE room_id=$1`,
+        [roomId]
+      ),
+      markSettled: (roomId, day, streak, bestStreak) => one(
+        `INSERT INTO outfit_match_streak(room_id,streak,best_streak,last_match_day) VALUES($1,$2,$3,CAST($4 AS date))
+         ON CONFLICT(room_id) DO UPDATE SET
+           streak=EXCLUDED.streak, best_streak=EXCLUDED.best_streak, last_match_day=EXCLUDED.last_match_day
+         WHERE outfit_match_streak.last_match_day IS DISTINCT FROM CAST($4 AS date)
+         RETURNING room_id, streak, best_streak, to_char(last_match_day,'YYYY-MM-DD') AS last_match_day`,
+        [roomId, streak, bestStreak, day]
+      ).then((row) => Boolean(row))
     }
   } as RepositoryBundle
 }

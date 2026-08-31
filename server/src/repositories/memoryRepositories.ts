@@ -10,17 +10,30 @@ import type {
   Invitation,
   MoodEntry,
   NestTaskProgress,
+  OutfitMatchPick,
+  OutfitMatchStreak,
   Pet,
   PetEventStat,
   PetMemory,
   PetTask,
+  PhotoWallPost,
   Post,
   Relationship,
   Room,
   User,
+  WardrobeState,
   WechatIdentity
 } from '../domain/models.js'
-import type { RepositoryBundle, InventoryRepository, NestTaskProgressRepository } from './contracts.js'
+import type {
+  OutfitMatchRepository,
+  PhotoWallRepository,
+  RepositoryBundle,
+  InventoryRepository,
+  NestTaskProgressRepository,
+  WardrobeRepository
+} from './contracts.js'
+
+const PHOTO_WALL_LIST_LIMIT = 60
 
 function now() {
   return new Date()
@@ -635,6 +648,88 @@ export function createMemoryRepositories(): RepositoryBundle {
     }
   }
 
+  const photoWallPosts = new Map<string, PhotoWallPost>()
+
+  const photoWallRepo: PhotoWallRepository = {
+    async listByRoom(roomId, limit = PHOTO_WALL_LIST_LIMIT) {
+      return [...photoWallPosts.values()]
+        .filter((item) => item.roomId === roomId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(0, limit)
+    },
+    async findById(roomId, photoId) {
+      const item = photoWallPosts.get(photoId)
+      return item && item.roomId === roomId ? item : undefined
+    },
+    async create(input) {
+      const item: PhotoWallPost = { id: randomUUID(), ...input, createdAt: now() }
+      photoWallPosts.set(item.id, item)
+      return item
+    },
+    async updateCaption(roomId, photoId, caption) {
+      const item = await this.findById(roomId, photoId)
+      if (!item) return undefined
+      item.caption = caption
+      return item
+    },
+    async deleteById(roomId, photoId) {
+      const item = photoWallPosts.get(photoId)
+      if (item && item.roomId === roomId) photoWallPosts.delete(photoId)
+    },
+    async deleteOldestManual(roomId) {
+      const oldest = [...photoWallPosts.values()]
+        .filter((item) => item.roomId === roomId && item.origin === 'manual')
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0]
+      if (!oldest) return false
+      photoWallPosts.delete(oldest.id)
+      return true
+    },
+    async countByRoom(roomId) {
+      return [...photoWallPosts.values()].filter((item) => item.roomId === roomId).length
+    }
+  }
+
+  const wardrobeStates = new Map<string, WardrobeState>()
+
+  const wardrobeRepo: WardrobeRepository = {
+    async getState(roomId) {
+      return wardrobeStates.get(roomId) ?? { roomId, equipped: 'default', updatedAt: now() }
+    },
+    async setEquipped(roomId, equipped) {
+      const next: WardrobeState = { roomId, equipped, updatedAt: now() }
+      wardrobeStates.set(roomId, next)
+      return next
+    }
+  }
+
+  const outfitMatchPicks = new Map<string, OutfitMatchPick>()
+  const outfitMatchStreaks = new Map<string, OutfitMatchStreak>()
+
+  const outfitMatchRepo: OutfitMatchRepository = {
+    async setPick(roomId, day, userId, itemId) {
+      const key = `${roomId}:${day}:${userId}`
+      const existing = outfitMatchPicks.get(key)
+      const pick: OutfitMatchPick = { roomId, day, userId, itemId, createdAt: existing?.createdAt ?? now() }
+      outfitMatchPicks.set(key, pick)
+      return pick
+    },
+    async listPicks(roomId, day) {
+      return [...outfitMatchPicks.values()]
+        .filter((item) => item.roomId === roomId && item.day === day)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    },
+    async getStreak(roomId) {
+      return outfitMatchStreaks.get(roomId) ?? { roomId, streak: 0, bestStreak: 0, lastMatchDay: null }
+    },
+    async markSettled(roomId, day, streak, bestStreak) {
+      const existing = outfitMatchStreaks.get(roomId)
+      if (existing && existing.lastMatchDay === day) return false
+      const next: OutfitMatchStreak = { roomId, streak, bestStreak, lastMatchDay: day }
+      outfitMatchStreaks.set(roomId, next)
+      return true
+    }
+  }
+
   return {
     users: userRepo,
     invites: inviteRepo,
@@ -657,6 +752,9 @@ export function createMemoryRepositories(): RepositoryBundle {
     codewords: codewordRepo,
     petEvents: petEventRepo,
     pushSubscriptions: pushSubscriptionRepo,
-    map: mapRepo
+    map: mapRepo,
+    photoWall: photoWallRepo,
+    wardrobe: wardrobeRepo,
+    outfitMatch: outfitMatchRepo
   }
 }

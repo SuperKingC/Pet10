@@ -34,6 +34,10 @@ import type { createUploadService } from './services/uploadService.js'
 import { createReminderService } from './services/reminderService.js'
 import { createNestTaskService } from './services/nestTaskService.js'
 import { createNestTaskRoutes } from './http/nestTaskRoutes.js'
+import { createPhotoWallService } from './services/photoWallService.js'
+import { createPhotoWallRoutes } from './http/photoWallRoutes.js'
+import { createWardrobeService } from './services/wardrobeService.js'
+import { createWardrobeRoutes } from './http/wardrobeRoutes.js'
 import { createGobangRoutes } from './http/gobangRoutes.js'
 import type { GobangService } from './services/gobangService.js'
 
@@ -97,7 +101,8 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     emit,
     emitUser,
     onMoodSet: (roomId, userId, level) => void brain.onMoodSet(roomId, userId, level),
-    onNotify: (userId) => void pushService?.notifyUser(userId)
+    onNotify: (userId) => void pushService?.notifyUser(userId),
+    onCodewordBothAnswered: (roomId) => void photoWallService.onCodewordBothAnswered(roomId)
   })
   const friendshipService = createFriendshipService(repositories, {
     notify: (userId, type, payload) => void socialService.notify(userId, type, payload)
@@ -107,9 +112,14 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   })
   const diaryService = createDiaryService(repositories)
   const gmService = createGmService(repositories, friendshipService)
+  const photoWallService = createPhotoWallService(repositories)
   const invitationService = createInvitationService(repositories)
   const petService = createPetService(repositories, {
-    onPetEvent: (roomId, userId, action, outcome) => void brain.onPetEvent(roomId, userId, action, outcome)
+    onPetEvent: (roomId, userId, action, outcome) => {
+      void brain.onPetEvent(roomId, userId, action, outcome)
+      // 升级纪念卡自动入墙（每次升级恰好一张）
+      if (outcome.leveledUp) void photoWallService.onLevelUp(roomId, outcome.pet.level)
+    }
   })
   const roomService = createRoomService({ repositories, ai, brain })
   const sessionService = createSessionService(repositories, {
@@ -117,8 +127,32 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     getInvitation: (token) => invitationService.get(token)
   })
   const nestTaskService = createNestTaskService(repositories, {
-    onRewardGranted: (roomId, _userId, _taskKey, items) => {
+    onRewardGranted: (roomId, userId, _taskKey, items) => {
       emit(roomId, 'task.reward', { items })
+      // 领奖计数事件：衣柜解锁（背带裤/帽子）等派生条件的数据源
+      void (async () => {
+        const pet = await repositories.pets.findByRoomId(roomId)
+        if (pet) await repositories.petEvents.record(pet.id, userId, 'task_claim')
+      })()
+    }
+  })
+  const wardrobeService = createWardrobeService(repositories, {
+    onMatchSettled: (event) => {
+      void (async () => {
+        if (event.matched) {
+          await photoWallService.onMatchSettled(event.roomId, { suitKey: event.itemId, day: event.day })
+          // 默契达成奖励：香皂×1（与任务道具经济合流）
+          await repositories.inventory.add(event.roomId, 'soap', 1)
+          for (const participantId of event.participantIds) {
+            await nestTaskService.recordOutfitMatch(event.roomId, participantId).catch(() => undefined)
+          }
+        }
+        emit(event.roomId, 'wardrobe.match', {
+          matched: event.matched,
+          itemId: event.itemId,
+          streak: event.streak
+        })
+      })()
     }
   })
   const authenticate = createAuthMiddleware(config.jwtSecret, config.allowedEmails)
@@ -136,6 +170,8 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   app.use('/api/social', authenticate, createSocialRoutes({ social: socialService, pets: petService, push: pushService }))
   app.use('/api/diaries', authenticate, createDiaryRoutes(diaryService))
   app.use('/api', authenticate, createNestTaskRoutes(nestTaskService))
+  app.use('/api', authenticate, createPhotoWallRoutes(photoWallService))
+  app.use('/api', authenticate, createWardrobeRoutes(wardrobeService))
   app.use('/api/rooms', authenticate, createRoomRoutes({
     rooms: roomService,
     pets: petService,

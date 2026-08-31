@@ -10,15 +10,19 @@ import type {
   MapLight,
   MoodEntry,
   NestTaskProgress,
+  OutfitMatchPick,
+  OutfitMatchStreak,
   Pet,
   PetEventStat,
   PetMemory,
   PetTask,
+  PhotoWallPost,
   Post,
   Relationship,
   Room,
   RoomInventoryItem,
   User,
+  WardrobeState,
   WechatIdentity
 } from '../domain/models.js'
 
@@ -195,6 +199,32 @@ export interface PetEventRepository {
   statsByRoom(petId: string): Promise<PetEventStat[]>
 }
 
+export interface PhotoWallRepository {
+  listByRoom(roomId: string, limit?: number): Promise<PhotoWallPost[]>
+  findById(roomId: string, photoId: string): Promise<PhotoWallPost | undefined>
+  create(input: Pick<PhotoWallPost, 'roomId' | 'userId' | 'origin' | 'photo' | 'caption' | 'refKey' | 'takenDay'>): Promise<PhotoWallPost>
+  updateCaption(roomId: string, photoId: string, caption: string): Promise<PhotoWallPost | undefined>
+  deleteById(roomId: string, photoId: string): Promise<void>
+  /** 超上限淘汰：只允许删手动照，返回是否真的删了 */
+  deleteOldestManual(roomId: string): Promise<boolean>
+  countByRoom(roomId: string): Promise<number>
+}
+
+export interface WardrobeRepository {
+  getState(roomId: string): Promise<WardrobeState>
+  /** 保存当前套装；未初始化则建行 */
+  setEquipped(roomId: string, equipped: string): Promise<WardrobeState>
+}
+
+export interface OutfitMatchRepository {
+  /** 当日某成员的选择；同一成员重复选择为覆盖（当天可改，双方齐前） */
+  setPick(roomId: string, day: string, userId: string, itemId: string): Promise<OutfitMatchPick>
+  listPicks(roomId: string, day: string): Promise<OutfitMatchPick[]>
+  getStreak(roomId: string): Promise<OutfitMatchStreak | undefined>
+  /** 条件结算门闩：lastMatchDay !== day 时写入并返回 true，否则 false（先到先结算） */
+  markSettled(roomId: string, day: string, streak: number, bestStreak: number): Promise<boolean>
+}
+
 export interface PushSubscriptionRecord {
   userId: string
   endpoint: string
@@ -236,4 +266,7 @@ export interface RepositoryBundle {
   petEvents: PetEventRepository
   pushSubscriptions: PushSubscriptionRepository
   map: MapRepository
+  photoWall: PhotoWallRepository
+  wardrobe: WardrobeRepository
+  outfitMatch: OutfitMatchRepository
 }

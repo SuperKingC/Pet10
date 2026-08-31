@@ -463,6 +463,91 @@
       "path": "miniapp/src/assets/items/item-soap-v1.png",
       "category": "runtime-feature",
       "purpose": "Task reward item icon: rose soap bar with bubbles, hand-drawn sticker style with brown outline and sparkle accents, transparent background"
+    },
+    {
+      "path": "design-assets/wardrobe/scarf.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, scarf variant"
+    },
+    {
+      "path": "design-assets/wardrobe/hoodie.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, hoodie variant"
+    },
+    {
+      "path": "design-assets/wardrobe/overalls.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, overalls variant"
+    },
+    {
+      "path": "design-assets/wardrobe/dress.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, dress variant"
+    },
+    {
+      "path": "design-assets/wardrobe/raincoat.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, raincoat variant"
+    },
+    {
+      "path": "design-assets/wardrobe/pajamas.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, pajamas variant"
+    },
+    {
+      "path": "design-assets/wardrobe/crossbody-bag.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, crossbody bag accessory variant"
+    },
+    {
+      "path": "design-assets/wardrobe/purple-beret.png",
+      "category": "source-only",
+      "purpose": "Wardrobe suit source illustration recovered from the 2026-08 nest dress-up asset set, beret accessory variant"
+    },
+    {
+      "path": "public/wardrobe/scarf-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (scarf), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/hoodie-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (hoodie), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/overalls-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (overalls), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/dress-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (dress), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/raincoat-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (raincoat), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/pajamas-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (pajamas), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/bag-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (crossbody bag), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "public/wardrobe/hat-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe suit full-body render (beret hat), served from COS for on-demand download, 256-color PNG8 at 320px height"
+    },
+    {
+      "path": "miniapp/src/assets/wardrobe/scarf-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Bundled wardrobe scarf suit render, the only suit shipped in the main package (package budget)"
     }
   ]
 }

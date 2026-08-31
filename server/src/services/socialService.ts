@@ -23,6 +23,8 @@ interface SocialServiceDependencies {
   onMoodSet?: (roomId: string, userId: string, level: number) => void
   /** 新通知产生后的钩子（Web Push 唤醒） */
   onNotify?: (userId: string) => void
+  /** 本次作答让当天变成「双方都答上」时触发（照片墙连胜卡挂点） */
+  onCodewordBothAnswered?: (roomId: string, day: string) => void
 }
 
 const PET_AVATAR = '/pet/xiaoduoli.png'
@@ -91,7 +93,7 @@ const MAP_CELEBRATIONS = [
   '汪呜～这里也属于我们了，尾巴已经摇起来了！'
 ]
 
-export function createSocialService({ repositories, ai, emit, emitUser = () => undefined, onMoodSet = () => undefined, onNotify = () => undefined }: SocialServiceDependencies) {
+export function createSocialService({ repositories, ai, emit, emitUser = () => undefined, onMoodSet = () => undefined, onNotify = () => undefined, onCodewordBothAnswered = () => undefined }: SocialServiceDependencies) {
   async function assertMember(roomId: string, userId: string) {
     if (!(await repositories.rooms.isMember(roomId, userId))) throw new Error('room_forbidden')
   }
@@ -330,16 +332,21 @@ export function createSocialService({ repositories, ai, emit, emitUser = () => u
       }
     },
 
-    async answerCodeword(roomId: string, userId: string, answer: string) {
-      await assertMember(roomId, userId)
-      const trimmed = answer.trim()
-      if (!trimmed) throw new Error('invalid_answer')
-      const day = todayKey()
-      await repositories.codewords.setAnswer(roomId, day, userId, trimmed.slice(0, 200))
-      const result = await this.getCodeword(roomId, userId)
-      emit(roomId, 'codeword.updated', { roomId, day, answeredCount: result.answeredCount })
-      return result
-    },
+  async answerCodeword(roomId: string, userId: string, answer: string) {
+    await assertMember(roomId, userId)
+    const trimmed = answer.trim()
+    if (!trimmed) throw new Error('invalid_answer')
+    const day = todayKey()
+    const before = await repositories.codewords.listForDay(roomId, day)
+    await repositories.codewords.setAnswer(roomId, day, userId, trimmed.slice(0, 200))
+    // 本次作答补齐双方时通知照片墙（连胜卡只在该转换点判定一次）
+    if (before.length === 1 && before[0].userId !== userId) {
+      onCodewordBothAnswered(roomId, day)
+    }
+    const result = await this.getCodeword(roomId, userId)
+    emit(roomId, 'codeword.updated', { roomId, day, answeredCount: result.answeredCount })
+    return result
+  },
 
     // ---------- 足迹地图 ----------
     async listMapLights(roomId: string, userId: string) {

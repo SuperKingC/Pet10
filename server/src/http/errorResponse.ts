@@ -10,7 +10,9 @@ export function resolveErrorResponse(error: unknown) {
     message.includes('unauthorized') ? 401 :
     message.includes('insufficient_item') ||
       message.includes('already_done') ||
-      message.includes('already_claimed') ? 409 :
+      message.includes('already_claimed') ||
+      message.includes('already_picked') ||
+      message.includes('locked') ? 409 :
     message.includes('invalid') ||
       message.includes('limit') ||
       message.includes('exists') ||

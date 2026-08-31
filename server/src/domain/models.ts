@@ -285,3 +285,39 @@ export interface MapLight {
   litBy: Id
   createdAt: Date
 }
+
+export interface PhotoWallPost {
+  id: Id
+  roomId: Id
+  /** 自动生成卡可为 null */
+  userId: Id | null
+  origin: 'manual' | 'match_outfit' | 'levelup' | 'anniversary' | 'codeword_streak'
+  /** 手动照为 dataURL；自动卡为空串（客户端按 origin 渲染模板卡） */
+  photo: string
+  caption: string
+  /** 默契卡记录当日双方一致的套装 key */
+  refKey: string | null
+  takenDay: string | null
+  createdAt: Date
+}
+
+export interface OutfitMatchPick {
+  roomId: Id
+  day: string
+  userId: Id
+  itemId: string
+  createdAt: Date
+}
+
+export interface OutfitMatchStreak {
+  roomId: Id
+  streak: number
+  bestStreak: number
+  lastMatchDay: string | null
+}
+
+export interface WardrobeState {
+  roomId: Id
+  equipped: string
+  updatedAt: Date
+}

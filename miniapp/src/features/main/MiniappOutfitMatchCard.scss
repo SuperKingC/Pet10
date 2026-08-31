@@ -1,0 +1,59 @@
+/* 小窝底部「今日默契换装」横卡：拍立得预览 + 状态一句话 + 入口按钮 */
+.outfit-match-card {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  margin: 24rpx 28rpx 8rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 28rpx;
+  background: #fffdf8;
+  border: 2rpx solid #f0dcc8;
+  box-shadow: 0 10rpx 24rpx rgba(113, 77, 38, .12);
+}
+.outfit-match-card--matched { border-color: #f2b98c; background: #fff6e8; }
+.outfit-match-card__preview {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120rpx;
+  height: 140rpx;
+  border-radius: 14rpx;
+  background: #fff;
+  box-shadow: 0 6rpx 14rpx rgba(84, 55, 28, .16);
+  transform: rotate(-2.5deg);
+}
+.outfit-match-card__suit { width: 104rpx; height: 128rpx; }
+.outfit-match-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
+.outfit-match-card__title-row { display: flex; align-items: center; gap: 12rpx; }
+.outfit-match-card__title { color: #382b23; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.outfit-match-card__streak {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #fdeeda;
+  color: #d0763c;
+  font-size: 20rpx;
+  font-weight: var(--font-weight-bold);
+}
+.outfit-match-card__summary {
+  color: #a89489;
+  font-size: var(--font-size-aux);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.outfit-match-card--matched .outfit-match-card__summary { color: #c98a4b; }
+.outfit-match-card__cta {
+  flex-shrink: 0;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #f7b35c, #e88f3c);
+  color: #fff;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 6rpx 16rpx rgba(232, 143, 60, .35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outfit-match-card__preview { transform: none; }
+}

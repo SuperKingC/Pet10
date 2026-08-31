@@ -144,6 +144,45 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
       granted_at timestamptz NOT NULL DEFAULT now()
     );
 
+    CREATE TABLE IF NOT EXISTS photo_wall (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+      origin text NOT NULL DEFAULT 'manual'
+        CHECK (origin IN ('manual', 'match_outfit', 'levelup', 'anniversary', 'codeword_streak')),
+      photo text NOT NULL DEFAULT '',
+      caption text NOT NULL DEFAULT '',
+      ref_key text,
+      taken_day date,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS photo_wall_room_idx
+      ON photo_wall (room_id, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS pet_wardrobe (
+      room_id uuid PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+      equipped text NOT NULL DEFAULT 'default',
+      updated_at timestamptz NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS outfit_match_daily (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      day date NOT NULL,
+      user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      item_id text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      UNIQUE (room_id, day, user_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS outfit_match_streak (
+      room_id uuid PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+      streak int NOT NULL DEFAULT 0,
+      best_streak int NOT NULL DEFAULT 0,
+      last_match_day date
+    );
+
     -- v1 的用户自建任务表已废弃：旧环境直接删掉（新环境不会创建），
     -- 数据无保留价值（任务定义全部来自代码模板）
     DROP TABLE IF EXISTS nest_tasks;

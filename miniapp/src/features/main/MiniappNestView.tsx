@@ -1,5 +1,5 @@
 import { Image, Text, View } from '@tarojs/components'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
@@ -9,9 +9,15 @@ import { PetStatusCard } from '../../components/PetStatusCard'
 import { MiniappContributionBoard } from './MiniappContributionBoard'
 import { MiniappNestLetter } from './MiniappNestLetter'
 import { MiniappNestTaskPanel } from './MiniappNestTaskPanel'
+import { MiniappPhotoWallPanel } from './MiniappPhotoWallPanel'
+import { MiniappWardrobePanel } from './MiniappWardrobePanel'
+import { MiniappOutfitMatchCard } from './MiniappOutfitMatchCard'
 import { getNestSceneMode, shouldLockNestPageScroll, type NestSceneMode } from './miniappViewModel'
 import { socialApi, type MiniappContribution } from '../../services/socialApi'
+import { wardrobeApi } from '../../services/wardrobeApi'
+import { suitAssets } from '../../services/wardrobeSuitAssets'
 import { reconcileStoredUnlock, writeUnlockState } from '../../services/xiaoduoliUnlockStorage'
+import type { WardrobeView } from '../../domain/wardrobeModel'
 import './MiniappNestView.scss'
 
 const wardrobe = require('../../assets/nest/wardrobe.png')
@@ -46,6 +52,9 @@ export function MiniappNestView({
 }: MiniappNestViewProps) {
   const [contributions, setContributions] = useState<MiniappContribution[]>([])
   const [taskPanelOpen, setTaskPanelOpen] = useState(false)
+  const [wardrobePanelOpen, setWardrobePanelOpen] = useState(false)
+  const [photoWallPanelOpen, setPhotoWallPanelOpen] = useState(false)
+  const [wardrobeView, setWardrobeView] = useState<WardrobeView | null>(null)
   const [unlock, setUnlock] = useState(() => reconcileStoredUnlock(
     (context?.rooms ?? []).filter((room) => room.pet).map((room) => room.id),
   ))
@@ -76,6 +85,29 @@ export function MiniappNestView({
       .catch(() => { if (!cancelled) setContributions([]) })
     return () => { cancelled = true }
   }, [roomId])
+
+  // 衣柜状态（当前套装 + 今日默契）：小窝立绘替换与底部默契卡共用；GET 顺带幂等结算当日默契
+  const [suitAssetVersion, setSuitAssetVersion] = useState(0)
+  const refreshWardrobe = useCallback(() => {
+    if (!roomId) return
+    void wardrobeApi.get(roomId)
+      .then((view) => {
+        setWardrobeView(view)
+        // 解锁套装静默预取云端素材，取回后触发一次重渲染换上立绘
+        void suitAssets.ensureSuitAssets(view.items.filter((item) => item.unlocked).map((item) => item.key))
+          .then((assets) => { if (Object.keys(assets).length > 0) setSuitAssetVersion((version) => version + 1) })
+      })
+      .catch(() => setWardrobeView(null))
+  }, [roomId])
+
+  useEffect(() => {
+    refreshWardrobe()
+  }, [refreshWardrobe])
+
+  const suitPortrait = useMemo(
+    () => suitAssets.resolveSuitPortrait(wardrobeView?.equipped),
+    [wardrobeView?.equipped, suitAssetVersion]
+  )
 
   const names = Object.fromEntries(
     (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
@@ -119,15 +151,15 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} portraitSrc={suitPortrait} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (
             <View className="miniapp-nest__shortcuts">
-              <View className="miniapp-nest__shortcut">
+              <View className="miniapp-nest__shortcut" onClick={() => setWardrobePanelOpen(true)}>
                 <Image src={wardrobe} mode="aspectFit" />
               </View>
-              <View className="miniapp-nest__shortcut">
+              <View className="miniapp-nest__shortcut" onClick={() => setPhotoWallPanelOpen(true)}>
                 <Image src={photoWall} mode="aspectFit" />
               </View>
               <View className="miniapp-nest__shortcut" onClick={() => setTaskPanelOpen(true)}>
@@ -140,10 +172,28 @@ export function MiniappNestView({
         {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} onAction={onAction} />}
 
         {sceneMode === 'active' && <MiniappContributionBoard contributions={contributions} names={names} />}
+
+        {sceneMode === 'active' && (
+          <MiniappOutfitMatchCard view={wardrobeView} onPress={() => setWardrobePanelOpen(true)} />
+        )}
       </View>
       {taskPanelOpen && (
         <View className="journal-anniv-overlay">
           <MiniappNestTaskPanel roomId={roomId} onClose={() => setTaskPanelOpen(false)} />
+        </View>
+      )}
+      {wardrobePanelOpen && (
+        <View className="journal-anniv-overlay">
+          <MiniappWardrobePanel
+            roomId={roomId}
+            onClose={() => setWardrobePanelOpen(false)}
+            onChanged={refreshWardrobe}
+          />
+        </View>
+      )}
+      {photoWallPanelOpen && (
+        <View className="journal-anniv-overlay">
+          <MiniappPhotoWallPanel roomId={roomId} onClose={() => setPhotoWallPanelOpen(false)} />
         </View>
       )}
       {footer}

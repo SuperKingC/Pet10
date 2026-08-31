@@ -7,6 +7,9 @@ if (!tarotAssetBaseUrl) {
     'TARO_TAROT_ASSET_BASE_URL is required, e.g. https://<bucket>.cos.<region>.myqcloud.com/pet10-web/<commitSHA>'
   )
 }
+// 衣柜套装按需下载目录：默认挂在塔罗静态资源同版本目录下（public/wardrobe 随 upload:static 发布）
+const wardrobeAssetBaseUrl =
+  process.env.TARO_WARDROBE_ASSET_BASE_URL?.trim() || `${tarotAssetBaseUrl.replace(/\/$/, '')}/wardrobe`
 
 const config: UserConfigExport = defineConfig({
   projectName: 'pet10-miniapp',
@@ -23,6 +26,7 @@ const config: UserConfigExport = defineConfig({
   defineConstants: {
     TARO_API_BASE_URL: JSON.stringify(apiBaseUrl),
     TARO_TAROT_ASSET_BASE_URL: JSON.stringify(tarotAssetBaseUrl),
+    TARO_WARDROBE_ASSET_BASE_URL: JSON.stringify(wardrobeAssetBaseUrl),
   },
   copy: {
     patterns: [],

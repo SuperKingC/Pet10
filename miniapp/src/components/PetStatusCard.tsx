@@ -2,7 +2,7 @@ import { Image, Text, View } from '@tarojs/components'
 import type { PetState } from '../domain/types'
 import './PetStatusCard.scss'
 
-type Props = { pet: PetState; onOpenMemories?: () => void }
+type Props = { pet: PetState; onOpenMemories?: () => void; /** 衣柜当前套装立绘（缺省回退原装小多利） */ portraitSrc?: string }
 const roomBackground = require('../assets/room-background.jpg')
 const statuses = [
   ['饱食', 'hunger', '#f3a85d'],
@@ -11,14 +11,14 @@ const statuses = [
   ['健康', 'health', '#82a9e9'],
 ] as const
 
-export function PetStatusCard({ pet, onOpenMemories }: Props) {
+export function PetStatusCard({ pet, onOpenMemories, portraitSrc }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   return (
     <View className="pet-status-card">
       <View className="pet-card-scene">
         <Image className="pet-card-background" src={roomBackground} mode="aspectFill" />
         <Text className="pet-level">Lv.{pet.level}</Text>
-        <Image className="pet-avatar-image" src={require('../assets/xiaoduoli.png')} mode="aspectFit" />
+        <Image className="pet-avatar-image" src={portraitSrc ?? require('../assets/xiaoduoli.png')} mode="aspectFit" />
         <Text className="pet-name-badge">{pet.name}</Text>
         {onOpenMemories && (
           <View className="pet-memory-button" onClick={onOpenMemories}>
