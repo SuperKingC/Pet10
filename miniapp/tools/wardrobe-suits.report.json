@@ -1,63 +1,87 @@
 {
-  "generatedAt": "2026-08-31T03:11:53.990Z",
-  "targetHeight": 320,
+  "generatedAt": "2026-08-31T06:31:09.202Z",
+  "base": "436x700",
   "suits": [
     {
-      "key": "scarf",
-      "file": "public/wardrobe/scarf-v1.png",
-      "width": 223,
-      "height": 320,
-      "bytes": 38124,
-      "bundledCopy": "miniapp/src/assets/wardrobe/scarf-v1.png"
-    },
-    {
-      "key": "hoodie",
-      "file": "public/wardrobe/hoodie-v1.png",
-      "width": 245,
-      "height": 320,
-      "bytes": 39273
-    },
-    {
-      "key": "overalls",
-      "file": "public/wardrobe/overalls-v1.png",
-      "width": 210,
-      "height": 320,
-      "bytes": 35485
-    },
-    {
-      "key": "dress",
-      "file": "public/wardrobe/dress-v1.png",
-      "width": 218,
-      "height": 320,
-      "bytes": 37098
-    },
-    {
-      "key": "raincoat",
-      "file": "public/wardrobe/raincoat-v1.png",
-      "width": 189,
-      "height": 320,
-      "bytes": 33883
-    },
-    {
-      "key": "pajamas",
-      "file": "public/wardrobe/pajamas-v1.png",
-      "width": 161,
-      "height": 320,
-      "bytes": 30518
-    },
-    {
       "key": "hat",
-      "file": "public/wardrobe/hat-v1.png",
-      "width": 223,
-      "height": 320,
-      "bytes": 37147
+      "kind": "overlay",
+      "file": "public/wardrobe/outfit-hat-v1.png",
+      "bundled": true,
+      "bytes": 14543,
+      "style": {
+        "left": "22.79%",
+        "top": "3.76%",
+        "width": "54.36%"
+      }
+    },
+    {
+      "key": "scarf",
+      "kind": "overlay",
+      "file": "public/wardrobe/outfit-scarf-v1.png",
+      "bundled": true,
+      "bytes": 13308,
+      "style": {
+        "left": "17.38%",
+        "top": "47.83%",
+        "width": "65.14%"
+      }
     },
     {
       "key": "bag",
-      "file": "public/wardrobe/bag-v1.png",
-      "width": 245,
-      "height": 320,
-      "bytes": 39536
+      "kind": "overlay",
+      "file": "public/wardrobe/outfit-bag-v1.png",
+      "bundled": true,
+      "bytes": 7717,
+      "style": {
+        "left": "18.35%",
+        "top": "73.14%",
+        "width": "32.11%"
+      }
+    },
+    {
+      "key": "hoodie",
+      "kind": "full-render",
+      "full": "public/wardrobe/hoodie-v1.png",
+      "icon": "public/wardrobe/hoodie-icon-v1.png",
+      "bundled": false,
+      "fullBytes": 39273,
+      "iconBytes": 12027
+    },
+    {
+      "key": "overalls",
+      "kind": "full-render",
+      "full": "public/wardrobe/overalls-v1.png",
+      "icon": "public/wardrobe/overalls-icon-v1.png",
+      "bundled": false,
+      "fullBytes": 35485,
+      "iconBytes": 18301
+    },
+    {
+      "key": "dress",
+      "kind": "full-render",
+      "full": "public/wardrobe/dress-v1.png",
+      "icon": "public/wardrobe/dress-icon-v1.png",
+      "bundled": false,
+      "fullBytes": 37098,
+      "iconBytes": 12363
+    },
+    {
+      "key": "raincoat",
+      "kind": "full-render",
+      "full": "public/wardrobe/raincoat-v1.png",
+      "icon": "public/wardrobe/raincoat-icon-v1.png",
+      "bundled": false,
+      "fullBytes": 33883,
+      "iconBytes": 13262
+    },
+    {
+      "key": "pajamas",
+      "kind": "full-render",
+      "full": "public/wardrobe/pajamas-v1.png",
+      "icon": "public/wardrobe/pajamas-icon-v1.png",
+      "bundled": false,
+      "fullBytes": 30518,
+      "iconBytes": 16043
     }
   ]
 }

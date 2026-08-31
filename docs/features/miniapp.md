@@ -100,7 +100,10 @@ flowchart LR
 
 ## 照片墙与衣柜（已实现第二、三期）
 
-照片墙是房间维度的共同回忆陈列（拍立得软木墙），衣柜给小多利换整套立绘，并用「每日默契换装」把两者串成互动。设计稿为 `docs/superpowers/specs/2026-08-29-wardrobe-photo-wall-tasks-design.md`（v2），素材方案按实际可用素材调整：设计稿预期的「8 只小狗参考图」仓库中不存在，改用 2026-08 旧版换装系统的恢复素材（`design-assets/wardrobe/`，source-only）经 `miniapp/tools/make-wardrobe-suits.mjs` 切件合成出 8 套「小多利+该服饰」整套立绘（帽子=围巾款+贝雷帽，小包=连帽衫款+斜挎包，其余 6 套直出），统一 320px 高 PNG8。
+照片墙是房间维度的共同回忆陈列（拍立得软木墙），衣柜给小多利换装，并用「每日默契换装」把两者串成互动。设计稿为 `docs/superpowers/specs/2026-08-29-wardrobe-photo-wall-tasks-design.md`（v2），素材方案按实际可用素材调整：设计稿预期的「8 只小狗参考图」仓库中不存在，改用 2026-08 旧版换装系统的恢复素材（`design-assets/wardrobe/`，source-only）经 `miniapp/tools/make-wardrobe-suits.mjs` 出件，并按产品要求改为「网格挂衣服、点选后穿到小多利身上」：
+
+- **叠穿件（帽子/围巾/小包）**：服装紧裁图随包内置，按 `wardrobeModel.ts` 的 `OUTFIT_LAYER_STYLE` 定位元数据（百分比，与脚本标定同步维护）以图层叠加穿到**原装小多利立绘**上——网格图标与叠加图层共用同一张文件。
+- **主体服装（连帽衫/背带裤/小裙子/雨衣/睡衣）**：源素材中衣服与狗身是画在一起的，拆件叠加会出现贴纸感（已实验验证），因此预览与场景展示整套穿装立绘（320px PNG8）；网格仍展示服装特写图标（128 色 PNG8，与立绘分文件）。
 
 ### 照片墙
 
@@ -115,8 +118,8 @@ flowchart LR
 - 目录 9 项（`server/src/domain/wardrobeCatalog.ts`）：原装/围巾/连帽衫默认解锁（保证首日默契有得选），背带裤=完成 5 次任务（`pet_events` 的 `task_claim` 计数，领奖时在 app 装配层写入）、小裙子=暗号连胜 3 天、雨衣=小多利 Lv.5、睡衣=累计睡觉 20 次、小包=默契最高连胜 3 天、帽子=完成 15 次任务。解锁全部由服务端 GET 时派生计算，客户端不重复判定，未解锁 PUT/match 返回 409 `wardrobe_locked`。
 - 默契换装：小窝页面最底部「今日默契换装」横卡（左侧当日装扮预览+连胜角标，右侧去换装）。双方各自提交当日套装（每人每天一次，提交后当天锁定，重复提交 409 `outfit_match_already_picked`）；任一方 GET 时双方齐则结算（`outfit_match_streak.last_match_day` 做先到先结算门闩）：一致 → 连胜+1、默契卡入墙、奖励香皂×1、双方累计 `outfit_match` 事件（喂成就任务）；不一致 → 连胜清零、最高连胜保留。`GET /wardrobe` 返回 `matchToday`（我的选择/对方已选/今日是否默契/连胜）。
 - 表：`pet_wardrobe`（房间当前套装）、`outfit_match_daily`（房间×日×人唯一）、`outfit_match_streak`（连胜/最高连胜/最后结算日）。
-- 套装素材分发：主包只内置原装 + 围巾（`miniapp/src/assets/wardrobe/scarf-v1.png`，包体红线约束）；其余 7 套发布在 `public/wardrobe/`（随 `upload:static` 上 COS），小程序经 `TARO_WARDROBE_ASSET_BASE_URL`（默认取塔罗静态目录下的 `wardrobe/`，可环境变量覆盖）按需下载，落 `USER_DATA_PATH` 本地缓存（索引存 storage，`wardrobeAssetLoader.ts` 注入式核心 + `wardrobeSuitAssets.ts` 运行时绑定）。素材未就绪/下载失败时卡片显示「云端准备中」并回退原装立绘，不阻塞其余功能。
-- 服务端纯规则：`outfitMatchRules.ts`（双方齐才结算、连胜/最高连胜）、`photoWallRules.ts`（36 张上限、只淘汰手动照、caption 归一）、`codewordStreak.ts`（连胜回扫与每满 7 天发卡）。小程序纯函数：`photoWallModel.ts`（来源徽章、模板卡判定、两列拆分、日期文案）、`wardrobeModel.ts`（随包套装表、途径徽章、默契状态文案）。
+- 套装素材分发：主包内置原装立绘 + 三件叠穿件（帽/巾/包，`miniapp/src/assets/wardrobe/` 下 `outfit-hat-v1.png`、`outfit-scarf-v1.png`、`outfit-bag-v1.png`，包体红线约束）；主体服装的特写图标与整套立绘发布在 `public/wardrobe/`（随 `upload:static` 上 COS），小程序经 `TARO_WARDROBE_ASSET_BASE_URL`（默认取塔罗静态目录下的 `wardrobe/`，可环境变量覆盖）按需下载，落 `USER_DATA_PATH` 本地缓存（索引存 storage，`wardrobeAssetLoader.ts` 注入式核心 + `wardrobeSuitAssets.ts` 运行时绑定，icon/display 双文件口径）。素材未就绪/下载失败时网格卡与预览显示「云端准备中」并回退原装立绘，不阻塞其余功能。
+- 服务端纯规则：`outfitMatchRules.ts`（双方齐才结算、连胜/最高连胜）、`photoWallRules.ts`（36 张上限、只淘汰手动照、caption 归一）、`codewordStreak.ts`（连胜回扫与每满 7 天发卡）。小程序纯函数：`photoWallModel.ts`（来源徽章、模板卡判定、两列拆分、日期文案）、`wardrobeModel.ts`（叠穿分类与定位元数据、随包套装表、途径徽章、默契状态文案）。
 
 ## 代码入口
 
@@ -213,7 +216,9 @@ npm run build:weapp --prefix miniapp
 | `moods/mood-2-v6.png` | 200×200 | 17 KB | 写日记心情选择：平静（侧边汗滴，透明抠图） |
 | `moods/mood-3-v6.png` | 200×200 | 19 KB | 写日记心情选择：开心（吐舌笑加短线，透明抠图） |
 | `moods/mood-4-v6.png` | 200×200 | 17 KB | 写日记心情选择：兴奋（眯眼腮红加爱心星星，透明抠图） |
-| `wardrobe/scarf-v1.png` | 223×320 | 37 KB | 衣柜围巾套装立绘（唯一随包套装，其余 7 套从 COS 按需下载，见照片墙与衣柜一节） |
+| `wardrobe/outfit-hat-v1.png` | 237×183 | 14 KB | 衣柜帽子叠穿件（网格图标+叠加图层共用，随包） |
+| `wardrobe/outfit-scarf-v1.png` | 284×116 | 13 KB | 衣柜围巾叠穿件（网格图标+叠加图层共用，随包） |
+| `wardrobe/outfit-bag-v1.png` | 140×140 | 8 KB | 衣柜小包叠穿件（网格图标+叠加图层共用，随包） |
 
 本地包内资源禁止使用 WebP（微信 image 组件不解析本地 WebP，iOS 真机会整块不显示；WebP 仅用于塔罗 COS 网络资源并配合 `webp` 属性）。入库前用 `scripts/optimize-miniapp-assets.mjs` 统一压缩：带透明通道的图片转 256 色全色板 + 误差扩散抖动 PNG（禁止再压 64/128 小色板，2026-08 验收发现小色板把整体压灰；全量真彩 PNG 约 5.4MB 超包，256 全色板是包体约束下最接近原图色彩的方案），不透明背景转 JPEG（mozjpeg，4:4:4 色度保留），两张大背景按显示密度降采样（street 840px、room 1152px）。可选 TinyPNG 追加压缩：设置 `TINIFY_API_KEY` 环境变量后执行 `node scripts/optimize-miniapp-assets.mjs --write`，脚本在本地优化产物上再过一遍 TinyPNG，只覆盖收益 ≥2% 的文件，输出保持 PNG/JPEG（key 存环境变量，禁止进仓库）。运行时用户照片压缩走 `miniapp/src/services/imageCompression.ts`：单次压缩、quality 80、按宽度档位 `[1080, 900, 720]`（头像 `[640, 480, 360]`）降分辨率重试，禁止降质量和重复压缩（详见 `.agents/rules/miniapp-image.md`）。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内；主包构建产物必须低于微信 2MB 上限（照片墙/衣柜上线后实测 1.98MB / 2,082,203 字节，距上限仅约 15KB，继续膨胀前先把大图迁 COS 或做分包）。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载；衣柜套装除随包围巾外也从 COS 按需下载（`TARO_WARDROBE_ASSET_BASE_URL`，默认塔罗静态目录下 `wardrobe/`）。
 

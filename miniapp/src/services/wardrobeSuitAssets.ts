@@ -5,12 +5,19 @@ import {
   type SuitAssetDeps
 } from './wardrobeAssetLoader'
 
-// 随包套装：原装小多利 + 围巾（包体红线内只内置这两张，其余走 COS 按需下载）
+// 随包文件：原装立绘 + 三件叠穿服装件（帽/巾/包，网格图标与叠加图层共用）
 const defaultPortrait = require('../assets/xiaoduoli.png')
-const scarfSuit = require('../assets/wardrobe/scarf-v1.png')
+const hatGarment = require('../assets/wardrobe/outfit-hat-v1.png')
+const scarfGarment = require('../assets/wardrobe/outfit-scarf-v1.png')
+const bagGarment = require('../assets/wardrobe/outfit-bag-v1.png')
 
 const deps: SuitAssetDeps = {
-  bundledImages: { default: defaultPortrait, scarf: scarfSuit },
+  bundledImages: {
+    default: defaultPortrait,
+    'outfit-hat-v1.png': hatGarment,
+    'outfit-scarf-v1.png': scarfGarment,
+    'outfit-bag-v1.png': bagGarment
+  },
   readIndex: () => Taro.getStorageSync(WARDROBE_ASSET_STORAGE_KEY),
   writeIndex: (index) => Taro.setStorageSync(WARDROBE_ASSET_STORAGE_KEY, index),
   userdataPath: () => Taro.env.USER_DATA_PATH,
@@ -31,10 +38,10 @@ const deps: SuitAssetDeps = {
         fail: reject
       })
     }),
-  download: (url) =>
+  download: (fileName) =>
     new Promise<string>((resolve, reject) => {
       Taro.downloadFile({
-        url: `${TARO_WARDROBE_ASSET_BASE_URL}/${url}`,
+        url: `${TARO_WARDROBE_ASSET_BASE_URL}/${fileName}`,
         success: (result) =>
           result.statusCode === 200
             ? resolve(result.tempFilePath)

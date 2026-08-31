@@ -358,8 +358,10 @@ describe('miniapp ui presentation rules', () => {
     // 圆形头像框（aspectFill 居中裁切）统一用头部裁切版：全身竖图裁中间落在胸口、脑袋偏下
     expect(component).toContain("require('../../assets/xiaoduoli-avatar-v2.png')")
     expect(circlePage).toContain("require('../../assets/xiaoduoli-avatar-v2.png')")
-    // 整狗展示场景（状态卡/登录加载/五子棋/箱中站立）仍用全身图
+    // 整狗展示场景（状态卡/登录加载/五子棋/箱中站立）仍用全身图（状态卡经衣柜立绘组件取默认全身图）
     expect(fs.readFileSync(path.resolve(__dirname, '../../components/PetStatusCard.tsx'), 'utf8'))
+      .toContain('MiniappOutfitPortrait')
+    expect(fs.readFileSync(path.resolve(__dirname, '../../services/wardrobeSuitAssets.ts'), 'utf8'))
       .toContain("require('../assets/xiaoduoli.png')")
     expect(fs.readFileSync(path.resolve(__dirname, 'XiaoduoliBoxScene.tsx'), 'utf8'))
       .toContain("require('../../assets/xiaoduoli.png')")

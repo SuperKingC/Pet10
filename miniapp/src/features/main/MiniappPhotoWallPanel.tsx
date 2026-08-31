@@ -4,7 +4,7 @@ import Taro from '@tarojs/taro'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { photoWallApi } from '../../services/photoWallApi'
 import { compressImageToDataUrl } from '../../services/imageCompression'
-import { suitAssets } from '../../services/wardrobeSuitAssets'
+import { MiniappOutfitPortrait } from './MiniappOutfitPortrait'
 import {
   isAutoCard,
   normalizePhotoCaption,
@@ -123,9 +123,7 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
 
   const renderCard = (item: PhotoWallItem, index: number) => {
     const badge = originBadge(item.origin)
-    const suitImage = item.origin === 'match_outfit' && item.refKey
-      ? suitAssets.getCachedSuitImage(item.refKey)
-      : null
+    const showMatchSuit = item.origin === 'match_outfit' && Boolean(item.refKey)
     return (
       <View
         className={`photo-wall-card${index % 2 === 0 ? ' photo-wall-card--tilt-left' : ' photo-wall-card--tilt-right'}`}
@@ -136,9 +134,13 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
         {badge && <Text className="photo-wall-card__badge">{badge}</Text>}
         {isAutoCard(item) ? (
           <View className="photo-wall-card__template">
-            {suitImage && <Image className="photo-wall-card__template-suit" src={suitImage} mode="aspectFit" />}
+            {showMatchSuit && (
+              <View className="photo-wall-card__template-suit">
+                <MiniappOutfitPortrait suitKey={item.refKey} />
+              </View>
+            )}
             <Text className="photo-wall-card__template-emoji">
-              {item.origin === 'levelup' ? '🎉' : item.origin === 'codeword_streak' ? '🔑' : item.origin === 'anniversary' ? '📅' : '👕'}
+              {item.origin === 'levelup' ? '🎉' : item.origin === 'codeword_streak' ? '🔑' : item.origin === 'anniversary' ? '📅' : '💕'}
             </Text>
           </View>
         ) : (
@@ -207,14 +209,12 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
             {isAutoCard(preview) ? (
               <View className="photo-wall-preview__template">
                 <Text className="photo-wall-preview__template-emoji">
-                  {preview.origin === 'levelup' ? '🎉' : preview.origin === 'codeword_streak' ? '🔑' : '👕'}
+                  {preview.origin === 'levelup' ? '🎉' : preview.origin === 'codeword_streak' ? '🔑' : '💕'}
                 </Text>
-                {preview.origin === 'match_outfit' && preview.refKey && suitAssets.getCachedSuitImage(preview.refKey) && (
-                  <Image
-                    className="photo-wall-preview__template-suit"
-                    src={suitAssets.getCachedSuitImage(preview.refKey)!}
-                    mode="aspectFit"
-                  />
+                {preview.origin === 'match_outfit' && preview.refKey && (
+                  <View className="photo-wall-preview__template-suit">
+                    <MiniappOutfitPortrait suitKey={preview.refKey} />
+                  </View>
                 )}
               </View>
             ) : (

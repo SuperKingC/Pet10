@@ -1,5 +1,5 @@
 import { Image, Text, View } from '@tarojs/components'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
@@ -104,11 +104,6 @@ export function MiniappNestView({
     refreshWardrobe()
   }, [refreshWardrobe])
 
-  const suitPortrait = useMemo(
-    () => suitAssets.resolveSuitPortrait(wardrobeView?.equipped),
-    [wardrobeView?.equipped, suitAssetVersion]
-  )
-
   const names = Object.fromEntries(
     (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
   )
@@ -151,7 +146,7 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} portraitSrc={suitPortrait} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} suitKey={wardrobeView?.equipped ?? 'default'} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (

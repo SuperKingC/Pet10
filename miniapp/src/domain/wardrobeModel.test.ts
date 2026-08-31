@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   BUNDLED_SUIT_KEYS,
   isBundledSuit,
+  isOverlaySuit,
   matchSummary,
+  OUTFIT_LAYER_STYLE,
   selectedOrDefault,
+  suitAssetFiles,
   suitBadge,
   type MatchToday,
   type WardrobeItem,
@@ -19,11 +22,32 @@ function match(overrides: Partial<MatchToday> = {}): MatchToday {
 }
 
 describe('wardrobe model', () => {
-  it('only default and scarf are bundled', () => {
-    expect(BUNDLED_SUIT_KEYS).toEqual(['default', 'scarf'])
+  it('default, scarf, hat and bag ship in the bundle', () => {
+    expect(BUNDLED_SUIT_KEYS).toEqual(['default', 'scarf', 'hat', 'bag'])
     expect(isBundledSuit('default')).toBe(true)
     expect(isBundledSuit('scarf')).toBe(true)
+    expect(isBundledSuit('hat')).toBe(true)
+    expect(isBundledSuit('bag')).toBe(true)
     expect(isBundledSuit('hoodie')).toBe(false)
+  })
+
+  it('overlay suits carry calibrated layer styles and single-file assets', () => {
+    expect(isOverlaySuit('hat')).toBe(true)
+    expect(isOverlaySuit('scarf')).toBe(true)
+    expect(isOverlaySuit('bag')).toBe(true)
+    expect(isOverlaySuit('hoodie')).toBe(false)
+    for (const key of ['hat', 'scarf', 'bag'] as const) {
+      const style = OUTFIT_LAYER_STYLE[key]
+      expect(style).toBeDefined()
+      expect(Number.parseFloat(style!.width)).toBeLessThan(100)
+      expect(Number.parseFloat(style!.top)).toBeLessThan(100)
+      expect(suitAssetFiles(key)).toEqual({ icon: `outfit-${key}-v1.png`, display: `outfit-${key}-v1.png` })
+    }
+  })
+
+  it('body suits use separate icon and full-render files', () => {
+    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v1.png', display: 'hoodie-v1.png' })
+    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v1.png', display: 'raincoat-v1.png' })
   })
 
   it('derives path badges from condition text of locked suits', () => {

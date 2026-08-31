@@ -32,11 +32,41 @@ export interface WardrobeView {
   match: MatchToday
 }
 
-/** 随包内置素材的套装（其余从 COS 按需下载后落本地缓存） */
-export const BUNDLED_SUIT_KEYS: SuitKey[] = ['default', 'scarf']
+/** 随包内置素材：原装立绘 + 三件叠穿件（帽/巾/包，网格图标与叠加图层共用文件） */
+export const BUNDLED_SUIT_KEYS: SuitKey[] = ['default', 'scarf', 'hat', 'bag']
 
 export function isBundledSuit(key: string): boolean {
   return (BUNDLED_SUIT_KEYS as string[]).includes(key)
+}
+
+/**
+ * 三件「叠穿件」的定位元数据：紧裁服装图按百分比绝对定位叠到原装小多利立绘（436×700）上。
+ * 数值与 miniapp/tools/make-wardrobe-suits.mjs 的 cx/ty/w 标定一致，改素材必须同步。
+ */
+export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
+  hat: { left: '22.79%', top: '3.76%', width: '54.36%' },
+  scarf: { left: '17.38%', top: '47.83%', width: '65.14%' },
+  bag: { left: '18.35%', top: '73.14%', width: '32.11%' }
+}
+
+export function isOverlaySuit(key: string): boolean {
+  return key in OUTFIT_LAYER_STYLE
+}
+
+export interface SuitAssetFiles {
+  /** 网格服装特写图标 */
+  icon: string
+  /** 预览/场景展示素材：叠穿件=同一张服装图，主体服装=整套穿装立绘 */
+  display: string
+}
+
+/** 每套的素材文件名（COS 与随包同名）：叠穿件一张文件，主体服装图标+立绘两张 */
+export function suitAssetFiles(key: string): SuitAssetFiles {
+  if (isOverlaySuit(key)) {
+    const file = `outfit-${key}-v1.png`
+    return { icon: file, display: file }
+  }
+  return { icon: `${key}-icon-v1.png`, display: `${key}-v1.png` }
 }
 
 /** 获得途径徽章：从条件文案派生，未解锁的套装显示途径角标 */

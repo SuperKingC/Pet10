@@ -1,11 +1,9 @@
-// 生成衣柜套装立绘：从 design-assets/wardrobe 的源图（2026-08 旧版换装素材恢复）
-// 切出 8 套「小多利+该服饰」整套立绘，规范为统一高度 320px 的透明底 PNG8。
-// —— 围巾/连帽衫/背带裤/小裙子/雨衣/睡衣：源图已是整套穿装立绘，直接裁透明边；
-// —— 帽子：围巾款小狗 + 贝雷帽合成；小包：连帽衫款小狗 + 斜挎包合成（摆件位置经屏上目检定稿）。
-// 落点：8 张全量到 public/wardrobe/（随 upload:static 发布到 COS 供按需下载），
-//       其中围巾另拷进 miniapp/src/assets/wardrobe/（随包内置，包体红线内只带这一张）。
+// 衣柜素材 v2：网格服装特写图标 ×8 + 帽子/围巾/小包三件「叠穿服装件」紧裁图
+// —— 主体服装(连帽衫/背带裤/小裙子/雨衣/睡衣)保留整套穿装立绘：素材中衣服与狗身融合，无法拆件叠加。
+// —— 叠穿件在 app 内按 wardrobeModel.ts 的定位元数据(与下表 cx/ty/w 一致)绝对定位叠到原装立绘上，
+//    网格图标与叠穿图层共用同一张紧裁文件，控制包体。
+// 落点：三件叠穿件随包(public 同步一份供清单)；主体服装的立绘+图标上 COS 按需下载。
 // 运行：node miniapp/tools/make-wardrobe-suits.mjs
-// 产物：public/wardrobe/{key}-v1.png + miniapp/src/assets/wardrobe/scarf-v1.png + tools/wardrobe-suits.report.json
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
@@ -13,104 +11,136 @@ import sharp from 'sharp'
 const srcDir = path.resolve(import.meta.dirname, '../../design-assets/wardrobe')
 const cosOutDir = path.resolve(import.meta.dirname, '../../public/wardrobe')
 const bundledOutDir = path.resolve(import.meta.dirname, '../src/assets/wardrobe')
-const TARGET_HEIGHT = 320
+const BASE_W = 436
+const BASE_H = 700
 
-async function trimmed(name) {
-  const buffer = await readFile(path.join(srcDir, `${name}.png`))
-  return sharp(buffer).trim().png().toBuffer()
+async function loadCanvas(name) {
+  return readFile(path.join(srcDir, `${name}.png`))
 }
 
-async function metadataOf(buffer) {
-  return sharp(buffer).metadata()
-}
-
-/** 缩放到统一高度（宽按比例），输出 256 色 PNG8 压小体积 */
-async function normalize(render) {
-  return sharp(render)
-    .resize({ height: TARGET_HEIGHT, fit: 'inside' })
-    .png({ palette: true, colors: 256, compressionLevel: 9 })
-    .toBuffer()
-}
-
-/** 配饰相对基础立绘的尺寸/定位（按基础裁边后尺寸取比例，避免裁边漂移错位） */
-async function composeAccessory(baseName, accessoryName, place) {
-  const base = await trimmed(baseName)
-  const accessory = await trimmed(accessoryName)
-  const baseMeta = await metadataOf(base)
-  const accessoryMeta = await metadataOf(accessory)
-  const size = place.size(baseMeta.width, baseMeta.height)
-  const scaled = await sharp(accessory)
-    .resize(Math.max(1, Math.round(size.width)), Math.max(1, Math.round(size.height)), { fit: 'fill' })
-    .png()
-    .toBuffer()
-  const position = place.position(baseMeta.width, baseMeta.height, Math.round(size.width), Math.round(size.height))
-  const composite = await sharp({
-    create: {
-      width: Math.max(baseMeta.width, position.left + Math.round(size.width)),
-      height: Math.max(baseMeta.height, position.top + Math.round(size.height)),
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 }
+/** 256 画布坐标转底图坐标：服装内容 bbox → 羽化裁切 → 缩放 → 全画布对位图层 */
+async function buildLayer(srcName, box, feather = 8) {
+  // box: {x1,y1,x2,y2} 在 256 画布上的裁切区（含内容）
+  const raw = await sharp(await loadCanvas(srcName)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const w = raw.info.width
+  const x1 = box.x1 - feather, y1 = box.y1 - feather
+  const x2 = box.x2 + feather, y2 = box.y2 + feather
+  const cw = x2 - x1, ch = y2 - y1
+  const px = Buffer.alloc(cw * ch * 4)
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const sx = Math.min(Math.max(x1 + x, 0), w - 1)
+      const sy = Math.min(Math.max(y1 + y, 0), 255)
+      const so = (sy * w + sx) * 4
+      const doff = (y * cw + x) * 4
+      // 距裁切内区的边缘距离 → 羽化 alpha
+      const edge = Math.min(x - feather, y - feather, cw - feather - x, ch - feather - y)
+      const k = Math.max(0, Math.min(1, (edge + feather) / feather))
+      px[doff] = raw.data[so]
+      px[doff + 1] = raw.data[so + 1]
+      px[doff + 2] = raw.data[so + 2]
+      px[doff + 3] = Math.round(raw.data[so + 3] * k)
     }
-  })
-    .composite([
-      { input: base, left: 0, top: 0 },
-      { input: scaled, left: position.left, top: position.top }
-    ])
-    .png()
-    .toBuffer()
-  return sharp(composite).trim().png().toBuffer()
+  }
+  return { data: px, width: cw, height: ch, content: { x: feather, y: feather, w: box.x2 - box.x1, h: box.y2 - box.y1 } }
 }
 
-const suits = [
-  { key: 'scarf', render: () => trimmed('scarf') },
-  { key: 'hoodie', render: () => trimmed('hoodie') },
-  { key: 'overalls', render: () => trimmed('overalls') },
-  { key: 'dress', render: () => trimmed('dress') },
-  { key: 'raincoat', render: () => trimmed('raincoat') },
-  { key: 'pajamas', render: () => trimmed('pajamas') },
-  // 帽子：贝雷帽戴在围巾款头顶（宽约等于头宽的 53%，压头顶居中）
-  {
-    key: 'hat',
-    render: () => composeAccessory('scarf', 'purple-beret', {
-      size: (width, height) => ({ width: width * 0.53, height: width * 0.53 * 0.72 }),
-      position: (width, _height, sizedWidth) => ({ left: Math.round((width - sizedWidth) / 2), top: 0 })
-    })
-  },
-  // 小包：斜挎包挂在连帽衫款身侧偏下（约身高 29% 大小，盖住身侧）
-  {
-    key: 'bag',
-    render: () => composeAccessory('hoodie', 'crossbody-bag', {
-      size: (_width, height) => ({ width: height * 0.29, height: height * 0.29 }),
-      position: (_width, height) => ({ left: Math.round(height * 0.02), top: Math.round(height * 0.47) })
-    })
+/** 把裁切件缩放放到 436×700 底图画布：cx/ty 为底图坐标（内容中心 x、顶 y），w 为目标内容宽 */
+async function buildIcon(srcName, box) {
+  const raw = await sharp(await loadCanvas(srcName)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const w = raw.info.width
+  const cw = box.x2 - box.x1, ch = box.y2 - box.y1
+  const px = Buffer.alloc(cw * ch * 4)
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const so = ((box.y1 + y) * w + (box.x1 + x)) * 4
+      const doff = (y * cw + x) * 4
+      px[doff] = raw.data[so]; px[doff + 1] = raw.data[so + 1]; px[doff + 2] = raw.data[so + 2]; px[doff + 3] = raw.data[so + 3]
+    }
   }
-]
+  return sharp(px, { raw: { width: cw, height: ch, channels: 4 } })
+    .resize(176, 176, { fit: 'inside', kernel: 'lanczos3' })
+    .png({ palette: true, colors: 128, compressionLevel: 9 })
+    .toBuffer()
+}
+
+// —— 服装区域标定（256 画布坐标，经屏上目检）——
+// 叠穿定位元数据（底图 436×700）：left%=(cx-w/2)/436, top%=ty/700, width%=w/436
+//   hat:   cx=218 ty=52  w=186 → left 28.67% top 7.43%  width 42.66%
+//   scarf: cx=218 ty=344 w=238 → left 22.71% top 49.14% width 54.59%
+//   bag:   cx=158 ty=498 w=100 → left 24.77% top 71.14% width 22.94%
+const overlaySuits = {
+  // 帽子：紫色贝雷帽散件，戴在头顶
+  hat: {
+    garment: { src: 'purple-beret', box: { x1: 98, y1: 202, x2: 156, y2: 243 } },
+    cx: 218, ty: 52, w: 186
+  },
+  // 围巾：从围巾狗上切领巾（含小花），贴到脖子下方（脸/舌在画布 y119-187，领巾在其下）
+  scarf: {
+    garment: { src: 'scarf', box: { x1: 86, y1: 190, x2: 168, y2: 214 } },
+    cx: 218, ty: 358, w: 238
+  },
+  // 小包：斜挎包散件，挂身体左侧腹位
+  bag: {
+    garment: { src: 'crossbody-bag', box: { x1: 100, y1: 189, x2: 154, y2: 243 } },
+    cx: 150, ty: 528, w: 108
+  }
+}
+
+const bodySuits = ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas']
+const bodyIcons = {
+  hoodie: { x1: 98, y1: 184, x2: 191, y2: 232 },
+  overalls: { x1: 101, y1: 192, x2: 155, y2: 240 },
+  dress: { x1: 86, y1: 188, x2: 169, y2: 230 },
+  raincoat: { x1: 87, y1: 182, x2: 167, y2: 230 },
+  pajamas: { x1: 92, y1: 178, x2: 163, y2: 228 }
+}
 
 await mkdir(cosOutDir, { recursive: true })
 await mkdir(bundledOutDir, { recursive: true })
-const report = { generatedAt: new Date().toISOString(), targetHeight: TARGET_HEIGHT, suits: [] }
-for (const suit of suits) {
-  const render = await suit.render()
-  const png = await normalize(render)
-  const meta = await metadataOf(png)
-  const fileName = `${suit.key}-v1.png`
-  await writeFile(path.join(cosOutDir, fileName), png)
-  const entry = {
-    key: suit.key,
-    file: `public/wardrobe/${fileName}`,
-    width: meta.width,
-    height: meta.height,
-    bytes: png.byteLength
-  }
-  if (suit.key === 'scarf') {
-    await copyFile(path.join(cosOutDir, fileName), path.join(bundledOutDir, fileName))
-    entry.bundledCopy = 'miniapp/src/assets/wardrobe/scarf-v1.png'
-  }
-  report.suits.push(entry)
-  console.log(`${fileName}: ${meta.width}x${meta.height} ${(png.byteLength / 1024).toFixed(1)}KB${entry.bundledCopy ? ' (+bundled)' : ''}`)
+const report = { generatedAt: new Date().toISOString(), base: `${BASE_W}x${BASE_H}`, suits: [] }
+
+// 三件叠穿件：紧裁服装图（网格图标与叠加图层共用），随包
+for (const [key, def] of Object.entries(overlaySuits)) {
+  const feather = 8
+  const layer = await buildLayer(def.garment.src, def.garment.box, feather)
+  // 目标内容宽（底图 436 坐标系），与 wardrobeModel.ts 的定位元数据一致
+  const targetContentW = def.w
+  const scale = targetContentW / layer.content.w
+  const fileW = Math.round(layer.width * scale)
+  const fileH = Math.round(layer.height * scale)
+  const garmentPng = await sharp(layer.data, { raw: { width: layer.width, height: layer.height, channels: 4 } })
+    .resize(fileW, fileH, { kernel: 'lanczos3' })
+    .png({ palette: true, colors: 192, compressionLevel: 9 })
+    .toBuffer()
+  const file = `outfit-${key}-v1.png`
+  await writeFile(path.join(cosOutDir, file), garmentPng)
+  await copyFile(path.join(cosOutDir, file), path.join(bundledOutDir, file))
+  const leftPct = ((def.cx - (layer.content.x + layer.content.w / 2) * scale) / BASE_W * 100)
+  const topPct = ((def.ty - layer.content.y * scale) / BASE_H * 100)
+  report.suits.push({
+    key, kind: 'overlay',
+    file: `public/wardrobe/${file}`,
+    bundled: true,
+    bytes: garmentPng.byteLength,
+    // app 定位元数据（wardrobeModel.ts OUTFIT_LAYER_STYLE 同步维护）
+    style: { left: `${leftPct.toFixed(2)}%`, top: `${topPct.toFixed(2)}%`, width: `${(fileW / BASE_W * 100).toFixed(2)}%` }
+  })
+  console.log(`${key}: garment ${(garmentPng.byteLength / 1024).toFixed(1)}KB (bundled) style ${JSON.stringify(report.suits.at(-1).style)}`)
 }
-await writeFile(
-  path.resolve(import.meta.dirname, 'wardrobe-suits.report.json'),
-  `${JSON.stringify(report, null, 2)}\n`
-)
+
+// 五件主体服装：整套穿装立绘（COS 按需）+ 服装特写图标（COS）
+for (const key of bodySuits) {
+  const render = await sharp(await loadCanvas(key)).trim().png().toBuffer()
+  const full = await sharp(render).resize({ height: 320, fit: 'inside' }).png({ palette: true, colors: 256, compressionLevel: 9 }).toBuffer()
+  const iconPng = await buildIcon(key, bodyIcons[key])
+  const fullFile = `${key}-v1.png`
+  const iconFile = `${key}-icon-v1.png`
+  await writeFile(path.join(cosOutDir, fullFile), full)
+  await writeFile(path.join(cosOutDir, iconFile), iconPng)
+  report.suits.push({ key, kind: 'full-render', full: `public/wardrobe/${fullFile}`, icon: `public/wardrobe/${iconFile}`, bundled: false, fullBytes: full.byteLength, iconBytes: iconPng.byteLength })
+  console.log(`${key}: full ${(full.byteLength / 1024).toFixed(1)}KB, icon ${(iconPng.byteLength / 1024).toFixed(1)}KB (COS)`)
+}
+
+await writeFile(path.resolve(import.meta.dirname, 'wardrobe-suits.report.json'), `${JSON.stringify(report, null, 2)}\n`)
 console.log(`done: ${report.suits.length} suits`)

@@ -1,8 +1,9 @@
 import { Image, Text, View } from '@tarojs/components'
 import type { PetState } from '../domain/types'
+import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
 import './PetStatusCard.scss'
 
-type Props = { pet: PetState; onOpenMemories?: () => void; /** 衣柜当前套装立绘（缺省回退原装小多利） */ portraitSrc?: string }
+type Props = { pet: PetState; onOpenMemories?: () => void; /** 衣柜当前套装 key（空/default 显示原装小多利） */ suitKey?: string | null }
 const roomBackground = require('../assets/room-background.jpg')
 const statuses = [
   ['饱食', 'hunger', '#f3a85d'],
@@ -11,14 +12,16 @@ const statuses = [
   ['健康', 'health', '#82a9e9'],
 ] as const
 
-export function PetStatusCard({ pet, onOpenMemories, portraitSrc }: Props) {
+export function PetStatusCard({ pet, onOpenMemories, suitKey }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   return (
     <View className="pet-status-card">
       <View className="pet-card-scene">
         <Image className="pet-card-background" src={roomBackground} mode="aspectFill" />
         <Text className="pet-level">Lv.{pet.level}</Text>
-        <Image className="pet-avatar-image" src={portraitSrc ?? require('../assets/xiaoduoli.png')} mode="aspectFit" />
+        <View className="pet-avatar-image">
+          <MiniappOutfitPortrait suitKey={suitKey} />
+        </View>
         <Text className="pet-name-badge">{pet.name}</Text>
         {onOpenMemories && (
           <View className="pet-memory-button" onClick={onOpenMemories}>

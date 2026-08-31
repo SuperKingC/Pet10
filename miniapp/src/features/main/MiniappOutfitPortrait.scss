@@ -1,0 +1,4 @@
+/* 小多利立绘容器：固定比例容器内原装立绘 + 叠穿服装图层（宽度百分比定位，高度随宽自适应） */
+.outfit-portrait { position: relative; width: 100%; height: 100%; }
+.outfit-portrait__image { width: 100%; height: 100%; }
+.outfit-portrait__layer { position: absolute; }

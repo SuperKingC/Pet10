@@ -1,6 +1,6 @@
-import { Image, Text, View } from '@tarojs/components'
-import { suitAssets } from '../../services/wardrobeSuitAssets'
+import { Text, View } from '@tarojs/components'
 import { matchSummary, type WardrobeView } from '../../domain/wardrobeModel'
+import { MiniappOutfitPortrait } from './MiniappOutfitPortrait'
 import './MiniappOutfitMatchCard.scss'
 
 interface MiniappOutfitMatchCardProps {
@@ -12,13 +12,12 @@ interface MiniappOutfitMatchCardProps {
 export function MiniappOutfitMatchCard({ view, onPress }: MiniappOutfitMatchCardProps) {
   const match = view?.match
   const previewKey = match?.myPick ?? view?.equipped ?? 'default'
-  const previewImage = suitAssets.getCachedSuitImage(previewKey) ?? suitAssets.resolveSuitPortrait('default')
   const matched = Boolean(match?.matchedToday)
 
   return (
     <View className={`outfit-match-card${matched ? ' outfit-match-card--matched' : ''}`} onClick={onPress}>
       <View className="outfit-match-card__preview">
-        <Image className="outfit-match-card__suit" src={previewImage} mode="aspectFit" />
+        <MiniappOutfitPortrait suitKey={previewKey} />
       </View>
       <View className="outfit-match-card__body">
         <View className="outfit-match-card__title-row">
