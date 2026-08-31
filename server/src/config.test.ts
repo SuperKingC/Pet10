@@ -16,8 +16,8 @@ describe('server config', () => {
       baseUrl: 'https://api.tavily.com',
       timeoutMs: 8000,
       maxQueries: 2,
-      maxResults: 6,
-      maxSnippetLength: 500,
+      maxResults: 8,
+      maxSnippetLength: 700,
       locale: 'zh-cn'
     })
   })
