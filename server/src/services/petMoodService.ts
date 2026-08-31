@@ -39,14 +39,23 @@ export function createPetMoodService({
       .reduce<Date | undefined>((latest, value) => (!latest || value.getTime() > latest.getTime() ? value : latest), undefined)
   }
 
+  /** 组装喂给 persona 的心情上下文；没有宠物行的私聊房返回 undefined */
+  async function getMoodContext(roomId: string): Promise<PetMoodContext | undefined> {
+    const pet = await repositories.pets.findByRoomId(roomId)
+    if (!pet) return undefined
+    const attentionAt = await getUserAttentionAt(roomId, pet)
+    const idleHours = attentionAt ? Math.max(0, (now().getTime() - attentionAt.getTime()) / 3_600_000) : 0
+    return { pet, state: computeMoodState({ mood: pet.mood, idleHours }), idleHours }
+  }
+
   return {
-    /** 组装喂给 persona 的心情上下文；没有宠物行的私聊房返回 undefined */
-    async getMoodContext(roomId: string): Promise<PetMoodContext | undefined> {
-      const pet = await repositories.pets.findByRoomId(roomId)
-      if (!pet) return undefined
-      const attentionAt = await getUserAttentionAt(roomId, pet)
-      const idleHours = attentionAt ? Math.max(0, (now().getTime() - attentionAt.getTime()) / 3_600_000) : 0
-      return { pet, state: computeMoodState({ mood: pet.mood, idleHours }), idleHours }
+    getMoodContext,
+
+    /** API 载荷用：宠物当前心情的展示字段；没有宠物行返回 null */
+    async describePet(roomId: string): Promise<{ moodState: PetMoodState['key']; moodCaption: string } | null> {
+      const context = await getMoodContext(roomId)
+      if (!context) return null
+      return { moodState: context.state.key, moodCaption: context.state.caption }
     },
 
     /** 聊天关键词情绪：夸奖 +2 / 嫌弃 -3；每房每小时至多生效一次，防刷分 */

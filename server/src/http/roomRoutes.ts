@@ -11,6 +11,7 @@ export function createRoomRoutes(dependencies: {
   rooms: ReturnType<typeof import('../services/roomService.js')['createRoomService']>
   pets: ReturnType<typeof import('../services/petService.js')['createPetService']>
   nestTasks?: ReturnType<typeof import('../services/nestTaskService.js')['createNestTaskService']>
+  mood?: ReturnType<typeof import('../services/petMoodService.js')['createPetMoodService']>
   emit: (roomId: string, event: string, payload: unknown) => void
 }) {
   const router = Router()
@@ -48,7 +49,9 @@ export function createRoomRoutes(dependencies: {
       const pet = await dependencies.pets.applyAction(roomId, request.userId!, action as PetAction)
       if (dependencies.nestTasks) await dependencies.nestTasks.recordActionProgress(roomId, action)
       dependencies.emit(roomId, 'pet.updated', pet)
-      response.json(pet)
+      // 动作直接改变心情数值，响应里带上最新的心情展示字段
+      const moodFields = (await dependencies.mood?.describePet(roomId)) ?? {}
+      response.json({ ...pet, ...moodFields })
     } catch (error) { next(error) }
   })
   router.get('/:roomId/memories', async (request: AuthenticatedRequest, response, next) => {

@@ -129,7 +129,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
       if (outcome.leveledUp) void photoWallService.onLevelUp(roomId, outcome.pet.level)
     }
   })
-  const roomService = createRoomService({ repositories, ai, brain })
+  const roomService = createRoomService({ repositories, ai, brain, mood })
   const sessionService = createSessionService(repositories, {
     emitUser,
     getInvitation: (token) => invitationService.get(token)
@@ -184,6 +184,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     rooms: roomService,
     pets: petService,
     nestTasks: nestTaskService,
+    mood,
     emit
   }))
   if (gobang) app.use('/api/games/gobang', authenticate, createGobangRoutes(gobang))

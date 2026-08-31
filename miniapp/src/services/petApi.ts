@@ -1,4 +1,4 @@
-import type { PetAction } from '../domain/types'
+import type { PetAction, PetMoodState } from '../domain/types'
 import { apiRequest } from './apiClient'
 import { mapRoomPet } from './petMapper'
 
@@ -16,6 +16,9 @@ export interface ServerPet {
   health: number
   intimacy: number
   updatedAt?: string
+  /** 服务端心情引擎推导的五档心情与状态卡文案（旧后端可能缺省） */
+  moodState?: PetMoodState
+  moodCaption?: string
 }
 
 export interface RoomBootstrap {

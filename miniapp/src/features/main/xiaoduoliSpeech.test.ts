@@ -26,6 +26,16 @@ describe('xiaoduoliSpeech', () => {
     expect(getXiaoduoliSpeech(basePet, 5)).toBe('开心地陪着你们')
     expect(getXiaoduoliSpeech(basePet, -1)).toBe(getXiaoduoliSpeech(basePet, 4))
   })
+
+  it('speaks with mood-engine lines when the pet feels neglected', () => {
+    expect(getXiaoduoliSpeech({ ...basePet, moodState: 'bored' }, 0)).toBe('好无聊呀，陪我玩玩嘛')
+    expect(getXiaoduoliSpeech({ ...basePet, moodState: 'sulky' }, 1)).toBe('哦～终于想起我啦？')
+    expect(getXiaoduoliSpeech({ ...basePet, moodState: 'angry' }, -1)).toBe(
+      getXiaoduoliSpeech({ ...basePet, moodState: 'angry' }, 1)
+    )
+    // 需求状态仍然最高优先
+    expect(getXiaoduoliSpeech({ ...basePet, moodState: 'sulky', hunger: 0 }, 0)).toBe('肚子咕咕叫了，想吃东西…')
+  })
 })
 
 describe('nest scene layout', () => {

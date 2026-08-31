@@ -52,7 +52,8 @@ export function MiniappPetCardModal({ open, pet, owners, onClose }: Props) {
             <View className="pet-card__divider" />
             <View className="pet-card__field">
               <Text className="pet-card__label">今天的心情</Text>
-              <Text className="pet-card__value">{moodTitles[pet.moodLabel]}</Text>
+              {/* 服务端心情引擎的动态文案优先（含被冷落推导），缺省退回本地昵称 */}
+              <Text className="pet-card__value">{pet.moodCaption ?? moodTitles[pet.moodLabel]}</Text>
             </View>
             <View className="pet-card__field">
               <Text className="pet-card__label">品种</Text>

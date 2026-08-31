@@ -29,4 +29,21 @@ describe('mapRoomPet', () => {
       moodLabel: 'happy'
     })
   })
+
+  it('passes through the server mood engine fields when present', () => {
+    expect(mapRoomPet({
+      id: 'pet-1',
+      name: '小多利',
+      level: 1,
+      experience: 0,
+      experienceToNextLevel: 100,
+      hunger: 80,
+      mood: 20,
+      energy: 80,
+      health: 100,
+      intimacy: 10,
+      moodState: 'sulky',
+      moodCaption: '委屈巴巴等着你'
+    })).toMatchObject({ moodState: 'sulky', moodCaption: '委屈巴巴等着你' })
+  })
 })

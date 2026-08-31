@@ -3,6 +3,7 @@ import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createCoRaiseService } from './coRaiseService.js'
 import { createRoomService } from './roomService.js'
+import { createPetMoodService } from './petMoodService.js'
 
 async function seedPetRoom(repositories: ReturnType<typeof createMemoryRepositories>) {
   const first = await repositories.users.create({ email: 'a@example.com', username: 'a', displayName: 'A' })
@@ -60,5 +61,21 @@ describe('room service', () => {
 
     expect(reply.text).toContain('打了个盹')
     expect(logError).toHaveBeenCalledWith('Pet AI reply failed', expect.any(Error))
+  })
+
+  it('attaches the pet mood display fields to the bootstrap payload', async () => {
+    const repositories = createMemoryRepositories()
+    const { first, room } = await seedPetRoom(repositories)
+    await repositories.pets.createForRelationship(room.relationshipId!, room.id)
+    const mood = createPetMoodService({ repositories })
+    const service = createRoomService({
+      repositories,
+      ai: { reply: async () => 'unused', extractMemory: async () => null },
+      mood
+    })
+
+    const bootstrap = await service.bootstrap(room.id, first.id)
+
+    expect(bootstrap.pet).toMatchObject({ moodState: 'happy', moodCaption: expect.any(String) })
   })
 })

@@ -2,11 +2,13 @@ import type { MessageKind } from '../domain/models.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { createPetBrain } from './petBrain.js'
+import type { createPetMoodService } from './petMoodService.js'
 
 interface RoomServiceDependencies {
   repositories: RepositoryBundle
   ai: AiService
   brain?: ReturnType<typeof createPetBrain>
+  mood?: Pick<ReturnType<typeof createPetMoodService>, 'describePet'>
   logError?: (message: string, error: unknown) => void
 }
 
@@ -14,6 +16,7 @@ export function createRoomService({
   repositories,
   ai,
   brain,
+  mood,
   logError = (message, error) => console.error(message, error)
 }: RoomServiceDependencies) {
   async function assertMember(roomId: string, userId: string) {
@@ -28,9 +31,10 @@ export function createRoomService({
       // 私聊房（pet_dm）以及共养名额已满的双人房都没有宠物，仍可正常进入
       // 每日首开问候（后台触发，通过 socket 送达）
       void brain?.dailyGreeting(roomId)
+      const moodFields = (await mood?.describePet(roomId)) ?? {}
       return {
         room,
-        pet: pet ?? null,
+        pet: pet ? { ...pet, ...moodFields } : null,
         messages: await repositories.messages.listRecent(roomId, 50),
         memories: await repositories.memories.listByRoom(roomId)
       }
