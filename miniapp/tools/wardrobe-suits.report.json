@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T07:02:20.338Z",
+  "generatedAt": "2026-08-31T07:23:58.396Z",
   "base": "436x700",
   "suits": [
     {
@@ -21,12 +21,12 @@
       "kind": "overlay",
       "file": "public/wardrobe/outfit-scarf-v1.png",
       "bundled": true,
-      "bytes": 12753,
+      "bytes": 16182,
       "width": 252,
-      "height": 86,
+      "height": 158,
       "style": {
-        "left": "15.85%",
-        "top": "46.73%",
+        "left": "21.10%",
+        "top": "49.14%",
         "width": "57.80%"
       }
     },

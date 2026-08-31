@@ -588,6 +588,11 @@
       "path": "miniapp/src/assets/wardrobe/outfit-bag-v1.png",
       "category": "runtime-feature",
       "purpose": "Bundled wardrobe crossbody bag garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
+    },
+    {
+      "path": "design-assets/wardrobe/reference-sheet-v1.png",
+      "category": "source-only",
+      "purpose": "User-provided 2048px reference sheet of the eight suited puppies; high-res segmentation source for wardrobe garment cutouts starting with the scarf"
     }
   ]
 }

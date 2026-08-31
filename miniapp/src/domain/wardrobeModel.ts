@@ -45,7 +45,7 @@ export function isBundledSuit(key: string): boolean {
  */
 export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
   hat: { left: '28.67%', top: '7.43%', width: '42.66%' },
-  scarf: { left: '15.85%', top: '46.73%', width: '57.80%' },
+  scarf: { left: '21.10%', top: '49.14%', width: '57.80%' },
   bag: { left: '22.02%', top: '75.43%', width: '24.77%' }
 }
 

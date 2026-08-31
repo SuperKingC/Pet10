@@ -9,7 +9,7 @@ const designAssetsRoot = resolve(root, 'design-assets')
 const manifestPath = resolve(root, 'docs/assets/asset-manifest.json')
 const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.avif', '.svg', '.ico'])
 const runtimeDirectories = ['public/tarot/cards', 'public/tarot/ui']
-const sourceOnlyDirectories = ['public/tarot/concepts', 'design-assets/tarot/concepts']
+const sourceOnlyDirectories = ['public/tarot/concepts', 'design-assets/tarot/concepts', 'design-assets/wardrobe']
 
 function toRepoPath(path) {
   return relative(root, path).replaceAll('\\', '/')
