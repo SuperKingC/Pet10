@@ -58,6 +58,7 @@ AI 必须先确认：
 
 ## 图片特别规则
 
+- 需要 AI 生成的图片素材：统一由 AI 调用户中转 key 生图，模型固定 `openai/gpt-5.4-image-2`，用 `node scripts/gen-ai-image.mjs`，详见 `.agents/rules/ai-image-generation.md`。
 - 运行时图片必须登记在 `docs/assets/asset-manifest.md`。
 - 原始概念图是 `source-only`，不能加入预加载。
 - 不要只靠降低压缩质量解决加载速度。
