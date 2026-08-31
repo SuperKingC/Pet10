@@ -106,6 +106,73 @@ function segmentReferenceSheet(raw, W, crop, seeds, blockBoxes, colorKeys) {
   return { data: out, width: bw, height: bh, sheetX: x1 + minX, sheetY: y1 + minY }
 }
 
+/**
+ * 高清参考图多边形切衣：手工标定的衣服轮廓多边形内全保留实心出件（格纹/印花零破坏），
+ * blockBoxes 让位与衣色相同的特殊区（如舌头）。返回紧贴 bbox 的 RGBA。
+ */
+function segmentPolygonSheet(raw, W, crop, polygon, blockBoxes) {
+  const { x1, y1, x2, y2 } = crop
+  const cw = x2 - x1, ch = y2 - y1
+  const inPolygon = (px, py) => {
+    let inside = false
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const [xi, yi] = polygon[i]
+      const [xj, yj] = polygon[j]
+      if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) inside = !inside
+    }
+    return inside
+  }
+  const mask = new Uint8Array(cw * ch)
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const gx = x1 + x, gy = y1 + y
+      if (!inPolygon(gx, gy)) continue
+      if (blockBoxes.some((b) => gx >= b.x1 && gx < b.x2 && gy >= b.y1 && gy < b.y2)) continue
+      const o = (gy * W + gx) * 4
+      const r = raw[o], g = raw[o + 1], b = raw[o + 2], a = raw[o + 3]
+      if (a <= 8) continue
+      // 近黑灰的描边交叠处剔除，衣服自身深色描边保留
+      if (Math.max(r, g, b) < 120 && Math.max(r, g, b) - Math.min(r, g, b) < 60) continue
+      mask[y * cw + x] = 1
+    }
+  }
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const m = y * cw + x
+      if (!mask[m]) continue
+      let n = 0
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue
+        const nx2 = x + dx, ny2 = y + dy
+        if (nx2 >= 0 && ny2 >= 0 && nx2 < cw && ny2 < ch && mask[ny2 * cw + nx2]) n += 1
+      }
+      if (n <= 2) mask[m] = 0
+    }
+  }
+  let minX = cw, minY = ch, maxX = -1, maxY = -1
+  for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+    if (!mask[y * cw + x]) continue
+    if (x < minX) minX = x; if (x > maxX) maxX = x
+    if (y < minY) minY = y; if (y > maxY) maxY = y
+  }
+  const bw = maxX - minX + 1, bh = maxY - minY + 1
+  const out = Buffer.alloc(bw * bh * 4)
+  const masked = (mx, my) => (mx >= 0 && my >= 0 && mx < cw && my < ch) ? mask[my * cw + mx] === 1 : 0
+  for (let y = 0; y < bh; y++) {
+    for (let x = 0; x < bw; x++) {
+      const mx = minX + x, my = minY + y
+      const m = my * cw + mx
+      const o = (y * bw + x) * 4
+      if (!mask[m]) continue
+      const so = ((y1 + my) * W + (x1 + mx)) * 4
+      const edge = (!masked(mx - 1, my) || !masked(mx + 1, my) || !masked(mx, my - 1) || !masked(mx, my + 1))
+      out[o] = raw[so]; out[o + 1] = raw[so + 1]; out[o + 2] = raw[so + 2]
+      out[o + 3] = edge ? 160 : 255
+    }
+  }
+  return { data: out, width: bw, height: bh }
+}
+
 function isTanFur(r, g, b) {
   // 棕黄/奶油体毛（衣服色粉/绿/蓝/紫/白都不落在这些判据里）
   if (r > 195 && g > 145 && b > 85 && b < 205 && (r - b) > 15 && (r - b) < 60 && g > b) return true
@@ -222,11 +289,10 @@ const overlaySuits = {
   hat: { rect: { src: 'purple-beret', box: { x1: 98, y1: 202, x2: 156, y2: 243 } }, cx: 218, ty: 52, w: 186 },
   // 围巾：高清参考图精准切出（格纹+雏菊，舌头遮挡框按采样标定）
   scarf: {
-    sheet: {
+    sheetPolygon: {
       crop: { x1: 60, y1: 990, x2: 255, y2: 1125 },
-      seeds: [[140, 1048, 160, 1062], [176, 1068, 192, 1082]],
-      blockBoxes: [{ x1: 130, y1: 1000, x2: 175, y2: 1042 }],
-      colorKeys: [isSheetPink, isSheetWhite, isSheetYellow]
+      polygon: [[78, 1012], [150, 1022], [228, 1012], [233, 1030], [210, 1073], [203, 1096], [152, 1100], [86, 1072]],
+      blockBoxes: [{ x1: 140, y1: 1000, x2: 166, y2: 1032 }]
     },
     cx: 218, ty: 344, w: 252
   },
@@ -255,7 +321,16 @@ const report = { generatedAt: new Date().toISOString(), base: `${BASE_W}x${BASE_
 // 三件叠穿件（随包）：按展示尺寸精确出图，style 标定与文件一一对应
 for (const [key, def] of Object.entries(overlaySuits)) {
   let rawBuf, nativeW, nativeH, contentW, feather
-  if (def.sheet) {
+  if (def.sheetPolygon) {
+    const sheetRaw = await loadRaw('reference-sheet-v1')
+    const sheetMeta = await sharp(path.join(srcDir, 'reference-sheet-v1.png')).metadata()
+    const seg = segmentPolygonSheet(sheetRaw, sheetMeta.width, def.sheetPolygon.crop, def.sheetPolygon.polygon, def.sheetPolygon.blockBoxes)
+    rawBuf = seg.data
+    nativeW = seg.width
+    nativeH = seg.height
+    contentW = seg.width
+    feather = 0
+  } else if (def.sheet) {
     // 高清参考图切衣：bbox 即内容，无羽化留白
     const sheetRaw = await loadRaw('reference-sheet-v1')
     const sheetMeta = await sharp(path.join(srcDir, 'reference-sheet-v1.png')).metadata()
