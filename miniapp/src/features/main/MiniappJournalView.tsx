@@ -247,7 +247,7 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
               <Image
                 className="journal-today__polaroid-image"
                 src={featuredPhoto.src}
-                mode="aspectFit"
+                mode={featuredPhoto.isDefault ? 'aspectFit' : 'aspectFill'}
               />
             </View>
             <View
@@ -297,15 +297,18 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
         )}
       </View>
 
-      <View className="miniapp-journal__fortune" onClick={openFortune}>
-        <View className="miniapp-journal__fortune-copy">
-          <Text className="miniapp-journal__fortune-label">今日运势</Text>
-          <Text className="miniapp-journal__fortune-title">
-            {fortune ? `${fortune.content.overall.summary} ${'★'.repeat(fortune.content.overall.rating)}` : (fortuneMessage || '运势加载中~')}
-          </Text>
+      {/* 今日运势只属于「日记」tab：纪念日 tab 不显示，不占用公共区域 */}
+      {journalTab === 'diary' && (
+        <View className="miniapp-journal__fortune" onClick={openFortune}>
+          <View className="miniapp-journal__fortune-copy">
+            <Text className="miniapp-journal__fortune-label">今日运势</Text>
+            <Text className="miniapp-journal__fortune-title">
+              {fortune ? `${fortune.content.overall.summary} ${'★'.repeat(fortune.content.overall.rating)}` : (fortuneMessage || '运势加载中~')}
+            </Text>
+          </View>
+          <Text className="miniapp-journal__fortune-go">去看看 →</Text>
         </View>
-        <Text className="miniapp-journal__fortune-go">去看看 →</Text>
-      </View>
+      )}
 
       {fortuneOverlayOpen && fortune && (
         <MiniappFortuneView fortune={fortune} onClose={() => setFortuneOverlayOpen(false)} />

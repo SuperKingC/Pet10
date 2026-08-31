@@ -50,7 +50,9 @@
 
 /* 表单照片选择区 */
 
-.anniv-form__photo { overflow: hidden; height: 220rpx; border: 2rpx dashed #dcb98f; border-radius: 20rpx; background: #fff8ee; }
+/* 照片选择区：路由壳层定高 200rpx；页内嵌入时弹性伸缩（aspectFit 完整预览不裁切） */
+.anniv-form__photo { overflow: hidden; height: 200rpx; border: 2rpx dashed #dcb98f; border-radius: 20rpx; background: #fff8ee; }
+.journal-anniv-panel--inline .anniv-form__photo { height: auto; flex: 1 0 auto; min-height: 88rpx; max-height: 420rpx; }
 .anniv-form__photo-preview { position: relative; display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 100%; }
 .anniv-form__photo-img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .anniv-form__photo-hint { color: #b18c79; font-size: var(--font-size-aux); }
@@ -65,25 +67,28 @@
   .anniv-list__card, .anniv-list__empty, .anniv-form { animation: none; }
 }
 
-/* 表单 */
-
-.anniv-form { display: flex; flex-direction: column; gap: 18rpx; padding: 24rpx 26rpx 28rpx; background: #fffdf8; border: 1px solid #f0dcc8; border-radius: 28rpx; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 2rpx 6rpx rgba(126, 82, 49, .05), 0 14rpx 30rpx rgba(126, 82, 49, .08); animation: anniv-rise .4s ease-out both; }
+/* 表单：间距收紧凑；页内分页嵌入时不滚动——卡片弹性占满内容区（flex:1），
+   照片预览区在 [96, 300]rpx 间自适应伸缩吸收高差，任何机型全部内容可见；路由壳层全屏面板照片区定高 */
+.anniv-form { display: flex; flex-direction: column; gap: 10rpx; padding: 20rpx 22rpx; background: #fffdf8; border: 1px solid #f0dcc8; border-radius: 28rpx; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 2rpx 6rpx rgba(126, 82, 49, .05), 0 14rpx 30rpx rgba(126, 82, 49, .08); animation: anniv-rise .4s ease-out both; }
+.journal-anniv-panel--inline .anniv-form { flex: 1; min-height: 0; }
+/* 页内分页嵌入时无标题行（tab 语境已明确），路由壳层全屏面板保留 */
+.journal-anniv-panel--inline .anniv-form__title { display: none; }
 .anniv-form__title { color: #382b23; font-size: var(--font-size-overlay-title); font-weight: var(--font-weight-bold); text-align: center; }
-.anniv-form__field { display: flex; flex-direction: column; gap: 8rpx; padding: 16rpx 22rpx 14rpx; background: #fff8ee; border: 1px solid #f2e0cb; border-radius: 18rpx; box-shadow: inset 0 2rpx 6rpx rgba(126, 82, 49, .04); }
+.anniv-form__field { display: flex; flex-direction: column; gap: 6rpx; padding: 8rpx 16rpx 6rpx; background: #fff8ee; border: 1px solid #f2e0cb; border-radius: 18rpx; box-shadow: inset 0 2rpx 6rpx rgba(126, 82, 49, .04); }
 .anniv-form__label { color: #b18c79; font-size: var(--font-size-aux); }
 .anniv-form__value { color: #5e3b1d; font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
 .anniv-form__input { color: #5e3b1d; font-size: var(--font-size-body); }
 .anniv-form__icons { display: flex; gap: 14rpx; }
 /* 与写日记心情选择同款：无边框透明格，选中只换暖底加深色描边，图标贴纸直接点 */
-.anniv-form__icon-item { display: flex; flex: 1; align-items: center; justify-content: center; margin: 0; padding: 10rpx 0; background: transparent; border: 2rpx solid transparent; border-radius: 20rpx; }
+.anniv-form__icon-item { display: flex; flex: 1; align-items: center; justify-content: center; margin: 0; padding: 6rpx 0; background: transparent; border: 2rpx solid transparent; border-radius: 20rpx; }
 .anniv-form__icon-item--active { background: #ffefd9; border-color: #e79a5a; }
-.anniv-form__icon-img { width: 84rpx; height: 84rpx; }
+.anniv-form__icon-img { width: 80rpx; height: 80rpx; }
 .anniv-form__repeat { display: flex; gap: 0; padding: 6rpx; background: #f4e5d0; border-radius: 999rpx; box-shadow: inset 0 2rpx 6rpx rgba(126, 82, 49, .08); }
-.anniv-form__repeat-item, .anniv-form__repeat-item--active { flex: 1; margin: 0; padding: 12rpx 0; background: transparent; border: 0; border-radius: 999rpx; color: #8e776a; font-size: var(--font-size-secondary); }
+.anniv-form__repeat-item, .anniv-form__repeat-item--active { flex: 1; margin: 0; padding: 8rpx 0; background: transparent; border: 0; border-radius: 999rpx; color: #8e776a; font-size: var(--font-size-secondary); }
 .anniv-form__repeat-item::after, .anniv-form__repeat-item--active::after { border: none; }
 .anniv-form__repeat-item--active { background: #fffdf8; color: #8a4f37; font-weight: var(--font-weight-semibold); box-shadow: 0 4rpx 10rpx rgba(126, 82, 49, .16); }
-.anniv-form__actions { display: flex; gap: 16rpx; margin-top: 4rpx; }
-.anniv-form__btn { flex: 1; margin: 0; padding: 16rpx 0; border-radius: 999rpx; font-size: var(--font-size-body); }
+.anniv-form__actions { display: flex; gap: 16rpx; margin-top: 2rpx; }
+.anniv-form__btn { flex: 1; margin: 0; padding: 12rpx 0; border-radius: 999rpx; font-size: var(--font-size-body); }
 .anniv-form__btn::after { border: none; }
 .anniv-form__btn--primary { color: #fff; background: linear-gradient(135deg, #eda45f, #d9713f); border: 0; box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, .35), 0 10rpx 22rpx rgba(217, 113, 63, .3); }
 .anniv-form__btn--ghost { color: #8e776a; background: #fff8ee; border: 1px solid #ead5c2; }

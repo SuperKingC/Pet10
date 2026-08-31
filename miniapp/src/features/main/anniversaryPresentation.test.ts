@@ -53,6 +53,28 @@ describe('anniversary photo presentation rules', () => {
     expect(styles).toContain('.anniv-form__photo-empty--busy {')
   })
 
+  it('renders the inline settings form as a fixed one-screen layout without scrolling', () => {
+    const panel = fs.readFileSync(path.resolve(__dirname, 'JournalAnniversaryPanel.tsx'), 'utf8')
+    const styles = fs.readFileSync(stylesPath, 'utf8')
+
+    // 页内嵌入：表单卡片弹性占满内容区、不套滚动槽；照片预览区 [88, 420]rpx 自适应伸缩吸收高差，
+    // 无标题行；内部滚动槽只包列表
+    expect(panel).toMatch(/form \? content : <View className="journal-anniv-panel__scroll">\{content\}<\/View>/)
+    expect(styles).toMatch(/\.journal-anniv-panel--inline \.anniv-form \{[^}]*flex: 1;/)
+    expect(styles).toMatch(/\.journal-anniv-panel--inline \.anniv-form \{[^}]*min-height: 0;/)
+    expect(styles).toMatch(/\.journal-anniv-panel--inline \.anniv-form__title \{[^}]*display: none;/)
+    expect(styles).toMatch(/\.journal-anniv-panel--inline \.anniv-form__photo \{[^}]*flex: 1 0 auto;/)
+    expect(styles).toMatch(/\.journal-anniv-panel--inline \.anniv-form__photo \{[^}]*min-height: 88rpx;/)
+    expect(styles).toMatch(/\.journal-anniv-panel--inline \.anniv-form__photo \{[^}]*max-height: 420rpx;/)
+  })
+
+  it('falls back to narrower widths before failing an oversized photo, never lowering quality', () => {
+    const form = fs.readFileSync(formPath, 'utf8')
+
+    expect(form).toContain('PHOTO_WIDTHS = [1080, 900, 720, 540, 420]')
+    expect(form).not.toMatch(/quality:\s*\d+/)
+  })
+
   it('locks the anniversary overlay to one non-scrollable screen', () => {
     const panelStyles = fs.readFileSync(panelStylesPath, 'utf8')
 

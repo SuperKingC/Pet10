@@ -100,7 +100,8 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, variant = 'overlay
     return (
       <View className="journal-anniv-panel journal-anniv-panel--inline">
         <Text className="journal-anniv-panel__caption">把重要的日子记下来</Text>
-        <View className="journal-anniv-panel__scroll">{content}</View>
+        {/* 列表可滚动兜底；设置表单不滚动——表单卡片弹性占满剩余空间，照片预览区自适应伸缩保证一屏全部可见 */}
+        {form ? content : <View className="journal-anniv-panel__scroll">{content}</View>}
       </View>
     )
   }

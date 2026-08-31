@@ -198,9 +198,10 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('action-photo-v2.png')
     expect(component).toContain('journalDisplayPhotos')
     expect(component).toContain('replaceTodayPhoto')
-    // 今日卡上传照片与默认邮票同用 aspectFit：拍立得白框内完整缩放，不裁切照片
-    expect(component).toContain('mode="aspectFit"')
-    expect(component).not.toContain('aspectFill')
+    // 今日卡上传照片填满白框不留空白（aspectFill），默认邮票 aspectFit；完整照片走大图预览
+    expect(component).toContain("mode={featuredPhoto.isDefault ? 'aspectFit' : 'aspectFill'}")
+    // 今日运势只属于「日记」tab：纪念日 tab 不显示，不占用公共区域
+    expect(component).toContain("{journalTab === 'diary' && (")
     expect(component).toContain('拍照记录')
     expect(component).toContain('记录和小多利的每一天')
     expect(component).toContain('查看 >')
@@ -276,10 +277,11 @@ describe('miniapp ui presentation rules', () => {
     expect(formStyles).toMatch(/\.journal-editor__polaroid \{[^}]*width: 300rpx/)
     expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*width: 239rpx/)
     expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*height: 224rpx/)
-    // 写日记主图与缩略图都完整缩放不裁切（缩略图带暖底细描边，白底照片边界可辨）
-    expect(form).toContain('mode="aspectFit"')
-    expect(form).not.toContain('aspectFill')
-    expect(formStyles).toMatch(/\.journal-editor__photo \{[^}]*border: 1rpx solid #eedfc9/)
+    // 写日记主图/缩略图填满裁切展示不留空白（点主图/缩略图仍有全屏预览看完整照片）
+    expect(form).toContain("mode={hasUserPhoto ? 'aspectFill' : 'aspectFit'}")
+    expect(form).toContain('<Image className="journal-editor__photo" src={item} mode="aspectFill" />')
+    // 上传超限时降宽度不降质量：720 仍超限的极繁照片继续回退 540/420
+    expect(form).toContain('PHOTO_WIDTHS = [1080, 900, 720, 540, 420]')
     expect(form).toContain('点这里放今天的照片')
     expect(form).toContain('previewImage')
     expect(form).toContain('查看大图')

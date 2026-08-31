@@ -8,8 +8,9 @@ import './anniversary.scss'
 
 // 与服务端 socialRoutes anniversaryPhotoSchema 的 300_000 上限一致
 const MAX_PHOTO_CHARS = 300_000
-// 照片背景卡展示宽度约 650rpx≈390pt@3x，1080px 起档；超限降宽度不降质量
-const PHOTO_WIDTHS = [1080, 900, 720]
+// 照片背景卡展示宽度约 650rpx≈390pt@3x，1080px 起档；超限降宽度不降质量，
+// 720 仍超限的极繁照片继续回退 540/420
+const PHOTO_WIDTHS = [1080, 900, 720, 540, 420]
 
 function photoToDataUrl(src: string): Promise<string> {
   return compressImageToDataUrl(src, {

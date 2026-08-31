@@ -26,8 +26,9 @@ const moodImages: Record<string, string> = {
 const MAX_PHOTOS = 3
 // 与服务端 diaryRoutes photoSchema 的 300_000 上限一致
 const MAX_PHOTO_CHARS = 300_000
-// 拍立得展示宽度约 390pt@3x≈1170px，1080px 起档；超限时降宽度而不是降质量
-const PHOTO_WIDTHS = [1080, 900, 720]
+// 拍立得展示宽度约 390pt@3x≈1170px，1080px 起档；超限时降宽度而不是降质量，
+// 720 仍超限的极繁照片继续回退 540/420（只损失展示不出来的像素，不降质量）
+const PHOTO_WIDTHS = [1080, 900, 720, 540, 420]
 
 function photoToDataUrl(src: string): Promise<string> {
   return compressImageToDataUrl(src, {
@@ -218,7 +219,7 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
             <Image
               className="journal-editor__polaroid-image"
               src={hasUserPhoto ? photos[0] : polaroidRun}
-              mode="aspectFit"
+              mode={hasUserPhoto ? 'aspectFill' : 'aspectFit'}
             />
             {!hasUserPhoto && <Text className="journal-editor__polaroid-hint">点这里放今天的照片</Text>}
           </View>
@@ -226,7 +227,7 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
             <View className="journal-editor__photos">
               {photos.slice(1).map((item, index) => (
                 <View key={`${index}-${item.slice(0, 24)}`} className="journal-editor__photo-wrap" onClick={() => previewPhotos(index + 1)}>
-                  <Image className="journal-editor__photo" src={item} mode="aspectFit" />
+                  <Image className="journal-editor__photo" src={item} mode="aspectFill" />
                   <Text
                     className="journal-editor__photo-remove"
                     onClick={(event) => {
