@@ -1,20 +1,41 @@
-/* 小窝状态卡：上半场景（背景底锚 + 小多利踩阴影 + 说话飘字），下半紧凑状态区。
-   场景加高到 560px 露出完整地毯；状态区收紧与照顾栏/贡献榜一起保证小窝页一屏不放滚动。 */
+/* 小窝状态卡：上半场景（背景整图完整呈现 + 小多利踩地毯阴影 + 说话飘字 + 名片入口），下半紧凑状态区。
+   背景不放大不裁剪（aspectFit 完整展示整张室内图）；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
-.pet-card-scene { position: relative; height: 560px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
+.pet-card-scene { position: relative; height: 640px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
 .pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
-/* 背景整图宽适配（720×981 竖图 → 高约 897px），底部对齐裁掉顶部：地毯与阴影始终完整可见 */
-.pet-card-background { position: absolute; bottom: 0; left: 0; width: 100%; }
-/* 小多利缩小到 240px，居中偏下：脚部落进地毯阴影区（阴影约在场景 y 330-450） */
-.pet-avatar-image { position: absolute; bottom: 110px; left: 50%; z-index: 2; width: 240px; height: 283px; transform: translateX(-50%); }
+/* 整图等比完整放入（720×981 竖图 → 显示约 469×640，居中，两侧暖渐变补边） */
+.pet-card-background { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* 小多利居中偏下，脚部落进地毯阴影区（阴影中心约在场景中线右 45px、y 510 处） */
+.pet-avatar-image { position: absolute; bottom: 122px; left: calc(50% + 45px); z-index: 2; width: 240px; height: 283px; transform: translateX(-50%); }
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
-.pet-name-badge { position: absolute; bottom: 24px; left: 24px; z-index: 3; padding: 8px 24px; border-radius: 999px; background: rgba(255,255,255,.86); color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
+
+/* 小多利名片入口：白卡双线描边（名片质感），点开名片弹窗 */
+.pet-name-card {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  padding: 10rpx 22rpx;
+  border: 2rpx solid #dcbf98;
+  border-radius: 14rpx;
+  background: rgba(255, 253, 248, .94);
+  box-shadow:
+    inset 0 0 0 4rpx rgba(255, 255, 255, .95),
+    inset 0 0 0 5rpx rgba(217, 178, 140, .55),
+    0 8rpx 20rpx rgba(113, 77, 38, .22);
+}
+.pet-name-card--hover { opacity: .82; transform: scale(.97); }
+.pet-name-card__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.pet-name-card__hint { color: #b08d67; font-size: 20rpx; letter-spacing: 2rpx; }
 
 /* 小多利说话飘字：头顶气泡，换文案时重新弹入，常态轻轻上下浮动 */
 .pet-speech {
   position: absolute;
-  top: 104px;
+  top: 168px;
   left: 50%;
   z-index: 3;
   max-width: 76%;
@@ -30,8 +51,10 @@
 
 .pet-card-experience { padding: 16px 24px 18px; }
 .experience-meta, .status-meta { display: flex; justify-content: space-between; color: #8e776a; font-size: var(--font-size-aux); }
-.experience-track, .status-track { height: 10px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: rgba(126,85,55,.09); }
-.experience-track > view, .status-track > view { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#e89264,#efbe68); }
+/* 进度条：加粗到 16rpx，凹槽底 + 填充顶部高光/底部投影，圆润有质感 */
+.experience-track, .status-track { height: 16rpx; margin-top: 8px; overflow: hidden; border-radius: 99px; background: rgba(126,85,55,.08); box-shadow: inset 0 2rpx 4rpx rgba(94,59,29,.14); }
+.experience-track > view, .status-track > view { height: 100%; border-radius: inherit; box-shadow: inset 0 2rpx 3rpx rgba(255,255,255,.55), 0 2rpx 6rpx rgba(150,90,45,.28); transition: width .4s ease; }
+.experience-track > view { background: linear-gradient(90deg,#e89264,#efbe68); }
 .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 16px; }
 .status-item { min-width: 0; }
 
@@ -45,4 +68,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .pet-speech { animation: none; }
+  .experience-track > view, .status-track > view { transition: none; }
 }

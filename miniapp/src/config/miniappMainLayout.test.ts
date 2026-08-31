@@ -77,4 +77,22 @@ describe('miniapp main layout', () => {
     expect(indexStyles).toMatch(/\.home-page\s*\{[\s\S]*padding:\s*0 32px 234px;/)
     expect(tabStyles).toMatch(/\.miniapp-tab-bar\s*\{[\s\S]*background:\s*#fff8ee;/)
   })
+
+  it('drops the outfit match card and opens the pet card modal from the scene', () => {
+    const nestSource = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.tsx'), 'utf8')
+    const petCardSource = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappPetCardModal.tsx'), 'utf8')
+    const statusCardSource = fs.readFileSync(path.join(root, 'components', 'PetStatusCard.tsx'), 'utf8')
+    const statusCardStyles = fs.readFileSync(path.join(root, 'components', 'PetStatusCard.scss'), 'utf8')
+
+    // 今日默契换装栏从小窝移除（入口收进衣柜面板），名片弹窗接在场景名牌上
+    expect(nestSource).not.toContain('MiniappOutfitMatchCard')
+    expect(nestSource).toContain('MiniappPetCardModal')
+    expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
+    expect(statusCardSource).toContain('onOpenCard')
+    expect(statusCardSource).toContain('pet-name-card')
+    // 背景整图 aspectFit 完整呈现不放大不裁剪；场景 640px；状态条加粗 16rpx
+    expect(statusCardSource).toContain("mode=\"aspectFit\"")
+    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*640px;/)
+    expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
+  })
 })

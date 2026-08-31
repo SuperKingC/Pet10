@@ -1,0 +1,107 @@
+/* 小多利名片弹窗：底图（水彩名片，左侧小狗右侧留白）+ 右区排版真实资料。
+   底图走 COS 按需下载；未加载时渐变卡面兜底，排版不变。 */
+.pet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pet-card__face {
+  position: relative;
+  width: 100%;
+  height: 390rpx;
+  overflow: hidden;
+  border-radius: 24rpx;
+  /* 兜底卡面：与名片底图同色系的奶油渐变 */
+  background:
+    radial-gradient(120% 90% at 18% 14%, rgba(233, 200, 148, .5), rgba(233, 200, 148, 0) 52%),
+    linear-gradient(155deg, #fdf3dc 0%, #f7e3bd 100%);
+  box-shadow: inset 0 0 0 2rpx rgba(150, 108, 62, .5), 0 12rpx 28rpx rgba(113, 77, 38, .18);
+}
+
+.pet-card__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 右侧留白区排版：底图小狗约占左 40%，文字从 43% 起 */
+.pet-card__body {
+  position: absolute;
+  top: 9%;
+  bottom: 9%;
+  left: 43%;
+  right: 6%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pet-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.pet-card__name {
+  color: #5e3b1d;
+  font-size: 42rpx;
+  font-weight: var(--font-weight-bold);
+}
+
+.pet-card__level {
+  padding: 2rpx 16rpx;
+  border: 2rpx solid #d9b28c;
+  border-radius: 999rpx;
+  color: #b27a4b;
+  background: rgba(255, 253, 248, .8);
+  font-size: 22rpx;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pet-card__divider {
+  margin: 12rpx 0 14rpx;
+  height: 2rpx;
+  background: linear-gradient(90deg, #d9b28c, rgba(217, 178, 140, .15));
+}
+
+.pet-card__field {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.pet-card__label {
+  flex-shrink: 0;
+  color: #b08d67;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+}
+
+.pet-card__value {
+  min-width: 0;
+  overflow: hidden;
+  color: #6b4a2e;
+  font-size: 27rpx;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pet-card__signature {
+  margin-top: auto;
+  color: #b27a4b;
+  font-size: 24rpx;
+  font-style: italic;
+}
+
+.pet-card__hint {
+  margin-top: 18rpx;
+  color: #b49a8d;
+  font-size: var(--font-size-aux);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-card__face { box-shadow: inset 0 0 0 2rpx rgba(150, 108, 62, .5); }
+}

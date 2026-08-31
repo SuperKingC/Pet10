@@ -11,7 +11,7 @@ import { MiniappNestLetter } from './MiniappNestLetter'
 import { MiniappNestTaskPanel } from './MiniappNestTaskPanel'
 import { MiniappPhotoWallPanel } from './MiniappPhotoWallPanel'
 import { MiniappWardrobePanel } from './MiniappWardrobePanel'
-import { MiniappOutfitMatchCard } from './MiniappOutfitMatchCard'
+import { MiniappPetCardModal } from './MiniappPetCardModal'
 import { getNestSceneMode, shouldLockNestPageScroll, type NestSceneMode } from './miniappViewModel'
 import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import { wardrobeApi } from '../../services/wardrobeApi'
@@ -54,6 +54,7 @@ export function MiniappNestView({
   const [taskPanelOpen, setTaskPanelOpen] = useState(false)
   const [wardrobePanelOpen, setWardrobePanelOpen] = useState(false)
   const [photoWallPanelOpen, setPhotoWallPanelOpen] = useState(false)
+  const [petCardOpen, setPetCardOpen] = useState(false)
   const [wardrobeView, setWardrobeView] = useState<WardrobeView | null>(null)
   const [unlock, setUnlock] = useState(() => reconcileStoredUnlock(
     (context?.rooms ?? []).filter((room) => room.pet).map((room) => room.id),
@@ -108,6 +109,11 @@ export function MiniappNestView({
     (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
   )
   const sceneMode = getNestSceneMode(context, pet, roomId, unlock)
+  // 名片上的铲屎官署名：当前账号 + 共养好友
+  const petCardOwners = [
+    context?.user.displayName,
+    context?.rooms.find((room) => room.id === roomId)?.partner.displayName,
+  ].filter((name): name is string => Boolean(name && name.trim()))
 
   useEffect(() => {
     onSceneModeChange(sceneMode)
@@ -143,7 +149,7 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} suitKey={wardrobeView?.equipped ?? 'default'} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} suitKey={wardrobeView?.equipped ?? 'default'} onOpenCard={() => setPetCardOpen(true)} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (
@@ -164,11 +170,15 @@ export function MiniappNestView({
         {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} onAction={onAction} />}
 
         {sceneMode === 'active' && <MiniappContributionBoard contributions={contributions} names={names} />}
-
-        {sceneMode === 'active' && (
-          <MiniappOutfitMatchCard view={wardrobeView} onPress={() => setWardrobePanelOpen(true)} />
-        )}
       </View>
+      {sceneMode === 'active' && pet && (
+        <MiniappPetCardModal
+          open={petCardOpen}
+          pet={pet}
+          owners={petCardOwners}
+          onClose={() => setPetCardOpen(false)}
+        />
+      )}
       {taskPanelOpen && (
         <View className="journal-anniv-overlay">
           <MiniappNestTaskPanel roomId={roomId} onClose={() => setTaskPanelOpen(false)} />
