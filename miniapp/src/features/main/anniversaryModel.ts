@@ -71,3 +71,16 @@ export function sortAnniversaries<T extends Pick<AnniversaryRecord, 'day' | 'rep
     return daysBetween(bNext, today) - daysBetween(aNext, today)
   })
 }
+
+/** 纪念日照片展示区高度（rpx）：照片区宽度铺满卡片（约 654rpx），按原图宽高比等比换算并
+ *  夹在 [360, 640]——常规比例刚好铺满，极端长宽比在暖底内完整缩放显示，任何情况都不裁切 */
+export const ANNIVERSARY_PHOTO_WIDTH_RPX = 654
+export const ANNIVERSARY_PHOTO_BOX_MIN_RPX = 360
+export const ANNIVERSARY_PHOTO_BOX_MAX_RPX = 640
+export const ANNIVERSARY_PHOTO_BOX_FALLBACK_RPX = 420
+
+export function anniversaryPhotoBoxHeight(photoAspect: number | undefined): number {
+  if (!photoAspect || !Number.isFinite(photoAspect) || photoAspect <= 0) return ANNIVERSARY_PHOTO_BOX_FALLBACK_RPX
+  const height = ANNIVERSARY_PHOTO_WIDTH_RPX * photoAspect
+  return Math.round(Math.min(ANNIVERSARY_PHOTO_BOX_MAX_RPX, Math.max(ANNIVERSARY_PHOTO_BOX_MIN_RPX, height)))
+}

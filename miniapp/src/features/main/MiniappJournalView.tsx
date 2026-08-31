@@ -247,7 +247,7 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
               <Image
                 className="journal-today__polaroid-image"
                 src={featuredPhoto.src}
-                mode={featuredPhoto.isDefault ? 'aspectFit' : 'aspectFill'}
+                mode="aspectFit"
               />
             </View>
             <View

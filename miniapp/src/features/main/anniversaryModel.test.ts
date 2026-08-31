@@ -1,8 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { anniversaryStats, matchesDay, nextOccurrence, sortAnniversaries } from './anniversaryModel'
+import { anniversaryPhotoBoxHeight, anniversaryStats, matchesDay, nextOccurrence, sortAnniversaries } from './anniversaryModel'
 
 const yearly = { id: '1', name: '恋爱纪念日', icon: 'heart', note: '', day: '2025-02-14', repeatRule: 'yearly' as const, createdAt: '' }
 const once = { id: '2', name: '演唱会', icon: 'star', note: '', day: '2026-10-01', repeatRule: 'none' as const, createdAt: '' }
+
+describe('anniversaryPhotoBoxHeight', () => {
+  it('scales the photo box with the real aspect ratio', () => {
+    // 1:1 恰好压在上限，左右只剩发丝级暖底边
+    expect(anniversaryPhotoBoxHeight(1)).toBe(640)
+    expect(anniversaryPhotoBoxHeight(3 / 4)).toBe(491)
+    expect(anniversaryPhotoBoxHeight(9 / 16)).toBe(368)
+  })
+  it('clamps extreme ratios so photos stay fully visible without huge cards', () => {
+    expect(anniversaryPhotoBoxHeight(16 / 9)).toBe(640)
+    expect(anniversaryPhotoBoxHeight(1 / 20)).toBe(360)
+  })
+  it('falls back to the default box for unknown or invalid aspects', () => {
+    expect(anniversaryPhotoBoxHeight(undefined)).toBe(420)
+    expect(anniversaryPhotoBoxHeight(0)).toBe(420)
+    expect(anniversaryPhotoBoxHeight(-2)).toBe(420)
+    expect(anniversaryPhotoBoxHeight(Number.NaN)).toBe(420)
+    expect(anniversaryPhotoBoxHeight(Number.POSITIVE_INFINITY)).toBe(420)
+  })
+})
 
 describe('matchesDay', () => {
   it('yearly matches month-day in any year', () => {

@@ -198,6 +198,9 @@ describe('miniapp ui presentation rules', () => {
     expect(component).toContain('action-photo-v2.png')
     expect(component).toContain('journalDisplayPhotos')
     expect(component).toContain('replaceTodayPhoto')
+    // 今日卡上传照片与默认邮票同用 aspectFit：拍立得白框内完整缩放，不裁切照片
+    expect(component).toContain('mode="aspectFit"')
+    expect(component).not.toContain('aspectFill')
     expect(component).toContain('拍照记录')
     expect(component).toContain('记录和小多利的每一天')
     expect(component).toContain('查看 >')
@@ -273,6 +276,10 @@ describe('miniapp ui presentation rules', () => {
     expect(formStyles).toMatch(/\.journal-editor__polaroid \{[^}]*width: 300rpx/)
     expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*width: 239rpx/)
     expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*height: 224rpx/)
+    // 写日记主图与缩略图都完整缩放不裁切（缩略图带暖底细描边，白底照片边界可辨）
+    expect(form).toContain('mode="aspectFit"')
+    expect(form).not.toContain('aspectFill')
+    expect(formStyles).toMatch(/\.journal-editor__photo \{[^}]*border: 1rpx solid #eedfc9/)
     expect(form).toContain('点这里放今天的照片')
     expect(form).toContain('previewImage')
     expect(form).toContain('查看大图')

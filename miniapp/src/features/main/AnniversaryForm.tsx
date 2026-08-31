@@ -80,7 +80,7 @@ export function AnniversaryForm({ defaultDay, withDatePicker, initial, saving, o
       <View className="anniv-form__photo" onClick={() => void pickPhoto()}>
         {photo ? (
           <View className="anniv-form__photo-preview">
-            <Image className="anniv-form__photo-img" src={photo} mode="aspectFill" />
+            <Image className="anniv-form__photo-img" src={photo} mode="aspectFit" />
             <Text className="anniv-form__photo-hint anniv-form__photo-hint--overlay">点击更换照片</Text>
           </View>
         ) : (

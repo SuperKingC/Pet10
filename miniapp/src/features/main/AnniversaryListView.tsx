@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { Button, Image, Text, View } from '@tarojs/components'
 import type { MiniappAnniversary } from '../../services/socialApi'
 import { anniversaryIcons, type AnniversaryIconKey } from './anniversaryAssets'
-import { anniversaryStats, sortAnniversaries } from './anniversaryModel'
+import { anniversaryPhotoBoxHeight, anniversaryStats, sortAnniversaries } from './anniversaryModel'
 import './anniversary.scss'
 
 interface AnniversaryListViewProps {
@@ -50,6 +51,17 @@ function countdownOf(item: MiniappAnniversary, today: Date): AnniversaryCountdow
 
 export function AnniversaryListView({ items, loading = false, today, onAdd, onEdit }: AnniversaryListViewProps) {
   const sorted = sortAnniversaries(items, today)
+  // 照片展示区高度按原图宽高比换算：onLoad 实测比例写入状态，更换照片后由下一次 onLoad 覆盖
+  const [photoAspects, setPhotoAspects] = useState<Record<string, number>>({})
+  const rememberPhotoAspect = (id: string, event: { detail?: { width?: number | string; height?: number | string } }) => {
+    // Taro 的 onLoadEventDetail 把宽高声明为 string | number，统一强转后再用
+    const width = Number(event.detail?.width ?? 0)
+    const height = Number(event.detail?.height ?? 0)
+    if (width > 0 && height > 0) {
+      const aspect = height / width
+      setPhotoAspects((current) => (current[id] === aspect ? current : { ...current, [id]: aspect }))
+    }
+  }
   return (
     <View className="anniv-list">
       {loading && <View className="anniv-list__skeleton" />}
@@ -64,20 +76,31 @@ export function AnniversaryListView({ items, loading = false, today, onAdd, onEd
       {!loading && sorted.map((item) => {
         const countdown = countdownOf(item, today)
         if (item.photo) {
+          // 照片完整展示：宽度铺满、高度按实测比例换算（夹在 360–640rpx），
+          // 倒计时信息放下方实底信息条——不再把照片裁切铺底当背景
+          const boxHeight = anniversaryPhotoBoxHeight(photoAspects[item.id])
           return (
             <View
               key={item.id}
-              className="anniv-list__photo-card"
+              className={`anniv-list__photo-card${countdown.isToday ? ' anniv-list__photo-card--today' : ''}`}
               onClick={() => onEdit(item.id)}
             >
-              <Image className="anniv-list__photo-bg" src={item.photo} mode="aspectFill" />
-              <View className="anniv-list__photo-mask" />
-              <Text className="anniv-list__photo-lead">{item.name} · {countdown.isToday ? '就是今天' : (countdown.unit === '天后' ? '还有' : '已经')}</Text>
-              <View className="anniv-list__photo-count">
-                <Text className="anniv-list__photo-num">{countdown.count}</Text>
-                {countdown.unit ? <Text className="anniv-list__photo-unit">{countdown.unit}</Text> : null}
+              <View className="anniv-list__photo-stage" style={{ height: `${boxHeight}rpx` }}>
+                <Image
+                  className="anniv-list__photo-img"
+                  src={item.photo}
+                  mode="aspectFit"
+                  onLoad={(event) => rememberPhotoAspect(item.id, event)}
+                />
               </View>
-              <Text className="anniv-list__photo-day">{formatDay(item.day)} {formatWeekday(item.day)}</Text>
+              <View className="anniv-list__photo-info">
+                <Text className="anniv-list__photo-lead">{item.name} · {countdown.isToday ? '就是今天' : (countdown.unit === '天后' ? '还有' : '已经')}</Text>
+                <View className="anniv-list__photo-count">
+                  <Text className="anniv-list__photo-num">{countdown.count}</Text>
+                  {countdown.unit ? <Text className="anniv-list__photo-unit">{countdown.unit}</Text> : null}
+                </View>
+                <Text className="anniv-list__photo-day">{formatDay(item.day)} {formatWeekday(item.day)}</Text>
+              </View>
             </View>
           )
         }

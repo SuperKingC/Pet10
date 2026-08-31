@@ -196,9 +196,13 @@
   width: 128rpx;
   height: 128rpx;
 }
+/* 缩略图完整缩放不裁切：暖底 + 细描边让白底照片边界可辨，点缩略图仍有全屏预览 */
 .journal-editor__photo {
+  box-sizing: border-box;
   width: 128rpx;
   height: 128rpx;
+  background: #fff8ee;
+  border: 1rpx solid #eedfc9;
   border-radius: 16rpx;
 }
 .journal-editor__photo-remove {

@@ -18,15 +18,21 @@ describe('anniversary photo presentation rules', () => {
     expect(form).toContain("sizeType: ['compressed']")
   })
 
-  it('renders photo anniversaries as full-bleed countdown cards', () => {
+  it('renders photo anniversaries as fully visible photo cards with an info strip', () => {
     const list = fs.readFileSync(listPath, 'utf8')
     const styles = fs.readFileSync(stylesPath, 'utf8')
 
+    // 照片完整展示不裁切：aspectFit + onLoad 实测比例定高，倒计时信息移到下方实底信息条
     expect(list).toContain('anniv-list__photo-card')
-    expect(list).toContain('mode="aspectFill"')
+    expect(list).toContain('mode="aspectFit"')
+    expect(list).toContain('anniversaryPhotoBoxHeight')
+    expect(list).not.toContain('mode="aspectFill"')
+    expect(list).not.toContain('photo-mask')
     expect(styles).toContain('.anniv-list__photo-card {')
-    expect(styles).toContain('.anniv-list__photo-mask {')
-    expect(styles).toMatch(/\.anniv-list__photo-num \{[^}]*132rpx/)
+    expect(styles).toContain('.anniv-list__photo-stage {')
+    expect(styles).toContain('.anniv-list__photo-info {')
+    expect(styles).not.toContain('.anniv-list__photo-mask')
+    expect(styles).toMatch(/\.anniv-list__photo-num \{[^}]*96rpx/)
   })
 
   it('keeps the form icon row borderless, fixed and aligned with the mood picker pattern', () => {

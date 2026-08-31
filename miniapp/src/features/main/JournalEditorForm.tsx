@@ -218,7 +218,7 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
             <Image
               className="journal-editor__polaroid-image"
               src={hasUserPhoto ? photos[0] : polaroidRun}
-              mode={hasUserPhoto ? 'aspectFill' : 'aspectFit'}
+              mode="aspectFit"
             />
             {!hasUserPhoto && <Text className="journal-editor__polaroid-hint">点这里放今天的照片</Text>}
           </View>
@@ -226,7 +226,7 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
             <View className="journal-editor__photos">
               {photos.slice(1).map((item, index) => (
                 <View key={`${index}-${item.slice(0, 24)}`} className="journal-editor__photo-wrap" onClick={() => previewPhotos(index + 1)}>
-                  <Image className="journal-editor__photo" src={item} mode="aspectFill" />
+                  <Image className="journal-editor__photo" src={item} mode="aspectFit" />
                   <Text
                     className="journal-editor__photo-remove"
                     onClick={(event) => {
