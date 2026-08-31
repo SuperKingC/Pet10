@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-08-31T10:51:00.348Z",
+  "garments": [
+    {
+      "key": "hoodie",
+      "file": "public/wardrobe/hoodie-icon-v2.png",
+      "width": 1505,
+      "height": 1759,
+      "bytes": 18793,
+      "bundled": false
+    },
+    {
+      "key": "overalls",
+      "file": "public/wardrobe/overalls-icon-v2.png",
+      "width": 880,
+      "height": 1669,
+      "bytes": 13528,
+      "bundled": false
+    },
+    {
+      "key": "dress",
+      "file": "public/wardrobe/dress-icon-v2.png",
+      "width": 1665,
+      "height": 1596,
+      "bytes": 20393,
+      "bundled": false
+    },
+    {
+      "key": "raincoat",
+      "file": "public/wardrobe/raincoat-icon-v2.png",
+      "width": 1497,
+      "height": 1727,
+      "bytes": 17304,
+      "bundled": false
+    },
+    {
+      "key": "pajamas",
+      "file": "public/wardrobe/pajamas-icon-v2.png",
+      "width": 1756,
+      "height": 1293,
+      "bytes": 15504,
+      "bundled": false
+    },
+    {
+      "key": "hat",
+      "file": "public/wardrobe/outfit-hat-v3.png",
+      "width": 1483,
+      "height": 1036,
+      "bytes": 16549,
+      "bundled": true
+    },
+    {
+      "key": "bag",
+      "file": "public/wardrobe/outfit-bag-v3.png",
+      "width": 1477,
+      "height": 671,
+      "bytes": 8216,
+      "bundled": true
+    }
+  ]
+}

@@ -41,13 +41,16 @@ describe('wardrobe model', () => {
       expect(style).toBeDefined()
       expect(Number.parseFloat(style!.width)).toBeLessThan(100)
       expect(Number.parseFloat(style!.top)).toBeLessThan(100)
-      expect(suitAssetFiles(key)).toEqual({ icon: `outfit-${key}-v2.png`, display: `outfit-${key}-v2.png` })
     }
+    // 网格图标=完整服饰；围巾叠加层用折线切出的前襟
+    expect(suitAssetFiles('hat')).toEqual({ icon: 'outfit-hat-v3.png', display: 'outfit-hat-v3.png' })
+    expect(suitAssetFiles('scarf')).toEqual({ icon: 'outfit-scarf-v2.png', display: 'outfit-scarf-cut-v2.png' })
+    expect(suitAssetFiles('bag')).toEqual({ icon: 'outfit-bag-v3.png', display: 'outfit-bag-v3.png' })
   })
 
   it('body suits use separate icon and full-render files', () => {
-    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v1.png', display: 'hoodie-v1.png' })
-    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v1.png', display: 'raincoat-v1.png' })
+    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png' })
+    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png' })
   })
 
   it('derives path badges from condition text of locked suits', () => {

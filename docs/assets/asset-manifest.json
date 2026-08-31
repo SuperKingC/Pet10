@@ -535,59 +535,14 @@
       "purpose": "Full letter-paper source illustration the v4 nine-slice letter assets were cut from"
     },
     {
-      "path": "public/wardrobe/outfit-hat-v2.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe beret garment cutout used both as grid icon and as the overlay layer on the default portrait, 192-color PNG8"
-    },
-    {
       "path": "public/wardrobe/outfit-scarf-v2.png",
       "category": "runtime-feature",
-      "purpose": "Wardrobe scarf garment AI-generated standalone art, background removed and bow/band cropped at the fold, grid icon plus overlay layer, 160-color PNG8"
-    },
-    {
-      "path": "public/wardrobe/outfit-bag-v2.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe crossbody bag cutout used as grid icon and overlay layer, 192-color PNG8"
-    },
-    {
-      "path": "public/wardrobe/hoodie-icon-v1.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe hoodie garment grid icon cut from the suit illustration, 128-color PNG8"
-    },
-    {
-      "path": "public/wardrobe/overalls-icon-v1.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe overalls garment grid icon cut from the suit illustration, 128-color PNG8"
-    },
-    {
-      "path": "public/wardrobe/dress-icon-v1.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe dress garment grid icon cut from the suit illustration, 128-color PNG8"
-    },
-    {
-      "path": "public/wardrobe/raincoat-icon-v1.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe raincoat garment grid icon cut from the suit illustration, 128-color PNG8"
-    },
-    {
-      "path": "public/wardrobe/pajamas-icon-v1.png",
-      "category": "runtime-feature",
-      "purpose": "Wardrobe pajamas garment grid icon cut from the suit illustration, 128-color PNG8"
-    },
-    {
-      "path": "miniapp/src/assets/wardrobe/outfit-hat-v2.png",
-      "category": "runtime-feature",
-      "purpose": "Bundled wardrobe beret garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
+      "purpose": "Wardrobe scarf complete garment (with bow) AI-generated standalone art, used as the grid icon, 64-color PNG8"
     },
     {
       "path": "miniapp/src/assets/wardrobe/outfit-scarf-v2.png",
       "category": "runtime-feature",
-      "purpose": "Bundled wardrobe scarf garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
-    },
-    {
-      "path": "miniapp/src/assets/wardrobe/outfit-bag-v2.png",
-      "category": "runtime-feature",
-      "purpose": "Bundled wardrobe crossbody bag garment: grid icon plus overlay layer positioned via wardrobeModel metadata"
+      "purpose": "Bundled wardrobe scarf complete garment grid icon, 64-color PNG8"
     },
     {
       "path": "design-assets/wardrobe/reference-sheet-v1.png",
@@ -605,6 +560,16 @@
       "purpose": "Wardrobe panel watercolor interior backdrop (AI-generated), served from COS and downloaded on panel open, not bundled"
     },
     {
+      "path": "design-assets/nest/pet-card-source-v1.jpg",
+      "category": "source-only",
+      "purpose": "AI-generated watercolor pet business card artwork (3:2, puppy left, clean text area right), source of pet-card-v1.jpg"
+    },
+    {
+      "path": "public/wardrobe/pet-card-v1.jpg",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli business card backdrop for the nest scene name-card modal (AI-generated), served from COS via ensureFile, gradient fallback, not bundled"
+    },
+    {
       "path": "design-assets/wardrobe/gen-wardrobe-interior-v1.png",
       "category": "source-only",
       "purpose": "AI-generated wardrobe interior source illustration (2496x1664), style reference for panel decor"
@@ -613,6 +578,96 @@
       "path": "design-assets/wardrobe/gen-hanger-v1.png",
       "category": "source-only",
       "purpose": "AI-generated wooden hanger with puppy face source illustration (2048x2048), source of the bundled hanger-v2 cutout"
+    },
+    {
+      "path": "public/wardrobe/outfit-scarf-cut-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe scarf front-flap overlay (fold line cuts off bow/band so it never covers the face), 64-color PNG8"
+    },
+    {
+      "path": "miniapp/src/assets/wardrobe/outfit-scarf-cut-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Bundled wardrobe scarf front-flap overlay layer positioned via wardrobeModel metadata"
+    },
+    {
+      "path": "public/wardrobe/outfit-hat-v3.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe yellow bucket hat with daisy, AI-generated standalone art cut to transparent, grid icon plus head overlay, 160-color PNG8"
+    },
+    {
+      "path": "public/wardrobe/outfit-bag-v3.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe teal crossbody bag with puppy face, AI-generated standalone art cut to transparent (strap trimmed), grid icon plus side overlay, 160-color PNG8"
+    },
+    {
+      "path": "public/wardrobe/hoodie-icon-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe hoodie complete garment grid icon, AI-generated standalone art cut to transparent, 160-color PNG8"
+    },
+    {
+      "path": "public/wardrobe/overalls-icon-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe overalls complete garment grid icon, AI-generated standalone art cut to transparent, 160-color PNG8"
+    },
+    {
+      "path": "public/wardrobe/dress-icon-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe dress complete garment grid icon, AI-generated standalone art cut to transparent, 160-color PNG8"
+    },
+    {
+      "path": "public/wardrobe/raincoat-icon-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe raincoat complete garment grid icon, AI-generated standalone art cut to transparent, 160-color PNG8"
+    },
+    {
+      "path": "public/wardrobe/pajamas-icon-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe pajamas with nightcap grid icon, AI-generated standalone art cut to transparent, 160-color PNG8"
+    },
+    {
+      "path": "miniapp/src/assets/wardrobe/outfit-hat-v3.png",
+      "category": "runtime-feature",
+      "purpose": "Bundled wardrobe hat overlay/grid icon (v3), 160-color PNG8"
+    },
+    {
+      "path": "miniapp/src/assets/wardrobe/outfit-bag-v3.png",
+      "category": "runtime-feature",
+      "purpose": "Bundled wardrobe bag overlay/grid icon (v3), 160-color PNG8"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-hoodie-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone hoodie source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-overalls-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone overalls source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-dress-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone dress source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-raincoat-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone raincoat source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-pajamas-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone pajamas source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-hat-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone bucket hat source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-bag-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated standalone crossbody bag source illustration (2048², white bg)"
     }
   ]
 }

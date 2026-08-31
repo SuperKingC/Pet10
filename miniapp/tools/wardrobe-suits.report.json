@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T08:41:22.670Z",
+  "generatedAt": "2026-08-31T09:44:51.313Z",
   "base": "436x700",
   "suits": [
     {
@@ -7,7 +7,7 @@
       "kind": "overlay",
       "file": "public/wardrobe/outfit-hat-v2.png",
       "bundled": true,
-      "bytes": 13769,
+      "bytes": 13979,
       "width": 186,
       "height": 131,
       "style": {
@@ -18,10 +18,17 @@
     },
     {
       "key": "scarf",
-      "kind": "overlay",
+      "kind": "overlay-icon",
       "file": "public/wardrobe/outfit-scarf-v2.png",
       "bundled": true,
-      "bytes": 12984,
+      "bytes": 18717
+    },
+    {
+      "key": "scarf",
+      "kind": "overlay",
+      "file": "public/wardrobe/outfit-scarf-cut-v2.png",
+      "bundled": true,
+      "bytes": 13012,
       "width": 252,
       "height": 147,
       "style": {
@@ -35,7 +42,7 @@
       "kind": "overlay",
       "file": "public/wardrobe/outfit-bag-v2.png",
       "bundled": true,
-      "bytes": 7451,
+      "bytes": 7450,
       "width": 108,
       "height": 108,
       "style": {
@@ -51,7 +58,7 @@
       "full": "public/wardrobe/hoodie-v1.png",
       "bundled": false,
       "iconBytes": 11405,
-      "fullBytes": 38736
+      "fullBytes": 39273
     },
     {
       "key": "overalls",
@@ -59,8 +66,8 @@
       "icon": "public/wardrobe/overalls-icon-v1.png",
       "full": "public/wardrobe/overalls-v1.png",
       "bundled": false,
-      "iconBytes": 17863,
-      "fullBytes": 34847
+      "iconBytes": 18191,
+      "fullBytes": 35485
     },
     {
       "key": "dress",
@@ -68,8 +75,8 @@
       "icon": "public/wardrobe/dress-icon-v1.png",
       "full": "public/wardrobe/dress-v1.png",
       "bundled": false,
-      "iconBytes": 12723,
-      "fullBytes": 36684
+      "iconBytes": 12898,
+      "fullBytes": 37098
     },
     {
       "key": "raincoat",
@@ -77,8 +84,8 @@
       "icon": "public/wardrobe/raincoat-icon-v1.png",
       "full": "public/wardrobe/raincoat-v1.png",
       "bundled": false,
-      "iconBytes": 13226,
-      "fullBytes": 33442
+      "iconBytes": 13262,
+      "fullBytes": 33883
     },
     {
       "key": "pajamas",
@@ -86,8 +93,8 @@
       "icon": "public/wardrobe/pajamas-icon-v1.png",
       "full": "public/wardrobe/pajamas-v1.png",
       "bundled": false,
-      "iconBytes": 16036,
-      "fullBytes": 30259
+      "iconBytes": 16043,
+      "fullBytes": 30518
     }
   ]
 }

@@ -44,9 +44,9 @@ export function isBundledSuit(key: string): boolean {
  * 数值与 miniapp/tools/make-wardrobe-suits.mjs 的 cx/ty/w 标定一致，改素材必须同步。
  */
 export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hat: { left: '28.67%', top: '7.43%', width: '42.66%' },
+  hat: { left: '25.00%', top: '6.86%', width: '50.00%' },
   scarf: { left: '21.10%', top: '49.14%', width: '57.80%' },
-  bag: { left: '22.02%', top: '75.43%', width: '24.77%' }
+  bag: { left: '21.10%', top: '74.00%', width: '27.52%' }
 }
 
 export function isOverlaySuit(key: string): boolean {
@@ -60,13 +60,15 @@ export interface SuitAssetFiles {
   display: string
 }
 
-/** 每套的素材文件名（COS 与随包同名）：叠穿件一张文件（v2，缓存换图升版），主体服装图标+立绘两张 */
+/** 每套的素材文件名：叠穿件网格图标=完整服饰、叠加层=切前襟（围巾）或整件（帽/包）；主体服装图标(AI)+立绘(旧) */
 export function suitAssetFiles(key: string): SuitAssetFiles {
   if (isOverlaySuit(key)) {
-    const file = `outfit-${key}-v2.png`
-    return { icon: file, display: file }
+    // 网格展示完整服饰；围巾的叠加层是折线切出的前襟（完整版叠图会盖住脸），帽/包整件即可叠
+    const icon = key === 'scarf' ? 'outfit-scarf-v2.png' : `outfit-${key}-v3.png`
+    const display = key === 'scarf' ? 'outfit-scarf-cut-v2.png' : icon
+    return { icon, display }
   }
-  return { icon: `${key}-icon-v1.png`, display: `${key}-v1.png` }
+  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png` }
 }
 
 /** 获得途径徽章：从条件文案派生，未解锁的套装显示途径角标 */

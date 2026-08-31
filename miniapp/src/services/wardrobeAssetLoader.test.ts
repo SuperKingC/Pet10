@@ -7,8 +7,9 @@ function makeDeps(overrides: Partial<SuitAssetDeps> = {}): SuitAssetDeps {
     bundledImages: {
       default: 'bundled-default.png',
       'outfit-scarf-v2.png': 'bundled-scarf.png',
-      'outfit-hat-v2.png': 'bundled-hat.png',
-      'outfit-bag-v2.png': 'bundled-bag.png'
+      'outfit-scarf-cut-v2.png': 'bundled-scarf-cut.png',
+      'outfit-hat-v3.png': 'bundled-hat.png',
+      'outfit-bag-v3.png': 'bundled-bag.png'
     },
     readIndex: () => index,
     writeIndex: (next) => Object.assign(index, next),
@@ -25,7 +26,7 @@ describe('suit asset service', () => {
 
   it('resolves bundled overlay suits with the same file for icon and display', () => {
     const service = createSuitAssetService(makeDeps())
-    expect(service.getCachedSuitFiles('scarf')).toEqual({ icon: 'bundled-scarf.png', display: 'bundled-scarf.png' })
+    expect(service.getCachedSuitFiles('scarf')).toEqual({ icon: 'bundled-scarf.png', display: 'bundled-scarf-cut.png' })
     expect(service.getCachedSuitFiles('hat')).toEqual({ icon: 'bundled-hat.png', display: 'bundled-hat.png' })
   })
 
@@ -34,7 +35,7 @@ describe('suit asset service', () => {
     expect(service.getCachedSuitFiles('hoodie')).toBeNull()
     expect(service.resolveSuitDisplay('hoodie')).toBe('bundled-default.png')
     expect(service.resolveSuitDisplay(null)).toBe('bundled-default.png')
-    expect(service.resolveSuitDisplay('scarf')).toBe('bundled-scarf.png')
+    expect(service.resolveSuitDisplay('scarf')).toBe('bundled-scarf-cut.png')
   })
 
   it('short-circuits the default suit to the bundled portrait without downloads', async () => {
@@ -50,10 +51,10 @@ describe('suit asset service', () => {
     const saveFile = vi.fn(async () => undefined)
     const service = createSuitAssetService(makeDeps({ download, saveFile }))
     const results = await service.ensureSuitAssets(['hoodie'])
-    expect(download).toHaveBeenCalledWith('hoodie-icon-v1.png')
+    expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
-    expect(saveFile).toHaveBeenCalledWith('wxfile://tmp/x', 'wxfile://usr/wardrobe-hoodie-icon-v1.png')
-    expect(results.hoodie).toEqual({ icon: 'wxfile://usr/wardrobe-hoodie-icon-v1.png', display: 'wxfile://usr/wardrobe-hoodie-v1.png' })
+    expect(saveFile).toHaveBeenCalledWith('wxfile://tmp/x', 'wxfile://usr/wardrobe-hoodie-icon-v2.png')
+    expect(results.hoodie).toEqual({ icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png', display: 'wxfile://usr/wardrobe-hoodie-v1.png' })
     // 第二次直接命中缓存，不再下载
     await service.ensureSuitAssets(['hoodie'])
     expect(download).toHaveBeenCalledTimes(2)
@@ -61,12 +62,12 @@ describe('suit asset service', () => {
 
   it('keeps silent when a remote asset is unavailable and skips the suit', async () => {
     const download = vi.fn(async (fileName: string) => {
-      if (fileName === 'dress-icon-v1.png') throw new Error('wardrobe_asset_status_404')
+      if (fileName === 'dress-icon-v2.png') throw new Error('wardrobe_asset_status_404')
       return 'wxfile://tmp/ok'
     })
     const service = createSuitAssetService(makeDeps({ download }))
     const results = await service.ensureSuitAssets(['dress', 'scarf'])
-    expect(results).toEqual({ scarf: { icon: 'bundled-scarf.png', display: 'bundled-scarf.png' } })
+    expect(results).toEqual({ scarf: { icon: 'bundled-scarf.png', display: 'bundled-scarf-cut.png' } })
     expect(service.getCachedSuitFiles('dress')).toBeNull()
   })
 
@@ -88,7 +89,7 @@ describe('suit asset service', () => {
     const service = createSuitAssetService(deps)
     await service.ensureSuitAssets(['hoodie'])
     expect(download).toHaveBeenCalledTimes(2)
-    expect(download).toHaveBeenCalledWith('hoodie-icon-v1.png')
+    expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
   })
 })
