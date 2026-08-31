@@ -212,9 +212,9 @@ describe('miniapp ui presentation rules', () => {
     expect(component).not.toContain('journal-anniversary/journal-anniversary')
     expect(styles).toContain('.journal-today__polaroid')
     expect(styles).toMatch(/\.journal-today__polaroid \{[^}]*width: 280rpx/)
-    // 上传照片白框可见尺寸与坐姿邮票可见邮票面一致（208 内衬 + 8/8/20 边衬，比邮票可见面再收一档）
-    expect(styles).toMatch(/\.journal-today__polaroid:not\(\.journal-today__polaroid--default\) \{[^}]*width: 208rpx/)
-    expect(styles).toMatch(/\.journal-today__polaroid:not\(\.journal-today__polaroid--default\) \{[^}]*height: 180rpx/)
+    // 上传照片白框与坐姿邮票屏上可见投影等大（232 内衬 + 10/10/22 边衬，-6° 倾斜后投影 273×242）
+    expect(styles).toMatch(/\.journal-today__polaroid:not\(\.journal-today__polaroid--default\) \{[^}]*width: 232rpx/)
+    expect(styles).toMatch(/\.journal-today__polaroid:not\(\.journal-today__polaroid--default\) \{[^}]*height: 185rpx/)
     expect(styles).toContain('.miniapp-journal__week-card')
     expect(styles).toMatch(/\.miniapp-journal \{[^}]*background: #fff8ee/)
     expect(styles).not.toContain('linear-gradient(180deg, #fffdf7')
@@ -269,10 +269,10 @@ describe('miniapp ui presentation rules', () => {
     expect(formStyles).toMatch(/\.journal-editor-page \{[^}]*padding: 0 28rpx 330rpx/)
     expect(formStyles).toMatch(/\.journal-editor__yard \{[^}]*bottom: -85rpx/)
     expect(formStyles).toMatch(/\.journal-editor__mood-image \{[^}]*width: 120rpx/)
-    // 上传照片白框可见尺寸与默认邮票可见邮票面一致（不大于默认邮票）
+    // 上传照片白框与奔跑邮票屏上可见投影等大（239 内衬 + 14/14/20 边衬，+6° 倾斜后投影 293×284）
     expect(formStyles).toMatch(/\.journal-editor__polaroid \{[^}]*width: 300rpx/)
-    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*width: 236rpx/)
-    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*height: 222rpx/)
+    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*width: 239rpx/)
+    expect(formStyles).toMatch(/\.journal-editor__polaroid--user \{[^}]*height: 224rpx/)
     expect(form).toContain('点这里放今天的照片')
     expect(form).toContain('previewImage')
     expect(form).toContain('查看大图')
