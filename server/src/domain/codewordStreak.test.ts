@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { codewordStreakFromFlags, dayBefore, isCodewordStreakCardDue } from './codewordStreak.js'
+import { codewordStreakFromFlags, dayBefore } from './codewordStreak.js'
 
 describe('codeword streak', () => {
   it('counts consecutive both-answered days from today backwards', () => {
@@ -7,13 +7,6 @@ describe('codeword streak', () => {
     expect(codewordStreakFromFlags([true, true, true])).toBe(3)
     // 今天还没答上 → 连胜中断为 0
     expect(codewordStreakFromFlags([false, true, true])).toBe(0)
-  })
-
-  it('streak card is due every 7 days', () => {
-    expect(isCodewordStreakCardDue(6)).toBe(false)
-    expect(isCodewordStreakCardDue(7)).toBe(true)
-    expect(isCodewordStreakCardDue(8)).toBe(false)
-    expect(isCodewordStreakCardDue(14)).toBe(true)
   })
 
   it('walks back calendar days in UTC', () => {

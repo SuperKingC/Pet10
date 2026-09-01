@@ -2,11 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createPhotoWallService } from './photoWallService.js'
-import { shanghaiDayKey } from './codewordStreak.js'
-import { dayBefore } from '../domain/codewordStreak.js'
 import { PHOTO_WALL_LIMIT } from '../domain/photoWallRules.js'
-
-const FIXED_NOW = new Date('2026-08-30T10:00:00Z')
 
 async function createPairRoom() {
   const repositories = createMemoryRepositories()
@@ -69,48 +65,19 @@ describe('photo wall service', () => {
     expect(photos.some((photo) => photo.caption === 'newest')).toBe(true)
   })
 
-  it('auto level-up card is written once per level and match cards survive eviction', async () => {
+  it('match card is the only auto card and survives a full wall', async () => {
     const { repositories, user, room } = await createPairRoom()
     const service = createPhotoWallService(repositories)
-    await service.onLevelUp(room.id, 3)
-    let photos = await service.list(room.id, user.id)
-    expect(photos.map((photo) => photo.origin)).toEqual(['levelup'])
-    expect(photos[0].caption).toBe('小多利升到 Lv.3 啦')
+    await service.onMatchSettled(room.id, { suitKey: 'scarf', day: '2026-08-30' })
 
     for (let index = 0; index < PHOTO_WALL_LIMIT - 1; index += 1) {
       await service.create(room.id, user.id, { photo: tinyPhoto, caption: `#${index}` })
     }
-    // 墙满后新自动卡放弃，但已有默契卡不被挤掉
-    await service.onLevelUp(room.id, 4)
-    photos = await service.list(room.id, user.id)
-    expect(photos).toHaveLength(PHOTO_WALL_LIMIT)
-    expect(photos.some((photo) => photo.origin === 'levelup' && photo.caption.includes('Lv.3'))).toBe(true)
-  })
-
-  it('codeword streak card appears every 7 both-answered days', async () => {
-    const { repositories, user, friend, room } = await createPairRoom()
-    const service = createPhotoWallService(repositories, { now: () => FIXED_NOW })
-    const today = shanghaiDayKey(FIXED_NOW)
-    for (let offset = 6; offset >= 0; offset -= 1) {
-      const day = dayBefore(today, offset)
-      await repositories.codewords.setAnswer(room.id, day, user.id, '答')
-      await repositories.codewords.setAnswer(room.id, day, friend.id, '答')
-    }
-    await service.onCodewordBothAnswered(room.id)
+    // 墙满后新的自动卡放弃，但已有默契卡不被挤掉
+    await service.onMatchSettled(room.id, { suitKey: 'scarf', day: '2026-08-31' })
     const photos = await service.list(room.id, user.id)
-    expect(photos.map((photo) => photo.origin)).toEqual(['codeword_streak'])
-    expect(photos[0].caption).toContain('×7')
-
-    // 未满 7 天时不发卡
-    const { repositories: repos2, user: user2, friend: friend2, room: room2 } = await createPairRoom()
-    const service2 = createPhotoWallService(repos2, { now: () => FIXED_NOW })
-    for (let offset = 5; offset >= 0; offset -= 1) {
-      const day = dayBefore(today, offset)
-      await repos2.codewords.setAnswer(room2.id, day, user2.id, '答')
-      await repos2.codewords.setAnswer(room2.id, day, friend2.id, '答')
-    }
-    await service2.onCodewordBothAnswered(room2.id)
-    expect(await service2.list(room2.id, user2.id)).toHaveLength(0)
+    expect(photos).toHaveLength(PHOTO_WALL_LIMIT)
+    expect(photos.some((photo) => photo.origin === 'match_outfit' && photo.refKey === 'scarf')).toBe(true)
   })
 
   it('writes the match card with suit reference', async () => {

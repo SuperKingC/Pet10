@@ -11,11 +11,6 @@ export function codewordStreakFromFlags(flags: boolean[]): number {
   return streak
 }
 
-/** 暗号连胜卡冷却：每满 7 天发 1 张（7、14、21…） */
-export function isCodewordStreakCardDue(streak: number): boolean {
-  return streak >= 7 && streak % 7 === 0
-}
-
 /** 从某天往前推 n 天的 YYYY-MM-DD（UTC 口径，与服务端 todayKey 的自然日字符串一致） */
 export function dayBefore(day: string, offset: number): string {
   const date = new Date(`${day}T00:00:00Z`)

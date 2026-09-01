@@ -109,8 +109,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
     emit,
     emitUser,
     onMoodSet: (roomId, userId, level) => void brain.onMoodSet(roomId, userId, level),
-    onNotify: (userId) => void pushService?.notifyUser(userId),
-    onCodewordBothAnswered: (roomId) => void photoWallService.onCodewordBothAnswered(roomId)
+    onNotify: (userId) => void pushService?.notifyUser(userId)
   })
   const friendshipService = createFriendshipService(repositories, {
     notify: (userId, type, payload) => void socialService.notify(userId, type, payload)
@@ -125,8 +124,6 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   const petService = createPetService(repositories, {
     onPetEvent: (roomId, userId, action, outcome) => {
       void brain.onPetEvent(roomId, userId, action, outcome)
-      // 升级纪念卡自动入墙（每次升级恰好一张）
-      if (outcome.leveledUp) void photoWallService.onLevelUp(roomId, outcome.pet.level)
     }
   })
   const roomService = createRoomService({ repositories, ai, brain, mood })

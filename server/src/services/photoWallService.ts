@@ -1,15 +1,10 @@
 import type { PhotoWallPost } from '../domain/models.js'
 import {
-  isCodewordStreakCardDue,
-  dayBefore
-} from '../domain/codewordStreak.js'
-import {
   normalizeCaption,
   pickEvictionId,
   type PhotoWallOrigin
 } from '../domain/photoWallRules.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
-import { computeBothAnsweredStreak, shanghaiDayKey } from './codewordStreak.js'
 import { PHOTO_WALL_LIMIT } from '../domain/photoWallRules.js'
 
 export interface PhotoWallView {
@@ -24,15 +19,12 @@ export interface PhotoWallView {
   userName: string | null
 }
 
-export function createPhotoWallService(repositories: RepositoryBundle, options?: {
-  now?: () => Date
-}) {
-  const now = options?.now ?? (() => new Date())
-
+export function createPhotoWallService(repositories: RepositoryBundle) {
   async function assertMember(roomId: string, userId: string) {
     if (!(await repositories.rooms.isMember(roomId, userId))) throw new Error('room_forbidden')
   }
 
+  /** 唯一的自动入墙通道：默契换装卡（双方同日提交同一套装时由衣柜结算触发） */
   async function insertAutoCard(roomId: string, input: {
     origin: PhotoWallOrigin
     caption: string
@@ -40,7 +32,7 @@ export function createPhotoWallService(repositories: RepositoryBundle, options?:
     takenDay?: string | null
   }): Promise<PhotoWallPost | null> {
     const existing = await repositories.photoWall.listByRoom(roomId, 10_000)
-    // 自动卡在满仓时直接放弃（每类卡有冷却，正常到不了这一步）
+    // 自动卡在满仓时直接放弃（默契卡每天每套至多结算一次，正常到不了这一步）
     if (existing.length + 1 > PHOTO_WALL_LIMIT) return null
     return repositories.photoWall.create({
       roomId,
@@ -112,26 +104,6 @@ export function createPhotoWallService(repositories: RepositoryBundle, options?:
       const post = await repositories.photoWall.findById(roomId, photoId)
       if (!post) throw new Error('photo_not_found')
       await repositories.photoWall.deleteById(roomId, photoId)
-    },
-
-    /** 小多利升级时自动生成一张 Lv.N 纪念卡（每次升级恰好一张） */
-    async onLevelUp(roomId: string, level: number): Promise<void> {
-      await insertAutoCard(roomId, {
-        origin: 'levelup',
-        caption: `小多利升到 Lv.${level} 啦`
-      })
-    },
-
-    /** 双方当天都答上暗号时触发：连胜每满 7 天生成一张趣味卡 */
-    async onCodewordBothAnswered(roomId: string): Promise<void> {
-      const today = shanghaiDayKey(now())
-      const streak = await computeBothAnsweredStreak(repositories.codewords, roomId, today)
-      if (!isCodewordStreakCardDue(streak)) return
-      await insertAutoCard(roomId, {
-        origin: 'codeword_streak',
-        caption: `每日暗号连胜 ×${streak}！`,
-        takenDay: today
-      })
     },
 
     /** 默契换装达成由 wardrobeService 结算后调用，入墙一张默契卡（不被自动淘汰） */
