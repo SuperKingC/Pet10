@@ -1,6 +1,7 @@
 import { Image, Text, View } from '@tarojs/components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PetState } from '../domain/types'
+import { suitDisplayWidth, type OutfitPieces } from '../domain/wardrobeModel'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
 import { getXiaoduoliSpeech } from '../features/main/xiaoduoliSpeech'
 import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
@@ -10,8 +11,10 @@ import './PetStatusCard.scss'
 type Props = {
   pet: PetState
   onOpenMemories?: () => void
-  /** 衣柜当前套装 key（空/default 显示原装小多利） */
+  /** 衣柜当前套装 key（旧用法：单套装；优先用 outfitPieces） */
   suitKey?: string | null
+  /** 按类别完整穿戴（主体+配饰多层叠加）；缺省时回退 suitKey 单套装展示 */
+  outfitPieces?: OutfitPieces
   /** 点「小多利」名片打开名片弹窗 */
   onOpenCard?: () => void
   /** 小窝行为幕：睡觉动作后为 true，立绘交叉淡入为四脚朝天睡姿 */
@@ -43,8 +46,10 @@ interface DanmakuItem {
 /** 弹幕横幅在场景上半部漂浮（避开小多利头顶以下区域） */
 const DANMAKU_TOP_RANGE = [8, 38] as const
 
-export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard, sleeping }: Props) {
+export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOpenCard, sleeping }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
+  // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与旧 .pet-avatar-image 236px 一致
+  const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 236) : null
   const [speechIndex, setSpeechIndex] = useState(0)
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
@@ -64,19 +69,23 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard, sleepi
   // 睡觉时飘字定格为「Zzz……」，不再轮播闲聊
   const speech = sleeping ? 'Zzz……' : getXiaoduoliSpeech(pet, speechIndex)
 
+  // 立绘固定元素：memo 掉，避免换飘字重渲染时叠穿层 widthFix 图重测量导致衣服闪现
+  const piecesKey = outfitPieces ? `${outfitPieces.body}|${outfitPieces.hat}|${outfitPieces.scarf}|${outfitPieces.bag}` : ''
+  const portrait = useMemo(
+    () => (outfitPieces
+      ? <MiniappOutfitPortrait pieces={outfitPieces} flow />
+      : <MiniappOutfitPortrait suitKey={suitKey} />),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [piecesKey, suitKey]
+  )
   // 背景元素固定不变：memo 掉，避免换飘字重渲染时触发图片重测量
   const backdrop = useMemo(
     () => <Image className="pet-card-background" src={roomBackground} mode="aspectFill" />,
     [],
   )
 
-  // 弹幕：按心情计划周期飘 + 状态刷新（喂食/玩耍等）时连发；reduced-motion 不启用
+  // 弹幕：按心情计划周期飘 + 状态刷新（喂食/玩耍等）时连发（reduced-motion 由 CSS visibility 兜底）
   const plan = useMemo(() => getDanmakuPlan(pet), [pet])
-  const reducedMotion = useMemo(() => (
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      : false
-  ), [])
   const danmakuIdRef = useRef(0)
   const danmakuIndexRef = useRef(0)
   const removeTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -88,7 +97,7 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard, sleepi
   }, [])
 
   const spawnDanmaku = useCallback((count: number) => {
-    if (reducedMotion || count <= 0) return
+    if (count <= 0) return
     const items: DanmakuItem[] = []
     for (let i = 0; i < count; i++) {
       const id = ++danmakuIdRef.current
@@ -104,7 +113,7 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard, sleepi
       items.push(item)
     }
     setDanmaku((current) => [...current, ...items])
-  }, [pet, reducedMotion])
+  }, [pet])
 
   // 状态刷新（动作后服务端返回新 pet）→ 连发庆祝弹幕
   useEffect(() => {
@@ -113,12 +122,13 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard, sleepi
     spawnDanmaku(getDanmakuPlan(pet).burst)
   }, [pet, spawnDanmaku])
 
-  // 周期弹幕：按情绪档位定频率；睡觉时不飘弹幕，只留 Zzz
+  // 周期弹幕：按情绪档位定频率；睡觉时不飘弹幕，只留 Zzz；首条 2s 内出现让用户立刻看到
   useEffect(() => {
-    if (!plan.active || reducedMotion || sleeping) return
+    if (!plan.active || sleeping) return
+    const first = setTimeout(() => spawnDanmaku(1), 2000)
     const timer = setInterval(() => spawnDanmaku(1), plan.intervalMs)
-    return () => clearInterval(timer)
-  }, [plan, reducedMotion, sleeping, spawnDanmaku])
+    return () => { clearTimeout(first); clearInterval(timer) }
+  }, [plan, sleeping, spawnDanmaku])
 
   return (
     <View className="pet-status-card">
@@ -134,9 +144,9 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard, sleepi
           </Text>
         ))}
         <Text className="pet-level">Lv.{pet.level}</Text>
-        <View className="pet-avatar-image">
+        <View className="pet-avatar-image" style={outfitWidth ? { width: `${outfitWidth}px` } : undefined}>
           <View className={`pet-avatar-stand${sleeping ? ' pet-avatar-stand--hidden' : ''}`}>
-            <MiniappOutfitPortrait suitKey={suitKey} />
+            {portrait}
           </View>
           {sleepSrc && (
             <Image

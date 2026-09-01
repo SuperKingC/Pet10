@@ -7,17 +7,17 @@
 .pet-action-button--locked image { opacity: .45; filter: grayscale(.6); }
 .pet-action-button__badge {
   position: absolute;
-  top: -6px;
-  right: 2px;
+  top: -14px;
+  right: -2px;
   display: flex;
   align-items: center;
-  gap: 1px;
-  padding: 2px 7px;
+  gap: 2px;
+  padding: 4px 10px 4px 6px;
   background: #fffdf8;
   border: 1px solid #e8bd91;
   border-radius: 999px;
   box-shadow: 0 2px 6px rgba(126, 82, 49, .15);
 }
 .pet-action-button__badge--empty { opacity: .75; background: #f3e3d3; border-color: #d9b28c; }
-.pet-action-button__badge-icon { width: 22px; height: 22px; }
-.pet-action-button__badge-count { color: #7a5236; font-size: 19px; font-weight: 600; line-height: 1.1; }
+.pet-action-button__badge-icon { width: 40px; height: 40px; }
+.pet-action-button__badge-count { color: #7a5236; font-size: 22px; font-weight: 600; line-height: 1.1; }
