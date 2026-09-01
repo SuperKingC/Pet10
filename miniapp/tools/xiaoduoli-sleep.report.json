@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-09-01T04:07:10.664Z",
+  "source": "design-assets/nest/xiaoduoli-sleep-source-v1.png",
+  "output": "miniapp/src/assets/nest/xiaoduoli-sleep-v1.png",
+  "displayWidthPx": 240,
+  "cutBox": {
+    "width": 2249,
+    "height": 1283
+  },
+  "outputSize": {
+    "width": 480,
+    "height": 274
+  },
+  "bytes": 67511
+}

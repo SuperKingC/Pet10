@@ -565,6 +565,16 @@
       "purpose": "Xiaoduoli business card backdrop for the nest scene name-card modal (AI-generated), served from COS via ensureFile, gradient fallback, not bundled"
     },
     {
+      "path": "design-assets/nest/xiaoduoli-sleep-source-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated belly-up sleeping pose of Xiaoduoli (3:2, four paws up, eyes closed, white bg), style-matched to the standing portrait via reference image, source of xiaoduoli-sleep-v1.png"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-sleep-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli belly-up sleeping pose for the nest sleep act (cut to alpha bbox, 480x274 PNG8 = 240px display @2x), served from COS via ensureFile, keeps standing portrait until loaded, not bundled"
+    },
+    {
       "path": "design-assets/wardrobe/gen-wardrobe-interior-v1.png",
       "category": "source-only",
       "purpose": "AI-generated wardrobe interior source illustration (2496x1664), style reference for panel decor"

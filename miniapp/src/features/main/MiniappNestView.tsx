@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
+import { NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
 import { unlockRoom } from '../../domain/xiaoduoliUnlock'
 import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
@@ -56,6 +57,20 @@ export function MiniappNestView({
   const [photoWallPanelOpen, setPhotoWallPanelOpen] = useState(false)
   const [petCardOpen, setPetCardOpen] = useState(false)
   const [wardrobeView, setWardrobeView] = useState<WardrobeView | null>(null)
+  // 小窝行为幕：照顾动作驱动（睡觉 → 入睡 20s，其余动作唤醒），纯函数判定 + 组件侧定时器回收
+  const [petAct, setPetAct] = useState<NestPetActState>(NEST_PET_STAND_ACT)
+  const petSleeping = petAct.act === 'sleep'
+
+  const handlePetAction = useCallback((action: PetAction) => {
+    setPetAct((current) => reduceNestPetAct(current, { action, now: Date.now() }))
+    onAction(action)
+  }, [onAction])
+
+  useEffect(() => {
+    if (!petSleeping) return
+    const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), NEST_PET_SLEEP_MS)
+    return () => clearTimeout(timer)
+  }, [petSleeping, petAct.wakeAt])
   const [unlock, setUnlock] = useState(() => reconcileStoredUnlock(
     (context?.rooms ?? []).filter((room) => room.pet).map((room) => room.id),
   ))
@@ -149,7 +164,7 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} suitKey={wardrobeView?.equipped ?? 'default'} onOpenCard={() => setPetCardOpen(true)} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} suitKey={wardrobeView?.equipped ?? 'default'} onOpenCard={() => setPetCardOpen(true)} sleeping={petSleeping} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (
@@ -167,7 +182,7 @@ export function MiniappNestView({
           )}
         </View>
 
-        {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} onAction={onAction} />}
+        {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} onAction={handlePetAction} />}
 
         {sceneMode === 'active' && <MiniappContributionBoard contributions={contributions} names={names} />}
       </View>

@@ -10,6 +10,37 @@
 .pet-card-background { position: absolute; inset: 0; width: 100%; height: 100%; }
 /* 小多利居中偏下踩在居中椭圆地毯上（bottom 14px） */
 .pet-avatar-image { position: absolute; bottom: 14px; left: 50%; z-index: 2; width: 200px; height: 236px; transform: translateX(-50%); }
+/* 睡姿：睡觉动作后站姿与四脚朝天 COS 姿态图（240×137 = 480×274 @2x）交叉淡入 300ms；
+   睡姿图未就绪时保持站姿，躺姿比站姿宽、底边与地毯线对齐，肚皮呼吸以底边为轴不离地 */
+.pet-avatar-stand { position: absolute; inset: 0; transition: opacity .3s ease; }
+.pet-avatar-stand--hidden { opacity: 0; }
+.pet-avatar-sleep {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 240px;
+  height: 137px;
+  opacity: 0;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  transition: opacity .3s ease;
+}
+.pet-avatar-sleep--on { opacity: 1; animation: pet-sleep-breathe 1.8s ease-in-out .35s infinite; }
+@keyframes pet-sleep-breathe {
+  0%, 100% { transform: translateX(-50%) scaleY(1); }
+  50% { transform: translateX(-50%) scaleY(.97); }
+}
+/* Zzz 从狗头（睡姿图左侧）上方错峰上飘渐隐 */
+.pet-sleep-zzz { position: absolute; top: -2px; left: 2px; z-index: 3; width: 0; height: 0; }
+.pet-sleep-zzz__z { position: absolute; color: #a56f4a; font-weight: var(--font-weight-bold); animation: pet-sleep-zzz 2.4s ease-in-out infinite; }
+.pet-sleep-zzz__z--1 { left: 0; top: 0; font-size: 13px; }
+.pet-sleep-zzz__z--2 { left: 11px; top: -12px; font-size: 17px; animation-delay: .8s; }
+.pet-sleep-zzz__z--3 { left: 24px; top: -26px; font-size: 21px; animation-delay: 1.6s; }
+@keyframes pet-sleep-zzz {
+  0% { opacity: 0; transform: translateY(6px) scale(.8); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-12px) scale(1.08); }
+}
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
 
@@ -78,5 +109,8 @@
 @media (prefers-reduced-motion: reduce) {
   .pet-speech { animation: none; }
   .pet-danmaku { animation: none; visibility: hidden; }
+  .pet-avatar-stand, .pet-avatar-sleep { transition: none; }
+  .pet-avatar-sleep--on { animation: none; }
+  .pet-sleep-zzz__z { animation: none; opacity: 1; }
   .experience-track > view, .status-track > view { transition: none; }
 }

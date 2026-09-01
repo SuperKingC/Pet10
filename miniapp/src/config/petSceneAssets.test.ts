@@ -15,4 +15,22 @@ describe('miniapp pet scene assets', () => {
     expect(statSync(backgroundPath).size).toBeLessThanOrEqual(180 * 1024)
     expect(componentSource).toContain("require('../assets/room-background-v5.jpg')")
   })
+
+  it('sleep pose ships via COS static assets and the nest scene wires the sleep act', () => {
+    const sleepPosePath = resolve(miniappRoot(), '../public/wardrobe/xiaoduoli-sleep-v1.png')
+    const componentSource = readFileSync(
+      resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'),
+      'utf8',
+    )
+    const nestViewSource = readFileSync(
+      resolve(miniappRoot(), 'src/features/main/MiniappNestView.tsx'),
+      'utf8',
+    )
+
+    expect(existsSync(sleepPosePath)).toBe(true)
+    expect(statSync(sleepPosePath).size).toBeLessThanOrEqual(180 * 1024)
+    expect(componentSource).toContain("suitAssets.ensureFile(SLEEP_POSE_FILE)")
+    expect(componentSource).toContain('pet-avatar-sleep')
+    expect(nestViewSource).toContain('sleeping={petSleeping}')
+  })
 })
