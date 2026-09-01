@@ -5,7 +5,7 @@ import { miniappRoot } from './testPaths'
 
 describe('miniapp pet scene assets', () => {
   it('bundles the PWA room background within the miniapp image budget', () => {
-    const backgroundPath = resolve(miniappRoot(), 'src/assets/room-background-v9.jpg')
+    const backgroundPath = resolve(miniappRoot(), 'src/assets/room-background-v10.jpg')
     const componentSource = readFileSync(
       resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'),
       'utf8',
@@ -13,7 +13,7 @@ describe('miniapp pet scene assets', () => {
 
     expect(existsSync(backgroundPath)).toBe(true)
     expect(statSync(backgroundPath).size).toBeLessThanOrEqual(180 * 1024)
-    expect(componentSource).toContain("require('../assets/room-background-v9.jpg')")
+    expect(componentSource).toContain("require('../assets/room-background-v10.jpg')")
   })
 
   it('sleep pose ships via COS static assets and the nest scene wires the sleep act', () => {

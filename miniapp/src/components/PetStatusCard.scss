@@ -143,25 +143,6 @@
 .pet-name-card__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .pet-name-card__hint { color: #b08d67; font-size: 20rpx; letter-spacing: 2rpx; }
 
-/* 小多利说话飘字：单行、悬在头顶上方（top 140：v9 牌底渲染后约 116，留 24 净空；
-   狗头顶 222，气泡底约 194 仍有 28 间距），
-   气泡常驻不重挂载只换字，杜绝背景/服饰闪动 */
-.pet-speech {
-  position: absolute;
-  top: 140px;
-  left: 50%;
-  z-index: 3;
-  max-width: 88%;
-  padding: 10px 24px;
-  border: 2px solid #f0dcc8;
-  border-radius: 999px;
-  background: rgba(255, 253, 248, .94);
-  box-shadow: 0 8px 18px rgba(113, 77, 38, .16);
-  transform: translateX(-50%);
-  animation: pet-speech-pop .32s cubic-bezier(.3, 1.4, .5, 1) backwards, pet-speech-bob 3.2s ease-in-out .4s infinite;
-}
-.pet-speech__text { color: #5e3b1d; font-size: var(--font-size-secondary); font-weight: var(--font-weight-medium); white-space: nowrap; }
-
 .pet-card-experience { padding: 16px 24px 18px; }
 .experience-meta, .status-meta { display: flex; justify-content: space-between; color: #8e776a; font-size: var(--font-size-aux); }
 /* 进度条：加粗到 16rpx，凹槽底 + 填充顶部高光/底部投影，圆润有质感 */
@@ -171,15 +152,6 @@
 .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 16px; }
 .status-item { min-width: 0; }
 
-@keyframes pet-speech-pop {
-  /* 只做轻微位移+缩放，不淡出：气泡全程不透明，避免背景透出闪烁 */
-  from { opacity: 1; transform: translateX(-50%) translateY(8px) scale(.96); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-@keyframes pet-speech-bob {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-6px); }
-}
 /* 弹幕：b 站式横向匀速漂过（右缘外 → 左缘外），暖棕字 + 奶白光晕保证浅色墙面上可读，
    出画后由定时器移除 */
 .pet-danmaku {
@@ -200,7 +172,6 @@
   to { transform: translateX(-360rpx); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pet-speech { animation: none; }
   .pet-danmaku { animation: none; visibility: hidden; }
   .pet-avatar-stand, .pet-avatar-sleep, .pet-move-stage { transition: none; }
   .pet-avatar-sleep--on { animation: none; }

@@ -90,9 +90,9 @@ describe('miniapp main layout', () => {
     expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
-    // 背景 v9 横构图（窗加高、牌子中上偏右略降与气泡错开、地毯靠前）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
+    // 背景 v10 横构图（牌子放大、窗户缩小、窗台绿植与右侧书架完整、地毯靠前）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="aspectFill"')
-    expect(statusCardSource).toContain("require('../assets/room-background-v9.jpg')")
+    expect(statusCardSource).toContain("require('../assets/room-background-v10.jpg')")
     expect(statusCardSource).toContain('xiaoduoliDanmaku')
     expect(statusCardSource).toContain('pet-danmaku')
     expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*500px;/)

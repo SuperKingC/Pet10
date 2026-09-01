@@ -4,7 +4,6 @@ import type { PetState } from '../domain/types'
 import { suitDisplayWidth, type OutfitPieces } from '../domain/wardrobeModel'
 import { type NestPetAct } from '../domain/nestPetAct'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
-import { getXiaoduoliSpeech } from '../features/main/xiaoduoliSpeech'
 import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
 import { suitAssets } from '../services/wardrobeSuitAssets'
 import './PetStatusCard.scss'
@@ -21,7 +20,7 @@ type Props = {
   /** 小窝行为幕：非站姿时立绘切换对应分镜（素材未就绪保持站姿不切换） */
   act?: NestPetAct
 }
-const roomBackground = require('../assets/room-background-v9.jpg')
+const roomBackground = require('../assets/room-background-v10.jpg')
 // 睡姿/行进幕底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
@@ -34,9 +33,6 @@ const statuses = [
   ['精力', 'energy', '#66b9ad', '#93d0c6'],
   ['健康', 'health', '#82a9e9', '#adc7f0'],
 ] as const
-
-// 闲聊飘字轮播间隔：与气泡动画节奏错开，读得完再换下一句
-const SPEECH_ROTATE_MS = 6000
 
 interface DanmakuItem {
   id: number
@@ -55,7 +51,6 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
   // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 240px 盒一致
   // 注意内联宽度必须显式 rpx：Taro 只转换样式表里的 px，内联 px 会按设备像素渲染（=双倍 rpx），立绘撑出盒底被场景裁脚
   const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 240) : null
-  const [speechIndex, setSpeechIndex] = useState(0)
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
   const [moveAssets, setMoveAssets] = useState<{ frameA: string; frameB: string; doll: string } | null>(null)
@@ -86,17 +81,6 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
       .catch(() => undefined)
     return () => { cancelled = true }
   }, [])
-
-  useEffect(() => {
-    const timer = setInterval(() => setSpeechIndex((index) => index + 1), SPEECH_ROTATE_MS)
-    return () => clearInterval(timer)
-  }, [])
-  // 行为幕飘字：睡觉定格「Zzz……」，叼娃定格固定台词，其余轮播闲聊
-  const speech = sleeping
-    ? 'Zzz……'
-    : act === 'fetch'
-      ? '把娃娃叼回来啦！'
-      : getXiaoduoliSpeech(pet, speechIndex)
 
   // 立绘固定元素：memo 掉，避免换飘字重渲染时叠穿层 widthFix 图重测量导致衣服闪现
   const piecesKey = outfitPieces ? `${outfitPieces.body}|${outfitPieces.hat}|${outfitPieces.scarf}|${outfitPieces.bag}` : ''
@@ -205,10 +189,6 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
               <Text className="pet-sleep-zzz__z pet-sleep-zzz__z--3">Z</Text>
             </View>
           )}
-        </View>
-        {/* 气泡常驻不重挂载：换文案只替换文本，避免重挂载引起背景闪动 */}
-        <View className="pet-speech">
-          <Text className="pet-speech__text">{speech}</Text>
         </View>
         <View
           className="pet-name-card"
