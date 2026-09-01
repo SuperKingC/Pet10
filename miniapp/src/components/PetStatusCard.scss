@@ -43,17 +43,19 @@
   30% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-12px) scale(1.08); }
 }
-/* 行进幕（闲逛/叼娃）：走路两帧资产统一显示缩到与站姿同比例（87×57px，随站姿 149rpx 同比例），脚底随盒底落在地毯中央；
+/* 行进幕（闲逛/叼娃）：走路两帧显示 180×115（468×300 资产缩放，实景拼图实测头身比与站姿协调）；
    travel 一镜到底负责路径与转身翻面，hop 叼娃落地后的庆祝蹦跳，bobber 步点颠步+身体轻摇，
    两帧 step-end 交替（腾空/触地 + 尾巴一高一低=边走边摇尾）。分镜总时长与 domain 常量一致：
    闲逛 7s（NEST_PET_WANDER_MS）、叼娃 9s（NEST_PET_FETCH_MS） */
 .pet-move-stage {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: 87px;
-  height: 57px;
-  margin-left: -44px;
+  /* 舞台从容器底上抬 85px（真机 42px）：脚线落在地毯后段（场景底上方 123px），
+     与站姿 149×240 同地面体系；容器自身 bottom 38px */
+  bottom: 85px;
+  width: 180px;
+  height: 115px;
+  margin-left: -90px;
   opacity: 0;
   transition: opacity .3s ease;
 }
@@ -67,14 +69,14 @@
 .pet-move-bobber { animation: pet-move-bob .42s ease-in-out infinite; }
 @keyframes pet-move-bob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-4px) rotate(-1.2deg); }
+  50% { transform: translateY(-3px) rotate(-1.2deg); }
 }
-/* 闲逛：中心→右缘（狗几乎占满场景宽，走到鼻尖将触边即折返）→翻面走回中心 */
+/* 闲逛：中心→右缘（小跑至鼻尖将触边即折返）→翻面走回中心 */
 .pet-move-stage--wander .pet-move-travel { animation: pet-wander-travel 7s ease-in-out forwards; }
 @keyframes pet-wander-travel {
   0% { transform: translateX(0) scaleX(1); }
-  42% { transform: translateX(110px) scaleX(1); }
-  46% { transform: translateX(110px) scaleX(-1); }
+  42% { transform: translateX(54px) scaleX(1); }
+  46% { transform: translateX(54px) scaleX(-1); }
   92% { transform: translateX(0) scaleX(-1); }
   96%, 100% { transform: translateX(0) scaleX(1); }
 }
@@ -82,36 +84,97 @@
 .pet-move-stage--fetch .pet-move-travel { animation: pet-fetch-travel 9s ease-in-out forwards; }
 @keyframes pet-fetch-travel {
   0% { transform: translateX(0) scaleX(1); opacity: 1; }
-  13% { transform: translateX(-60px) scaleX(1); opacity: 1; }
-  20% { transform: translateX(-170px) scaleX(1); opacity: 0; }
-  26% { transform: translateX(-170px) scaleX(1); opacity: 0; }
-  27% { transform: translateX(-170px) scaleX(-1); opacity: 1; }
+  13% { transform: translateX(-66px) scaleX(1); opacity: 1; }
+  20% { transform: translateX(-150px) scaleX(1); opacity: 0; }
+  26% { transform: translateX(-150px) scaleX(1); opacity: 0; }
+  27% { transform: translateX(-150px) scaleX(-1); opacity: 1; }
   56% { transform: translateX(0) scaleX(-1); opacity: 1; }
   100% { transform: translateX(0) scaleX(-1); opacity: 1; }
 }
 .pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
 @keyframes pet-fetch-hop {
   0%, 58% { transform: translateY(0); }
-  62% { transform: translateY(-17px); }
+  62% { transform: translateY(-22px); }
   65% { transform: translateY(0); }
-  68% { transform: translateY(-7px); }
+  68% { transform: translateY(-8px); }
   71%, 100% { transform: translateY(0); }
 }
-/* 娃娃基位在地毯上（bottom 2px），叼着时抬到嘴部高度（-29px），回落带抛物线+落地压扁回弹 */
+/* 娃娃基位在地毯上（bottom 0），叼着时抬到嘴部高度（-8px），回落带抛物线+落地压扁回弹 */
 .pet-move-doll {
   position: absolute;
-  left: 13px;
-  bottom: 2px;
-  width: 34px;
-  height: 46px;
+  left: 8px;
+  bottom: 0;
+  width: 60px;
+  height: 84px;
   opacity: 0;
 }
 .pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
 @keyframes pet-fetch-doll {
-  0%, 26% { transform: translateY(-29px); opacity: 0; }
-  27% { transform: translateY(-29px); opacity: 1; }
-  55% { transform: translateY(-29px) rotate(0deg); opacity: 1; }
-  58% { transform: translateY(-67px) rotate(-12deg); }
+  0%, 26% { transform: translateY(-8px); opacity: 0; }
+  27% { transform: translateY(-8px); opacity: 1; }
+  55% { transform: translateY(-8px) rotate(0deg); opacity: 1; }
+  58% { transform: translateY(-16px) rotate(-12deg); }
+  62% { transform: translateY(0) rotate(8deg); }
+  65% { transform: translateY(0) rotate(0deg) scaleY(.9); }
+  68% { transform: translateY(0) rotate(0deg) scaleY(1); }
+  90% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 1; }
+  100% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 0; }
+}
+.pet-move-stage--wander, .pet-move-stage--fetch { opacity: 1; }
+.pet-move-travel, .pet-move-hop, .pet-move-bobber, .pet-move-frame { position: absolute; inset: 0; }
+.pet-move-frame--b { opacity: 0; animation: pet-move-frames .42s step-end infinite; }
+@keyframes pet-move-frames {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.pet-move-bobber { animation: pet-move-bob .42s ease-in-out infinite; }
+@keyframes pet-move-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-1.2deg); }
+}
+/* 闲逛：中心→右缘（小跑至鼻尖将触边即折返）→翻面走回中心 */
+.pet-move-stage--wander .pet-move-travel { animation: pet-wander-travel 7s ease-in-out forwards; }
+@keyframes pet-wander-travel {
+  0% { transform: translateX(0) scaleX(1); }
+  42% { transform: translateX(54px) scaleX(1); }
+  46% { transform: translateX(54px) scaleX(-1); }
+  92% { transform: translateX(0) scaleX(-1); }
+  96%, 100% { transform: translateX(0) scaleX(1); }
+}
+/* 叼娃分镜：走向左缘→走出画面淡出→换向叼着娃娃走回中心→娃娃抛落弹地→开心蹦两下→娃娃淡出 */
+.pet-move-stage--fetch .pet-move-travel { animation: pet-fetch-travel 9s ease-in-out forwards; }
+@keyframes pet-fetch-travel {
+  0% { transform: translateX(0) scaleX(1); opacity: 1; }
+  13% { transform: translateX(-66px) scaleX(1); opacity: 1; }
+  20% { transform: translateX(-150px) scaleX(1); opacity: 0; }
+  26% { transform: translateX(-150px) scaleX(1); opacity: 0; }
+  27% { transform: translateX(-150px) scaleX(-1); opacity: 1; }
+  56% { transform: translateX(0) scaleX(-1); opacity: 1; }
+  100% { transform: translateX(0) scaleX(-1); opacity: 1; }
+}
+.pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
+@keyframes pet-fetch-hop {
+  0%, 58% { transform: translateY(0); }
+  62% { transform: translateY(-22px); }
+  65% { transform: translateY(0); }
+  68% { transform: translateY(-8px); }
+  71%, 100% { transform: translateY(0); }
+}
+/* 娃娃基位在地毯上（bottom 0），叼着时抬到嘴部高度（-8px），回落带抛物线+落地压扁回弹 */
+.pet-move-doll {
+  position: absolute;
+  left: 8px;
+  bottom: 0px;
+  width: 60px;
+  height: 84px;
+  opacity: 0;
+}
+.pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
+@keyframes pet-fetch-doll {
+  0%, 26% { transform: translateY(-8px); opacity: 0; }
+  27% { transform: translateY(-8px); opacity: 1; }
+  55% { transform: translateY(-8px) rotate(0deg); opacity: 1; }
+  58% { transform: translateY(-16px) rotate(-12deg); }
   62% { transform: translateY(0) rotate(8deg); }
   65% { transform: translateY(0) rotate(0deg) scaleY(.9); }
   68% { transform: translateY(0) rotate(0deg) scaleY(1); }
