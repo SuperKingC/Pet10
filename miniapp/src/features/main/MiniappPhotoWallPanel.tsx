@@ -194,7 +194,7 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
         )}
       </View>
       <View className="photo-wall-lights">
-        <Image className="photo-wall-lights__string" src={lightsString} mode="widthFix" />
+        <Image className="photo-wall-lights__string" src={lightsString} />
       </View>
 
       {composePath && (
@@ -228,7 +228,7 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
           <View className="photo-wall-grid__empty">
             <Image className="photo-wall-grid__empty-art" src={emptyIllustration} mode="aspectFit" />
             <Text className="photo-wall-grid__empty-title">墙还空着</Text>
-            <Text className="photo-wall-grid__empty-copy">贴上第一张合照，或等小多利的升级纪念卡、你们的默契穿搭卡自动上墙。</Text>
+            <Text className="photo-wall-grid__empty-copy">贴上第一张合照，或等你们的默契穿搭卡自动上墙。</Text>
           </View>
         )}
         {photos !== null && photos.length > 0 && columns.map((column, columnIndex) => (

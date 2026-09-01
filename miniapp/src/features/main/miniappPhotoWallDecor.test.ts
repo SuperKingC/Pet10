@@ -42,13 +42,28 @@ describe('photo wall decor presentation', () => {
     expect(styles).toMatch(/\.photo-wall-lights__string \{ animation: none; opacity: \.95; \}/)
   })
 
+  it('fixes the string height so the panel does not flash before the image loads', () => {
+    const component = fs.readFileSync(componentPath, 'utf8')
+    const styles = fs.readFileSync(stylesPath, 'utf8')
+    // widthFix 未加载前按默认 300×225 渲染会闪跳；定高 686×116 ≈ 素材 640×108 等比
+    expect(styles).toMatch(/\.photo-wall-lights__string \{[^}]*height: 116rpx;/)
+    expect(component).not.toContain('photo-wall-lights__string" src={lightsString} mode="widthFix"')
+  })
+
+  it('sweeps a flowing light glint across the light string', () => {
+    const styles = fs.readFileSync(stylesPath, 'utf8')
+    expect(styles).toMatch(/\.photo-wall-lights::after \{[^}]*animation: photo-wall-sweep/)
+    expect(styles).toMatch(/@keyframes photo-wall-sweep/)
+    expect(styles).toMatch(/\.photo-wall-lights::after \{ animation: none; opacity: 0; \}/)
+  })
+
   it('sizes the pin and tape decorations to their baked-shadow assets', () => {
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    expect(styles).toMatch(/\.photo-wall-card__pin \{[^}]*width: 30rpx;[^}]*height: 35rpx;/)
-    expect(styles).toMatch(/\.photo-wall-card__tape \{[^}]*width: 128rpx;/)
-    expect(styles).toMatch(/\.photo-wall-card__tape--dots \{ height: 24rpx; \}/)
-    expect(styles).toMatch(/\.photo-wall-card__tape--stripes \{ height: 22rpx; \}/)
-    expect(styles).toMatch(/\.photo-wall-card__tape--green \{ height: 23rpx; \}/)
+    expect(styles).toMatch(/\.photo-wall-card__pin \{[^}]*width: 42rpx;[^}]*height: 49rpx;/)
+    expect(styles).toMatch(/\.photo-wall-card__tape \{[^}]*width: 164rpx;/)
+    expect(styles).toMatch(/\.photo-wall-card__tape--dots \{ height: 31rpx; \}/)
+    expect(styles).toMatch(/\.photo-wall-card__tape--stripes \{ height: 28rpx; \}/)
+    expect(styles).toMatch(/\.photo-wall-card__tape--green \{ height: 29rpx; \}/)
   })
 
   it('adds the warm light pool and bottom vignette to the cork panel', () => {
