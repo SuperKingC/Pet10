@@ -546,7 +546,8 @@
 
 .miniapp-chat__composer {
   flex: 0 0 auto;
-  padding: 12rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
+  /* 键盘弹起时由组件内联 paddingBottom=键盘高度 覆盖此值 */
+  padding: 12rpx 20rpx calc(8rpx + env(safe-area-inset-bottom));
   background: rgba(255, 250, 246, .96);
   border-top: 1rpx solid rgba(96, 67, 50, .08);
 }

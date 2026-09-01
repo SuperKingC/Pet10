@@ -89,3 +89,11 @@ function formatClock(date: Date) {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${hours}:${minutes}`
 }
+
+/** 聊天页标题：pair 显示「好友名 x 自己名」，pet_dm 固定小多利 */
+export function getChatTitle(input: { type: 'pair' | 'pet_dm'; friendName: string; viewerName?: string }): string {
+  if (input.type === 'pet_dm') return '小多利'
+  const friend = input.friendName.trim() || '好友'
+  const viewer = (input.viewerName ?? '').trim() || '我'
+  return `${friend} x ${viewer}`
+}

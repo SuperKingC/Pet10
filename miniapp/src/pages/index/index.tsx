@@ -378,6 +378,7 @@ export default function Index() {
         roomId={roomId}
         viewerId={context?.user.id || ''}
         friendName={context?.rooms.find((room) => room.id === roomId)?.partner.displayName || '好友'}
+        viewerName={context?.user.displayName || '我'}
         hasPet={hasPetSomewhere}
         overlay={overlay}
         onOverlayChange={setOverlay}

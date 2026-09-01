@@ -4,6 +4,7 @@ import {
   getConversationRowPresentation,
   getConversationTimeLabel,
   getDayDividerLabel,
+  getChatTitle,
 } from './messagesPresentation'
 
 describe('conversation row presentation', () => {
@@ -105,5 +106,17 @@ describe('chat day divider label', () => {
   it('returns undefined for invalid or missing timestamps', () => {
     expect(getDayDividerLabel(undefined, now)).toBeUndefined()
     expect(getDayDividerLabel('garbage', now)).toBeUndefined()
+  })
+})
+
+describe('getChatTitle', () => {
+  it('pairs show "friend x viewer" and pet rooms stay 小多利', () => {
+    expect(getChatTitle({ type: 'pair', friendName: '测试好友1', viewerName: '阿柴' })).toBe('测试好友1 x 阿柴')
+    expect(getChatTitle({ type: 'pet_dm', friendName: '测试好友1', viewerName: '阿柴' })).toBe('小多利')
+  })
+
+  it('falls back when either name is blank', () => {
+    expect(getChatTitle({ type: 'pair', friendName: '', viewerName: '阿柴' })).toBe('好友 x 阿柴')
+    expect(getChatTitle({ type: 'pair', friendName: '测试好友1', viewerName: '  ' })).toBe('测试好友1 x 我')
   })
 })

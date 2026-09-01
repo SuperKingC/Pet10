@@ -12,6 +12,7 @@ import {
   getConversationTimeLabel,
   getDayDividerLabel,
   getChatClockLabel,
+  getChatTitle,
 } from './messagesPresentation'
 import './MiniappMessagesView.scss'
 
@@ -26,6 +27,8 @@ interface MiniappMessagesViewProps {
   roomId: string
   viewerId: string
   friendName: string
+  /** 当前用户昵称：聊天页标题「好友名 x 自己名」用 */
+  viewerName?: string
   /** 是否已在任一小窝养小多利（共养后不再展示合养邀请入口） */
   hasPet: boolean
   /** 页面根层级全屏覆盖层开关（弹窗/圈要盖过 tab 栏，必须渲染在消息页固定层之外） */
@@ -42,7 +45,7 @@ function isOwnMessage(message: { senderType?: 'user' | 'pet'; senderId?: string 
   return message.senderType === 'user' && (!message.senderId || message.senderId === viewerId)
 }
 
-export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, overlay, onOverlayChange, onConfirmRequest, onOpenRoom, onChatOpenChange }: MiniappMessagesViewProps) {
+export function MiniappMessagesView({ roomId, viewerId, friendName, viewerName, hasPet, overlay, onOverlayChange, onConfirmRequest, onOpenRoom, onChatOpenChange }: MiniappMessagesViewProps) {
   // tab 切换会重挂载本组件：初始化 state 时先查会话缓存，命中就直出列表（不闪无好友空态页）
   const [conversations, setConversations] = useState<MiniappConversation[]>(() => fetchCachedConversations() ?? [])
   const [conversationsLoaded, setConversationsLoaded] = useState(() => fetchCachedConversations() !== null)
@@ -59,6 +62,11 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
   const initializedRef = useRef(false)
   // 收到的合养邀请通知（小窝邀请提示入口数据源）；确认弹窗由页面根层级渲染
   const [coRaiseInvitations, setCoRaiseInvitations] = useState<MiniappNotification[]>([])
+  // 键盘高度（px）：输入框 adjustPosition=false，改为手动垫高输入栏，避免整页被顶飞把标题栏顶出屏幕
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+  // 键盘弹起时切换锚点 id，强制 ScrollView 重新滚到底部
+  const [anchorTick, setAnchorTick] = useState(0)
+  const bottomAnchorId = anchorTick % 2 === 0 ? CHAT_BOTTOM_ANCHOR_ID : `${CHAT_BOTTOM_ANCHOR_ID}-alt`
 
   // 会话列表 3 秒轮询：刷新预览与排序，并按最新消息累计未读角标
   useEffect(() => {
@@ -314,9 +322,11 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
             <MiniappBackButton onClick={() => setOpenRoomId('')} />
             <View className="miniapp-chat__title">
               <Text className="miniapp-chat__name">
-                {activeConversation.type === 'pet_dm'
-                  ? '小多利'
-                  : (activeConversation.friend?.displayName || friendName)}
+                {getChatTitle({
+                  type: activeConversation.type,
+                  friendName: activeConversation.friend?.displayName || friendName,
+                  viewerName,
+                })}
               </Text>
               <Text className="miniapp-chat__subtitle">
                 {activeConversation.type === 'pet_dm' ? '随时听你碎碎念' : '你们和小多利的家'}
@@ -340,7 +350,7 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
           <ScrollView
             className="miniapp-chat__scroll"
             scrollY
-            scrollIntoView={messagesLoaded ? CHAT_BOTTOM_ANCHOR_ID : ''}
+            scrollIntoView={messagesLoaded ? bottomAnchorId : ''}
             scrollWithAnimation={false}
           >
             {!messagesLoaded && <Text className="miniapp-chat__loading">正在加载消息…</Text>}
@@ -397,18 +407,26 @@ export function MiniappMessagesView({ roomId, viewerId, friendName, hasPet, over
                 </View>
               )
             })}
-            <View id={CHAT_BOTTOM_ANCHOR_ID} className="miniapp-chat__bottom-anchor" />
+            <View id={bottomAnchorId} className="miniapp-chat__bottom-anchor" />
           </ScrollView>
-          <View className="miniapp-chat__composer">
+          <View
+            className="miniapp-chat__composer"
+            style={keyboardHeight > 0 ? { paddingBottom: `${keyboardHeight}px` } : undefined}
+          >
             {error && <Text className="miniapp-chat__error">{error}</Text>}
             <View className="miniapp-chat__composer-row">
               <Input
                 className="miniapp-chat__input"
                 value={draft}
                 confirmType="send"
+                adjustPosition={false}
                 placeholder={activeConversation.type === 'pet_dm' ? '和小多利说点悄悄话…' : '和好友、小多利说点什么'}
-                cursorSpacing={120}
                 onInput={(event) => setDraft(event.detail.value)}
+                onKeyboardHeightChange={(event) => {
+                  const height = event.detail.height ?? 0
+                  setKeyboardHeight(height)
+                  if (height > 0) setAnchorTick((tick) => tick + 1)
+                }}
                 onConfirm={send}
               />
               <Button className="miniapp-chat__send" loading={busy} onClick={send}>发送</Button>
