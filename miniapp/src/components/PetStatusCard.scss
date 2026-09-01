@@ -1,12 +1,13 @@
-/* 小窝状态卡：上半场景（背景通栏顶对齐裁底 + 小多利踩地脚线 + 说话飘字 + 名片入口），下半紧凑状态区。
-   场景收矮到 465px 让贡献榜底部与 tab 栏保持标准间距；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
+/* 小窝状态卡：上半场景（背景横幅通栏 + 小多利踩地板 + 说话飘字 + 名片入口），下半紧凑状态区。
+   背景 v3（720×600 横带，含墙上「Happy Day」牌子，地板只留底部一条）widthFix 显示高 548rpx，
+   场景高度=图片显示高度，严丝合缝无空带；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
-.pet-card-scene { position: relative; height: 465px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
+.pet-card-scene { position: relative; height: 548px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
 .pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
-/* 背景通栏（658rpx 宽 → 高约 896rpx），顶部对齐，底部溢出裁掉 */
+/* 背景通栏（658rpx 宽 × 600/720 比例 → 高约 548rpx = 场景高），顶部对齐 */
 .pet-card-background { position: absolute; top: 0; left: 0; width: 100%; }
-/* 小多利居中偏下踩在地脚线上（地毯阴影随底裁不可见，按画面中线右 60px 对位），脚距底 16px */
-.pet-avatar-image { position: absolute; bottom: 16px; left: calc(50% + 50px); z-index: 2; width: 200px; height: 236px; transform: translateX(-50%); }
+/* 小多利居中偏下踩在地脚线下方地板带上（画面地毯阴影中心在中线右约 64px），脚距底 16px */
+.pet-avatar-image { position: absolute; bottom: 16px; left: calc(50% + 64px); z-index: 2; width: 200px; height: 236px; transform: translateX(-50%); }
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
 
