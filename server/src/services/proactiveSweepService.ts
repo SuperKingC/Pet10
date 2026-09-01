@@ -1,7 +1,7 @@
 import type { Room } from '../domain/models.js'
 import type { PetMoodKey } from '../domain/petMoodRules.js'
 import type { MomentTopic } from '../domain/momentRules.js'
-import { pickMomentTopic, MOMENT_SILENCE_HOURS } from '../domain/momentRules.js'
+import { pickMomentTopic, pickInterestMoment, type InterestKind } from '../domain/momentRules.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { createPetMoodService } from './petMoodService.js'
@@ -69,7 +69,12 @@ const MOMENT_FALLBACKS: Record<MomentTopic, string[]> = {
     '打哈欠…今晚也要四脚朝天睡觉，晚安汪～',
     '睡前偷偷把一块小饼干藏进了窝里，嘘，别告诉谁。'
   ],
-  memory: []
+  memory: [],
+  interest: [
+    '哼，刚刚是不是在偷偷查价格呀？想买就直说嘛！',
+    '我看到了哦，你在看贵贵的东西～买了吗？买了我也要礼物！',
+    '哦～偷偷查去哪玩是不是不带我呀？出去记得给我带特产！'
+  ]
 }
 
 function pick<T>(items: T[]): T {
@@ -141,20 +146,49 @@ export function createProactiveSweepService({
       return
     }
 
-    // 发圈判定：主人沉默想念帖 或 生活时段日常帖；日上限/最小间隔/时段档统一在 momentRules
+    // 发圈判定：想念帖（沉默）> 兴趣帖（主人刚问了价格/游玩）> 生活时段帖
+    // 日上限/最小间隔/时段档/兴趣去重统一在 momentRules，全部由 DB 时间戳派生
     const petPosts = (await repositories.posts.listByRoom(room.id, 20))
       .filter((post) => post.authorType === 'pet')
-    const topic = pickMomentTopic({
+    const petPostTimes = petPosts.map((post) => post.createdAt)
+    const userMessages = recent
+      .filter((message) => message.senderType === 'user')
+      .map((message) => ({ text: message.text, createdAt: message.createdAt }))
+
+    let trigger: 'silence' | 'daily' | 'interest'
+    let topic: MomentTopic
+    let interestKind: InterestKind | undefined
+    let interestQuestion: string | undefined
+    const missed = pickMomentTopic({
       now: now(),
-      petPostTimes: petPosts.map((post) => post.createdAt),
+      petPostTimes,
       userSilenceHours: silenceHours,
       random: random()
     })
-    if (!topic) return
+    if (missed === 'missing') {
+      trigger = 'silence'
+      topic = 'missing'
+    } else {
+      const interest = pickInterestMoment({ now: now(), userMessages, petPostTimes })
+      if (interest) {
+        trigger = 'interest'
+        topic = 'interest'
+        interestKind = interest.kind
+        interestQuestion = interest.question
+      } else if (missed) {
+        trigger = 'daily'
+        topic = missed
+      } else {
+        return
+      }
+    }
+
     const memories = await repositories.memories.listByRoom(room.id)
     const composed = await ai.composeMomentPost?.({
-      trigger: topic === 'missing' ? 'silence' : 'daily',
+      trigger,
       topic,
+      interestKind,
+      interestQuestion,
       moodLine: moodContext?.state.toneHint,
       silenceHours,
       memories: memories.map((memory) => memory.text)

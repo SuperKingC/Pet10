@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   canPostMoment,
+  detectInterestQuestion,
+  pickInterestMoment,
   pickMomentTopic,
   MOMENT_DAILY_MAX,
+  MOMENT_INTEREST_DELAY_MS,
+  MOMENT_INTEREST_MAX_AGE_MS,
   MOMENT_MIN_GAP_MS
 } from './momentRules.js'
 
@@ -58,5 +62,82 @@ describe('moment rules', () => {
     const now = shanghai(2026, 9, 1, 8)
     const yesterdayPosts = Array.from({ length: MOMENT_DAILY_MAX + 1 }, (_, index) => shanghai(2026, 8, 31, 8 + index))
     expect(canPostMoment(yesterdayPosts, now)).toBe(true)
+  })
+})
+
+describe('interest moments', () => {
+  const base = new Date('2026-08-31T10:00:00.000Z')
+
+  function userMessage(text: string, minutesAgo: number) {
+    return { text, createdAt: new Date(base.getTime() - minutesAgo * 60 * 1000) }
+  }
+
+  it('detects price and travel interest questions', () => {
+    expect(detectInterestQuestion('索尼 A7C II 现在多少钱？')).toBe('price')
+    expect(detectInterestQuestion('这台相机价格怎么样')).toBe('price')
+    expect(detectInterestQuestion('杭州有什么好玩的景点，路线怎么安排')).toBe('travel')
+    expect(detectInterestQuestion('去大理旅游一周行程怎么定')).toBe('travel')
+    expect(detectInterestQuestion('我今天有点累')).toBeNull()
+    expect(detectInterestQuestion('帮我写周报')).toBeNull()
+  })
+
+  it('fires a few minutes after the question was asked', () => {
+    // 刚问 1 分钟：还没到延迟窗口
+    expect(pickInterestMoment({
+      now: base,
+      userMessages: [userMessage('这个相机多少钱', 1)],
+      petPostTimes: []
+    })).toBeNull()
+    // 问了 20 分钟：命中价格兴趣
+    const decision = pickInterestMoment({
+      now: base,
+      userMessages: [userMessage('这个相机多少钱', 20)],
+      petPostTimes: []
+    })
+    expect(decision).toMatchObject({ kind: 'price', question: expect.stringContaining('相机') })
+  })
+
+  it('never fires when the question is stale or already answered by a post', () => {
+    // 问了 4 小时：话题凉了
+    expect(pickInterestMoment({
+      now: base,
+      userMessages: [userMessage('这个相机多少钱', (MOMENT_INTEREST_MAX_AGE_MS + 30 * 60 * 1000) / 60_000)],
+      petPostTimes: []
+    })).toBeNull()
+    // 问题之后已经发过宠物帖：视为已回应（天然去重）
+    expect(pickInterestMoment({
+      now: base,
+      userMessages: [userMessage('这个相机多少钱', 30)],
+      petPostTimes: [new Date(base.getTime() - 5 * 60 * 1000)]
+    })).toBeNull()
+  })
+
+  it('picks the newest qualifying question and respects the daily cap', () => {
+    const decision = pickInterestMoment({
+      now: base,
+      userMessages: [
+        userMessage('杭州景点路线推荐', 60),
+        userMessage('这个镜头多少钱', 20)
+      ],
+      petPostTimes: []
+    })
+    expect(decision).toMatchObject({ kind: 'price', question: expect.stringContaining('镜头') })
+
+    const capPosts = Array.from({ length: MOMENT_DAILY_MAX }, () => new Date(base.getTime() - 4 * HOUR_MS))
+    expect(pickInterestMoment({
+      now: base,
+      userMessages: [userMessage('这个镜头多少钱', 20)],
+      petPostTimes: capPosts
+    })).toBeNull()
+  })
+
+  it('interest moments bypass the 3h gap but still count toward the cap', () => {
+    // 1 小时前刚发过一条宠物帖（间隔内），但兴趣帖时效优先仍可发
+    const decision = pickInterestMoment({
+      now: base,
+      userMessages: [userMessage('去哪玩比较合适', 20)],
+      petPostTimes: [new Date(base.getTime() - 1 * HOUR_MS)]
+    })
+    expect(decision).toMatchObject({ kind: 'travel' })
   })
 })

@@ -221,6 +221,21 @@ describe('AiService intelligent replies', () => {
     expect(String(fetchImpl.mock.calls[0][1]?.body)).toContain('30 小时')
   })
 
+  it('composes interest moments teasing about the asked question', async () => {
+    const fetchImpl = createFetchReply('哼，是不是想买！')
+    const ai = createAiService(config, { fetchImpl })
+
+    await expect(ai.composeMomentPost!({
+      trigger: 'interest',
+      interestKind: 'price',
+      interestQuestion: '索尼 A7C II 多少钱'
+    })).resolves.toBe('哼，是不是想买！')
+
+    const body = String(fetchImpl.mock.calls[0][1]?.body)
+    expect(body).toContain('索尼 A7C II 多少钱')
+    expect(body).toContain('种草')
+  })
+
   it('returns null for reminder helpers when AI is disabled', async () => {
     const ai = createAiService({ ...config, enabled: false, apiKey: undefined }, { fetchImpl: createFetchReply('x') })
     await expect(ai.parseReminderFallback!('提醒我喂猫', new Date())).resolves.toBeNull()

@@ -1,6 +1,6 @@
 import type { ChatMessage, Pet, PetMemory, User } from '../domain/models.js'
 import type { ParsedReminder } from '../domain/reminderRules.js'
-import type { MomentTopic } from '../domain/momentRules.js'
+import type { MomentTopic, InterestKind } from '../domain/momentRules.js'
 import type { ServerConfig } from '../config.js'
 import { buildSystemPrompt } from '../ai/persona.js'
 import { routeAiQuestion } from './aiRouting.js'
@@ -26,10 +26,14 @@ export interface ComposeProactiveInput {
 }
 
 export interface ComposeMomentInput {
-  /** silence=主人冷清太久；daily=时段日常帖；memory=从刚记住的聊天要点发散 */
-  trigger: 'silence' | 'daily' | 'memory'
-  /** 发圈主题方向（silence→missing；daily→对应时段），避免每条都像「想你们」 */
+  /** silence=主人冷清太久；daily=时段日常帖；memory=从刚记住的聊天要点发散；interest=调侃主人刚问的兴趣话题 */
+  trigger: 'silence' | 'daily' | 'memory' | 'interest'
+  /** 发圈主题方向（silence→missing；daily→对应时段；interest→interest），避免每条都像「想你们」 */
   topic?: MomentTopic
+  /** 兴趣帖专属：价格/旅游 */
+  interestKind?: InterestKind
+  /** 兴趣帖专属：主人问的原话（截断后） */
+  interestQuestion?: string
   memoryText?: string
   moodLine?: string
   silenceHours?: number
@@ -76,7 +80,13 @@ const MOMENT_TOPIC_SCENES: Record<MomentTopic, (input: ComposeMomentInput) => st
   noon: () => '到午饭时间了，写一条干饭或晒太阳打盹的动态。',
   afternoon: () => '下午玩耍时间，写一条玩玩具/晒太阳/对着窗外发呆的动态。',
   night: () => '到睡觉时间了，写一条晚安动态（打哈欠、四脚朝天睡姿、藏小饼干之类的）。',
-  memory: (input) => `刚刚你们的聊天里发生了件值得记的小事：${input.memoryText ?? ''}`
+  memory: (input) => `刚刚你们的聊天里发生了件值得记的小事：${input.memoryText ?? ''}`,
+  interest: (input) => {
+    const question = (input.interestQuestion ?? '').trim().slice(0, 30)
+    return input.interestKind === 'travel'
+      ? `主人刚刚在聊天里查「${question || '好玩的去处'}」，你猜TA是不是想出去玩还不带你！写一条调皮的动态，撒娇加一点点阴阳怪气，问TA是不是偷偷做攻略、去的时候带不带你。`
+      : `主人刚刚在聊天里打听「${question || '某个东西'}」的价格，你猜TA是不是种草想买！写一条调皮的动态，调侃TA偷偷看价格，催TA要么拿下、要么也给你带点好处。`
+  }
 }
 
 function formatSearchEvidence(results: SearchResult[]): string {
@@ -234,7 +244,9 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
       if (!config.enabled || !config.apiKey) return null
       const topic: MomentTopic = input.trigger === 'memory'
         ? 'memory'
-        : input.topic ?? 'missing'
+        : input.trigger === 'interest'
+          ? 'interest'
+          : input.topic ?? 'missing'
       const situation = MOMENT_TOPIC_SCENES[topic](input)
       const prompt = [
         '你是小多利，一只调皮的小狗幼崽，要给自己的「小多利圈」发一条动态（像朋友圈）。',

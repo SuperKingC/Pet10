@@ -195,4 +195,46 @@ describe('proactive sweep service', () => {
 
     expect(ai.composeMomentPost).not.toHaveBeenCalled()
   })
+
+  it('teases the owner about a price question a few minutes later', async () => {
+    // 主人 20 分钟前问了价格：兴趣帖在沉默/时段都不命中时触发
+    let currentTime = T0 - 20 * 60 * 1000
+    const { repositories, first, room } = await createPairRoom(() => new Date(currentTime))
+    await repositories.messages.create({ roomId: room.id, senderType: 'user', senderId: first.id, kind: 'text', text: '索尼 A7C II 多少钱' })
+    currentTime = T0
+    const ai = baseAi()
+    const emit = vi.fn()
+    const mood = createPetMoodService({ repositories, now: () => new Date(currentTime) })
+    const sweep = createProactiveSweepService({ repositories, ai, emit, mood, now: () => new Date(currentTime), random: () => 0.99 })
+
+    await sweep.runOnce()
+
+    expect(ai.composeMomentPost).toHaveBeenCalledWith(expect.objectContaining({
+      trigger: 'interest',
+      interestKind: 'price',
+      interestQuestion: expect.stringContaining('A7C II')
+    }))
+    expect(emit).toHaveBeenCalledWith(room.id, 'post.new', expect.objectContaining({ authorType: 'pet' }))
+
+    // 发过之后同一问题不再重复触发（宠物帖晚于问题）
+    await sweep.runOnce()
+    expect(ai.composeMomentPost).toHaveBeenCalledTimes(1)
+  })
+
+  it('teases about travel plans after a route question', async () => {
+    let currentTime = T0 - 20 * 60 * 1000
+    const { repositories, first, room } = await createPairRoom(() => new Date(currentTime))
+    await repositories.messages.create({ roomId: room.id, senderType: 'user', senderId: first.id, kind: 'text', text: '杭州有什么景点，路线怎么安排' })
+    currentTime = T0
+    const ai = baseAi()
+    const mood = createPetMoodService({ repositories, now: () => new Date(currentTime) })
+    const sweep = createProactiveSweepService({ repositories, ai, emit: vi.fn(), mood, now: () => new Date(currentTime), random: () => 0.99 })
+
+    await sweep.runOnce()
+
+    expect(ai.composeMomentPost).toHaveBeenCalledWith(expect.objectContaining({
+      trigger: 'interest',
+      interestKind: 'travel'
+    }))
+  })
 })
