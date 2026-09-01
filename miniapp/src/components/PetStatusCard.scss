@@ -4,17 +4,17 @@
    三者不可兼得（需 897rpx 高），500 为不滚动前提下的高度上限（背景 v6 按此比例生成）；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
 .pet-card-scene { position: relative; height: 500px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
-.pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
+.pet-card-scene::after { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
 /* 背景通栏 aspectFill 定高填充（720×480 素材与 658×439 场景同比例，无裁切）：
    显式 width+height 摆脱 widthFix —— 微信 widthFix 图在兄弟节点 setData 时会重测量导致背景闪动 */
-.pet-card-background { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pet-card-background { position: absolute; left: 0; top: 0; right: 0; bottom: 0; width: 100%; height: 100%; }
 /* 小多利居中坐在居中椭圆地毯上：v9 背景牌子略降（渲染后牌底约 116）、地毯靠前（渲染后约 y403..489、中心距底约 51），
    立绘 149×240、脚底 bottom 38 再靠前落在地毯中央偏前，四周留出地毯边缘读作「坐在垫子上」
    （尺寸阶梯：212/148 内联 px 双倍渲染误判→74/106/120/140 依次偏小→149 合适） */
 .pet-avatar-image { position: absolute; bottom: 38px; left: 50%; z-index: 2; width: 149px; height: 240px; transform: translateX(-50%); }
 /* 睡姿：睡觉动作后站姿与四脚朝天 COS 姿态图（340×194 = 480×274 随 149 站姿同比例）交叉淡入 300ms；
    睡姿图未就绪时保持站姿，躺姿随盒底落在地毯中央，肚皮呼吸以底边为轴不离地 */
-.pet-avatar-stand { position: absolute; inset: 0; transition: opacity .3s ease; }
+.pet-avatar-stand { position: absolute; left: 0; top: 0; right: 0; bottom: 0; transition: opacity .3s ease; }
 .pet-avatar-stand--hidden { opacity: 0; }
 .pet-avatar-sleep {
   position: absolute;
@@ -60,7 +60,7 @@
   transition: opacity .3s ease;
 }
 .pet-move-stage--wander, .pet-move-stage--fetch { opacity: 1; }
-.pet-move-travel, .pet-move-hop, .pet-move-bobber, .pet-move-frame { position: absolute; inset: 0; }
+.pet-move-travel, .pet-move-hop, .pet-move-bobber, .pet-move-frame { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 .pet-move-frame--b { opacity: 0; animation: pet-move-frames .42s step-end infinite; }
 @keyframes pet-move-frames {
   0% { opacity: 1; }
@@ -120,67 +120,6 @@
   90% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 1; }
   100% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 0; }
 }
-.pet-move-stage--wander, .pet-move-stage--fetch { opacity: 1; }
-.pet-move-travel, .pet-move-hop, .pet-move-bobber, .pet-move-frame { position: absolute; inset: 0; }
-.pet-move-frame--b { opacity: 0; animation: pet-move-frames .42s step-end infinite; }
-@keyframes pet-move-frames {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-}
-.pet-move-bobber { animation: pet-move-bob .42s ease-in-out infinite; }
-@keyframes pet-move-bob {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-3px) rotate(-1.2deg); }
-}
-/* 闲逛：中心→右缘（小跑至鼻尖将触边即折返）→翻面走回中心 */
-.pet-move-stage--wander .pet-move-travel { animation: pet-wander-travel 7s ease-in-out forwards; }
-@keyframes pet-wander-travel {
-  0% { transform: translateX(0) scaleX(1); }
-  42% { transform: translateX(54px) scaleX(1); }
-  46% { transform: translateX(54px) scaleX(-1); }
-  92% { transform: translateX(0) scaleX(-1); }
-  96%, 100% { transform: translateX(0) scaleX(1); }
-}
-/* 叼娃分镜：走向左缘→走出画面淡出→换向叼着娃娃走回中心→娃娃抛落弹地→开心蹦两下→娃娃淡出 */
-.pet-move-stage--fetch .pet-move-travel { animation: pet-fetch-travel 9s ease-in-out forwards; }
-@keyframes pet-fetch-travel {
-  0% { transform: translateX(0) scaleX(1); opacity: 1; }
-  13% { transform: translateX(-66px) scaleX(1); opacity: 1; }
-  20% { transform: translateX(-150px) scaleX(1); opacity: 0; }
-  26% { transform: translateX(-150px) scaleX(1); opacity: 0; }
-  27% { transform: translateX(-150px) scaleX(-1); opacity: 1; }
-  56% { transform: translateX(0) scaleX(-1); opacity: 1; }
-  100% { transform: translateX(0) scaleX(-1); opacity: 1; }
-}
-.pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
-@keyframes pet-fetch-hop {
-  0%, 58% { transform: translateY(0); }
-  62% { transform: translateY(-19px); }
-  65% { transform: translateY(0); }
-  68% { transform: translateY(-7px); }
-  71%, 100% { transform: translateY(0); }
-}
-/* 娃娃基位在地毯上（bottom 0），叼着时压到嘴部高度（+6px，玩偶与狗同高），回落带抛物线+落地压扁回弹 */
-.pet-move-doll {
-  position: absolute;
-  left: 4px;
-  bottom: 0px;
-  width: 60px;
-  height: 84px;
-  opacity: 0;
-}
-.pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
-@keyframes pet-fetch-doll {
-  0%, 26% { transform: translateY(6px); opacity: 0; }
-  27% { transform: translateY(6px); opacity: 1; }
-  55% { transform: translateY(6px) rotate(0deg); opacity: 1; }
-  58% { transform: translateY(-16px) rotate(-12deg); }
-  62% { transform: translateY(0) rotate(8deg); }
-  65% { transform: translateY(0) rotate(0deg) scaleY(.9); }
-  68% { transform: translateY(0) rotate(0deg) scaleY(1); }
-  90% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 1; }
-  100% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 0; }
-}
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
 
@@ -203,7 +142,7 @@
 }
 .pet-name-card__art {
   position: absolute;
-  inset: 0;
+  left: 0; top: 0; right: 0; bottom: 0;
   width: 100%;
   height: 100%;
   opacity: 0;
@@ -212,7 +151,7 @@
 .pet-name-card__art--on { opacity: 1; }
 .pet-name-card__name {
   position: absolute;
-  inset: 0;
+  left: 0; top: 0; right: 0; bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
