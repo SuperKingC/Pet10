@@ -41,9 +41,9 @@ describe('xiaoduoliSpeech', () => {
 describe('nest scene layout', () => {
   const stylesPath = path.resolve(__dirname, 'MiniappNestView.scss')
 
-  it('keeps shortcuts inside the taller scene with balanced spacing', () => {
+  it('keeps shortcuts inside the shorter scene with balanced spacing', () => {
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?top:\s*96px;/)
-    expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?gap:\s*20px;/)
+    expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?top:\s*84px;/)
+    expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?gap:\s*16px;/)
   })
 })

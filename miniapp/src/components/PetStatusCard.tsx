@@ -13,7 +13,7 @@ type Props = {
   /** 点「小多利」名片打开名片弹窗 */
   onOpenCard?: () => void
 }
-const roomBackground = require('../assets/room-background-v3.jpg')
+const roomBackground = require('../assets/room-background-v4.jpg')
 // 四项状态各自同色系渐变（深→浅），与经验条同一质感语言
 const statuses = [
   ['饱食', 'hunger', '#f3a85d', '#f8c48d'],

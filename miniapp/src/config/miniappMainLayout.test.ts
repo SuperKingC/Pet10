@@ -28,15 +28,15 @@ describe('miniapp main layout', () => {
     const meStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappMeView.scss'), 'utf8')
 
     expect(nestStyles).toMatch(/\.miniapp-nest__scene\s*\{[\s\S]*position:\s*relative;/)
-    // 快捷入口整列收进 560px 背景大图内，不再垂直居中溢出到卡片下方
+    // 快捷入口整列收进 439px 场景内，不再垂直居中溢出到卡片下方
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*position:\s*absolute;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*96px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*84px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*right:\s*8px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*flex-direction:\s*column;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*gap:\s*20px;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcut\s*\{[\s\S]*width:\s*104px;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcut image\s*\{[\s\S]*width:\s*104px;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcut image\s*\{[\s\S]*height:\s*108px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*gap:\s*16px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcut\s*\{[\s\S]*width:\s*92px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcut image\s*\{[\s\S]*width:\s*92px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcut image\s*\{[\s\S]*height:\s*96px;/)
     expect(meStyles).toMatch(/\.miniapp-me__item image,[\s\S]*\.miniapp-me__logout image\s*\{[\s\S]*width:\s*76rpx;/)
     expect(meStyles).toMatch(/\.miniapp-me__item image,[\s\S]*\.miniapp-me__logout image\s*\{[\s\S]*height:\s*76rpx;/)
   })
@@ -90,10 +90,10 @@ describe('miniapp main layout', () => {
     expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
-    // 背景 v3 横带（含墙上牌子、地板只留底部）widthFix 显示高恰为场景高；场景 548px；状态条加粗 16rpx
+    // 背景 v4 横构图（窗/牌/架/地毯全部在画内）widthFix 显示高恰为场景高；场景 439px；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="widthFix"')
-    expect(statusCardSource).toContain("require('../assets/room-background-v3.jpg')")
-    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*548px;/)
+    expect(statusCardSource).toContain("require('../assets/room-background-v4.jpg')")
+    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*439px;/)
     expect(statusCardStyles).toMatch(/\.pet-card-background\s*\{[\s\S]*top:\s*0;/)
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
   })
