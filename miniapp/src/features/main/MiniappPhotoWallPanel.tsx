@@ -16,6 +16,18 @@ import {
 import './MiniappPhotoWallPanel.scss'
 
 const emptyIllustration = require('../../assets/decor/photo-wall-empty-v1.png')
+const lightsString = require('../../assets/decor/photo-wall-lights-v1.png')
+const pinDecor = [
+  require('../../assets/decor/photo-wall-pin-red-v1.png'),
+  require('../../assets/decor/photo-wall-pin-yellow-v1.png'),
+  require('../../assets/decor/photo-wall-pin-blue-v1.png')
+]
+const tapeDecor = [
+  require('../../assets/decor/photo-wall-tape-dots-v1.png'),
+  require('../../assets/decor/photo-wall-tape-stripes-v1.png'),
+  require('../../assets/decor/photo-wall-tape-green-v1.png')
+]
+const TAPE_VARIANTS = ['dots', 'stripes', 'green'] as const
 
 interface MiniappPhotoWallPanelProps {
   roomId: string
@@ -135,7 +147,14 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
         hoverStayTime={120}
         onClick={() => openPreview(item)}
       >
-        {index % 2 === 0 ? <View className="photo-wall-card__pin" /> : <View className="photo-wall-card__tape" />}
+        {index % 2 === 0 ? (
+          <Image className="photo-wall-card__pin" src={pinDecor[index % 3]} />
+        ) : (
+          <Image
+            className={`photo-wall-card__tape photo-wall-card__tape--${TAPE_VARIANTS[index % 3]}`}
+            src={tapeDecor[index % 3]}
+          />
+        )}
         {badge && <Text className="photo-wall-card__badge">{badge}</Text>}
         {isAutoCard(item) ? (
           <View className="photo-wall-card__template">
@@ -175,9 +194,7 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
         )}
       </View>
       <View className="photo-wall-lights">
-        {Array.from({ length: 12 }).map((_, bulb) => (
-          <View key={bulb} className="photo-wall-lights__bulb" />
-        ))}
+        <Image className="photo-wall-lights__string" src={lightsString} mode="widthFix" />
       </View>
 
       {composePath && (

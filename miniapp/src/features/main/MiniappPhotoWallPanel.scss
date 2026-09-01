@@ -1,5 +1,6 @@
 /* 照片墙面板：真软木纹墙面（make-panel-decor.mjs 生成的无缝拼贴，Taro 内联为 base64）
-   + 拍立得网格（图钉/和纸胶带交替、错峰落入）+ 自绘大图覆盖层。全屏固定层由外层 overlay 控制定高。 */
+   + 顶部实拍质感彩灯串（make-photo-wall-decor.mjs 去底出件，含光晕）
+   + 拍立得网格（实拍图钉/和纸胶带贴图三色交替、错峰落入）+ 自绘大图覆盖层。全屏固定层由外层 overlay 控制定高。 */
 .photo-wall-panel {
   height: 100%;
   display: flex;
@@ -8,11 +9,13 @@
   padding: 12rpx 32rpx 40rpx;
   box-sizing: border-box;
   background:
+    radial-gradient(circle at 50% 0%, rgba(255, 216, 150, .2), transparent 40%),
     radial-gradient(circle at 18% 12%, rgba(122, 85, 49, .2), transparent 32%),
     radial-gradient(circle at 82% 30%, rgba(122, 85, 49, .13), transparent 26%),
+    radial-gradient(circle at 50% 120%, rgba(84, 55, 28, .16), transparent 58%),
     url('../../assets/decor/cork-board-v1.png') repeat,
     linear-gradient(180deg, #e0bd93 0%, #ecd0ab 45%, #e5c69e 100%);
-  background-size: auto, auto, 168rpx 168rpx, auto;
+  background-size: auto, auto, auto, auto, 168rpx 168rpx, auto;
 }
 
 .photo-wall-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
@@ -38,40 +41,15 @@
   font-size: var(--font-size-aux);
   font-weight: var(--font-weight-semibold);
 }
-/* 软木墙上沿的一串小彩灯：暖光交替、轻轻摇曳 */
-.photo-wall-lights { position: relative; flex-shrink: 0; height: 46rpx; margin: 0 -6rpx 8rpx; }
-.photo-wall-lights::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12rpx;
-  height: 3rpx;
-  border-radius: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(58, 36, 23, .42) 10%, rgba(58, 36, 23, .42) 90%, transparent);
+/* 软木墙上沿的一串彩灯：实拍质感玻璃灯泡贴图（光晕已烘焙），整体呼吸明暗 */
+.photo-wall-lights { position: relative; flex-shrink: 0; margin: 2rpx -6rpx 6rpx; line-height: 0; }
+.photo-wall-lights__string {
+  width: 100%;
+  animation: photo-wall-glow 3.6s ease-in-out infinite;
 }
-.photo-wall-lights__bulb {
-  position: absolute;
-  top: 12rpx;
-  width: 14rpx;
-  height: 20rpx;
-  border-radius: 4rpx 4rpx 8rpx 8rpx;
-  background: #f7b35c;
-  box-shadow: 0 0 12rpx 4rpx rgba(255, 210, 130, .55);
-  transform-origin: top center;
-  animation: photo-wall-twinkle 2.6s ease-in-out infinite;
-}
-.photo-wall-lights__bulb:nth-child(3n) { background: #ef9d9a; box-shadow: 0 0 12rpx 4rpx rgba(240, 150, 140, .5); }
-.photo-wall-lights__bulb:nth-child(3n + 1) { background: #ffd98e; }
-@for $i from 1 through 12 {
-  .photo-wall-lights__bulb:nth-child(#{$i}) {
-    left: #{8 + ($i - 1) * 58}rpx;
-    animation-delay: #{($i - 1) * .17}s;
-  }
-}
-@keyframes photo-wall-twinkle {
-  0%, 100% { opacity: .68; transform: rotate(-3deg); }
-  50% { opacity: 1; transform: rotate(3deg); }
+@keyframes photo-wall-glow {
+  0%, 100% { opacity: .86; }
+  50% { opacity: 1; }
 }
 .photo-wall-panel__upload--press { transform: scale(.94); filter: brightness(.96); }
 
@@ -182,27 +160,25 @@
   from { opacity: 0; transform: translateY(-36rpx) rotate(7deg) scale(.96); }
   to { opacity: 1; transform: rotate(2deg); }
 }
+/* 图钉/和纸胶带：实拍质感贴图（阴影烘焙进素材，不加 CSS 投影避免双影） */
 .photo-wall-card__pin {
   position: absolute;
-  top: -12rpx;
+  top: -14rpx;
   left: 50%;
-  width: 24rpx;
-  height: 24rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 30%, #ff9d76, #d4482f);
-  box-shadow: 0 5rpx 9rpx rgba(59, 36, 18, .4);
+  margin-left: -15rpx;
+  width: 30rpx;
+  height: 35rpx;
 }
 .photo-wall-card__tape {
   position: absolute;
-  top: -16rpx;
-  left: 26rpx;
+  top: -14rpx;
+  left: 20rpx;
   width: 128rpx;
-  height: 36rpx;
-  border-radius: 4rpx;
-  background: repeating-linear-gradient(45deg, rgba(250, 222, 168, .95) 0 12rpx, rgba(243, 205, 138, .95) 12rpx 24rpx);
-  box-shadow: 0 4rpx 8rpx rgba(84, 55, 28, .18);
   transform: rotate(-5deg);
 }
+.photo-wall-card__tape--dots { height: 24rpx; }
+.photo-wall-card__tape--stripes { height: 22rpx; }
+.photo-wall-card__tape--green { height: 23rpx; }
 .photo-wall-card__badge {
   position: absolute;
   top: 10rpx;
@@ -319,5 +295,5 @@
   .photo-wall-compose { animation: none; }
   .photo-wall-preview { animation: none; }
   .photo-wall-preview__body { animation: none; }
-  .photo-wall-lights__bulb { animation: none; opacity: .85; }
+  .photo-wall-lights__string { animation: none; opacity: .95; }
 }
