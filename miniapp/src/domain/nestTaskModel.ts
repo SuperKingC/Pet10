@@ -30,8 +30,11 @@ export const ACTION_ITEM: Partial<Record<'feed' | 'play' | 'clean' | 'sleep', It
   clean: 'soap'
 }
 
+/** 喂食可选的道具（与服务端 itemCatalog 同口径）：点喂食弹气泡二选一，数值不分道具 */
+export const FEED_ITEM_IDS: readonly ItemId[] = ['dog_food', 'bone']
+
 export const ITEM_NAMES: Record<ItemId, string> = {
-  dog_food: '狗粮',
+  dog_food: '牛奶',
   ball: '皮球',
   soap: '香皂',
   bone: '骨头'
@@ -49,7 +52,9 @@ export function getActionAvailability(
 ): ActionAvailability {
   const itemId = ACTION_ITEM[action]
   if (!itemId) return 'free'
-  return itemCount(inventory, itemId) > 0 ? 'ready' : 'missing_item'
+  // 喂食是牛奶/骨头二选一：任一有货即可喂
+  const choices = itemId === ACTION_ITEM.feed ? FEED_ITEM_IDS : [itemId]
+  return choices.some((id) => itemCount(inventory, id) > 0) ? 'ready' : 'missing_item'
 }
 
 export function rewardSummary(task: Pick<MiniappNestTask, 'rewardItems'>): string {
@@ -73,6 +78,7 @@ export function getTaskButton(task: MiniappNestTask): TaskButtonState {
 }
 
 export function insufficientMessage(action: 'feed' | 'play' | 'clean' | 'sleep'): string {
+  if (action === 'feed') return '牛奶和骨头都不够啦，去做任务获得一些吧'
   const itemId = ACTION_ITEM[action]
   const name = itemId ? ITEM_NAMES[itemId] : ''
   return `${name}不够啦，去做任务获得一些吧`

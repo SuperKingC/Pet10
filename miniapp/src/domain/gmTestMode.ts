@@ -46,12 +46,13 @@ export function buildMockWardrobeView(pieces: OutfitPieces = EMPTY_OUTFIT): Ward
   }
 }
 
-/** 测试库存：三件照顾道具各 99，动作按钮永远可点 */
+/** 测试库存：四件道具各 99（含喂食气泡要选的骨头），动作按钮永远可点 */
 export const MOCK_INVENTORY: MiniappInventory = {
   items: [
-    { itemId: 'dog_food', name: '狗粮', count: MOCK_ITEM_COUNT },
+    { itemId: 'dog_food', name: '牛奶', count: MOCK_ITEM_COUNT },
     { itemId: 'ball', name: '皮球', count: MOCK_ITEM_COUNT },
-    { itemId: 'soap', name: '香皂', count: MOCK_ITEM_COUNT }
+    { itemId: 'soap', name: '香皂', count: MOCK_ITEM_COUNT },
+    { itemId: 'bone', name: '骨头', count: MOCK_ITEM_COUNT }
   ]
 }
 

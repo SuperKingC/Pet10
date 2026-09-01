@@ -3,6 +3,7 @@ import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
+import type { ItemId } from '../../domain/nestTaskModel'
 import { insufficientMessage } from '../../domain/nestTaskModel'
 import { applyMockPetAction } from '../../domain/gmTestMode'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
@@ -267,9 +268,9 @@ export default function Index() {
     }
   }
 
-  const handleAction = async (action: PetAction) => {
+  const handleAction = async (action: PetAction, itemId?: ItemId) => {
     if (!pet || !roomId) return
-    // GM 本地测试模式：不发请求，本地推进状态（行为幕照常由 NestView 驱动）
+    // GM 本地测试模式：不发请求，本地推进状态（行为幕照常由 NestView 驱动；库存不扣减）
     if (gmTest) {
       setPet(applyMockPetAction(pet, action))
       setMessage(actionMessages[action])
@@ -277,7 +278,7 @@ export default function Index() {
     }
     setLoading(true)
     try {
-      setPet(await petApi.applyAction(roomId, action))
+      setPet(await petApi.applyAction(roomId, action, itemId))
       setMessage(actionMessages[action])
     } catch (error) {
       const reason = error instanceof Error ? error.message : ''

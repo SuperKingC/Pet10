@@ -127,6 +127,25 @@ describe('nest task service (preset tasks)', () => {
     expect(STARTER_POUCH.bone).toBeGreaterThan(0)
   })
 
+  it('feed can consume bone by explicit itemId; default stays dog_food; invalid picks rejected', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
+    await service.inventory(room.id, user.id)
+    // 显式指定骨头：扣骨头、返回骨头
+    expect(await service.consumeForAction(room.id, user.id, 'feed', 'bone')).toBe('bone')
+    const boneCount = (await service.inventory(room.id, user.id)).items.find((item) => item.itemId === 'bone')?.count ?? 0
+    expect(boneCount).toBe(STARTER_POUCH.bone - 1)
+    // 缺省：仍回落牛奶（dog_food）
+    expect(await service.consumeForAction(room.id, user.id, 'feed')).toBe('dog_food')
+    // 枚举外的 itemId / 非喂食动作指定道具：直接拒绝
+    await expect(service.consumeForAction(room.id, user.id, 'feed', 'ball')).rejects.toThrow('invalid_item')
+    await expect(service.consumeForAction(room.id, user.id, 'play', 'bone')).rejects.toThrow('invalid_item')
+    await expect(service.consumeForAction(room.id, user.id, 'sleep', 'bone')).rejects.toThrow('invalid_item')
+    // 骨头耗尽后指定骨头 → 库存不足
+    while (await repositories.inventory.consume(room.id, 'bone'));
+    await expect(service.consumeForAction(room.id, user.id, 'feed', 'bone')).rejects.toThrow('insufficient_item')
+  })
+
   it('outsiders cannot list or claim', async () => {
     const { repositories, user, room } = await createPairRoom()
     const service = createNestTaskService(repositories)

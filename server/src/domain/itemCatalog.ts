@@ -15,8 +15,11 @@ export const ACTION_COST: Partial<Record<PetAction, ItemId>> = {
   clean: 'soap'
 }
 
+/** 喂食可选的道具：客户端不传 itemId 时回落 ACTION_COST.feed（牛奶）；数值不分道具 */
+export const FEED_ITEM_IDS: readonly ItemId[] = ['dog_food', 'bone']
+
 export const ITEM_CATALOG: Record<ItemId, ItemDef> = {
-  dog_food: { id: 'dog_food', name: '狗粮', icon: 'dog_food' },
+  dog_food: { id: 'dog_food', name: '牛奶', icon: 'dog_food' },
   ball: { id: 'ball', name: '皮球', icon: 'ball' },
   soap: { id: 'soap', name: '香皂', icon: 'soap' },
   bone: { id: 'bone', name: '骨头', icon: 'bone' }

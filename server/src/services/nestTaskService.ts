@@ -1,5 +1,5 @@
 import type { NestTaskDef, NestTaskProgress, Pet, PetEventStat } from '../domain/models.js'
-import { ACTION_COST, ITEM_CATALOG, STARTER_POUCH, isItemId } from '../domain/itemCatalog.js'
+import { ACTION_COST, FEED_ITEM_IDS, ITEM_CATALOG, STARTER_POUCH, isItemId } from '../domain/itemCatalog.js'
 import { NEST_TASK_DEFS, findTaskDef, taskDefOrder } from '../domain/nestTaskCatalog.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 
@@ -148,14 +148,21 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
       }
     },
 
-    /** 照顾动作扣道具：成功返回消耗的道具 id；睡觉免费；库存不足抛 insufficient_item */
-    async consumeForAction(roomId: string, userId: string, action: string): Promise<string | null> {
-      const itemId = ACTION_COST[action as keyof typeof ACTION_COST]
-      if (!itemId) return null
+    /** 照顾动作扣道具：喂食可在 FEED_ITEM_IDS 里指定（不传回落牛奶），睡觉免费；库存不足抛 insufficient_item */
+    async consumeForAction(roomId: string, userId: string, action: string, itemId?: string): Promise<string | null> {
+      const fallback = ACTION_COST[action as keyof typeof ACTION_COST]
+      if (!fallback) {
+        if (itemId) throw new Error('invalid_item')
+        return null
+      }
+      // 喂食的消耗道具可选（牛奶/骨头），其余动作不接受指定
+      const allowed: readonly string[] = FEED_ITEM_IDS.includes(fallback) ? FEED_ITEM_IDS : [fallback]
+      const chosen = itemId ?? fallback
+      if (!isItemId(chosen) || !allowed.includes(chosen)) throw new Error('invalid_item')
       await assertMember(roomId, userId)
-      const consumed = await repositories.inventory.consume(roomId, itemId)
+      const consumed = await repositories.inventory.consume(roomId, chosen)
       if (!consumed) throw new Error('insufficient_item')
-      return itemId
+      return chosen
     },
 
     /** 照顾动作完成后记录每日任务进度（petService 调用；动作名即 metric 名） */

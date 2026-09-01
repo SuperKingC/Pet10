@@ -59,8 +59,10 @@ describe('gm test mode', () => {
     expect(outfitPiecesFromView(buildMockWardrobeView())).toEqual(EMPTY_OUTFIT)
   })
 
-  it('mocks a plentiful inventory so every care action stays tappable', () => {
-    expect(MOCK_INVENTORY.items.map((item) => item.itemId)).toEqual(['dog_food', 'ball', 'soap'])
+  it('mocks a plentiful inventory (with bone) so every care action stays tappable', () => {
+    expect(MOCK_INVENTORY.items.map((item) => item.itemId)).toEqual(['dog_food', 'ball', 'soap', 'bone'])
     expect(MOCK_INVENTORY.items.every((item) => item.count > 0)).toBe(true)
+    // 展示名与改名后的道具目录一致
+    expect(MOCK_INVENTORY.items.find((item) => item.itemId === 'dog_food')?.name).toBe('牛奶')
   })
 })

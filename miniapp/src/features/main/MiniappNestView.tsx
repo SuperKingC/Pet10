@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
+import type { ItemId } from '../../domain/nestTaskModel'
 import { NEST_PET_FETCH_MS, NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, NEST_PET_WANDER_MS, nextWanderDelayMs, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
 import { unlockRoom } from '../../domain/xiaoduoliUnlock'
 import { MOCK_WARDROBE_CATALOG, buildMockWardrobeView } from '../../domain/gmTestMode'
@@ -31,7 +32,8 @@ interface MiniappNestViewProps {
   pet: PetState | null
   roomId: string
   boxPhase: 'idle' | 'jumping'
-  onAction(action: PetAction): void
+  /** feed 会带上气泡里选中的道具 id（牛奶/骨头） */
+  onAction(action: PetAction, itemId?: ItemId): void
   onOpenMemories(): void
   onSceneModeChange(mode: NestSceneMode): void
   onJumpFinished(): void
@@ -66,9 +68,9 @@ export function MiniappNestView({
   // 判定收敛 domain/nestPetAct 纯函数，组件只持状态与定时器回收
   const [petAct, setPetAct] = useState<NestPetActState>(NEST_PET_STAND_ACT)
 
-  const handlePetAction = useCallback((action: PetAction) => {
+  const handlePetAction = useCallback((action: PetAction, itemId?: ItemId) => {
     setPetAct((current) => reduceNestPetAct(current, { action, now: Date.now() }))
-    onAction(action)
+    onAction(action, itemId)
   }, [onAction])
 
   // 睡觉/叼娃到点收幕回站姿

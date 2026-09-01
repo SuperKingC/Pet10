@@ -176,7 +176,7 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
     setGmBusy(true)
     try {
       await gmApi.addNestItems()
-      Taro.showToast({ title: '狗粮/皮球/香皂/骨头 各+9', icon: 'success' })
+      Taro.showToast({ title: '牛奶/皮球/香皂/骨头 各+9', icon: 'success' })
     } catch {
       Taro.showToast({ title: '添加失败', icon: 'none' })
     } finally {

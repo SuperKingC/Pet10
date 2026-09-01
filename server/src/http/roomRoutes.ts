@@ -40,13 +40,17 @@ export function createRoomRoutes(dependencies: {
   })
   router.post('/:roomId/pet-actions', async (request: AuthenticatedRequest, response, next) => {
     try {
-      const { action } = z.object({ action: z.enum(['feed', 'play', 'clean', 'sleep']) }).parse(request.body)
+      // 喂食可指定消耗的道具（牛奶/骨头二选一，不传默认牛奶）；其余动作不接受 itemId
+      const { action, itemId } = z.object({
+        action: z.enum(['feed', 'play', 'clean', 'sleep']),
+        itemId: z.enum(['dog_food', 'bone']).optional()
+      }).refine((body) => body.action === 'feed' || !body.itemId, { message: 'item_only_for_feed' }).parse(request.body)
       const roomId = routeParam(request.params.roomId)
       // 照顾动作是道具的消耗口（睡觉免费）；动作完成记录每日任务进度
-      if (dependencies.nestTasks) {
-        await dependencies.nestTasks.consumeForAction(roomId, request.userId!, action)
-      }
-      const pet = await dependencies.pets.applyAction(roomId, request.userId!, action as PetAction)
+      const consumedItemId = dependencies.nestTasks
+        ? await dependencies.nestTasks.consumeForAction(roomId, request.userId!, action, itemId)
+        : null
+      const pet = await dependencies.pets.applyAction(roomId, request.userId!, action as PetAction, consumedItemId)
       if (dependencies.nestTasks) await dependencies.nestTasks.recordActionProgress(roomId, action)
       dependencies.emit(roomId, 'pet.updated', pet)
       // 动作直接改变心情数值，响应里带上最新的心情展示字段

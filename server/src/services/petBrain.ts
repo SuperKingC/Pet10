@@ -321,9 +321,14 @@ export function createPetBrain({ repositories, ai, emit, reminders, mood, logErr
         return
       }
       if (action === 'feed' && room.proactiveEnabled && Math.random() < 0.5) {
-        const thanks = pick([
-          `汪！${actorName}喂的饭最香了，肚子圆滚滚～`,
+        // 按实际消耗的道具分桶道谢（喂食可选牛奶/骨头；拿不到消耗记录时按默认的牛奶说）
+        const thanks = pick(outcome.consumedItemId === 'bone' ? [
           `呜哇谢谢${actorName}！骨头味道我给满分！`,
+          `咔嚓咔嚓，这根骨头我要慢慢啃，不许催我～`,
+          `吃饱饱！${actorName}最好了，蹭蹭～`
+        ] : [
+          `汪！${actorName}喂的牛奶最香了，肚子圆滚滚～`,
+          `咕嘟咕嘟！${actorName}的牛奶是全世界最好喝的！`,
           `吃饱饱！${actorName}最好了，蹭蹭～`
         ])
         const messages = await repositories.messages.listRecent(roomId, 10)

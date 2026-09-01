@@ -273,3 +273,54 @@ describe('pet brain pair-room scheduling', () => {
     expect(context).toMatchObject({ roomType: 'pet_dm', moodText: expect.any(String) })
   })
 })
+
+describe('pet brain feed thanks (item bucket)', () => {
+  beforeEach(() => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  function buildBrain(repositories: Awaited<ReturnType<typeof createPairRoom>>['repositories']) {
+    return createPetBrain({
+      repositories,
+      ai: { reply: async () => '好', extractMemory: async () => null },
+      emit: vi.fn()
+    })
+  }
+
+  async function lastPetMessage(repositories: Awaited<ReturnType<typeof createPairRoom>>['repositories'], roomId: string) {
+    const messages = await repositories.messages.listRecent(roomId, 10)
+    const petMessage = [...messages].reverse().find((message) => message.senderType === 'pet')
+    if (!petMessage) throw new Error('pet message missing')
+    return petMessage.text
+  }
+
+  it('thanks with bone lines after feeding a bone', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    const brain = buildBrain(repositories)
+    await brain.onPetEvent(room.id, first.id, 'feed', {
+      pet: { level: 1 } as never,
+      leveledUp: false,
+      consumedItemId: 'bone'
+    })
+    const text = await lastPetMessage(repositories, room.id)
+    expect(text).toContain('骨头')
+    expect(text).not.toContain('牛奶')
+  })
+
+  it('thanks with milk lines for the default feed', async () => {
+    const { repositories, first, room } = await createPairRoom()
+    const brain = buildBrain(repositories)
+    await brain.onPetEvent(room.id, first.id, 'feed', {
+      pet: { level: 1 } as never,
+      leveledUp: false,
+      consumedItemId: 'dog_food'
+    })
+    const text = await lastPetMessage(repositories, room.id)
+    expect(text).toContain('牛奶')
+    expect(text).not.toContain('骨头')
+  })
+})
