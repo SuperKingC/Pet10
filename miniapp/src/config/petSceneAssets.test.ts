@@ -18,7 +18,7 @@ describe('miniapp pet scene assets', () => {
 
   it('renders the flow portrait with explicit box size instead of widthFix so it never flashes', () => {
     // widthFix 图在兄弟节点 setData 时被微信重测量：开关名片、切回小窝立绘都会闪一下；
-    // 立绘主体必须显式宽高（flowHeight 240/366）+ aspectFill
+    // 立绘主体必须显式宽高（flowHeight 240/330）+ aspectFill（衣柜场景 330 缩小一档让戴帽不出场景顶）
     const portraitSource = readFileSync(resolve(miniappRoot(), 'src/features/main/MiniappOutfitPortrait.tsx'), 'utf8')
     const statusCardSource = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'), 'utf8')
     const wardrobeSource = readFileSync(resolve(miniappRoot(), 'src/features/main/MiniappWardrobePanel.tsx'), 'utf8')
@@ -27,7 +27,7 @@ describe('miniapp pet scene assets', () => {
     expect(portraitSource).not.toMatch(/image--flow" src=\{baseDisplay\} mode="widthFix"/)
     expect(portraitSource).toContain('flowHeight')
     expect(statusCardSource).toContain('flowHeight={240}')
-    expect(wardrobeSource).toContain('flowHeight={366}')
+    expect(wardrobeSource).toContain('flowHeight={330}')
   })
 
   it('sleep pose ships via COS static assets and the nest scene wires the sleep act', () => {
@@ -65,5 +65,28 @@ describe('miniapp pet scene assets', () => {
     expect(componentSource).toContain('DOLL_FILE')
     expect(componentSource).toContain('pet-move-stage')
     expect(componentSource).toContain('pet-move-doll')
+  })
+
+  it('turn choreography pauses before flipping and the fetch return fades in instead of popping', () => {
+    // 掉头平滑化契约：到边先停步再翻面（scaleX 连续过 0 缓冲），回程同样停步后翻回；
+    // 叼娃场外换向后边走入边淡入（26%→30%），娃娃与狗同步淡入不再瞬现
+    const sceneStyle = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.scss'), 'utf8')
+
+    const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(wanderBlock).toContain('34% { transform: translateX(54px) scaleX(1); }')
+    expect(wanderBlock).toContain('39% { transform: translateX(54px) scaleX(1); }')
+    expect(wanderBlock).toContain('45% { transform: translateX(54px) scaleX(-1); }')
+    expect(wanderBlock).toContain('93% { transform: translateX(0) scaleX(-1); }')
+    expect(wanderBlock).toContain('100% { transform: translateX(0) scaleX(1); }')
+
+    const fetchBlock = sceneStyle.match(/@keyframes pet-fetch-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(fetchBlock).toContain('26% { transform: translateX(-150px) scaleX(-1); opacity: 0; }')
+    expect(fetchBlock).toContain('30% { transform: translateX(-136px) scaleX(-1); opacity: 1; }')
+
+    const dollBlock = sceneStyle.match(/@keyframes pet-fetch-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(dollBlock).toContain('30% { transform: translateY(6px); opacity: 1; }')
+
+    expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
+    expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
   })
 })
