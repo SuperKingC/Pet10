@@ -1,51 +1,87 @@
 import { Image, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import { suitAssets } from '../../services/wardrobeSuitAssets'
-import { isOverlaySuit, OUTFIT_LAYER_STYLE } from '../../domain/wardrobeModel'
+import {
+  isOverlaySuit,
+  OUTFIT_LAYER_STYLE,
+  resolveOverlayStyle,
+  suitCategory,
+  type OutfitPieces,
+  type SuitKey
+} from '../../domain/wardrobeModel'
 import './MiniappOutfitPortrait.scss'
 
 interface MiniappOutfitPortraitProps {
-  /** 当前套装 key；空/default 显示原装小多利 */
+  /** 当前套装 key；空/default 显示原装小多利（旧用法：单套装，主体与配饰二选一） */
   suitKey?: string | null
+  /** 按类别的完整穿戴；传入时进入多层叠加模式（flow：立绘 widthFix 满盒，配饰百分比与图对齐） */
+  pieces?: OutfitPieces
   className?: string
 }
 
 /**
- * 小多利立绘（衣柜版）：叠穿件（帽/巾/包）= 原装立绘 + 服装图按定位元数据绝对定位叠加；
- * 主体服装 = 整套穿装立绘（素材中衣服与狗身融合，无法拆件）。素材未就绪时兜底原装。
- * 叠穿层用 widthFix 定高，加载完成前微信 image 会按默认尺寸铺开盖在小多利身上（拉伸闪现），
+ * 小多利立绘（衣柜版）。两种模式：
+ * - pieces 模式：主体服装整身立绘 + 每类配饰按标定叠加（原装用 OUTFIT_LAYER_STYLE，其余主体用 BODY_OVERLAY_STYLE）；
+ *   立绘走 widthFix，容器宽度由调用方按 suitDisplayWidth(key, 高度) 给定，保证图盒=容器盒。
+ * - suitKey 模式（兼容）：单套装展示；配饰套装仍叠在原装立绘上。
+ * 叠穿层 widthFix 加载完成前微信 image 会按默认尺寸铺开盖在小多利身上（拉伸闪现），
  * 因此叠穿层 onLoad 前保持透明，加载后 180ms 淡入。
  */
-export function MiniappOutfitPortrait({ suitKey, className }: MiniappOutfitPortraitProps) {
-  const base = suitAssets.resolveSuitDisplay('default')
-  const layerStyle = suitKey ? OUTFIT_LAYER_STYLE[suitKey as keyof typeof OUTFIT_LAYER_STYLE] : undefined
-  const [layerLoaded, setLayerLoaded] = useState(false)
-
+export function MiniappOutfitPortrait({ suitKey, pieces, className }: MiniappOutfitPortraitProps) {
+  const [layerLoaded, setLayerLoaded] = useState<Record<string, boolean>>({})
+  const piecesKey = pieces ? `${pieces.body}|${pieces.hat}|${pieces.scarf}|${pieces.bag}` : ''
   useEffect(() => {
-    setLayerLoaded(false)
-  }, [suitKey])
+    setLayerLoaded({})
+  }, [piecesKey])
 
-  if (suitKey && !isOverlaySuit(suitKey)) {
-    const display = suitAssets.resolveSuitDisplay(suitKey)
+  if (pieces) {
+    const body = pieces.body && suitCategory(pieces.body) === 'body' ? pieces.body : 'default'
+    const baseDisplay = suitAssets.resolveSuitDisplay(body)
+    const accessories = (['hat', 'scarf', 'bag'] as const).flatMap((slot) => {
+      const key = pieces[slot]
+      if (!key) return []
+      const style = resolveOverlayStyle(body, key as SuitKey)
+      if (!style) return []
+      return [{ slot, key, style, src: suitAssets.resolveSuitDisplay(key) }]
+    })
     return (
-      <View className={`outfit-portrait ${className ?? ''}`}>
-        <Image className="outfit-portrait__image" src={display} mode="aspectFit" />
+      <View className={`outfit-portrait outfit-portrait--flow ${className ?? ''}`}>
+        <Image className="outfit-portrait__image outfit-portrait__image--flow" src={baseDisplay} mode="widthFix" />
+        {accessories.map((layer) => (
+          <Image
+            key={layer.key}
+            className={`outfit-portrait__layer${layerLoaded[layer.slot] ? ' outfit-portrait__layer--ready' : ''}`}
+            src={layer.src}
+            mode="widthFix"
+            style={layer.style}
+            onLoad={() => setLayerLoaded((current) => ({ ...current, [layer.slot]: true }))}
+          />
+        ))}
       </View>
     )
   }
 
+  const base = suitAssets.resolveSuitDisplay('default')
+  if (suitKey && isOverlaySuit(suitKey)) {
+    const display = suitAssets.resolveSuitDisplay(suitKey)
+    return (
+      <View className={`outfit-portrait ${className ?? ''}`}>
+        <Image className="outfit-portrait__image" src={base} mode="aspectFit" />
+        <Image
+          className={`outfit-portrait__layer${layerLoaded.suit ? ' outfit-portrait__layer--ready' : ''}`}
+          src={display}
+          mode="widthFix"
+          style={OUTFIT_LAYER_STYLE[suitKey as SuitKey]}
+          onLoad={() => setLayerLoaded((current) => ({ ...current, suit: true }))}
+        />
+      </View>
+    )
+  }
+
+  const display = suitKey ? suitAssets.resolveSuitDisplay(suitKey) : base
   return (
     <View className={`outfit-portrait ${className ?? ''}`}>
-      <Image className="outfit-portrait__image" src={base} mode="aspectFit" />
-      {suitKey && layerStyle && (
-        <Image
-          className={`outfit-portrait__layer${layerLoaded ? ' outfit-portrait__layer--ready' : ''}`}
-          src={suitAssets.resolveSuitDisplay(suitKey)}
-          mode="widthFix"
-          style={layerStyle}
-          onLoad={() => setLayerLoaded(true)}
-        />
-      )}
+      <Image className="outfit-portrait__image" src={display} mode="aspectFit" />
     </View>
   )
 }

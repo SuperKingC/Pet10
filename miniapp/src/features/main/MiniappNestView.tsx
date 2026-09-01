@@ -18,7 +18,7 @@ import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import { wardrobeApi } from '../../services/wardrobeApi'
 import { suitAssets } from '../../services/wardrobeSuitAssets'
 import { reconcileStoredUnlock, writeUnlockState } from '../../services/xiaoduoliUnlockStorage'
-import type { WardrobeView } from '../../domain/wardrobeModel'
+import { outfitPiecesFromView, type WardrobeView } from '../../domain/wardrobeModel'
 import './MiniappNestView.scss'
 
 const wardrobe = require('../../assets/nest/wardrobe-v2.png')
@@ -164,7 +164,7 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} suitKey={wardrobeView?.equipped ?? 'default'} onOpenCard={() => setPetCardOpen(true)} sleeping={petSleeping} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} outfitPieces={wardrobeView ? outfitPiecesFromView(wardrobeView) : undefined} onOpenCard={() => setPetCardOpen(true)} sleeping={petSleeping} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (

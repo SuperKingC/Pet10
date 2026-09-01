@@ -1,7 +1,10 @@
 import type { PetEventStat } from '../domain/models.js'
 import {
   findWardrobeSuit,
+  parseEquippedPieces,
   resolveWardrobeUnlock,
+  serializeEquippedPieces,
+  type WardrobeOutfitPieces,
   type WardrobeSuitKey,
   type WardrobeUnlockContext
 } from '../domain/wardrobeCatalog.js'
@@ -30,8 +33,21 @@ export interface MatchTodayView {
 
 export interface WardrobeView {
   equipped: string
+  /** 当前穿戴（按类别）：body 必有；配饰可为 null */
+  outfit: WardrobeOutfitPieces
   items: WardrobeItemView[]
   match: MatchTodayView
+}
+
+/** PUT /wardrobe 的保存载荷：旧 { itemKey }（=只换主体）或新 { outfit }（按类别整套保存） */
+export interface WardrobeSaveInput {
+  itemKey?: string
+  outfit?: {
+    body?: string
+    hat?: string | null
+    scarf?: string | null
+    bag?: string | null
+  }
 }
 
 export interface MatchSettledEvent {
@@ -129,22 +145,44 @@ export function createWardrobeService(repositories: RepositoryBundle, options?: 
         repositories.wardrobe.getState(roomId),
         matchTodayView(roomId, userId, today)
       ])
+      const outfit = parseEquippedPieces(state?.equipped)
       return {
-        equipped: state?.equipped ?? 'default',
+        equipped: outfit.body,
+        outfit,
         items: resolveWardrobeUnlock(context),
         match
       }
     },
 
-    /** 保存当前展示套装；未解锁 409 wardrobe_locked */
-    async setEquipped(roomId: string, userId: string, suitKey: string): Promise<{ equipped: string }> {
+    /** 保存当前穿戴（按类别每类一件）；字符串入参=旧语义（单套装）；未解锁 409 wardrobe_locked */
+    async setEquipped(
+      roomId: string,
+      userId: string,
+      input: WardrobeSuitKey | WardrobeSaveInput
+    ): Promise<{ equipped: string; outfit: WardrobeOutfitPieces }> {
       await assertMember(roomId, userId)
-      const suit = findWardrobeSuit(suitKey)
-      if (!suit) throw new Error('invalid_suit')
       const context = await unlockContext(roomId)
-      if (!suit.isUnlocked(context)) throw new Error('wardrobe_locked')
-      await repositories.wardrobe.setEquipped(roomId, suitKey)
-      return { equipped: suitKey }
+      const saveInput: WardrobeSaveInput = typeof input === 'string' ? { itemKey: input } : input
+      const outfit = saveInput.outfit
+      const pieces: WardrobeOutfitPieces = outfit
+        ? {
+            body: (outfit.body ?? 'default') as WardrobeSuitKey,
+            hat: outfit.hat ?? null,
+            scarf: outfit.scarf ?? null,
+            bag: outfit.bag ?? null
+          }
+        : { body: (saveInput.itemKey ?? 'default') as WardrobeSuitKey, hat: null, scarf: null, bag: null }
+      const slots: Array<[string, WardrobeSuitKey | null]> = [
+        ['body', pieces.body], ['hat', pieces.hat], ['scarf', pieces.scarf], ['bag', pieces.bag]
+      ]
+      for (const [slot, key] of slots) {
+        if (!key) continue
+        const suit = findWardrobeSuit(key)
+        if (!suit || suit.category !== slot) throw new Error('invalid_suit')
+        if (!suit.isUnlocked(context)) throw new Error('wardrobe_locked')
+      }
+      await repositories.wardrobe.setEquipped(roomId, serializeEquippedPieces(pieces))
+      return { equipped: pieces.body, outfit: pieces }
     },
 
     /** 提交今日默契选择：每人每天一次，提交后当天锁定；双方齐时立即结算 */

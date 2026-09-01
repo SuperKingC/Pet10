@@ -9,6 +9,18 @@ function routeParam(value: string | string[]) {
 
 const suitKeySchema = z.object({ itemKey: z.string().min(1).max(30) })
 
+const outfitSchema = z.object({
+  body: z.string().max(30).optional(),
+  hat: z.string().max(30).nullable().optional(),
+  scarf: z.string().max(30).nullable().optional(),
+  bag: z.string().max(30).nullable().optional()
+})
+
+const wardrobeSaveSchema = z.union([
+  suitKeySchema,
+  z.object({ outfit: outfitSchema })
+])
+
 export function createWardrobeRoutes(service: ReturnType<typeof createWardrobeService>) {
   const router = Router()
 
@@ -19,8 +31,8 @@ export function createWardrobeRoutes(service: ReturnType<typeof createWardrobeSe
 
   router.put('/rooms/:roomId/wardrobe', async (request: AuthenticatedRequest, response, next) => {
     try {
-      const { itemKey } = suitKeySchema.parse(request.body)
-      response.json(await service.setEquipped(routeParam(request.params.roomId), request.userId!, itemKey))
+      const payload = wardrobeSaveSchema.parse(request.body)
+      response.json(await service.setEquipped(routeParam(request.params.roomId), request.userId!, payload))
     } catch (error) { next(error) }
   })
 

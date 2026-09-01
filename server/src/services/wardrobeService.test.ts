@@ -53,6 +53,27 @@ describe('wardrobe service', () => {
     expect(view.items.find((item) => item.key === 'overalls')?.unlocked).toBe(true)
   })
 
+  it('saves and returns an outfit with per-category pieces', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createService(repositories)
+    // 帽子未解锁（需 15 次任务）→ 整套拒绝
+    await expect(service.setEquipped(room.id, user.id, { outfit: { body: 'default', hat: 'hat' } }))
+      .rejects.toThrow('wardrobe_locked')
+    // 类别不符：把围巾塞进 hat 槽
+    await expect(service.setEquipped(room.id, user.id, { outfit: { body: 'default', hat: 'scarf' } }))
+      .rejects.toThrow('invalid_suit')
+    // 合法穿戴：围巾（初始解锁）
+    const saved = await service.setEquipped(room.id, user.id, { outfit: { body: 'default', scarf: 'scarf' } })
+    expect(saved.outfit).toEqual({ body: 'default', hat: null, scarf: 'scarf', bag: null })
+    const view = await service.get(room.id, user.id)
+    expect(view.outfit).toEqual({ body: 'default', hat: null, scarf: 'scarf', bag: null })
+    expect(view.equipped).toBe('default')
+    // 兼容旧载荷：单 key = 只换主体
+    await service.setEquipped(room.id, user.id, 'hoodie')
+    const view2 = await service.get(room.id, user.id)
+    expect(view2.outfit).toEqual({ body: 'hoodie', hat: null, scarf: null, bag: null })
+  })
+
   it('settles once when both picked the same suit, with streak and event', async () => {
     const { repositories, user, friend, room } = await createPairRoom()
     const settled: MatchSettledEvent[] = []

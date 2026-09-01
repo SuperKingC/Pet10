@@ -4,9 +4,26 @@ import Taro from '@tarojs/taro'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { wardrobeApi } from '../../services/wardrobeApi'
 import { suitAssets, type SuitFiles } from '../../services/wardrobeSuitAssets'
-import { matchSummary, suitBadge, type WardrobeView } from '../../domain/wardrobeModel'
+import {
+  EMPTY_OUTFIT,
+  matchSummary,
+  outfitPiecesFromView,
+  suitBadge,
+  suitCategory,
+  suitDisplayWidth,
+  type OutfitPieces,
+  type SuitCategory,
+  type WardrobeView
+} from '../../domain/wardrobeModel'
 import { MiniappOutfitPortrait } from './MiniappOutfitPortrait'
 import './MiniappWardrobePanel.scss'
+
+const CLOUD_PENDING_HINT = '画稿在云端，联网打开衣柜会自动取回来'
+
+/** 内景大图走 COS 按需下载：优先华丽舞台内景 v3，未上 COS 时回退 v2，再回退面板渐变底 */
+const DECOR_INTERIOR_FILES = ['wardrobe-interior-v3.jpg', 'wardrobe-interior-v2.jpg']
+
+const lockBadge = require('../../assets/wardrobe/lock-badge-v1.png')
 
 interface MiniappWardrobePanelProps {
   roomId: string
@@ -15,26 +32,33 @@ interface MiniappWardrobePanelProps {
   onChanged?(): void
 }
 
-const CLOUD_PENDING_HINT = '这件的画稿在云端，联网打开衣柜会自动取回来'
-
-const DECOR_INTERIOR_FILE = 'wardrobe-interior-v2.jpg'
-
-// 衣柜面板：左侧「试衣间」拍立得舞台实时预览，右侧默契换装气泡；下方服装挂杆网格。
-// 默契换装每天一次，双方一致即达成。解锁判定全部来自服务端，面板只展示与提交。
+// 衣柜面板：「华丽舞台」试衣间场景 + 按类别穿戴（主体服装单选 + 帽/巾/包各一件可叠穿）。
+// 默契换装每天一次，双方主体一致即达成。解锁判定全部来自服务端，面板只展示与提交。
 export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWardrobePanelProps) {
   const [view, setView] = useState<WardrobeView | null>(null)
-  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [pieces, setPieces] = useState<OutfitPieces>(EMPTY_OUTFIT)
   const [assetMap, setAssetMap] = useState<Record<string, SuitFiles>>({})
   const [backdropSrc, setBackdropSrc] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    // 内景装饰大图走 COS 按需下载（不占包体），失败回退面板渐变底
     let cancelled = false
-    void suitAssets.ensureFile(DECOR_INTERIOR_FILE)
-      .then((path) => { if (!cancelled && path) setBackdropSrc(path) })
-      .catch(() => undefined)
+    const tryLoad = async (index: number): Promise<void> => {
+      if (cancelled || index >= DECOR_INTERIOR_FILES.length) return
+      try {
+        const file = DECOR_INTERIOR_FILES[index]
+        const path = await suitAssets.ensureFile(file)
+        if (path) {
+          if (!cancelled) setBackdropSrc(path)
+        } else {
+          await tryLoad(index + 1)
+        }
+      } catch {
+        await tryLoad(index + 1)
+      }
+    }
+    void tryLoad(0)
     return () => { cancelled = true }
   }, [])
 
@@ -42,44 +66,43 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
     if (!roomId) return
     void wardrobeApi.get(roomId).then((next) => {
       setView(next)
-      // 解锁套装静默预取云端素材（服装特写+立绘），失败不提示，卡片回退「云端准备中」态
-      void suitAssets.ensureSuitAssets(next.items.filter((item) => item.unlocked).map((item) => item.key))
+      setPieces(outfitPiecesFromView(next))
+      // 全量静默预取（含未解锁）：锁定套装也要能看到真实样子（置灰展示）
+      void suitAssets.ensureSuitAssets(next.items.map((item) => item.key))
         .then((assets) => setAssetMap((current) => ({ ...current, ...assets })))
     }).catch(() => setView(null))
   }, [roomId])
 
   useEffect(() => {
     setView(null)
+    setPieces(EMPTY_OUTFIT)
     refresh()
   }, [refresh])
 
-  const equipped = view?.equipped ?? 'default'
-  const currentKey = selectedKey ?? equipped
-  const currentItem = view?.items.find((item) => item.key === currentKey)
-  const currentFiles = assetMap[currentKey] ?? suitAssets.getCachedSuitFiles(currentKey)
-  const assetReady = Boolean(currentFiles)
   const unlockedCount = view ? view.items.filter((item) => item.unlocked).length : 0
+  const bodyFiles = assetMap[pieces.body] ?? suitAssets.getCachedSuitFiles(pieces.body)
+  const assetReady = pieces.body === 'default' || Boolean(bodyFiles)
 
   const save = async () => {
-    if (!roomId || !view || saving || !currentItem?.unlocked) return
+    if (!roomId || !view || saving) return
     setSaving(true)
     try {
-      await wardrobeApi.setEquipped(roomId, currentItem.key)
+      await wardrobeApi.setEquipped(roomId, pieces)
       Taro.showToast({ title: '换好啦！', icon: 'none' })
       onChanged?.()
     } catch (error) {
       const message = error instanceof Error ? error.message : ''
-      Taro.showToast({ title: message.includes('locked') ? '这套还没解锁哦' : '没保存上，再试试', icon: 'none' })
+      Taro.showToast({ title: message.includes('locked') ? '有件还没解锁哦' : '没保存上，再试试', icon: 'none' })
     } finally {
       setSaving(false)
     }
   }
 
   const submitMatch = async () => {
-    if (!roomId || !view || submitting || !currentItem?.unlocked || view.match.myPick) return
+    if (!roomId || !view || submitting || view.match.myPick) return
     setSubmitting(true)
     try {
-      const match = await wardrobeApi.submitMatchPick(roomId, currentItem.key)
+      const match = await wardrobeApi.submitMatchPick(roomId, pieces.body)
       Taro.showToast({
         title: match.matchedToday ? `心有灵犀！连胜 ${match.streak} 天` : '已提交，等 TA 揭晓',
         icon: 'none'
@@ -99,9 +122,80 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
     }
   }
 
+  const togglePiece = (key: string, unlocked: boolean, conditionText: string) => {
+    const category = suitCategory(key as SuitKey)
+    if (!unlocked) {
+      Taro.showToast({ title: conditionText || '还没解锁哦', icon: 'none' })
+      return
+    }
+    if (category === 'body') {
+      setPieces((current) => ({ ...current, body: key as SuitKey }))
+      return
+    }
+    setPieces((current) => ({ ...current, [category]: current[category] === key ? null : key }))
+  }
+
+  const renderItem = (item: WardrobeView['items'][number], index: number) => {
+    const category = suitCategory(item.key)
+    const isBody = category === 'body'
+    const worn = isBody ? pieces.body === item.key : pieces[category as Exclude<SuitCategory, 'body'>] === item.key
+    const files = assetMap[item.key] ?? suitAssets.getCachedSuitFiles(item.key)
+    const iconSrc = item.key === 'default'
+      ? suitAssets.resolveSuitDisplay('default')
+      : files?.icon
+    const badge = suitBadge(item)
+    return (
+      <View
+        className={[
+          'wardrobe-card',
+          worn && item.unlocked ? 'wardrobe-card--selected' : '',
+          item.unlocked ? '' : 'wardrobe-card--locked'
+        ].join(' ')}
+        key={item.key}
+        style={{ animationDelay: `${Math.min(index * 60, 360)}ms` }}
+        onClick={() => togglePiece(item.key, item.unlocked, item.conditionText)}
+      >
+        {worn && item.unlocked && (
+          <View className="wardrobe-card__ribbon"><Text>{isBody ? '穿着中' : '已佩戴'}</Text></View>
+        )}
+        {badge && <Text className="wardrobe-card__badge">{badge}</Text>}
+        {worn && item.unlocked && (
+          <View className="wardrobe-card__tick"><Text>✓</Text></View>
+        )}
+        {item.unlocked ? (
+          iconSrc ? (
+            <Image className="wardrobe-card__suit" src={iconSrc} mode="aspectFit" />
+          ) : (
+            <View className="wardrobe-card__suit wardrobe-card__suit--pending">
+              <Text className="wardrobe-card__pending-text">云端准备中</Text>
+            </View>
+          )
+        ) : (
+          <View className="wardrobe-card__suit wardrobe-card__suit--locked">
+            {iconSrc && <Image className="wardrobe-card__suit-img" src={iconSrc} mode="aspectFit" />}
+            <Image className="wardrobe-card__lock-badge" src={lockBadge} mode="aspectFit" />
+          </View>
+        )}
+        <Text className="wardrobe-card__name">{item.name}</Text>
+        {!item.unlocked && <Text className="wardrobe-card__condition">{item.conditionText}</Text>}
+      </View>
+    )
+  }
+
+  const renderSection = (label: string) => (
+    <View className="wardrobe-grid__section">
+      <Text className="wardrobe-grid__section-text">{label}</Text>
+      <View className="wardrobe-grid__section-line" />
+    </View>
+  )
+
+  const bodyItems = view?.items.filter((item) => suitCategory(item.key) === 'body') ?? []
+  const accessoryItems = view?.items.filter((item) => suitCategory(item.key) !== 'body') ?? []
+
   return (
     <View className="wardrobe-panel">
       {backdropSrc && <Image className="wardrobe-panel__backdrop" src={backdropSrc} mode="widthFix" />}
+      <View className="wardrobe-panel__backdrop-fade" />
       <View className="wardrobe-panel__top">
         <MiniappBackButton onClick={onClose} />
         <Text className="wardrobe-panel__title">衣柜</Text>
@@ -119,16 +213,17 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
           </View>
         )}
       </View>
-      {/* 试衣间场景：小多利直接站在衣柜内景的地板上（内景大图即舞台，聚光灯/星星/名牌浮层） */}
+
+      {/* 试衣间场景：小多利站上华丽舞台（内景即舞台，聚光柔光+名牌浮层） */}
       <View className="wardrobe-scene">
-        <View className="wardrobe-scene__portrait">
-          <MiniappOutfitPortrait suitKey={currentItem?.unlocked ? currentKey : 'default'} />
+        <View className="wardrobe-scene__portrait" style={{ width: `${suitDisplayWidth(pieces.body, 366)}rpx` }}>
+          <MiniappOutfitPortrait pieces={pieces} flow />
         </View>
-        {!assetReady && currentItem?.unlocked && (
+        {!assetReady && (
           <Text className="wardrobe-scene__pending">画稿云端准备中…</Text>
         )}
         <View className="wardrobe-scene__name">
-          <Text>{currentItem?.name ?? '原装小多利'}</Text>
+          <Text>{view ? (view.items.find((item) => item.key === pieces.body)?.name ?? '原装小多利') : '…'}</Text>
         </View>
         <View className="wardrobe-scene__spark wardrobe-scene__spark--a" />
         <View className="wardrobe-scene__spark wardrobe-scene__spark--b" />
@@ -154,52 +249,22 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
         <View className="wardrobe-rack__pole" />
         <View className="wardrobe-grid">
           {view === null && <View className="wardrobe-grid__skeleton" />}
-          {view !== null && view.items.map((item) => {
-            // 原装小多利没有服装素材文件，卡片直接展示原装立绘
-            const iconSrc = item.key === 'default'
-              ? suitAssets.resolveSuitDisplay('default')
-              : (assetMap[item.key] ?? suitAssets.getCachedSuitFiles(item.key))?.icon
-            const badge = suitBadge(item)
-            const isSelected = item.key === currentKey
-            return (
-              <View
-                className={[
-                  'wardrobe-card',
-                  isSelected ? 'wardrobe-card--selected' : '',
-                  item.unlocked ? '' : 'wardrobe-card--locked'
-                ].join(' ')}
-                key={item.key}
-                onClick={() => { if (item.unlocked) setSelectedKey(item.key) }}
-              >
-                {item.unlocked && item.key === equipped && (
-                  <View className="wardrobe-card__ribbon"><Text>穿着中</Text></View>
-                )}
-                {badge && <Text className="wardrobe-card__badge">{badge}</Text>}
-                {isSelected && item.unlocked && (
-                  <View className="wardrobe-card__tick"><Text>✓</Text></View>
-                )}
-                {item.unlocked ? (
-                  iconSrc ? (
-                    <Image className="wardrobe-card__suit" src={iconSrc} mode="aspectFit" />
-                  ) : (
-                    <View className="wardrobe-card__suit wardrobe-card__suit--pending">
-                      <Text className="wardrobe-card__pending-text">云端准备中</Text>
-                    </View>
-                  )
-                ) : (
-                  <View className="wardrobe-card__suit wardrobe-card__suit--locked">
-                    <Text className="wardrobe-card__lock">🔒</Text>
-                  </View>
-                )}
-                <Text className="wardrobe-card__name">{item.name}</Text>
-                {!item.unlocked && <Text className="wardrobe-card__condition">{item.conditionText}</Text>}
+          {view !== null && (
+            <>
+              {renderSection('🐾 主体服装（选一件）')}
+              <View className="wardrobe-grid__cards">
+                {bodyItems.map(renderItem)}
               </View>
-            )
-          })}
+              {renderSection('🎀 配饰（可叠穿）')}
+              <View className="wardrobe-grid__cards wardrobe-grid__cards--accessory">
+                {accessoryItems.map(renderItem)}
+              </View>
+            </>
+          )}
         </View>
       </View>
 
-      {view && !assetReady && currentItem?.unlocked && (
+      {view && !assetReady && (
         <Text className="wardrobe-panel__hint">{CLOUD_PENDING_HINT}</Text>
       )}
 
@@ -207,7 +272,7 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
         <View
           hoverClass="wardrobe-btn--press"
           hoverStayTime={120}
-          className={`wardrobe-btn wardrobe-btn--save${currentItem?.unlocked ? '' : ' wardrobe-btn--disabled'}`}
+          className={`wardrobe-btn wardrobe-btn--save${view ? '' : ' wardrobe-btn--disabled'}`}
           onClick={() => void save()}
         >
           <Text>{saving ? '保存中…' : '保存装扮'}</Text>
@@ -215,7 +280,7 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
         <View
           hoverClass="wardrobe-btn--press"
           hoverStayTime={120}
-          className={`wardrobe-btn wardrobe-btn--match${view?.match.myPick || !currentItem?.unlocked ? ' wardrobe-btn--disabled' : ''}`}
+          className={`wardrobe-btn wardrobe-btn--match${view?.match.myPick ? ' wardrobe-btn--disabled' : ''}`}
           onClick={() => void submitMatch()}
         >
           <Text>{view?.match.myPick ? '今日已提交' : submitting ? '提交中…' : '就选它，提交默契'}</Text>

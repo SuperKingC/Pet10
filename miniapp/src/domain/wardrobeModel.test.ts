@@ -5,9 +5,13 @@ import {
   isOverlaySuit,
   matchSummary,
   OUTFIT_LAYER_STYLE,
+  outfitPiecesFromView,
+  resolveOverlayStyle,
   selectedOrDefault,
   suitAssetFiles,
   suitBadge,
+  suitCategory,
+  suitDisplayWidth,
   type MatchToday,
   type WardrobeItem,
   type WardrobeView
@@ -76,5 +80,40 @@ describe('wardrobe model', () => {
     expect(matchSummary(match({ partnerPicked: true }))).toBe('TA 已选好啦，就等你了')
     expect(matchSummary(match({ streak: 2 }))).toBe('当前连胜 2 天，选一套今日装扮吧')
     expect(matchSummary(match())).toBe('各选一套当日装扮，一致即默契达成')
+  })
+
+  it('categorizes suits and resolves per-body overlay styles', () => {
+    expect(suitCategory('default')).toBe('body')
+    expect(suitCategory('hoodie')).toBe('body')
+    expect(suitCategory('hat')).toBe('hat')
+    expect(suitCategory('scarf')).toBe('scarf')
+    expect(suitCategory('bag')).toBe('bag')
+    // 原装用全局标定；其余主体用逐套标定（calibrate-body-overlays.mjs 换算值抽查）
+    expect(resolveOverlayStyle('default', 'hat')).toEqual({ left: '25.00%', top: '6.86%', width: '50.00%' })
+    expect(resolveOverlayStyle('hoodie', 'hat')).toEqual({ left: '29.66%', top: '6.86%', width: '40.68%' })
+    expect(resolveOverlayStyle('pajamas', 'bag')).toEqual({ left: '14.22%', top: '74.00%', width: '34.07%' })
+  })
+
+  it('derives outfit pieces from the view and drops locked pieces', () => {
+    const view: WardrobeView = {
+      equipped: 'hoodie',
+      outfit: { body: 'hoodie', hat: 'hat', scarf: 'scarf', bag: 'bag' },
+      items: [
+        item({ key: 'default', name: '原装小多利' }),
+        item({ key: 'hoodie', name: '连帽衫' }),
+        item({ key: 'scarf', name: '围巾' }),
+        item({ key: 'hat', name: '帽子', unlocked: false }),
+        item({ key: 'bag', name: '小包', unlocked: false })
+      ],
+      match: match()
+    }
+    // 未解锁的帽子被兜底丢弃，围巾保留
+    expect(outfitPiecesFromView(view)).toEqual({ body: 'hoodie', hat: null, scarf: 'scarf', bag: null })
+    // 旧视图无 outfit 字段：单 key 按类别落位
+    const legacy: WardrobeView = { ...view, outfit: undefined, equipped: 'scarf' }
+    expect(outfitPiecesFromView(legacy)).toEqual({ body: 'default', hat: null, scarf: 'scarf', bag: null })
+    // 固定高度按立绘比例换算宽度
+    expect(suitDisplayWidth('default', 700)).toBe(436)
+    expect(suitDisplayWidth('pajamas', 320)).toBe(161)
   })
 })
