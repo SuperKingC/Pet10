@@ -9,7 +9,7 @@
    显式 width+height 摆脱 widthFix —— 微信 widthFix 图在兄弟节点 setData 时会重测量导致背景闪动 */
 .pet-card-background { position: absolute; inset: 0; width: 100%; height: 100%; }
 /* 小多利居中偏下踩在居中椭圆地毯上（bottom 14px） */
-.pet-avatar-image { position: absolute; bottom: 14px; left: 50%; z-index: 2; width: 185px; height: 218px; transform: translateX(-50%); }
+.pet-avatar-image { position: absolute; bottom: 14px; left: 50%; z-index: 2; width: 106px; height: 170px; transform: translateX(-50%); }
 /* 睡姿：睡觉动作后站姿与四脚朝天 COS 姿态图（240×137 = 480×274 @2x）交叉淡入 300ms；
    睡姿图未就绪时保持站姿，躺姿比站姿宽、底边与地毯线对齐，肚皮呼吸以底边为轴不离地 */
 .pet-avatar-stand { position: absolute; inset: 0; transition: opacity .3s ease; }
