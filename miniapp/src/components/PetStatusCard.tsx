@@ -6,6 +6,7 @@ import { type NestPetAct } from '../domain/nestPetAct'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
 import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
 import { suitAssets } from '../services/wardrobeSuitAssets'
+import { resolveAssetBaseUrl } from '../services/assetBaseUrl'
 import './PetStatusCard.scss'
 
 type Props = {
@@ -26,6 +27,9 @@ const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
 const DOLL_FILE = 'xiaoduoli-doll-v1.png'
+// ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
+// 失败时回退 <Image> 直连 URL：image 组件不受 downloadFile 域名校验约束，本地静态服务/COS 均可直接显示
+const actAssetUrl = (file: string) => `${resolveAssetBaseUrl()}/wardrobe/${file}`
 // 四项状态各自同色系渐变（深→浅），与经验条同一质感语言
 const statuses = [
   ['饱食', 'hunger', '#f3a85d', '#f8c48d'],
@@ -63,8 +67,8 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
   useEffect(() => {
     let cancelled = false
     void suitAssets.ensureFile(SLEEP_POSE_FILE)
-      .then((path) => { if (!cancelled && path) setSleepSrc(path) })
-      .catch(() => undefined)
+      .then((path) => { if (!cancelled) setSleepSrc(path ?? actAssetUrl(SLEEP_POSE_FILE)) })
+      .catch(() => { if (!cancelled) setSleepSrc(actAssetUrl(SLEEP_POSE_FILE)) })
     return () => { cancelled = true }
   }, [])
 
@@ -76,10 +80,18 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
       suitAssets.ensureFile(DOLL_FILE),
     ])
       .then(([frameA, frameB, doll]) => {
-        if (cancelled || !frameA || !frameB || !doll) return
-        setMoveAssets({ frameA, frameB, doll })
+        if (cancelled) return
+        setMoveAssets({
+          frameA: frameA ?? actAssetUrl(WALK_FRAME_A_FILE),
+          frameB: frameB ?? actAssetUrl(WALK_FRAME_B_FILE),
+          doll: doll ?? actAssetUrl(DOLL_FILE),
+        })
       })
-      .catch(() => undefined)
+      .catch(() => { if (!cancelled) setMoveAssets({
+        frameA: actAssetUrl(WALK_FRAME_A_FILE),
+        frameB: actAssetUrl(WALK_FRAME_B_FILE),
+        doll: actAssetUrl(DOLL_FILE),
+      }) })
     return () => { cancelled = true }
   }, [])
 
