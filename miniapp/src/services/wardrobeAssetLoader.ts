@@ -29,6 +29,14 @@ export interface SuitFiles {
 export const WARDROBE_ASSET_STORAGE_KEY = 'wardrobeSuitAssets'
 
 export function createSuitAssetService(deps: SuitAssetDeps) {
+  // 下载+索引写回串行化：并发调用各自持有旧索引快照，写回互相覆盖会丢条目（下次启动重复下载）
+  let queue: Promise<unknown> = Promise.resolve()
+  const enqueue = <T>(task: () => Promise<T>): Promise<T> => {
+    const next = queue.then(task, task)
+    queue = next.catch(() => undefined)
+    return next
+  }
+
   function bundledOf(fileName: string): string | null {
     return deps.bundledImages[fileName] ?? null
   }
@@ -77,65 +85,69 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
     }
   }
 
-  /** 静默确保套装本地可用（icon+display 两张，并发下载，失败不抛错） */
-  async function ensureSuitAssets(keys: string[]): Promise<Record<string, SuitFiles>> {
-    const index = readIndex()
-    const results: Record<string, SuitFiles> = {}
-    await Promise.all(
-      keys.map(async (key) => {
-        // 原装小多利不走素材文件，直接用随包立绘
-        if (key === 'default') {
-          results[key] = { icon: deps.bundledImages.default, display: deps.bundledImages.default }
-          return
-        }
-        const files = suitAssetFiles(key)
-        const saved: Record<string, string> = {}
-        for (const fileName of [files.icon, files.display]) {
-          const bundled = bundledOf(fileName)
-          if (bundled) {
-            saved[fileName] = bundled
-            continue
+  /** 静默确保套装本地可用（icon+display 两张，套内并发下载，失败不抛错）；整体入队防索引写回互相覆盖 */
+  function ensureSuitAssets(keys: string[]): Promise<Record<string, SuitFiles>> {
+    return enqueue(async () => {
+      const index = readIndex()
+      const results: Record<string, SuitFiles> = {}
+      await Promise.all(
+        keys.map(async (key) => {
+          // 原装小多利不走素材文件，直接用随包立绘
+          if (key === 'default') {
+            results[key] = { icon: deps.bundledImages.default, display: deps.bundledImages.default }
+            return
           }
-          const cached = index[fileName]
-          if (cached && (await deps.fileExists(cached))) {
-            saved[fileName] = cached
-            continue
+          const files = suitAssetFiles(key)
+          const saved: Record<string, string> = {}
+          for (const fileName of [files.icon, files.display]) {
+            const bundled = bundledOf(fileName)
+            if (bundled) {
+              saved[fileName] = bundled
+              continue
+            }
+            const cached = index[fileName]
+            if (cached && (await deps.fileExists(cached))) {
+              saved[fileName] = cached
+              continue
+            }
+            const path = await downloadToUserPath(fileName)
+            if (path) {
+              index[fileName] = path
+              saved[fileName] = path
+            }
           }
-          const path = await downloadToUserPath(fileName)
-          if (path) {
-            index[fileName] = path
-            saved[fileName] = path
+          if (saved[files.icon] && saved[files.display]) {
+            results[key] = { icon: saved[files.icon], display: saved[files.display] }
           }
-        }
-        if (saved[files.icon] && saved[files.display]) {
-          results[key] = { icon: saved[files.icon], display: saved[files.display] }
-        }
-      })
-    )
-    try {
-      deps.writeIndex(index)
-    } catch {
-      // 存储写失败不影响本次会话展示
-    }
-    return results
+        })
+      )
+      try {
+        deps.writeIndex(index)
+      } catch {
+        // 存储写失败不影响本次会话展示
+      }
+      return results
+    })
   }
 
-  /** 单文件素材（如面板装饰大图）的下载缓存：随包 → 本地缓存 → 下载；拿不到返回 null */
-  async function ensureFile(fileName: string): Promise<string | null> {
-    const bundled = bundledOf(fileName)
-    if (bundled) return bundled
-    const index = readIndex()
-    const cached = index[fileName]
-    if (cached && (await deps.fileExists(cached))) return cached
-    const saved = await downloadToUserPath(fileName)
-    if (!saved) return null
-    index[fileName] = saved
-    try {
-      deps.writeIndex(index)
-    } catch {
-      // 存储写失败不影响本次会话展示
-    }
-    return saved
+  /** 单文件素材（如面板装饰大图/行为幕底图）的下载缓存：随包 → 本地缓存 → 下载；拿不到返回 null */
+  function ensureFile(fileName: string): Promise<string | null> {
+    return enqueue(async () => {
+      const bundled = bundledOf(fileName)
+      if (bundled) return bundled
+      const index = readIndex()
+      const cached = index[fileName]
+      if (cached && (await deps.fileExists(cached))) return cached
+      const saved = await downloadToUserPath(fileName)
+      if (!saved) return null
+      index[fileName] = saved
+      try {
+        deps.writeIndex(index)
+      } catch {
+        // 存储写失败不影响本次会话展示
+      }
+      return saved
+    })
   }
 
   return { getCachedSuitFiles, resolveSuitDisplay, ensureSuitAssets, ensureFile }

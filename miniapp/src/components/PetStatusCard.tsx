@@ -2,6 +2,7 @@ import { Image, Text, View } from '@tarojs/components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PetState } from '../domain/types'
 import { suitDisplayWidth, type OutfitPieces } from '../domain/wardrobeModel'
+import { type NestPetAct } from '../domain/nestPetAct'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
 import { getXiaoduoliSpeech } from '../features/main/xiaoduoliSpeech'
 import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
@@ -17,12 +18,15 @@ type Props = {
   outfitPieces?: OutfitPieces
   /** 点「小多利」名片打开名片弹窗 */
   onOpenCard?: () => void
-  /** 小窝行为幕：睡觉动作后为 true，立绘交叉淡入为四脚朝天睡姿 */
-  sleeping?: boolean
+  /** 小窝行为幕：非站姿时立绘切换对应分镜（素材未就绪保持站姿不切换） */
+  act?: NestPetAct
 }
 const roomBackground = require('../assets/room-background-v5.jpg')
-// 睡姿底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
+// 睡姿/行进幕底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
+const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
+const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
+const DOLL_FILE = 'xiaoduoli-doll-v1.png'
 // 四项状态各自同色系渐变（深→浅），与经验条同一质感语言
 const statuses = [
   ['饱食', 'hunger', '#f3a85d', '#f8c48d'],
@@ -46,13 +50,18 @@ interface DanmakuItem {
 /** 弹幕横幅在场景上半部漂浮（避开小多利头顶以下区域） */
 const DANMAKU_TOP_RANGE = [8, 38] as const
 
-export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOpenCard, sleeping }: Props) {
+export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOpenCard, act = 'stand' }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与旧 .pet-avatar-image 236px 一致
   const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 236) : null
   const [speechIndex, setSpeechIndex] = useState(0)
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
+  const [moveAssets, setMoveAssets] = useState<{ frameA: string; frameB: string; doll: string } | null>(null)
+  const sleeping = act === 'sleep'
+  const moving = act === 'wander' || act === 'fetch'
+  // 三张行进素材齐了才播分镜；没就绪时保持站姿，动作静默跳过
+  const movingVisible = moving && moveAssets !== null
 
   useEffect(() => {
     let cancelled = false
@@ -63,11 +72,30 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+    void Promise.all([
+      suitAssets.ensureFile(WALK_FRAME_A_FILE),
+      suitAssets.ensureFile(WALK_FRAME_B_FILE),
+      suitAssets.ensureFile(DOLL_FILE),
+    ])
+      .then(([frameA, frameB, doll]) => {
+        if (cancelled || !frameA || !frameB || !doll) return
+        setMoveAssets({ frameA, frameB, doll })
+      })
+      .catch(() => undefined)
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
     const timer = setInterval(() => setSpeechIndex((index) => index + 1), SPEECH_ROTATE_MS)
     return () => clearInterval(timer)
   }, [])
-  // 睡觉时飘字定格为「Zzz……」，不再轮播闲聊
-  const speech = sleeping ? 'Zzz……' : getXiaoduoliSpeech(pet, speechIndex)
+  // 行为幕飘字：睡觉定格「Zzz……」，叼娃定格固定台词，其余轮播闲聊
+  const speech = sleeping
+    ? 'Zzz……'
+    : act === 'fetch'
+      ? '把娃娃叼回来啦！'
+      : getXiaoduoliSpeech(pet, speechIndex)
 
   // 立绘固定元素：memo 掉，避免换飘字重渲染时叠穿层 widthFix 图重测量导致衣服闪现
   const piecesKey = outfitPieces ? `${outfitPieces.body}|${outfitPieces.hat}|${outfitPieces.scarf}|${outfitPieces.bag}` : ''
@@ -145,9 +173,23 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
         ))}
         <Text className="pet-level">Lv.{pet.level}</Text>
         <View className="pet-avatar-image" style={outfitWidth ? { width: `${outfitWidth}px` } : undefined}>
-          <View className={`pet-avatar-stand${sleeping ? ' pet-avatar-stand--hidden' : ''}`}>
+          <View className={`pet-avatar-stand${sleeping || movingVisible ? ' pet-avatar-stand--hidden' : ''}`}>
             {portrait}
           </View>
+          {moveAssets && act !== 'sleep' && (
+            <View className={`pet-move-stage pet-move-stage--${act}`} aria-hidden>
+              <View className="pet-move-travel">
+                <View className="pet-move-hop">
+                  <View className="pet-move-bobber">
+                    <Image className="pet-move-frame" src={moveAssets.frameA} mode="aspectFit" />
+                    <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.frameB} mode="aspectFit" />
+                  </View>
+                </View>
+                {/* 娃娃挂在 travel 层（跟随朝向翻面），回落弹跳后停留再淡出 */}
+                <Image className="pet-move-doll" src={moveAssets.doll} mode="aspectFit" />
+              </View>
+            </View>
+          )}
           {sleepSrc && (
             <Image
               className={`pet-avatar-sleep${sleeping ? ' pet-avatar-sleep--on' : ''}`}

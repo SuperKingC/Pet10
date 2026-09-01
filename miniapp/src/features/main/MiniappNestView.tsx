@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
-import { NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
+import { NEST_PET_FETCH_MS, NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, NEST_PET_WANDER_MS, nextWanderDelayMs, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
 import { unlockRoom } from '../../domain/xiaoduoliUnlock'
 import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
@@ -57,20 +57,38 @@ export function MiniappNestView({
   const [photoWallPanelOpen, setPhotoWallPanelOpen] = useState(false)
   const [petCardOpen, setPetCardOpen] = useState(false)
   const [wardrobeView, setWardrobeView] = useState<WardrobeView | null>(null)
-  // 小窝行为幕：照顾动作驱动（睡觉 → 入睡 20s，其余动作唤醒），纯函数判定 + 组件侧定时器回收
+  // 小窝行为幕：照顾动作驱动（睡觉→入睡、玩耍→出发叼娃），站立时按随机间隔自动闲逛一趟；
+  // 判定收敛 domain/nestPetAct 纯函数，组件只持状态与定时器回收
   const [petAct, setPetAct] = useState<NestPetActState>(NEST_PET_STAND_ACT)
-  const petSleeping = petAct.act === 'sleep'
 
   const handlePetAction = useCallback((action: PetAction) => {
     setPetAct((current) => reduceNestPetAct(current, { action, now: Date.now() }))
     onAction(action)
   }, [onAction])
 
+  // 睡觉/叼娃到点收幕回站姿
   useEffect(() => {
-    if (!petSleeping) return
-    const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), NEST_PET_SLEEP_MS)
+    if (petAct.act !== 'sleep' && petAct.act !== 'fetch') return
+    const totalMs = petAct.act === 'sleep' ? NEST_PET_SLEEP_MS : NEST_PET_FETCH_MS
+    const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), totalMs)
     return () => clearTimeout(timer)
-  }, [petSleeping, petAct.wakeAt])
+  }, [petAct.act, petAct.wakeAt])
+
+  // 闲逛调度：站立时随机等待出发一趟；行进中到点收幕
+  useEffect(() => {
+    if (petAct.act === 'stand') {
+      const timer = setTimeout(
+        () => setPetAct({ act: 'wander', wakeAt: Date.now() + NEST_PET_WANDER_MS }),
+        nextWanderDelayMs(Math.random),
+      )
+      return () => clearTimeout(timer)
+    }
+    if (petAct.act === 'wander') {
+      const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), NEST_PET_WANDER_MS)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [petAct.act])
   const [unlock, setUnlock] = useState(() => reconcileStoredUnlock(
     (context?.rooms ?? []).filter((room) => room.pet).map((room) => room.id),
   ))
@@ -164,7 +182,7 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} outfitPieces={wardrobeView ? outfitPiecesFromView(wardrobeView) : undefined} onOpenCard={() => setPetCardOpen(true)} sleeping={petSleeping} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} outfitPieces={wardrobeView ? outfitPiecesFromView(wardrobeView) : undefined} onOpenCard={() => setPetCardOpen(true)} act={petAct.act} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (

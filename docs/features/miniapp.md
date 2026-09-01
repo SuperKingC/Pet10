@@ -51,6 +51,7 @@ flowchart LR
 - 照顾栏喂食/玩耍/清洁按钮的道具角标曾把按钮整个盖住：`.pet-action-button image` 会同时命中角标小图（微信 image 默认 300×225 铺开），改为子选择器 `.pet-action-button > image` 只命中主贴片图，角标回到 22rpx 小胶囊。
 - 小多利名片弹窗（`MiniappPetCardModal`）：点小窝场景左下「小多利 · 名片」白卡入口打开（`MiniappModal` 遮罩弹窗）。名片 3:2 水彩底图由 AI 生成（源图 `design-assets/nest/pet-card-source-v1.jpg`，出件 `public/wardrobe/pet-card-v1.jpg` 900×600 JPEG 43KB，走 COS 按需下载不占包体，复用 `suitAssets.ensureFile` 下载缓存，未加载回退同色系渐变卡面）；右侧留白区排版真实资料：名字 + Lv、今天的心情（开心果/小馋狗/瞌睡虫/粘人精）、品种（全球限定一只的小狗）、铲屎官署名（当前账号 + 共养好友）与签名「汪！很高兴认识你们」。
 - 小窝睡觉动作有「四脚朝天」行为幕：照顾栏点睡觉后，站姿立绘与肚皮朝天的睡姿图（COS 按需下载 `public/wardrobe/xiaoduoli-sleep-v1.png`，480×274 PNG8，`suitAssets.ensureFile` 下载缓存，未就绪保持站姿）交叉淡入 300ms，睡姿以底边为轴做肚皮呼吸（scaleY 1→0.97），头顶 Zzz 三连错峰上飘，飘字气泡定格「Zzz……」且周期弹幕暂停；20s（`domain/nestPetAct.ts` 的 `NEST_PET_SLEEP_MS`）后自动醒来，期间喂食/玩耍/清洁立即唤醒，重复点睡觉刷新时长。行为判定是纯函数 `reduceNestPetAct`（动作 → 行为幕状态），`MiniappNestView` 持状态+定时器，`PetStatusCard` 只负责渲染，全部动效带 `prefers-reduced-motion` 降级（淡入无过渡、呼吸/Zzz 静止）。
+- 小窝自动「闲逛」与玩耍「叼娃娃」行为幕：站立态每 24~54s（`nextWanderDelayMs` 随机）自动出发闲逛一趟——AI 生成的两帧侧身步态（腾空尾高 `xiaoduoli-walk-a-v1` / 触地尾低 `xiaoduoli-walk-b-v1`，统一画布 468×300 脚底基线对齐，显示 234×150）以 0.42s step-end 交替成小跑循环，叠 0.42s 颠步+1.2° 轻摇，travel 一镜到底走中心→右缘→翻面（scaleX -1）→走回中心（7s = `NEST_PET_WANDER_MS`）；照顾栏点玩耍立即（睡觉中也会跳起来）出发「叼娃娃」分镜（9s = `NEST_PET_FETCH_MS`）：走向左缘→走出画面淡出→换向叼着红领巾绒毛娃娃（`xiaoduoli-doll-v1.png` 46×64，挂 travel 层跟随翻面）走回中心→娃娃抛落弹地压扁回弹→开心蹦两下，气泡定格「把娃娃叼回来啦！」，娃娃停留后淡出；喂食/清洁不打断行进分镜，玩耍可打断闲逛改去叼娃；素材三张齐了才播分镜（未就绪静默保持站姿），`wardrobeAssetLoader` 下载+索引写回已串行化（并发 ensureFile 不再互相覆盖索引条目），全部动效带 `prefers-reduced-motion` 降级（分镜不播、娃娃不出现）。
 - 消息页读取真实会话列表（走 `conversationListCache.ts` 内存单槽缓存：tab 切入先直出缓存列表不闪无好友空态页，后台静默刷新替换，请求失败保留缓存，登出清缓存防串号），支持切换当前共享房间。无好友会话时按空态卡片展示：标题与副文案、中间较大的抱信封小狗插画（约屏宽一半，文字紧跟插画下方）、说明和「去添加好友」按钮（打开添加好友弹窗）。有好友会话时只渲染会话列表本身（不再附加与会话重复的“共享房间”固定入口）；会话行为固定高度：最新消息预览单行省略（`.miniapp-messages__conversation-copy` 必须带 `display:block`，微信 `Text` 默认内联会使 ellipsis 失效、长文案把行撑高）；共享房间消息按 `senderId` 区分发送者：自己的消息右侧显示「我」，好友的消息左侧显示好友昵称（`getMessagePresentation`），小多利消息左侧显示「小多利」。
 - 聊天页输入区不再提供「叫小多利说句话」快捷按钮（旧房间页同移除）；共享弹窗关闭叉叉换为无外圈版本（`modal-close-v2.png`，由 `miniapp/tools/make-modal-close.mjs` 出件，显示尺寸相应收窄保持视觉大小）。
 - 小记、消息、我的三个 tab 的根节点（`.miniapp-journal` / `.miniapp-messages` / `.miniapp-me`）与游戏中心、锁定信件场景同模式，各自是 `position: fixed; inset: 0; z-index: 19; overflow-y: auto` 的固定全屏层：页面文档流高度归零，真机整页不可拖动，内容超一屏由层内滚动兜底（小记正常内容仍恰好一屏，padding 4px 28px 226px，顶部上移后的起点）；消息/我的层底部净空统一为 238px（与小记 226px+12px 一致），不再紧贴底栏。层在底部导航（z 20）之下；loading 与解锁后的活跃态小窝仍走原文档流。
@@ -188,6 +189,9 @@ npm run build:weapp --prefix miniapp
 | `xiaoduoli.png` | 436×700 | 79 KB | 宠物场景主图；解锁跳出后的站立小多利 |
 | `xiaoduoli-avatar-v2.png` | 240×240 | 30 KB | 圆形头像框用头部裁切版（会话列表/聊天页/小多利圈/合养邀请条） |
 | `wardrobe/xiaoduoli-sleep-v1.png`（COS） | 480×274 | 66 KB | 小窝睡觉动作「四脚朝天」睡姿（AI 以站姿立绘为参考图生成+白底切件 PNG8，`suitAssets.ensureFile` 按需下载不占包体，未就绪保持站姿） |
+| `wardrobe/xiaoduoli-walk-a-v1.png`（COS） | 468×300 | 64 KB | 闲逛/叼娃步态帧 A：腾空迈步、尾巴高扬（AI 参考生成+两帧统一画布底对齐，显示 234×150） |
+| `wardrobe/xiaoduoli-walk-b-v1.png`（COS） | 468×300 | 58 KB | 闲逛/叼娃步态帧 B：四腿收拢、尾巴压低（与帧 A 交替成小跑+摇尾） |
+| `wardrobe/xiaoduoli-doll-v1.png`（COS） | 92×128 | 9 KB | 叼娃娃道具：红领巾绒毛小狗玩偶（叼回落地弹跳后淡出） |
 | `action-feed.png` | 445×474 | 23 KB | 喂食动作 |
 | `action-play.png` | 449×474 | 22 KB | 玩耍动作 |
 | `action-clean.png` | 448×474 | 24 KB | 清洁动作 |

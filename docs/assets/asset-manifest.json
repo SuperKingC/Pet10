@@ -575,6 +575,36 @@
       "purpose": "Xiaoduoli belly-up sleeping pose for the nest sleep act (cut to alpha bbox, 480x274 PNG8 = 240px display @2x), served from COS via ensureFile, keeps standing portrait until loaded, not bundled"
     },
     {
+      "path": "design-assets/nest/xiaoduoli-walk-stride-source-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated side-view walking pose of Xiaoduoli, suspension phase with front legs extended and tail raised (3:2, white bg), style-matched via reference image, source of xiaoduoli-walk-a-v1.png"
+    },
+    {
+      "path": "design-assets/nest/xiaoduoli-walk-pass-source-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated side-view walking pose of Xiaoduoli, passing contact phase with legs gathered and tail low (3:2, white bg), style-matched via reference image, source of xiaoduoli-walk-b-v1.png"
+    },
+    {
+      "path": "design-assets/nest/xiaoduoli-doll-source-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated plush puppy doll with red neckerchief in the same watercolor style (1:1, white bg), fetch prop for the nest fetch act, source of xiaoduoli-doll-v1.png"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-walk-a-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli walk cycle frame A (suspension, tail up) for the nest wander/fetch acts, cut to alpha and bottom-aligned on a 468x300 shared canvas with frame B (234x150 display @2x), served from COS via ensureFile, not bundled"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-walk-b-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli walk cycle frame B (passing contact, tail low) for the nest wander/fetch acts, bottom-aligned on the shared 468x300 canvas with frame A, alternating via CSS step-end for a trot with tail wag, served from COS, not bundled"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-doll-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Plush doll prop for the nest fetch act (92x128 PNG8 = 46x64 display @2x), carried at the mouth during the return walk then dropped with a bounce, served from COS via ensureFile, not bundled"
+    },
+    {
       "path": "design-assets/wardrobe/gen-wardrobe-interior-v1.png",
       "category": "source-only",
       "purpose": "AI-generated wardrobe interior source illustration (2496x1664), style reference for panel decor"

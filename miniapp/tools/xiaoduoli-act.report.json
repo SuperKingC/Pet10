@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-09-01T05:11:42.410Z",
+  "frameCanvas": {
+    "width": 468,
+    "height": 300,
+    "displayWidth": 234,
+    "displayHeight": 150
+  },
+  "frames": [
+    {
+      "file": "xiaoduoli-walk-a-v1.png",
+      "bytes": 65260,
+      "contentWidth": 468,
+      "left": 0,
+      "top": 0
+    },
+    {
+      "file": "xiaoduoli-walk-b-v1.png",
+      "bytes": 58847,
+      "contentWidth": 450,
+      "left": 9,
+      "top": 0
+    }
+  ],
+  "doll": {
+    "file": "xiaoduoli-doll-v1.png",
+    "bytes": 9673,
+    "width": 92,
+    "height": 128,
+    "displaySize": 64
+  }
+}

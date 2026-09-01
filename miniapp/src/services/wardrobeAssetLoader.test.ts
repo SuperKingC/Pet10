@@ -112,4 +112,29 @@ describe('suit asset service', () => {
     })
     expect(await service.ensureFile('xiaoduoli-sleep-v1.png')).toBe('wxfile://usr/wardrobe-xiaoduoli-sleep-v1.png')
   })
+
+  it('serializes concurrent ensureFile downloads so index entries are not lost', async () => {
+    // 真实存储语义：writeIndex 把索引覆盖持久化，readIndex 读回持久化快照
+    let persisted: Record<string, string> = {}
+    let releaseFirst!: () => void
+    const firstGate = new Promise<void>((resolve) => { releaseFirst = resolve })
+    const service = createSuitAssetService(makeDeps({
+      download: async (fileName: string) => {
+        if (fileName === 'a.png') await firstGate
+        return `wxfile://tmp/${fileName}`
+      },
+      readIndex: () => persisted,
+      writeIndex: (next) => { persisted = { ...next } },
+    }))
+    // a 的下载被闸门按住，b 在 a 写回索引前就发起：无互斥时 b 的写回会覆盖掉 a 的条目
+    const first = service.ensureFile('a.png')
+    const second = service.ensureFile('b.png')
+    releaseFirst()
+    expect(await first).toBe('wxfile://usr/wardrobe-a.png')
+    expect(await second).toBe('wxfile://usr/wardrobe-b.png')
+    expect(persisted).toEqual({
+      'a.png': 'wxfile://usr/wardrobe-a.png',
+      'b.png': 'wxfile://usr/wardrobe-b.png',
+    })
+  })
 })
