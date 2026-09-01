@@ -50,12 +50,12 @@
 .pet-move-stage {
   position: absolute;
   left: 50%;
-  /* 舞台从容器底上抬 85px（真机 42px）：脚线落在地毯后段（场景底上方 123px），
+  /* 舞台从容器底上抬 112px（真机 56px）：脚线贴墙脚线、书架前（场景底上方 150px），
      与站姿 149×240 同地面体系；容器自身 bottom 38px */
-  bottom: 85px;
-  width: 180px;
-  height: 115px;
-  margin-left: -90px;
+  bottom: 112px;
+  width: 156px;
+  height: 100px;
+  margin-left: -78px;
   opacity: 0;
   transition: opacity .3s ease;
 }
@@ -94,15 +94,15 @@
 .pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
 @keyframes pet-fetch-hop {
   0%, 58% { transform: translateY(0); }
-  62% { transform: translateY(-22px); }
+  62% { transform: translateY(-19px); }
   65% { transform: translateY(0); }
-  68% { transform: translateY(-8px); }
+  68% { transform: translateY(-7px); }
   71%, 100% { transform: translateY(0); }
 }
-/* 娃娃基位在地毯上（bottom 0），叼着时抬到嘴部高度（-8px），回落带抛物线+落地压扁回弹 */
+/* 娃娃基位在地毯上（bottom 0），叼着时压到嘴部高度（+6px，玩偶与狗同高），回落带抛物线+落地压扁回弹 */
 .pet-move-doll {
   position: absolute;
-  left: 8px;
+  left: 4px;
   bottom: 0;
   width: 60px;
   height: 84px;
@@ -110,9 +110,9 @@
 }
 .pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
 @keyframes pet-fetch-doll {
-  0%, 26% { transform: translateY(-8px); opacity: 0; }
-  27% { transform: translateY(-8px); opacity: 1; }
-  55% { transform: translateY(-8px) rotate(0deg); opacity: 1; }
+  0%, 26% { transform: translateY(6px); opacity: 0; }
+  27% { transform: translateY(6px); opacity: 1; }
+  55% { transform: translateY(6px) rotate(0deg); opacity: 1; }
   58% { transform: translateY(-16px) rotate(-12deg); }
   62% { transform: translateY(0) rotate(8deg); }
   65% { transform: translateY(0) rotate(0deg) scaleY(.9); }
@@ -155,15 +155,15 @@
 .pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
 @keyframes pet-fetch-hop {
   0%, 58% { transform: translateY(0); }
-  62% { transform: translateY(-22px); }
+  62% { transform: translateY(-19px); }
   65% { transform: translateY(0); }
-  68% { transform: translateY(-8px); }
+  68% { transform: translateY(-7px); }
   71%, 100% { transform: translateY(0); }
 }
-/* 娃娃基位在地毯上（bottom 0），叼着时抬到嘴部高度（-8px），回落带抛物线+落地压扁回弹 */
+/* 娃娃基位在地毯上（bottom 0），叼着时压到嘴部高度（+6px，玩偶与狗同高），回落带抛物线+落地压扁回弹 */
 .pet-move-doll {
   position: absolute;
-  left: 8px;
+  left: 4px;
   bottom: 0px;
   width: 60px;
   height: 84px;
@@ -171,9 +171,9 @@
 }
 .pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
 @keyframes pet-fetch-doll {
-  0%, 26% { transform: translateY(-8px); opacity: 0; }
-  27% { transform: translateY(-8px); opacity: 1; }
-  55% { transform: translateY(-8px) rotate(0deg); opacity: 1; }
+  0%, 26% { transform: translateY(6px); opacity: 0; }
+  27% { transform: translateY(6px); opacity: 1; }
+  55% { transform: translateY(6px) rotate(0deg); opacity: 1; }
   58% { transform: translateY(-16px) rotate(-12deg); }
   62% { transform: translateY(0) rotate(8deg); }
   65% { transform: translateY(0) rotate(0deg) scaleY(.9); }
