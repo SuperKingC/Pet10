@@ -450,6 +450,21 @@
       "purpose": "Task reward item icon: blue ceramic bowl with brown kibble and a bone, watercolor sticker style (AI-regenerated triple sheet, sliced), white background, tinified"
     },
     {
+      "path": "miniapp/src/assets/items/item-dog_food-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Care action badge icon (40px display @2x = 80px PNG8): milk bottle with heart tag, hand-painted healing sticker style; v3 (96px) right-sized to restore the 2MB main-package budget"
+    },
+    {
+      "path": "miniapp/src/assets/items/item-ball-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Care action badge icon (40px display @2x = 80px PNG8): sky-blue ball, hand-painted healing sticker style; v3 (96px) right-sized to restore the 2MB main-package budget"
+    },
+    {
+      "path": "miniapp/src/assets/items/item-soap-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Care action badge icon (40px display @2x = 80px PNG8): paw-print soap, hand-painted healing sticker style; v3 (96px) right-sized to restore the 2MB main-package budget"
+    },
+    {
       "path": "miniapp/src/assets/items/item-ball-v2.png",
       "category": "runtime-feature",
       "purpose": "Task reward item icon: red star ball, watercolor sticker style (AI-regenerated triple sheet, sliced), white background, tinified"
