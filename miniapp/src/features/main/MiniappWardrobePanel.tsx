@@ -245,7 +245,7 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
       {/* 试衣间场景：小多利站上华丽舞台（内景即舞台，聚光柔光+名牌浮层） */}
       <View className="wardrobe-scene">
         <View className="wardrobe-scene__portrait" style={{ width: `${suitDisplayWidth(pieces.body, 366)}rpx` }}>
-          <MiniappOutfitPortrait pieces={pieces} flow />
+          <MiniappOutfitPortrait pieces={pieces} flowHeight={366} />
         </View>
         {!assetReady && (
           <Text className="wardrobe-scene__pending">画稿云端准备中…</Text>

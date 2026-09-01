@@ -5,7 +5,7 @@ import { miniappRoot } from './testPaths'
 
 describe('miniapp pet scene assets', () => {
   it('bundles the PWA room background within the miniapp image budget', () => {
-    const backgroundPath = resolve(miniappRoot(), 'src/assets/room-background-v10.jpg')
+    const backgroundPath = resolve(miniappRoot(), 'src/assets/room-background-v11.jpg')
     const componentSource = readFileSync(
       resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'),
       'utf8',
@@ -13,7 +13,21 @@ describe('miniapp pet scene assets', () => {
 
     expect(existsSync(backgroundPath)).toBe(true)
     expect(statSync(backgroundPath).size).toBeLessThanOrEqual(180 * 1024)
-    expect(componentSource).toContain("require('../assets/room-background-v10.jpg')")
+    expect(componentSource).toContain("require('../assets/room-background-v11.jpg')")
+  })
+
+  it('renders the flow portrait with explicit box size instead of widthFix so it never flashes', () => {
+    // widthFix 图在兄弟节点 setData 时被微信重测量：开关名片、切回小窝立绘都会闪一下；
+    // 立绘主体必须显式宽高（flowHeight 240/366）+ aspectFill
+    const portraitSource = readFileSync(resolve(miniappRoot(), 'src/features/main/MiniappOutfitPortrait.tsx'), 'utf8')
+    const statusCardSource = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'), 'utf8')
+    const wardrobeSource = readFileSync(resolve(miniappRoot(), 'src/features/main/MiniappWardrobePanel.tsx'), 'utf8')
+
+    expect(portraitSource).toMatch(/outfit-portrait__image--flow" src=\{baseDisplay\} mode="aspectFill"/)
+    expect(portraitSource).not.toMatch(/image--flow" src=\{baseDisplay\} mode="widthFix"/)
+    expect(portraitSource).toContain('flowHeight')
+    expect(statusCardSource).toContain('flowHeight={240}')
+    expect(wardrobeSource).toContain('flowHeight={366}')
   })
 
   it('sleep pose ships via COS static assets and the nest scene wires the sleep act', () => {
