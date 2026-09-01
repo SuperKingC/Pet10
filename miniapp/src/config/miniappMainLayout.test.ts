@@ -100,6 +100,8 @@ describe('miniapp main layout', () => {
     // 立绘 74×119（0.7× 缩档）坐在地毯上：背景 v6 与 658×500 场景同比例几乎无裁切，地毯渲染后纵跨 y377..478，脚底 bottom 60 落在地毯中央偏前
     expect(statusCardStyles).toMatch(/\.pet-avatar-image\s*\{[^}]*bottom:\s*60px;[^}]*width:\s*74px;[^}]*height:\s*119px;/)
     expect(statusCardSource).toContain('suitDisplayWidth(outfitPieces.body, 119)')
+    // flow 内联宽度必须显式 rpx：Taro pxtransform 不转换内联样式，写成 px 会在真机按设备像素渲染（立绘放大一倍撑出盒底）
+    expect(statusCardSource).toContain('`${outfitWidth}rpx`')
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
   })
 })
