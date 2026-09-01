@@ -47,7 +47,7 @@ flowchart LR
 - 好友接受邀请后，小窝仍是同一套箱中探头和信件，只把底部按钮换成「玩家已接受邀请解锁小多利~」；点按钮后播放从箱子跳出、彩带和星光，随后进入站立小多利与互动。已有小窝在本机记为已解锁，不会重播。
 - 锁定/空状态信件场景（`shouldLockNestPageScroll` 为 true）由 `MiniappNestView` 渲染进 `.nest-lock-layer` 固定全屏层（`position: fixed; inset: 0; z-index: 19; overflow-y: auto`，padding 与 `.home-page` 一致、底部净空统一 238px 与其他 tab 对齐），底部邀请/解锁按钮与反馈文案经 `footer` prop 一并渲染在层内：页面文档流高度归零，真机不再出现「除底部栏外整页可拖动」的页面级滚动（信纸 + 街景 + 底部留白原本合计超过一屏），超矮机型由层内滚动兜底；loading 与解锁后的活跃态仍走原文档流，消息/日历/我的页不受影响。
 - 小窝支持读取共同记忆、删除共同记忆，并展示双方贡献榜。小窝顶部不再展示「好友名 · Lv」房间芯片行；多房间的切换入口在消息页会话列表，避免测试好友名字堆在小窝上方。
-- 活跃态小窝整页一屏不滚动（排版紧凑化，底部「今日默契换装」横卡已移除，默契状态收进衣柜面板内）：场景卡上半是 560px 高室内场景——背景整图（720×981 竖图）`widthFix` 通栏铺满卡片宽度（显示高约 896rpx）、顶部对齐，底部溢出裁掉（两侧不留白）；小多利立绘 240×283 绝对定位居中偏下（bottom 16px、中线右 60px），脚踩画面地脚线位置；头顶有说话飘字气泡（top 160px 避开狗头；`xiaoduoliSpeech.ts` 纯函数出文案：饿了/累/不舒服/困等需求态优先，其余按序轮播闲聊池，6s 换一句，换句重新弹入 + 轻微浮动，`prefers-reduced-motion` 静止）；左下「小多利 · 名片」白卡双线描边入口点击打开名片弹窗；右侧快捷入口（衣柜/照片墙/任务）从「记忆」按钮下方起排（top 96px、间距 20px）。场景卡下半是紧凑状态区（成长经验 + 饱食/心情/精力/健康 2×2，原「开心地陪着你们」状态行已删；进度条加粗 16rpx，凹槽底 + 填充顶部高光/底部投影、四项状态各自同色系渐变，宽度变化 0.4s 过渡）；下方照顾栏、贡献榜收紧内边距，主流机型合计恰好一屏，矮机型由页面滚动兜底。
+- 活跃态小窝整页一屏不滚动（排版紧凑化，底部「今日默契换装」横卡已移除，默契状态收进衣柜面板内）：场景卡上半是 439px 高室内场景——背景 `room-background-v4.jpg`（AI 以原版房间为参考图按 3:2 场景比例重新生成的横构图：窗/「Happy Day」牌/矮书架/通栏地毯全部在画内，地板只留地毯上下窄条；720×480 42KB）`widthFix` 通栏铺满，显示高恰为 439rpx 与场景等高、无空带无两侧留白；小多利立绘 180×212 绝对定位居中偏下（bottom 14px）踩在地毯上；头顶有说话飘字气泡（top 104px 避开狗头与木牌；`xiaoduoliSpeech.ts` 纯函数出文案：心情引擎状态优先，饿了/累/不舒服/困等需求态次之，其余按序轮播闲聊池，6s 换一句，换句重新弹入 + 轻微浮动，`prefers-reduced-motion` 静止）；左下「小多利 · 名片」白卡双线描边入口点击打开名片弹窗；右侧快捷入口（衣柜/照片墙/任务）从「记忆」按钮下方起排（top 84px、图标 92×96、间距 16px）。场景卡下半是紧凑状态区（成长经验 + 饱食/心情/精力/健康 2×2，原「开心地陪着你们」状态行已删；进度条加粗 16rpx，凹槽底 + 填充顶部高光/底部投影、四项状态各自同色系渐变，宽度变化 0.4s 过渡）；下方照顾栏、贡献榜收紧内边距，主流机型合计恰好一屏，矮机型由页面滚动兜底。
 - 照顾栏喂食/玩耍/清洁按钮的道具角标曾把按钮整个盖住：`.pet-action-button image` 会同时命中角标小图（微信 image 默认 300×225 铺开），改为子选择器 `.pet-action-button > image` 只命中主贴片图，角标回到 22rpx 小胶囊。
 - 小多利名片弹窗（`MiniappPetCardModal`）：点小窝场景左下「小多利 · 名片」白卡入口打开（`MiniappModal` 遮罩弹窗）。名片 3:2 水彩底图由 AI 生成（源图 `design-assets/nest/pet-card-source-v1.jpg`，出件 `public/wardrobe/pet-card-v1.jpg` 900×600 JPEG 43KB，走 COS 按需下载不占包体，复用 `suitAssets.ensureFile` 下载缓存，未加载回退同色系渐变卡面）；右侧留白区排版真实资料：名字 + Lv、今天的心情（开心果/小馋狗/瞌睡虫/粘人精）、品种（全球限定一只的小狗）、铲屎官署名（当前账号 + 共养好友）与签名「汪！很高兴认识你们」。
 - 消息页读取真实会话列表（走 `conversationListCache.ts` 内存单槽缓存：tab 切入先直出缓存列表不闪无好友空态页，后台静默刷新替换，请求失败保留缓存，登出清缓存防串号），支持切换当前共享房间。无好友会话时按空态卡片展示：标题与副文案、中间较大的抱信封小狗插画（约屏宽一半，文字紧跟插画下方）、说明和「去添加好友」按钮（打开添加好友弹窗）。有好友会话时只渲染会话列表本身（不再附加与会话重复的“共享房间”固定入口）；会话行为固定高度：最新消息预览单行省略（`.miniapp-messages__conversation-copy` 必须带 `display:block`，微信 `Text` 默认内联会使 ellipsis 失效、长文案把行撑高）；共享房间消息按 `senderId` 区分发送者：自己的消息右侧显示「我」，好友的消息左侧显示好友昵称（`getMessagePresentation`），小多利消息左侧显示「小多利」。
@@ -95,7 +95,7 @@ flowchart LR
 ## 任务与道具系统（已实现第一期）
 
 - 任务是**系统预设**的（`server/src/domain/nestTaskCatalog.ts`），用户只完成不创建：**每日任务**（连续签到 1 天 / 给小多利喂食 1 次 / 陪小多利玩耍 1 次 / 给小多利洗澡 1 次，每天刷新）+ **成就任务**（连续签到 3/7 天、累计喂食 10/50 次、累计洗澡 10 次、累计玩耍 20 次、和好友完成默契换装 1 次，链式解锁——前置成就领取后下一级才解锁）。奖励**只有道具**（狗粮/皮球/香皂），不发经验。
-- 小窝右上「任务」图标打开全屏面板（复用纪念日覆盖层模式）：顶部道具库存条 + 「签到」按钮，下方「每日任务」「成就」两组任务卡。任务卡展示标题、奖励、进度（成就带进度条）；状态流转为「进行中 N/M → 可领取（金色按钮）→ 已领取」；未解锁成就显示灰置「未解锁」。
+- 小窝右上「任务」图标打开全屏面板（复用纪念日覆盖层模式）：顶部木框看板（木纹拼贴 `decor/wood-board-v1.png`，内嵌虚线缝线奶油内衬）内放「每日签到」呼吸按钮与三格道具口袋，下方「每日任务」「成就」两组任务卡按 70ms 错峰落入。任务卡展示标题、奖励、进度（成就带进度条，载入时自左生长+流光扫过）；可领取按钮金光呼吸+高光扫过，领取成功时按钮处迸发彩带；状态流转为「进行中 N/M → 可领取（金色按钮）→ 已领取」；未解锁成就显示灰置「未解锁」。三面板装饰贴图由 `miniapp/tools/make-panel-decor.mjs` 出件（种子固定可复现），全部新增动效带 `prefers-reduced-motion` 降级。
 - 进度由服务端自动派生：照顾动作在 `POST /pet-actions` 内先扣道具、成功后写每日进度（`nest_task_progress` 表，每日任务按日期周期、次日自动重置）；签到走 `POST /api/rooms/:roomId/checkin`（每天一次，重复返回 409 `checkin_already_done`，同时向 `pet_events` 累计成就计数）；成就任务的进度 = `pet_events` 按 action 的累计计数（喂食/玩耍/清洁/睡觉/签到/默契换装）。领取走 `POST /tasks/:key/claim`（未完成 `nest_task_not_complete`、已领 409 `nest_task_already_claimed`、前置未领 `nest_task_locked`）。
 - 照顾动作消耗道具（喂食耗狗粮、玩耍耗皮球、清洁耗香皂；**睡觉永远免费**防死锁）；库存不足返回 409 `insufficient_item`，首页消息提示去任务。照顾面板按钮显示道具库存角标，0 库存灰置。首次读取任务/库存自动发新手礼包（狗粮×3 皮球×2 香皂×2，只发一次）。
 - 服务端表：`nest_task_progress`（房间×任务 key 的进度/领取状态，periodKey 区分每日周期与成就永久）、`room_inventory`（库存，条件更新防并发刷）、`room_pouches`（新手包标记）；v1 的用户自建任务表 `nest_tasks` 已在迁移中 `DROP TABLE IF EXISTS` 移除。领域规则在 `nestTaskCatalog.ts`（任务模板）与 `itemCatalog.ts`（道具/动作映射/新手包）。
@@ -110,14 +110,14 @@ flowchart LR
 
 ### 照片墙
 
-- 小窝右上「照片墙」图标打开全屏面板：两列拍立得白框网格（微差倾角+图钉），手动照 `aspectFit` 完整显示；自动卡没有真实照片，按 origin 渲染模板卡（🏆 升级 / 🔑 暗号 / 👕 默契 / 📅 纪念日徽章），默契卡可带当日套装立绘。点卡片开自绘大图覆盖层（dataURL 不支持 `previewImage`），可改说明（≤40 字）与删除（双方都可删任何一张）。
+- 小窝右上「照片墙」图标打开全屏面板：真软木纹墙面（无缝拼贴 `decor/cork-board-v1.png` 叠暗角光斑，2026-09 从纯渐变模拟升级），两列拍立得白框网格——微差倾角、图钉与和纸胶带交替装饰、按 80ms 错峰落入，手动照 `aspectFill` 填满白框不留白；空墙显示手绘贴纸风插画（`decor/photo-wall-empty-v1.png`，两张叠放拍立得+爪印+图钉）；自动卡没有真实照片，按 origin 渲染模板卡（🏆 升级 / 🔑 暗号 / 👕 默契 / 📅 纪念日徽章），默契卡可带当日套装立绘。点卡片开自绘大图覆盖层（dataURL 不支持 `previewImage`，面板弹入），可改说明（≤40 字）与删除（双方都可删任何一张）。
 - 上传：`chooseMedia(compressed)` → `imageCompression`（宽度档 `[1080,900,720]`，dataURL ≤300_000 字符，与日记照片同链路）→ 说明可选 → 贴墙。上限 36 张：手动照超限自动淘汰最旧一张；默契卡不被自动淘汰，只能手动删；满仓时自动卡放弃写入。
 - 自动入墙钩子（服务端 `photoWallService`，HTTP 层不感知）：小多利每次升级生成「Lv.N 达成」卡（`petService` 升级事件）；每日暗号双方都答上的连胜每满 7 天生成「暗号连胜×N」卡（`socialService.answerCodeword` 在「双方答齐」转换点触发，连胜从 `codeword_answers` 逐日回扫，上海时区自然日）；默契卡由衣柜结算写入。
 - API：`GET/POST /api/rooms/:roomId/photos`、`PATCH/DELETE /photos/:photoId`（成员校验在 service，photo_not_found→404）。表 `photo_wall`（origin CHECK 约束、ref_key 存默契卡套装 key、taken_day）。
 
 ### 衣柜与默契换装
 
-- 小窝右上「衣柜」图标打开面板：上半拍立得实时预览（点击目录即时换图），下半 3 列目录网格——已解锁高亮点选、未解锁灰置加锁印+条件文案+途径徽章（任务/等级/暗号/默契/睡觉）；底部「保存装扮」（PUT equipped）与「就选它，提交默契」（POST match）双按钮。
+- 小窝右上「衣柜」图标打开面板：上半拍立得实时预览（点击目录即时换图，叠加呼吸聚光锥与地面光影），下半 3 列目录网格——木质挂杆（木纹拼贴+两端圆头球，卡片顶部带小挂钩）下的已解锁高亮点选、未解锁灰置加锁印+条件文案+途径徽章（任务/等级/暗号/默契/睡觉），选中卡片摇摆后金光呼吸；底部「保存装扮」（PUT equipped）与「就选它，提交默契」（POST match）双按钮；衣柜内景大图缓慢漂移（14s 往复）。
 - 目录 9 项（`server/src/domain/wardrobeCatalog.ts`）：原装/围巾/连帽衫默认解锁（保证首日默契有得选），背带裤=完成 5 次任务（`pet_events` 的 `task_claim` 计数，领奖时在 app 装配层写入）、小裙子=暗号连胜 3 天、雨衣=小多利 Lv.5、睡衣=累计睡觉 20 次、小包=默契最高连胜 3 天、帽子=完成 15 次任务。解锁全部由服务端 GET 时派生计算，客户端不重复判定，未解锁 PUT/match 返回 409 `wardrobe_locked`。
 - 默契换装：小窝页面最底部「今日默契换装」横卡（左侧当日装扮预览+连胜角标，右侧去换装）。双方各自提交当日套装（每人每天一次，提交后当天锁定，重复提交 409 `outfit_match_already_picked`）；任一方 GET 时双方齐则结算（`outfit_match_streak.last_match_day` 做先到先结算门闩）：一致 → 连胜+1、默契卡入墙、奖励香皂×1、双方累计 `outfit_match` 事件（喂成就任务）；不一致 → 连胜清零、最高连胜保留。`GET /wardrobe` 返回 `matchToday`（我的选择/对方已选/今日是否默契/连胜）。
 - 表：`pet_wardrobe`（房间当前套装）、`outfit_match_daily`（房间×日×人唯一）、`outfit_match_streak`（连胜/最高连胜/最后结算日）。
@@ -188,7 +188,7 @@ npm run build:weapp --prefix miniapp
 | `action-play.png` | 449×474 | 22 KB | 玩耍动作 |
 | `action-clean.png` | 448×474 | 24 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 22 KB | 睡觉动作 |
-| `room-background-v2.jpg` | 750×437 | 45 KB | 小窝宠物场景背景（AI 按容器比例 686:400 重生成，内容与原背景一致；旧 720×981 版被 aspectFill 裁切弃用） |
+| `room-background-v4.jpg` | 720×480 | 42 KB | 小窝宠物场景背景（AI 以原版房间为参考按 3:2 场景比例重生成：窗/「Happy Day」牌/矮书架/通栏地毯全在画内，地板窄条；显示高 439rpx 与场景等高无空带；v2 丢牌子、v3 裁横带版均弃用） |
 | `navigation/game.png` | 256×256 | 12 KB | 爪印菜单游戏入口图标 |
 | `navigation/tarot.png` | 256×256 | 16 KB | 爪印菜单塔罗占卜入口图标 |
 | `navigation/gobang.png` | 256×256 | 18 KB | 游戏中心五子棋入口图标 |
@@ -224,10 +224,15 @@ npm run build:weapp --prefix miniapp
 | `wardrobe/hoodie-icon-v2.png` 等 5 张 | ≤176 | 13-20 KB/张 | 连帽衫/背带裤/小裙子/雨衣/睡衣**完整服饰网格图标**（AI 生成去底，COS 按需） |
 | `wardrobe/outfit-scarf-cut-v2.png` | 232×135 | 13 KB | 衣柜围巾**前襟叠加层**（折线切去蝴蝶结/环带，叠图不糊脸，随包） |
 | `wardrobe/outfit-bag-v3.png` | 170×161 | 16 KB | 衣柜小包叠穿件（AI 生成独立图去底+裁背带，网格图标+腹侧叠加共用，随包） |
+| `decor/cork-board-v1.png` | 168×168 | 8 KB | 三面板装饰：软木板无缝拼贴（照片墙墙面，SCSS 内联 base64 平铺） |
+| `decor/wood-board-v1.png` | 192×128 | 8 KB | 三面板装饰：木纹无缝拼贴（任务看板木框/衣柜挂杆，SCSS 内联 base64） |
+| `decor/photo-wall-empty-v1.png` | 340×280 | 9 KB | 照片墙空态插画（两张叠放拍立得+爪印+图钉，手绘贴纸风与道具图标同语言） |
+
+三面板装饰贴图由 `miniapp/tools/make-panel-decor.mjs` 程序化生成（SVG 种子随机 → sharp 出件 PNG8，源码即源图、无 design-assets 源文件）；小窝入口快捷图标 `nest/wardrobe-v2.png`、`nest/photo-wall-v2.png`、`nest/tasks-v2.png` 已按 92×96px 显示尺寸重采样到 276px（3x 密度，2026-09，v1 530×550 移除）。
 
 衣柜面板的内景背景为 AI 生成的水彩衣柜内部（`public/wardrobe/wardrobe-interior-v2.jpg`，31KB），走 COS 按需下载（`suitAssets.ensureFile`），不占包体；未加载时回退面板渐变底。生成规则见 `.agents/rules/ai-image-generation.md`。
 
-本地包内资源禁止使用 WebP（微信 image 组件不解析本地 WebP，iOS 真机会整块不显示；WebP 仅用于塔罗 COS 网络资源并配合 `webp` 属性）。入库前用 `scripts/optimize-miniapp-assets.mjs` 统一压缩：带透明通道的图片转 256 色全色板 + 误差扩散抖动 PNG（禁止再压 64/128 小色板，2026-08 验收发现小色板把整体压灰；全量真彩 PNG 约 5.4MB 超包，256 全色板是包体约束下最接近原图色彩的方案），不透明背景转 JPEG（mozjpeg，4:4:4 色度保留），两张大背景按显示密度降采样（street 840px、room 1152px）。可选 TinyPNG 追加压缩：设置 `TINIFY_API_KEY` 环境变量后执行 `node scripts/optimize-miniapp-assets.mjs --write`，脚本在本地优化产物上再过一遍 TinyPNG，只覆盖收益 ≥2% 的文件，输出保持 PNG/JPEG（key 存环境变量，禁止进仓库）。运行时用户照片压缩走 `miniapp/src/services/imageCompression.ts`：单次压缩、quality 80、按宽度档位 `[1080, 900, 720]`（头像 `[640, 480, 360]`，日记/纪念日照片 720 仍超限时依次回退 540、420）降分辨率重试，禁止降质量和重复压缩（详见 `.agents/rules/miniapp-image.md`）。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内；主包构建产物必须低于微信 2MB 上限（照片墙/衣柜上线后实测 1.98MB / 2,082,203 字节，距上限仅约 15KB，继续膨胀前先把大图迁 COS 或做分包）。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载；衣柜套装除随包围巾外也从 COS 按需下载（`TARO_WARDROBE_ASSET_BASE_URL`，默认塔罗静态目录下 `wardrobe/`）。
+本地包内资源禁止使用 WebP（微信 image 组件不解析本地 WebP，iOS 真机会整块不显示；WebP 仅用于塔罗 COS 网络资源并配合 `webp` 属性）。入库前用 `scripts/optimize-miniapp-assets.mjs` 统一压缩：带透明通道的图片转 256 色全色板 + 误差扩散抖动 PNG（禁止再压 64/128 小色板，2026-08 验收发现小色板把整体压灰；全量真彩 PNG 约 5.4MB 超包，256 全色板是包体约束下最接近原图色彩的方案），不透明背景转 JPEG（mozjpeg，4:4:4 色度保留），两张大背景按显示密度降采样（street 840px、room 1152px）。可选 TinyPNG 追加压缩：`node scripts/optimize-miniapp-assets.mjs --write`，脚本自动读取仓库根 `.env`（gitignored）中的 `TINIFY_API_KEY`（主 key + `TINIFY_API_KEY_2..5` 备用，401/429 自动切下一个 key），只覆盖收益 ≥2% 的文件，输出保持 PNG/JPEG（key 只存本机 `.env`，禁止进仓库）。运行时用户照片压缩走 `miniapp/src/services/imageCompression.ts`：单次压缩、quality 80、按宽度档位 `[1080, 900, 720]`（头像 `[640, 480, 360]`，日记/纪念日照片 720 仍超限时依次回退 540、420）降分辨率重试，禁止降质量和重复压缩（详见 `.agents/rules/miniapp-image.md`）。运行时使用固定容器尺寸和 `aspectFit` 或 `aspectFill`，避免布局跳动。每张小程序图片控制在 180 KB 安全线内；主包构建产物必须低于微信 2MB 上限（2026-09 三面板视觉升级后实测 1.966MB / 2,061,616 字节，余量约 35KB，继续膨胀前先把大图迁 COS 或做分包）。小程序副本随 `miniapp` 构建产物分发；塔罗资源不打包，从 COS 版本目录下载；衣柜套装除随包围巾外也从 COS 按需下载（`TARO_WARDROBE_ASSET_BASE_URL`，默认塔罗静态目录下 `wardrobe/`）。
 
 ## 开发命令
 

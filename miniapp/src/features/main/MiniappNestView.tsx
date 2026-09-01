@@ -20,9 +20,9 @@ import { reconcileStoredUnlock, writeUnlockState } from '../../services/xiaoduol
 import type { WardrobeView } from '../../domain/wardrobeModel'
 import './MiniappNestView.scss'
 
-const wardrobe = require('../../assets/nest/wardrobe.png')
-const photoWall = require('../../assets/nest/photo-wall.png')
-const tasks = require('../../assets/nest/tasks.png')
+const wardrobe = require('../../assets/nest/wardrobe-v2.png')
+const photoWall = require('../../assets/nest/photo-wall-v2.png')
+const tasks = require('../../assets/nest/tasks-v2.png')
 interface MiniappNestViewProps {
   context: LaunchContext | null
   pet: PetState | null

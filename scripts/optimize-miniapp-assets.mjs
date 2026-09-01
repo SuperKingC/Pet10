@@ -22,9 +22,24 @@ const reencodeMinSaving = 0.1
 const maxWidth = 1500
 const jpegQuality = Number(process.env.MINIAPP_JPEG_QUALITY ?? 75)
 // TinyPNG 追加压缩：256 色板/mozjpeg 落盘后再过一遍 TinyPNG，能再吃掉残留冗余（约 5~15%）。
-// 需要 TINIFY_API_KEY 环境变量（https://tinypng.com/developers，免费 500 张/月）；未设置时跳过并提示。
+// 需要 TINIFY_API_KEY（https://tinypng.com/developers，免费 500 张/月）；未设置时跳过并提示。
+// key 持久化在仓库根 .env（已 gitignore），脚本自动加载——换会话/换机器只需在 .env 填一次；
+// 进程环境变量优先于 .env，key 禁止写进代码或提交进仓库。
+try {
+  const envFile = await readFile(resolve(root, '.env'), 'utf8')
+  for (const line of envFile.split(/\r?\n/)) {
+    const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)
+    if (match && process.env[match[1]] === undefined) {
+      process.env[match[1]] = match[2].replace(/^["']|["']$/g, '').trim()
+    }
+  }
+} catch { /* .env 不存在时跳过 */ }
 // 输出格式不变（仍 PNG/JPEG），本地包内资源禁止转 WebP——微信 image 组件不解析本地 WebP，iOS 真机整块不显示。
-const tinifyKey = process.env.TINIFY_API_KEY?.trim() || ''
+// 多 key 轮换：TINIFY_API_KEY 为主，TINIFY_API_KEY_2..5 为备用；401（无效）/429（本月配额尽）自动切下一个。
+const tinifyKeys = ['TINIFY_API_KEY', 'TINIFY_API_KEY_2', 'TINIFY_API_KEY_3', 'TINIFY_API_KEY_4', 'TINIFY_API_KEY_5']
+  .map((name) => process.env[name]?.trim() || '')
+  .filter(Boolean)
+const deadTinifyKeys = new Set() // 本次运行内标记失效的 key，避免逐文件重试
 let compressionCount = null // TinyPNG 响应头返回的本月已用配额
 const tinifyMinSaving = 0.02 // 节省不足 2% 时保留原文件，避免无谓重写
 const tinifyMaxBytes = 5 * 1024 * 1024 // TinyPNG 单张上限 5MB，包内图片远小于此
@@ -89,29 +104,39 @@ function kb(bytes) {
 // 禁止把输出转成 WebP/TinyPNG 专有格式——返回的 URL 下载回来仍是原格式。
 // 注意 output.url 同样需要 API key 认证才能下载，否则拿到的是 401 XML。
 async function tinifyShrink(path, bytes) {
-  const auth = `Basic ${Buffer.from(`api:${tinifyKey}`).toString('base64')}`
-  const response = await fetch('https://api.tinify.com/shrink', {
-    method: 'POST',
-    headers: {
-      Authorization: auth,
-      'Content-Type': 'application/octet-stream',
-    },
-    body: await readFile(path),
-  })
-  if (!response.ok) {
-    const detail = await response.text().catch(() => response.statusText)
-    throw new Error(`TinyPNG ${response.status}: ${detail.slice(0, 200)}`)
+  let lastError = null
+  for (const key of tinifyKeys) {
+    if (deadTinifyKeys.has(key)) continue
+    const auth = `Basic ${Buffer.from(`api:${key}`).toString('base64')}`
+    const response = await fetch('https://api.tinify.com/shrink', {
+      method: 'POST',
+      headers: {
+        Authorization: auth,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: await readFile(path),
+    })
+    if (response.status === 401 || response.status === 429) {
+      deadTinifyKeys.add(key)
+      lastError = new Error(`TinyPNG ${response.status} on key …${key.slice(-4)}; switching to next key`)
+      continue
+    }
+    if (!response.ok) {
+      const detail = await response.text().catch(() => response.statusText)
+      throw new Error(`TinyPNG ${response.status}: ${detail.slice(0, 200)}`)
+    }
+    compressionCount = response.headers.get('compression-count') ?? compressionCount
+    const payload = await response.json()
+    const output = payload?.output
+    if (!output?.url) throw new Error('TinyPNG response missing output.url')
+    const shrunkResponse = await fetch(output.url, { headers: { Authorization: auth } })
+    if (!shrunkResponse.ok) throw new Error(`TinyPNG download ${shrunkResponse.status}`)
+    const shrunk = await shrunkResponse.arrayBuffer()
+    const after = shrunk.byteLength
+    if (after >= bytes * (1 - tinifyMinSaving)) return { action: 'tinify-keep', buffer: null, after: bytes }
+    return { action: 'tinify', buffer: Buffer.from(shrunk), after }
   }
-  compressionCount = response.headers.get('compression-count') ?? compressionCount
-  const payload = await response.json()
-  const output = payload?.output
-  if (!output?.url) throw new Error('TinyPNG response missing output.url')
-  const shrunkResponse = await fetch(output.url, { headers: { Authorization: auth } })
-  if (!shrunkResponse.ok) throw new Error(`TinyPNG download ${shrunkResponse.status}`)
-  const shrunk = await shrunkResponse.arrayBuffer()
-  const after = shrunk.byteLength
-  if (after >= bytes * (1 - tinifyMinSaving)) return { action: 'tinify-keep', buffer: null, after: bytes }
-  return { action: 'tinify', buffer: Buffer.from(shrunk), after }
+  throw lastError ?? new Error('TinyPNG: no usable key left')
 }
 
 const files = await listImages(assetsRoot)
@@ -127,7 +152,7 @@ for (const path of files.sort()) {
   const { action, target, format } = await targetFor(path, meta.bytes)
   if (action === 'keep' || action === 'reencode') {
     // 本地优化后仍超阈值的文件在写入模式可再过 TinyPNG；dry-run 只统计。
-    if (tinifyKey && write && meta.bytes > convertThreshold && meta.bytes <= tinifyMaxBytes) {
+    if (tinifyKeys.length && write && meta.bytes > convertThreshold && meta.bytes <= tinifyMaxBytes) {
       try {
         const shrunk = await tinifyShrink(path, meta.bytes)
         if (shrunk.buffer) {
@@ -193,6 +218,6 @@ if (reportPath) {
   console.log(`renamed report (${renamed.length}) -> ${relative(root, reportPath)}`)
 }
 console.log(`\nFiles: ${rows.length}; converted: ${converted}; tinified: ${tinified}; mode: ${write ? 'WRITE' : 'dry-run'}`)
-if (!tinifyKey) console.log('TINIFY_API_KEY not set — skipping TinyPNG pass (set it to enable the extra ~5-15% squeeze)')
-else if (compressionCount !== null) console.log(`TinyPNG compression count this month: ${compressionCount} (free tier: 500)`)
+if (!tinifyKeys.length) console.log('TINIFY_API_KEY not set — skipping TinyPNG pass (fill TINIFY_API_KEY=... in the repo-root .env to enable the extra ~5-15% squeeze)')
+else if (compressionCount !== null) console.log(`TinyPNG compression count this month: ${compressionCount} (free tier: 500/key; ${tinifyKeys.length - deadTinifyKeys.size}/${tinifyKeys.length} keys usable this run)`)
 console.log(`assets total: ${kb(totalBefore)} -> ${kb(totalAfter)} (saving ${kb(totalBefore - totalAfter)})`)

@@ -16,6 +16,8 @@ import './MiniappNestTaskPanel.scss'
 
 const itemIcon = (itemId: ItemId) => require(`../../assets/items/item-${itemId}-v1.png`)
 
+const POCKET_ITEMS: Array<[ItemId, number]> = [['dog_food', 0], ['ball', 0], ['soap', 0]]
+
 interface MiniappNestTaskPanelProps {
   roomId: string
   onClose(): void
@@ -28,6 +30,7 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
   const [inventory, setInventory] = useState<MiniappInventory | null>(null)
   const [claiming, setClaiming] = useState<string | null>(null)
   const [checkingIn, setCheckingIn] = useState(false)
+  const [burst, setBurst] = useState<string | null>(null)
 
   const refresh = useCallback(() => {
     if (!roomId) return
@@ -49,6 +52,8 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
         .map((item) => `${item.itemId === 'dog_food' ? '狗粮' : item.itemId === 'ball' ? '皮球' : '香皂'}×${item.count}`)
         .join(' ')
       Taro.showToast({ title: `获得 ${gain}！`, icon: 'none' })
+      setBurst(task.key)
+      setTimeout(() => setBurst((current) => (current === task.key ? null : current)), 900)
       refresh()
     } catch (error) {
       const message = error instanceof Error ? error.message : ''
@@ -78,15 +83,22 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
   }
 
   const { daily, achievement } = groupTasks(tasks ?? [])
-  const dogFood = itemCount(inventory, 'dog_food')
-  const ball = itemCount(inventory, 'ball')
-  const soap = itemCount(inventory, 'soap')
+  const counts: Record<ItemId, number> = {
+    dog_food: itemCount(inventory, 'dog_food'),
+    ball: itemCount(inventory, 'ball'),
+    soap: itemCount(inventory, 'soap'),
+  }
   const checkinTask = daily.find((task) => task.key === 'daily_checkin')
 
-  const renderTask = (task: MiniappNestTask) => {
+  const renderTask = (task: MiniappNestTask, index: number) => {
     const button = getTaskButton(task)
+    const delay = Math.min(index * 70, 420)
     return (
-      <View className={`nest-task-card${task.complete && !task.claimed ? ' nest-task-card--complete' : ''}`} key={task.key}>
+      <View
+        className={`nest-task-card${task.complete && !task.claimed ? ' nest-task-card--complete' : ''}`}
+        key={task.key}
+        style={{ animationDelay: `${delay}ms` }}
+      >
         <View className="nest-task-card__icon-ring">
           <Image
             className="nest-task-card__reward-icon"
@@ -99,7 +111,10 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
           <Text className="nest-task-card__meta">奖励 {rewardSummary(task)}</Text>
           {task.scope === 'achievement' && (
             <View className="nest-task-card__progress-bar">
-              <View className="nest-task-card__progress-fill" style={{ width: `${Math.min(100, Math.round(task.progress / task.target * 100))}%` }} />
+              <View
+                className="nest-task-card__progress-fill"
+                style={{ width: `${Math.min(100, Math.round(task.progress / task.target * 100))}%` }}
+              />
             </View>
           )}
           {task.scope === 'achievement' && (
@@ -115,6 +130,8 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
           )}
           {button.kind === 'claim' && (
             <View
+              hoverClass="nest-task-card__claim--press"
+              hoverStayTime={120}
               className={`nest-task-card__claim${claiming === task.key ? ' nest-task-card__claim--busy' : ''}`}
               onClick={() => void claim(task)}
             >
@@ -127,9 +144,23 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
             </View>
           )}
         </View>
+        {burst === task.key && (
+          <View className="nest-task-card__confetti">
+            {Array.from({ length: 10 }).map((_, piece) => (
+              <View key={piece} className={`nest-task-card__confetti-piece nest-task-card__confetti-piece--${piece % 5}`} />
+            ))}
+          </View>
+        )}
       </View>
     )
   }
+
+  const renderSection = (label: string) => (
+    <View className="nest-task-list__section">
+      <Text className="nest-task-list__section-text">{label}</Text>
+      <View className="nest-task-list__section-line" />
+    </View>
+  )
 
   return (
     <View className="nest-task-panel">
@@ -139,27 +170,28 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
       </View>
       <Text className="nest-task-panel__caption">完成任务拿道具，道具用来照顾小多利。</Text>
 
-      <View className="nest-task-panel__pouch">
-        <View className="nest-task-panel__pouch-item">
-          <Image className="nest-task-panel__pouch-icon" src={itemIcon('dog_food')} mode="aspectFit" />
-          <Text className="nest-task-panel__pouch-count">×{dogFood}</Text>
-        </View>
-        <View className="nest-task-panel__pouch-item">
-          <Image className="nest-task-panel__pouch-icon" src={itemIcon('ball')} mode="aspectFit" />
-          <Text className="nest-task-panel__pouch-count">×{ball}</Text>
-        </View>
-        <View className="nest-task-panel__pouch-item">
-          <Image className="nest-task-panel__pouch-icon" src={itemIcon('soap')} mode="aspectFit" />
-          <Text className="nest-task-panel__pouch-count">×{soap}</Text>
-        </View>
-        {checkinTask && (
-          <View
-            className={`nest-task-panel__checkin${checkinTask.complete ? ' nest-task-panel__checkin--done' : ''}`}
-            onClick={() => { if (!checkinTask.complete) void checkin() }}
-          >
-            <Text>{checkinTask.complete ? '今日已签到' : (checkingIn ? '签到中…' : '签到')}</Text>
+      <View className="nest-task-board">
+        <View className="nest-task-board__inner">
+          <View className="nest-task-board__slots">
+            {POCKET_ITEMS.map(([itemId]) => (
+              <View className="nest-task-board__slot" key={itemId}>
+                <Image className="nest-task-board__slot-icon" src={itemIcon(itemId)} mode="aspectFit" />
+                <Text className="nest-task-board__slot-count">×{counts[itemId]}</Text>
+              </View>
+            ))}
           </View>
-        )}
+          <View className="nest-task-board__divider" />
+          {checkinTask && (
+            <View
+              hoverClass="nest-task-board__checkin--press"
+              hoverStayTime={120}
+              className={`nest-task-board__checkin${checkinTask.complete ? ' nest-task-board__checkin--done' : ''}`}
+              onClick={() => { if (!checkinTask.complete) void checkin() }}
+            >
+              <Text>{checkinTask.complete ? '✓ 已签到' : checkingIn ? '签到中…' : '每日签到'}</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       <View className="nest-task-list">
@@ -171,9 +203,9 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
         )}
         {tasks !== null && (
           <>
-            <Text className="nest-task-list__section">每日任务</Text>
+            {renderSection('每日任务')}
             {daily.map(renderTask)}
-            <Text className="nest-task-list__section">成就</Text>
+            {renderSection('成就')}
             {achievement.map(renderTask)}
           </>
         )}

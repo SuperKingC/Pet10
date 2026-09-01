@@ -16,9 +16,10 @@
   width: 100%;
   height: 520rpx;
   z-index: 0;
-  animation: wardrobe-fade .32s ease-out both;
+  animation: wardrobe-fade .32s ease-out both, wardrobe-drift 14s ease-in-out infinite alternate;
 }
 @keyframes wardrobe-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wardrobe-drift { from { transform: scale(1); } to { transform: scale(1.035); } }
 .wardrobe-panel__top,
 .wardrobe-panel__caption,
 .wardrobe-showcase,
@@ -52,6 +53,21 @@
   box-shadow: 0 14rpx 30rpx rgba(84, 55, 28, .18);
   transform: rotate(-1.6deg);
 }
+/* 顶光聚光锥：呼吸明暗，罩在立绘上方 */
+.wardrobe-stage::before {
+  content: '';
+  position: absolute;
+  top: -30rpx;
+  left: 50%;
+  width: 320rpx;
+  height: 250rpx;
+  margin-left: -160rpx;
+  background: linear-gradient(180deg, rgba(255, 226, 160, .55), rgba(255, 226, 160, 0) 80%);
+  clip-path: polygon(40% 0, 60% 0, 97% 100%, 3% 100%);
+  pointer-events: none;
+  animation: wardrobe-spotlight 3.4s ease-in-out infinite;
+}
+@keyframes wardrobe-spotlight { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
 .wardrobe-stage__tape {
   position: absolute;
   top: -14rpx;
@@ -80,7 +96,7 @@
   height: 22rpx;
   margin: -10rpx auto 0;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(122, 85, 49, .18), transparent 70%);
+  background: radial-gradient(ellipse, rgba(122, 85, 49, .28), transparent 70%);
 }
 .wardrobe-stage__pending { position: absolute; left: 0; right: 0; bottom: 74rpx; color: #bda893; font-size: 22rpx; text-align: center; }
 .wardrobe-stage__name {
@@ -144,16 +160,31 @@
 }
 .wardrobe-bubble__chip--ghost { background: #f1e5d3; color: #8a6f5c; }
 
-/* —— 挂杆 + 服装网格 —— */
+/* —— 挂杆（木纹贴图横切 + 两端圆头球）+ 衣架钩服装网格 —— */
 .wardrobe-rack { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .wardrobe-rack__pole {
+  position: relative;
   flex-shrink: 0;
-  height: 10rpx;
-  margin: 0 8rpx 18rpx;
+  height: 14rpx;
+  margin: 0 8rpx 20rpx;
   border-radius: 999rpx;
-  background: linear-gradient(180deg, #e2c191, #cda46b);
-  box-shadow: 0 4rpx 8rpx rgba(84, 55, 28, .16);
+  background: url('../../assets/decor/wood-board-v1.png') repeat-x center / 192rpx 128rpx;
+  box-shadow: 0 4rpx 10rpx rgba(84, 55, 28, .22), inset 0 -3rpx 4rpx rgba(84, 55, 28, .18);
 }
+.wardrobe-rack__pole::before,
+.wardrobe-rack__pole::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 22rpx;
+  height: 22rpx;
+  margin-top: -11rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #f0d3a4, #c99a63);
+  box-shadow: 0 3rpx 7rpx rgba(84, 55, 28, .3);
+}
+.wardrobe-rack__pole::before { left: -10rpx; }
+.wardrobe-rack__pole::after { right: -10rpx; }
 .wardrobe-grid {
   flex: 1;
   min-height: 0;
@@ -187,6 +218,18 @@
   transform-origin: 50% -16rpx;
   animation: wardrobe-hang-in .5s cubic-bezier(.3, 1.35, .6, 1) both;
 }
+/* 挂钩：从卡片顶伸向挂杆的小钩 */
+.wardrobe-card::before {
+  content: '';
+  position: absolute;
+  top: -18rpx;
+  left: 50%;
+  width: 6rpx;
+  height: 18rpx;
+  margin-left: -3rpx;
+  border-radius: 3rpx;
+  background: linear-gradient(180deg, #c99a63, #b98d5e);
+}
 .wardrobe-card:nth-child(3n + 2) { animation-delay: .07s; }
 .wardrobe-card:nth-child(3n) { animation-delay: .14s; }
 @keyframes wardrobe-hang-in {
@@ -199,7 +242,11 @@
   background: #fff6e8;
   box-shadow: 0 12rpx 26rpx rgba(232, 143, 60, .3);
   transform: translateY(-4rpx);
-  animation: wardrobe-swing .7s ease-in-out;
+  animation: wardrobe-swing .7s ease-in-out, wardrobe-selected-glow 1.8s ease-in-out .7s infinite;
+}
+@keyframes wardrobe-selected-glow {
+  0%, 100% { box-shadow: 0 12rpx 26rpx rgba(232, 143, 60, .3); }
+  50% { box-shadow: 0 14rpx 32rpx rgba(232, 143, 60, .52); }
 }
 @keyframes wardrobe-swing {
   0% { transform: translateY(-4rpx) rotate(0); }
@@ -208,7 +255,6 @@
   85% { transform: translateY(-4rpx) rotate(.8deg); }
   100% { transform: translateY(-4rpx) rotate(0); }
 }
-.wardrobe-card__hanger { width: 60rpx; height: 52rpx; margin-bottom: -14rpx; z-index: 1; }
 .wardrobe-card--locked { background: #f6f0e5; border-color: #eadfcd; }
 .wardrobe-card__ribbon {
   position: absolute;
@@ -299,7 +345,8 @@
   .wardrobe-card { animation: none; }
   .wardrobe-card--selected { animation: none; transform: translateY(-4rpx); }
   .wardrobe-stage { transform: none; }
+  .wardrobe-stage::before { animation: none; opacity: .7; }
   .wardrobe-stage__inner { animation: none; }
   .wardrobe-bubble { animation: none; }
-  .wardrobe-panel__backdrop { animation: none; }
+  .wardrobe-panel__backdrop { animation: wardrobe-fade .32s ease-out both; }
 }

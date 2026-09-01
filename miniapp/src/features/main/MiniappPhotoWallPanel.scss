@@ -1,4 +1,5 @@
-/* 照片墙面板：复用纪念日面板骨架（全屏固定层由外层 overlay 控制定高），软木墙拍立得网格 */
+/* 照片墙面板：真软木纹墙面（make-panel-decor.mjs 生成的无缝拼贴，Taro 内联为 base64）
+   + 拍立得网格（图钉/和纸胶带交替、错峰落入）+ 自绘大图覆盖层。全屏固定层由外层 overlay 控制定高。 */
 .photo-wall-panel {
   height: 100%;
   display: flex;
@@ -7,13 +8,15 @@
   padding: 12rpx 32rpx 40rpx;
   box-sizing: border-box;
   background:
-    radial-gradient(circle at 18% 12%, rgba(122,85,49,.14), transparent 30%),
-    radial-gradient(circle at 82% 30%, rgba(122,85,49,.1), transparent 26%),
-    linear-gradient(180deg, #e8c9a2 0%, #f3ddc0 220rpx, #fff8ee 720rpx);
+    radial-gradient(circle at 18% 12%, rgba(122, 85, 49, .2), transparent 32%),
+    radial-gradient(circle at 82% 30%, rgba(122, 85, 49, .13), transparent 26%),
+    url('../../assets/decor/cork-board-v1.png') repeat,
+    linear-gradient(180deg, #e0bd93 0%, #ecd0ab 45%, #e5c69e 100%);
+  background-size: auto, auto, 168rpx 168rpx, auto;
 }
 
 .photo-wall-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
-.photo-wall-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
+.photo-wall-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); text-shadow: 0 2rpx 0 rgba(255, 248, 238, .6); }
 .photo-wall-panel__upload {
   margin-left: auto;
   padding: 12rpx 24rpx;
@@ -24,7 +27,16 @@
   font-weight: var(--font-weight-bold);
   box-shadow: 0 6rpx 16rpx rgba(232, 143, 60, .35);
 }
-.photo-wall-panel__caption { display: block; padding-bottom: 20rpx; color: #8a6f5c; font-size: var(--font-size-aux); }
+.photo-wall-panel__caption {
+  display: block;
+  align-self: flex-start;
+  margin-bottom: 20rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 248, 238, .78);
+  color: #6b543f;
+  font-size: var(--font-size-aux);
+}
 
 /* 选图后的说明行 */
 .photo-wall-compose {
@@ -36,8 +48,10 @@
   border-radius: 24rpx;
   background: #fffdf8;
   border: 2rpx solid #f0dcc8;
-  box-shadow: 0 8rpx 20rpx rgba(113, 77, 38, .1);
+  box-shadow: 0 8rpx 20rpx rgba(113, 77, 38, .14);
+  animation: photo-wall-compose-in .32s cubic-bezier(.22, 1, .36, 1) both;
 }
+@keyframes photo-wall-compose-in { from { opacity: 0; transform: translateY(-18rpx); } to { opacity: 1; transform: none; } }
 .photo-wall-compose__thumb { width: 160rpx; height: 160rpx; border-radius: 16rpx; background: #f7efe3; }
 .photo-wall-compose__body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
 .photo-wall-compose__input {
@@ -74,16 +88,40 @@
 @keyframes photo-wall-shimmer { to { background-position: -200% 0; } }
 .photo-wall-grid__empty {
   width: 100%;
-  padding: 120rpx 60rpx;
+  padding: 90rpx 60rpx 120rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
   text-align: center;
 }
-.photo-wall-grid__empty-title { color: #7d654f; font-size: var(--font-size-section-title); font-weight: var(--font-weight-bold); }
-.photo-wall-grid__empty-copy { color: #a89489; font-size: var(--font-size-secondary); line-height: 1.6; }
+.photo-wall-grid__empty-art {
+  width: 330rpx;
+  height: 272rpx;
+  margin-bottom: 6rpx;
+  filter: drop-shadow(0 12rpx 20rpx rgba(84, 55, 28, .22));
+  animation: photo-wall-float 3.2s ease-in-out infinite;
+}
+@keyframes photo-wall-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12rpx); } }
+.photo-wall-grid__empty-title {
+  padding: 8rpx 28rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 248, 238, .85);
+  color: #6b543f;
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-bold);
+}
+.photo-wall-grid__empty-copy {
+  max-width: 480rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 248, 238, .7);
+  color: #7d654f;
+  font-size: var(--font-size-secondary);
+  line-height: 1.6;
+}
 
+/* 拍立得卡：白框 + 偏斜 + 图钉/和纸胶带交替，按列错峰落入 */
 .photo-wall-card {
   position: relative;
   display: flex;
@@ -92,10 +130,19 @@
   padding: 18rpx 18rpx 14rpx;
   border-radius: 8rpx;
   background: #fffdf8;
-  box-shadow: 0 10rpx 22rpx rgba(84, 55, 28, .22);
+  box-shadow: 0 12rpx 26rpx rgba(59, 36, 18, .3), 0 2rpx 6rpx rgba(59, 36, 18, .16);
+  animation: photo-wall-card-in-left .5s cubic-bezier(.3, 1.25, .55, 1) both;
 }
 .photo-wall-card--tilt-left { transform: rotate(-1.8deg); }
-.photo-wall-card--tilt-right { transform: rotate(2deg); }
+.photo-wall-card--tilt-right { transform: rotate(2deg); animation-name: photo-wall-card-in-right; }
+@keyframes photo-wall-card-in-left {
+  from { opacity: 0; transform: translateY(-36rpx) rotate(-7deg) scale(.96); }
+  to { opacity: 1; transform: rotate(-1.8deg); }
+}
+@keyframes photo-wall-card-in-right {
+  from { opacity: 0; transform: translateY(-36rpx) rotate(7deg) scale(.96); }
+  to { opacity: 1; transform: rotate(2deg); }
+}
 .photo-wall-card__pin {
   position: absolute;
   top: -12rpx;
@@ -104,7 +151,18 @@
   height: 24rpx;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 30%, #ff9d76, #d4482f);
-  box-shadow: 0 4rpx 8rpx rgba(84, 55, 28, .35);
+  box-shadow: 0 5rpx 9rpx rgba(59, 36, 18, .4);
+}
+.photo-wall-card__tape {
+  position: absolute;
+  top: -16rpx;
+  left: 26rpx;
+  width: 128rpx;
+  height: 36rpx;
+  border-radius: 4rpx;
+  background: repeating-linear-gradient(45deg, rgba(250, 222, 168, .95) 0 12rpx, rgba(243, 205, 138, .95) 12rpx 24rpx);
+  box-shadow: 0 4rpx 8rpx rgba(84, 55, 28, .18);
+  transform: rotate(-5deg);
 }
 .photo-wall-card__badge {
   position: absolute;
@@ -116,7 +174,7 @@
   color: #fff;
   font-size: 20rpx;
 }
-.photo-wall-card__photo { width: 100%; height: 300rpx; }
+.photo-wall-card__photo { width: 100%; height: 300rpx; background: #f3e8d7; }
 .photo-wall-card__template {
   width: 100%;
   height: 300rpx;
@@ -151,7 +209,9 @@
   align-items: center;
   justify-content: center;
   background: rgba(30, 20, 12, .86);
+  animation: photo-wall-preview-fade .22s ease-out both;
 }
+@keyframes photo-wall-preview-fade { from { opacity: 0; } to { opacity: 1; } }
 .photo-wall-preview__body {
   width: 640rpx;
   max-height: 82vh;
@@ -161,7 +221,10 @@
   padding: 32rpx 28rpx;
   border-radius: 20rpx;
   background: #fffdf8;
+  box-shadow: 0 24rpx 60rpx rgba(0, 0, 0, .35);
+  animation: photo-wall-preview-pop .3s cubic-bezier(.34, 1.56, .64, 1) both;
 }
+@keyframes photo-wall-preview-pop { from { opacity: 0; transform: scale(.9) translateY(20rpx); } to { opacity: 1; transform: none; } }
 .photo-wall-preview__photo { width: 100%; height: 640rpx; }
 .photo-wall-preview__template {
   width: 100%;
@@ -209,6 +272,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .photo-wall-grid__skeleton { animation: none; }
+  .photo-wall-card { animation: none; }
   .photo-wall-card--tilt-left,
   .photo-wall-card--tilt-right { transform: none; }
+  .photo-wall-grid__empty-art { animation: none; }
+  .photo-wall-compose { animation: none; }
+  .photo-wall-preview { animation: none; }
+  .photo-wall-preview__body { animation: none; }
 }

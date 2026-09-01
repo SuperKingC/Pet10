@@ -15,6 +15,8 @@ import {
 } from '../../domain/photoWallModel'
 import './MiniappPhotoWallPanel.scss'
 
+const emptyIllustration = require('../../assets/decor/photo-wall-empty-v1.png')
+
 interface MiniappPhotoWallPanelProps {
   roomId: string
   onClose(): void
@@ -128,9 +130,10 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
       <View
         className={`photo-wall-card${index % 2 === 0 ? ' photo-wall-card--tilt-left' : ' photo-wall-card--tilt-right'}`}
         key={item.id}
+        style={{ animationDelay: `${Math.min(index * 80, 480)}ms` }}
         onClick={() => openPreview(item)}
       >
-        <View className="photo-wall-card__pin" />
+        {index % 2 === 0 ? <View className="photo-wall-card__pin" /> : <View className="photo-wall-card__tape" />}
         {badge && <Text className="photo-wall-card__badge">{badge}</Text>}
         {isAutoCard(item) ? (
           <View className="photo-wall-card__template">
@@ -144,7 +147,7 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
             </Text>
           </View>
         ) : (
-          <Image className="photo-wall-card__photo" src={item.photo} mode="aspectFit" />
+          <Image className="photo-wall-card__photo" src={item.photo} mode="aspectFill" />
         )}
         {item.caption && <Text className="photo-wall-card__caption">{item.caption}</Text>}
         <Text className="photo-wall-card__date">{photoDayText(item.takenDay ?? item.createdAt)}</Text>
@@ -192,6 +195,7 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
         {photos === null && <View className="photo-wall-grid__skeleton" />}
         {photos !== null && photos.length === 0 && (
           <View className="photo-wall-grid__empty">
+            <Image className="photo-wall-grid__empty-art" src={emptyIllustration} mode="aspectFit" />
             <Text className="photo-wall-grid__empty-title">墙还空着</Text>
             <Text className="photo-wall-grid__empty-copy">贴上第一张合照，或等小多利的升级纪念卡、你们的默契穿搭卡自动上墙。</Text>
           </View>

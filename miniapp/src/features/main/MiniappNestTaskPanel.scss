@@ -1,4 +1,5 @@
-/* 系统预设任务面板：复用纪念日面板骨架（全屏固定层内由外层 overlay 控制定高） */
+/* 系统预设任务面板：木框「看板」（每日签到 + 道具口袋）+ 任务卡列表。
+   木纹贴图由 miniapp/tools/make-panel-decor.mjs 生成，Taro 会把 SCSS 里的本地 url 内联为 base64。 */
 .nest-task-panel {
   height: 100%;
   display: flex;
@@ -6,60 +7,164 @@
   overflow: hidden;
   padding: 12rpx 32rpx 40rpx;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #fff1df 0%, #fff8ee 380rpx);
+  background:
+    radial-gradient(circle at 16% 8%, rgba(247, 179, 92, .13), transparent 34%),
+    radial-gradient(circle at 88% 22%, rgba(240, 178, 122, .1), transparent 30%),
+    linear-gradient(180deg, #fff1df 0%, #fff8ee 380rpx);
 }
 .nest-task-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
 .nest-task-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
 .nest-task-panel__caption { display: block; padding-bottom: 20rpx; color: #a89489; font-size: var(--font-size-aux); }
 
-/* 道具库存条 + 签到按钮 */
-.nest-task-panel__pouch {
+/* —— 木框看板：道具口袋 + 每日签到 —— */
+.nest-task-board {
+  flex-shrink: 0;
+  margin-bottom: 22rpx;
+  padding: 10rpx;
+  border-radius: 30rpx;
+  background: url('../../assets/decor/wood-board-v1.png') repeat;
+  background-size: 192rpx 128rpx;
+  box-shadow: 0 10rpx 24rpx rgba(126, 82, 49, .18), inset 0 2rpx 0 rgba(255, 255, 255, .3);
+  animation: nest-task-drop .42s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes nest-task-drop { from { opacity: 0; transform: translateY(-20rpx); } to { opacity: 1; transform: none; } }
+.nest-task-board__inner {
   display: flex;
   align-items: center;
-  gap: 22rpx;
-  flex-shrink: 0;
-  margin-bottom: 20rpx;
-  padding: 16rpx 22rpx;
-  background: #fffdf8;
-  border: 1px solid #f0dcc8;
+  gap: 20rpx;
+  padding: 18rpx 22rpx;
   border-radius: 22rpx;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 8rpx 20rpx rgba(126, 82, 49, .07);
+  background: #fffdf8;
+  border: 2rpx dashed #e3c79d;
+  box-shadow: inset 0 2rpx 6rpx rgba(126, 82, 49, .08);
 }
-.nest-task-panel__pouch-item { display: flex; align-items: center; gap: 6rpx; }
-.nest-task-panel__pouch-icon { width: 56rpx; height: 56rpx; }
-.nest-task-panel__pouch-count { color: #7a5236; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
-.nest-task-panel__checkin {
-  margin-left: auto;
-  padding: 12rpx 30rpx;
-  color: #fff;
-  font-size: var(--font-size-aux);
-  font-weight: var(--font-weight-bold);
-  background: linear-gradient(165deg, #f7b35c, #e88f3c);
+.nest-task-board__slots { display: flex; flex: 1; justify-content: space-around; gap: 12rpx; }
+.nest-task-board__slot { display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.nest-task-board__slot-icon { width: 72rpx; height: 72rpx; filter: drop-shadow(0 4rpx 6rpx rgba(126, 82, 49, .18)); }
+.nest-task-board__slot-count {
+  min-width: 76rpx;
+  padding: 2rpx 14rpx;
+  box-sizing: border-box;
   border-radius: 999rpx;
-  box-shadow: 0 6rpx 16rpx rgba(232, 143, 60, .35);
+  background: #fdeeda;
+  color: #7a5236;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
 }
-.nest-task-panel__checkin--done { color: #a1764f; background: #fdf3e4; box-shadow: none; }
+.nest-task-board__divider { width: 2rpx; align-self: stretch; margin: 6rpx 0; background: repeating-linear-gradient(180deg, #e3c79d 0 10rpx, transparent 10rpx 18rpx); }
+.nest-task-board__checkin {
+  flex-shrink: 0;
+  padding: 20rpx 34rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  background: linear-gradient(160deg, #f7b35c, #e88f3c);
+  box-shadow: 0 8rpx 18rpx rgba(232, 143, 60, .38), inset 0 2rpx 0 rgba(255, 255, 255, .4);
+  animation: nest-task-breathe 2.6s ease-in-out infinite;
+}
+.nest-task-board__checkin--done {
+  color: #a1764f;
+  background: #fdf3e4;
+  box-shadow: none;
+  animation: nest-task-stamp .42s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.nest-task-board__checkin--press { transform: scale(.95); filter: brightness(.96); }
+@keyframes nest-task-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes nest-task-stamp { from { opacity: 0; transform: scale(1.5) rotate(-10deg); } to { opacity: 1; transform: none; } }
 
-/* 任务列表 */
+/* —— 任务列表 —— */
 .nest-task-list { display: flex; flex-direction: column; gap: 20rpx; flex: 1; min-height: 0; overflow-y: auto; padding: 4rpx 0 30rpx; }
 .nest-task-list__skeleton { height: 150rpx; border-radius: 28rpx; background: linear-gradient(100deg, #f7e8d6 40%, #fcf3e6 50%, #f7e8d6 60%); background-size: 200% 100%; animation: nest-task-shimmer 1.4s linear infinite; }
 .nest-task-list__skeleton--short { height: 128rpx; width: 86%; }
 @keyframes nest-task-shimmer { to { background-position: -200% 0; } }
-.nest-task-list__section { display: block; padding: 10rpx 4rpx 0; color: #a1764f; font-size: var(--font-size-aux); font-weight: var(--font-weight-semibold); }
+.nest-task-list__section { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 4rpx 2rpx; }
+.nest-task-list__section-text { color: #a1764f; font-size: var(--font-size-aux); font-weight: var(--font-weight-semibold); }
+.nest-task-list__section-line { flex: 1; border-top: 2rpx dashed #e8d5bd; }
 
-/* 任务卡 */
-.nest-task-card { display: flex; align-items: center; gap: 22rpx; padding: 26rpx 24rpx; background: #fffdf8; border: 1px solid #f0dcc8; border-radius: 28rpx; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 14rpx 30rpx rgba(126, 82, 49, .08); }
+/* 任务卡：入场自上而下瀑布错峰 */
+.nest-task-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  padding: 26rpx 24rpx;
+  background: #fffdf8;
+  border: 1px solid #f0dcc8;
+  border-radius: 28rpx;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 14rpx 30rpx rgba(126, 82, 49, .08);
+  animation: nest-task-card-in .5s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes nest-task-card-in { from { opacity: 0; transform: translateY(-26rpx) scale(.97); } to { opacity: 1; transform: none; } }
 .nest-task-card--complete { background: linear-gradient(180deg, #fff3dd, #ffe9cd); border-color: #f0c188; }
-.nest-task-card__icon-ring { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 96rpx; height: 96rpx; background: #fbf3e3; border-radius: 24rpx; box-shadow: 0 4rpx 10rpx rgba(126, 82, 49, .1); }
+.nest-task-card__icon-ring {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 96rpx; height: 96rpx;
+  background: linear-gradient(160deg, #fdf3e0, #f7e3c4);
+  border: 2rpx solid #f3e0c2;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 10rpx rgba(126, 82, 49, .1);
+}
 .nest-task-card__reward-icon { width: 76rpx; height: 76rpx; }
 .nest-task-card__body { display: flex; flex: 1; flex-direction: column; gap: 6rpx; min-width: 0; }
 .nest-task-card__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .nest-task-card__meta { color: #b49a8d; font-size: var(--font-size-aux); }
-.nest-task-card__progress-bar { margin-top: 6rpx; height: 12rpx; background: #f3e3d3; border-radius: 999rpx; overflow: hidden; }
-.nest-task-card__progress-fill { height: 100%; background: linear-gradient(90deg, #f7b35c, #e88f3c); border-radius: 999rpx; }
+.nest-task-card__progress-bar { margin-top: 6rpx; height: 14rpx; background: #f3e3d3; border-radius: 999rpx; overflow: hidden; box-shadow: inset 0 2rpx 4rpx rgba(126, 82, 49, .12); }
+.nest-task-card__progress-fill {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(90deg, #f7b35c, #e88f3c);
+  border-radius: 999rpx;
+  transform-origin: left center;
+  animation: nest-task-progress-in .8s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes nest-task-progress-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.nest-task-card__progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .55) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: nest-task-progress-shine 1.8s linear infinite;
+}
+@keyframes nest-task-progress-shine { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .nest-task-card__progress-num { color: #c08c62; font-size: var(--font-size-aux); }
 .nest-task-card__action { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; min-width: 132rpx; gap: 6rpx; }
-.nest-task-card__claim { display: flex; align-items: center; justify-content: center; width: 100%; padding: 18rpx 12rpx; background: linear-gradient(165deg, #ffd98e, #f7b35c); border-radius: 22rpx; box-shadow: 0 4rpx 12rpx rgba(227, 154, 85, .3); }
+
+/* 可领取按钮：金光呼吸 + 高光扫过 */
+.nest-task-card__claim {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 18rpx 12rpx;
+  background: linear-gradient(165deg, #ffd98e, #f0a24a);
+  border-radius: 22rpx;
+  box-shadow: 0 4rpx 12rpx rgba(227, 154, 85, .32), inset 0 2rpx 0 rgba(255, 255, 255, .5);
+  animation: nest-task-claim-glow 1.6s ease-in-out infinite;
+}
+@keyframes nest-task-claim-glow {
+  0%, 100% { box-shadow: 0 4rpx 12rpx rgba(227, 154, 85, .32), inset 0 2rpx 0 rgba(255, 255, 255, .5); }
+  50% { box-shadow: 0 6rpx 22rpx rgba(232, 143, 60, .6), inset 0 2rpx 0 rgba(255, 255, 255, .5); }
+}
+.nest-task-card__claim::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 44rpx;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .65), transparent);
+  transform: translateX(-140rpx) skewX(-18deg);
+  animation: nest-task-claim-shine 2.2s ease-in-out infinite;
+}
+@keyframes nest-task-claim-shine {
+  0%, 55% { transform: translateX(-140rpx) skewX(-18deg); }
+  90%, 100% { transform: translateX(190rpx) skewX(-18deg); }
+}
+.nest-task-card__claim--press { transform: scale(.94); filter: brightness(.95); }
 .nest-task-card__claim--busy { opacity: .6; }
 .nest-task-card__claim-label { color: #5e3b1d; font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
 .nest-task-card__done-badge { display: flex; align-items: center; justify-content: center; width: 100%; padding: 16rpx 12rpx; background: linear-gradient(165deg, #fff1dd, #ffe3c1); border-radius: 22rpx; box-shadow: 0 4rpx 12rpx rgba(227, 154, 85, .18); }
@@ -68,3 +173,39 @@
 .nest-task-card__lock-main { color: #b9a89a; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
 .nest-task-card__progress-badge { display: flex; align-items: center; justify-content: center; width: 100%; padding: 16rpx 12rpx; background: #fdf3e4; border-radius: 22rpx; }
 .nest-task-card__progress-label { color: #b3703f; font-size: var(--font-size-aux); font-weight: var(--font-weight-semibold); }
+
+/* 领取成功彩带：从领取按钮迸出 10 片后消散 */
+.nest-task-card__confetti { position: absolute; inset: 0; overflow: hidden; border-radius: 28rpx; pointer-events: none; }
+.nest-task-card__confetti-piece {
+  position: absolute;
+  top: 58%;
+  left: 76%;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 3rpx;
+  animation: nest-task-confetti .78s ease-out both;
+}
+.nest-task-card__confetti-piece:nth-child(even) { animation-delay: .07s; }
+.nest-task-card__confetti-piece--0 { background: #f7b35c; animation-name: nest-task-confetti-a; }
+.nest-task-card__confetti-piece--1 { background: #ef9d9a; animation-name: nest-task-confetti-b; }
+.nest-task-card__confetti-piece--2 { background: #a8cdeb; animation-name: nest-task-confetti-c; }
+.nest-task-card__confetti-piece--3 { background: #9fd6a8; animation-name: nest-task-confetti-d; }
+.nest-task-card__confetti-piece--4 { background: #ffd98e; animation-name: nest-task-confetti-e; }
+@keyframes nest-task-confetti-a { from { opacity: 1; transform: translate(0, 0) rotate(0); } to { opacity: 0; transform: translate(-80rpx, -110rpx) rotate(-160deg) scale(.7); } }
+@keyframes nest-task-confetti-b { from { opacity: 1; transform: translate(0, 0) rotate(0); } to { opacity: 0; transform: translate(80rpx, -120rpx) rotate(150deg) scale(.7); } }
+@keyframes nest-task-confetti-c { from { opacity: 1; transform: translate(0, 0) rotate(0); } to { opacity: 0; transform: translate(-120rpx, -30rpx) rotate(-120deg) scale(.6); } }
+@keyframes nest-task-confetti-d { from { opacity: 1; transform: translate(0, 0) rotate(0); } to { opacity: 0; transform: translate(120rpx, -40rpx) rotate(170deg) scale(.6); } }
+@keyframes nest-task-confetti-e { from { opacity: 1; transform: translate(0, 0) rotate(0); } to { opacity: 0; transform: translate(0, -150rpx) rotate(200deg) scale(.75); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nest-task-list__skeleton { animation: none; }
+  .nest-task-board,
+  .nest-task-card { animation: none; }
+  .nest-task-board__checkin,
+  .nest-task-board__checkin--done { animation: none; }
+  .nest-task-card__claim { animation: none; }
+  .nest-task-card__claim::after { animation: none; opacity: 0; }
+  .nest-task-card__progress-fill { animation: none; }
+  .nest-task-card__progress-fill::after { animation: none; opacity: 0; }
+  .nest-task-card__confetti { display: none; }
+}
