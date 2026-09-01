@@ -179,14 +179,15 @@
   from { opacity: 0; transform: translateY(-36rpx) rotate(7deg) scale(.96); }
   to { opacity: 1; transform: rotate(2deg); }
 }
-/* 图钉/和纸胶带：实拍质感贴图（阴影烘焙进素材，不加 CSS 投影避免双影） */
+/* 图钉/和纸胶带：实拍质感贴图（阴影烘焙进素材，不加 CSS 投影避免双影）。
+   图钉 v2 是正面视角圆头（钉在墙上的样子，不露针），63×68 ≈ 显示 44×47rpx。 */
 .photo-wall-card__pin {
   position: absolute;
-  top: -20rpx;
+  top: -18rpx;
   left: 50%;
-  margin-left: -21rpx;
-  width: 42rpx;
-  height: 49rpx;
+  margin-left: -22rpx;
+  width: 44rpx;
+  height: 47rpx;
 }
 .photo-wall-card__tape {
   position: absolute;

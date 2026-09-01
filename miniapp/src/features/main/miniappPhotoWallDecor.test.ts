@@ -11,9 +11,9 @@ const decorDir = path.resolve(__dirname, '../../assets/decor')
 const DECOR_FILES = [
   'photo-wall-lights-v1.png',
   'photo-wall-bulbs-v1.png',
-  'photo-wall-pin-red-v1.png',
-  'photo-wall-pin-yellow-v1.png',
-  'photo-wall-pin-blue-v1.png',
+  'photo-wall-pin-red-v2.png',
+  'photo-wall-pin-yellow-v2.png',
+  'photo-wall-pin-blue-v2.png',
   'photo-wall-tape-dots-v1.png',
   'photo-wall-tape-stripes-v1.png',
   'photo-wall-tape-green-v1.png'
@@ -29,8 +29,12 @@ describe('photo wall decor presentation', () => {
 
   it('cycles three pin colors and three washi tape variants across cards', () => {
     const component = fs.readFileSync(componentPath, 'utf8')
-    for (const file of ['pin-red', 'pin-yellow', 'pin-blue', 'tape-dots', 'tape-stripes', 'tape-green']) {
-      expect(component).toContain(`photo-wall-${file}-v1.png`)
+    // 图钉 v2：正面视角圆头（v1 侧面吊针像立着的，按反馈重生成）
+    for (const color of ['red', 'yellow', 'blue']) {
+      expect(component).toContain(`photo-wall-pin-${color}-v2.png`)
+    }
+    for (const tape of ['dots', 'stripes', 'green']) {
+      expect(component).toContain(`photo-wall-tape-${tape}-v1.png`)
     }
     expect(component).toContain('src={pinDecor[index % 3]}')
     expect(component).toContain('TAPE_VARIANTS[index % 3]')
@@ -65,7 +69,7 @@ describe('photo wall decor presentation', () => {
 
   it('sizes the pin and tape decorations to their baked-shadow assets', () => {
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    expect(styles).toMatch(/\.photo-wall-card__pin \{[^}]*width: 42rpx;[^}]*height: 49rpx;/)
+    expect(styles).toMatch(/\.photo-wall-card__pin \{[^}]*width: 44rpx;[^}]*height: 47rpx;/)
     expect(styles).toMatch(/\.photo-wall-card__tape \{[^}]*width: 164rpx;/)
     expect(styles).toMatch(/\.photo-wall-card__tape--dots \{ height: 31rpx; \}/)
     expect(styles).toMatch(/\.photo-wall-card__tape--stripes \{ height: 28rpx; \}/)

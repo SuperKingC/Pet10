@@ -19,9 +19,9 @@ import './MiniappPhotoWallPanel.scss'
 const emptyIllustration = require('../../assets/decor/photo-wall-empty-v1.png')
 const lightsString = require('../../assets/decor/photo-wall-lights-v1.png')
 const pinDecor = [
-  require('../../assets/decor/photo-wall-pin-red-v1.png'),
-  require('../../assets/decor/photo-wall-pin-yellow-v1.png'),
-  require('../../assets/decor/photo-wall-pin-blue-v1.png')
+  require('../../assets/decor/photo-wall-pin-red-v2.png'),
+  require('../../assets/decor/photo-wall-pin-yellow-v2.png'),
+  require('../../assets/decor/photo-wall-pin-blue-v2.png')
 ]
 const tapeDecor = [
   require('../../assets/decor/photo-wall-tape-dots-v1.png'),

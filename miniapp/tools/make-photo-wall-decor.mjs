@@ -14,7 +14,7 @@ const outDir = resolve(root, 'miniapp/src/assets/decor')
 
 const SOURCES = [
   { file: 'photo-wall-lights-source-v1.jpg', mode: 'glow', cluster: 'x' },
-  { file: 'photo-wall-pins-source-v1.jpg', mode: 'solid', cluster: 'x' },
+  { file: 'photo-wall-pins-source-v2.jpg', mode: 'solid', cluster: 'x' },
   { file: 'photo-wall-tapes-source-v1.jpg', mode: 'cut', cluster: 'y' }
 ]
 
@@ -183,7 +183,7 @@ async function cropAndSave(group, W, H, raw, name, resize, dither) {
   return { name, width: meta.info.width, height: meta.info.height, bytes: out.byteLength }
 }
 
-const PIN_NAMES = ['photo-wall-pin-red-v1.png', 'photo-wall-pin-yellow-v1.png', 'photo-wall-pin-blue-v1.png']
+const PIN_NAMES = ['photo-wall-pin-red-v2.png', 'photo-wall-pin-yellow-v2.png', 'photo-wall-pin-blue-v2.png']
 const TAPE_NAMES = ['photo-wall-tape-dots-v1.png', 'photo-wall-tape-stripes-v1.png', 'photo-wall-tape-green-v1.png']
 
 // —— 灯泡拆分：把灯串拆成「电线底图」+「每颗灯泡精灵」+「位置清单」，供端上做逐灯随机闪烁 ——
