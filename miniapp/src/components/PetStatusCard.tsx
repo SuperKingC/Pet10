@@ -1,8 +1,9 @@
 import { Image, Text, View } from '@tarojs/components'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PetState } from '../domain/types'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
 import { getXiaoduoliSpeech } from '../features/main/xiaoduoliSpeech'
+import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
 import './PetStatusCard.scss'
 
 type Props = {
@@ -25,30 +26,104 @@ const statuses = [
 // 闲聊飘字轮播间隔：与气泡动画节奏错开，读得完再换下一句
 const SPEECH_ROTATE_MS = 6000
 
+interface DanmakuItem {
+  id: number
+  text: string
+  /** 场景内纵向位置（百分比） */
+  top: number
+  /** 漂过整个场景的耗时（秒） */
+  duration: number
+}
+
+/** 弹幕横幅在场景上半部漂浮（避开小多利头顶以下区域） */
+const DANMAKU_TOP_RANGE = [8, 38] as const
+
 export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   const [speechIndex, setSpeechIndex] = useState(0)
+  const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
 
   useEffect(() => {
     const timer = setInterval(() => setSpeechIndex((index) => index + 1), SPEECH_ROTATE_MS)
     return () => clearInterval(timer)
   }, [])
   const speech = getXiaoduoliSpeech(pet, speechIndex)
-  // 背景元素固定不变：memo 掉，避免每 6s 换飘字重渲染时 widthFix 图重新测量导致背景闪动
+
+  // 背景元素固定不变：memo 掉，避免换飘字重渲染时触发图片重测量
   const backdrop = useMemo(
-    () => <Image className="pet-card-background" src={roomBackground} mode="widthFix" />,
+    () => <Image className="pet-card-background" src={roomBackground} mode="aspectFill" />,
     [],
   )
+
+  // 弹幕：按心情计划周期飘 + 状态刷新（喂食/玩耍等）时连发；reduced-motion 不启用
+  const plan = useMemo(() => getDanmakuPlan(pet), [pet])
+  const reducedMotion = useMemo(() => (
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false
+  ), [])
+  const danmakuIdRef = useRef(0)
+  const danmakuIndexRef = useRef(0)
+  const removeTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+  const lastPetRef = useRef(pet)
+
+  useEffect(() => () => {
+    removeTimersRef.current.forEach(clearTimeout)
+    removeTimersRef.current = []
+  }, [])
+
+  const spawnDanmaku = useCallback((count: number) => {
+    if (reducedMotion || count <= 0) return
+    const items: DanmakuItem[] = []
+    for (let i = 0; i < count; i++) {
+      const id = ++danmakuIdRef.current
+      const item: DanmakuItem = {
+        id,
+        text: pickDanmakuText(pet, danmakuIndexRef.current++),
+        top: DANMAKU_TOP_RANGE[0] + ((id * 53) % (DANMAKU_TOP_RANGE[1] - DANMAKU_TOP_RANGE[0])),
+        duration: 6 + (id % 4),
+      }
+      removeTimersRef.current.push(setTimeout(() => {
+        setDanmaku((current) => current.filter((entry) => entry.id !== id))
+      }, item.duration * 1000 + 100))
+      items.push(item)
+    }
+    setDanmaku((current) => [...current, ...items])
+  }, [pet, reducedMotion])
+
+  // 状态刷新（动作后服务端返回新 pet）→ 连发庆祝弹幕
+  useEffect(() => {
+    if (lastPetRef.current === pet) return
+    lastPetRef.current = pet
+    spawnDanmaku(getDanmakuPlan(pet).burst)
+  }, [pet, spawnDanmaku])
+
+  // 周期弹幕：按情绪档位定频率
+  useEffect(() => {
+    if (!plan.active || reducedMotion) return
+    const timer = setInterval(() => spawnDanmaku(1), plan.intervalMs)
+    return () => clearInterval(timer)
+  }, [plan, reducedMotion, spawnDanmaku])
 
   return (
     <View className="pet-status-card">
       <View className="pet-card-scene">
         {backdrop}
+        {danmaku.slice(-DANMAKU_MAX_CONCURRENT).map((item) => (
+          <Text
+            key={item.id}
+            className="pet-danmaku"
+            style={{ top: `${item.top}%`, animationDuration: `${item.duration}s` }}
+          >
+            {item.text}
+          </Text>
+        ))}
         <Text className="pet-level">Lv.{pet.level}</Text>
         <View className="pet-avatar-image">
           <MiniappOutfitPortrait suitKey={suitKey} />
         </View>
-        <View className="pet-speech" key={speech}>
+        {/* 气泡常驻不重挂载：换文案只替换文本，避免重挂载引起背景闪动 */}
+        <View className="pet-speech">
           <Text className="pet-speech__text">{speech}</Text>
         </View>
         <View
