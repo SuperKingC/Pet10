@@ -10,6 +10,7 @@ const decorDir = path.resolve(__dirname, '../../assets/decor')
 
 const DECOR_FILES = [
   'photo-wall-lights-v1.png',
+  'photo-wall-bulbs-v1.png',
   'photo-wall-pin-red-v1.png',
   'photo-wall-pin-yellow-v1.png',
   'photo-wall-pin-blue-v1.png',
@@ -35,26 +36,31 @@ describe('photo wall decor presentation', () => {
     expect(component).toContain('TAPE_VARIANTS[index % 3]')
   })
 
-  it('keeps a breathing glow animation with reduced-motion fallback for the string', () => {
-    const styles = fs.readFileSync(stylesPath, 'utf8')
-    expect(styles).toMatch(/\.photo-wall-lights__string \{[^}]*animation: photo-wall-glow/)
-    expect(styles).toMatch(/@keyframes photo-wall-glow/)
-    expect(styles).toMatch(/\.photo-wall-lights__string \{ animation: none; opacity: \.95; \}/)
-  })
-
   it('fixes the string height so the panel does not flash before the image loads', () => {
     const component = fs.readFileSync(componentPath, 'utf8')
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    // widthFix 未加载前按默认 300×225 渲染会闪跳；定高 686×116 ≈ 素材 640×108 等比
-    expect(styles).toMatch(/\.photo-wall-lights__string \{[^}]*height: 116rpx;/)
+    // widthFix 未加载前按默认尺寸渲染会闪跳；定高 686×64 ≈ 电线底图 640×60 等比
+    expect(styles).toMatch(/\.photo-wall-lights__string \{[^}]*height: 64rpx;/)
     expect(component).not.toContain('photo-wall-lights__string" src={lightsString} mode="widthFix"')
   })
 
-  it('sweeps a flowing light glint across the light string', () => {
+  it('twinkles each bulb independently with random-ish phases instead of a sweeping strip', () => {
+    const component = fs.readFileSync(componentPath, 'utf8')
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    expect(styles).toMatch(/\.photo-wall-lights::after \{[^}]*animation: photo-wall-sweep/)
-    expect(styles).toMatch(/@keyframes photo-wall-sweep/)
-    expect(styles).toMatch(/\.photo-wall-lights::after \{ animation: none; opacity: 0; \}/)
+    const manifest = fs.readFileSync(path.resolve(__dirname, 'photoWallLightsBulbs.ts'), 'utf8')
+
+    // 灯泡精灵逐颗叠加，位置与随机参数来自生成的清单
+    expect(component).toContain('PHOTO_WALL_BULBS.map')
+    expect(component).toContain('photo-wall-bulb--cell-${bulb.cell}')
+    expect(component).toContain('animationDelay')
+    expect(manifest.match(/"cell":/g)?.length).toBeGreaterThanOrEqual(10)
+    // 精灵图集经 SCSS 内联，10 格背景定位；两种闪烁节奏交错
+    expect(styles).toMatch(/\.photo-wall-bulb \{[^}]*background-image: url\('\.\.\/\.\.\/assets\/decor\/photo-wall-bulbs-v1\.png'\)/)
+    expect(styles).toMatch(/\.photo-wall-bulb \{[^}]*background-size: 1000% 100%;/)
+    expect(styles).toMatch(/@keyframes photo-wall-bulb-twinkle/)
+    expect(styles).toMatch(/@keyframes photo-wall-bulb-flicker/)
+    expect(styles).not.toContain('photo-wall-sweep')
+    expect(styles).toMatch(/\.photo-wall-bulb \{ animation: none; opacity: 1; \}/)
   })
 
   it('sizes the pin and tape decorations to their baked-shadow assets', () => {

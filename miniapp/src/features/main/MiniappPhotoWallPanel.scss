@@ -41,36 +41,34 @@
   font-size: var(--font-size-aux);
   font-weight: var(--font-weight-semibold);
 }
-/* 软木墙上沿的一串彩灯：实拍质感玻璃灯泡贴图（光晕已烘焙），整体呼吸明暗。
-   高度定死（686×116 ≈ 素材 640×108 等比）：widthFix 未加载前按默认 300×225 渲染会造成开面板闪跳。
-   ::after 是一道暖光斜向扫过灯串的「流动的光」。 */
-.photo-wall-lights { position: relative; flex-shrink: 0; margin: 2rpx -6rpx 6rpx; line-height: 0; overflow: hidden; }
-.photo-wall-lights__string {
-  width: 100%;
-  height: 116rpx;
-  animation: photo-wall-glow 3.6s ease-in-out infinite;
-}
-@keyframes photo-wall-glow {
-  0%, 100% { opacity: .86; }
-  50% { opacity: 1; }
-}
-.photo-wall-lights::after {
-  content: '';
+/* 软木墙上沿的一串彩灯：底图只有电线+空灯座，每颗灯泡是叠加精灵（make-photo-wall-decor.mjs
+   拆件 + photoWallLightsBulbs.ts 位置清单），各自随机相位闪烁——暗下去能看到空灯座。
+   高度定死 64rpx（686 盒宽 ≈ 底图 640×60 等比）：widthFix 未加载前按默认尺寸渲染会闪跳。 */
+.photo-wall-lights { position: relative; flex-shrink: 0; margin: 2rpx -6rpx 6rpx; line-height: 0; }
+.photo-wall-lights__string { width: 100%; height: 64rpx; }
+.photo-wall-bulb {
   position: absolute;
-  top: -8rpx;
-  bottom: -8rpx;
-  left: 0;
-  width: 190rpx;
-  background: linear-gradient(90deg, transparent, rgba(255, 238, 196, .34) 42%, rgba(255, 248, 222, .5) 50%, rgba(255, 238, 196, .34) 58%, transparent);
-  transform: translateX(-220rpx) skewX(-14deg);
-  animation: photo-wall-sweep 3s ease-in-out infinite;
+  background-image: url('../../assets/decor/photo-wall-bulbs-v1.png');
+  background-repeat: no-repeat;
+  background-size: 1000% 100%;
+  transform-origin: top center;
+  animation: photo-wall-bulb-twinkle 2.6s ease-in-out infinite;
   pointer-events: none;
 }
-@keyframes photo-wall-sweep {
-  0% { transform: translateX(-220rpx) skewX(-14deg); opacity: 0; }
-  15% { opacity: 1; }
-  60% { opacity: 1; }
-  78%, 100% { transform: translateX(760rpx) skewX(-14deg); opacity: 0; }
+@for $i from 1 through 10 {
+  .photo-wall-bulb--cell-#{$i - 1} { background-position-x: #{($i - 1) * 100 / 9}%; }
+}
+/* 两种闪烁节奏交错 + 每颗不同的 delay/duration → 看起来各自随机 */
+.photo-wall-bulb--alt { animation-name: photo-wall-bulb-flicker; }
+@keyframes photo-wall-bulb-twinkle {
+  0%, 100% { opacity: .3; }
+  50% { opacity: 1; }
+}
+@keyframes photo-wall-bulb-flicker {
+  0%, 100% { opacity: 1; }
+  38% { opacity: .32; }
+  55% { opacity: .88; }
+  72% { opacity: .42; }
 }
 .photo-wall-panel__upload--press { transform: scale(.94); filter: brightness(.96); }
 
@@ -316,6 +314,5 @@
   .photo-wall-compose { animation: none; }
   .photo-wall-preview { animation: none; }
   .photo-wall-preview__body { animation: none; }
-  .photo-wall-lights__string { animation: none; opacity: .95; }
-  .photo-wall-lights::after { animation: none; opacity: 0; }
+  .photo-wall-bulb { animation: none; opacity: 1; }
 }

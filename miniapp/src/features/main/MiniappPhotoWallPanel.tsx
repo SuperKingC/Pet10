@@ -13,6 +13,7 @@ import {
   splitPhotoColumns,
   type PhotoWallItem
 } from '../../domain/photoWallModel'
+import { PHOTO_WALL_BULBS } from './photoWallLightsBulbs'
 import './MiniappPhotoWallPanel.scss'
 
 const emptyIllustration = require('../../assets/decor/photo-wall-empty-v1.png')
@@ -195,6 +196,21 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
       </View>
       <View className="photo-wall-lights">
         <Image className="photo-wall-lights__string" src={lightsString} />
+        {/* 每颗灯泡独立随机闪烁：底图只有电线+空灯座，灯泡是叠加精灵（位置由工具生成的清单给出） */}
+        {PHOTO_WALL_BULBS.map((bulb) => (
+          <View
+            key={bulb.cell}
+            className={`photo-wall-bulb photo-wall-bulb--cell-${bulb.cell}${bulb.cell % 2 ? ' photo-wall-bulb--alt' : ''}`}
+            style={{
+              left: `${bulb.left}%`,
+              top: `${bulb.top}%`,
+              width: `${bulb.width}%`,
+              height: `${bulb.height}%`,
+              animationDelay: `${bulb.delay}s`,
+              animationDuration: `${bulb.duration}s`,
+            }}
+          />
+        ))}
       </View>
 
       {composePath && (
