@@ -13,7 +13,7 @@ const srcDir = resolve(root, 'design-assets/nest')
 const outDir = resolve(root, 'miniapp/src/assets/decor')
 
 const SOURCES = [
-  { file: 'photo-wall-lights-source-v1.jpg', mode: 'glow', cluster: 'x' },
+  { file: 'photo-wall-lights-source-v2.jpg', mode: 'glow', cluster: 'x' },
   { file: 'photo-wall-pins-source-v2.jpg', mode: 'solid', cluster: 'x' },
   { file: 'photo-wall-tapes-source-v1.jpg', mode: 'cut', cluster: 'y' }
 ]
@@ -187,7 +187,58 @@ const PIN_NAMES = ['photo-wall-pin-red-v2.png', 'photo-wall-pin-yellow-v2.png', 
 const TAPE_NAMES = ['photo-wall-tape-dots-v1.png', 'photo-wall-tape-stripes-v1.png', 'photo-wall-tape-green-v1.png']
 
 // —— 灯泡拆分：把灯串拆成「电线底图」+「每颗灯泡精灵」+「位置清单」，供端上做逐灯随机闪烁 ——
-// 灯泡 = 饱和暖色紧凑连通域（黑电线低饱和被排除、纸白背景被排除）
+// 灯泡 = 饱和彩色紧凑连通域（黑电线低饱和被排除、纸白背景被排除）。
+// 华丽版灯泡排得密会连成大连通域 → 对宽组件做列投影（每列像素数）按波谷切回单颗。
+function compBBox(mask, W, x0, x1, y0, y1) {
+  let minX = W, minY = y1 + 1, maxX = -1, maxY = y0 - 1, area = 0
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if (!mask[y * W + x]) continue
+      area += 1
+      if (x < minX) minX = x; if (x > maxX) maxX = x
+      if (y < minY) minY = y; if (y > maxY) maxY = y
+    }
+  }
+  return { minX, minY, maxX, maxY, w: maxX - minX + 1, h: maxY - minY + 1, area }
+}
+
+function splitWideComponent(mask, W, comp) {
+  // 灯泡间距 ≈ 组件高度（胖圆泡直径）；按间距估段数，等分窗口后再按像素质心重定位，
+  // 避免等分切口切穿灯泡；重叠过多的窗口去重
+  const pitch = Math.max(40, Math.round(W * 0.095))
+  const n = Math.max(1, Math.round(comp.w / pitch))
+  const step = comp.w / n
+  const boxes = []
+  for (let i = 0; i < n; i++) {
+    const x0 = comp.minX + Math.round(i * step)
+    const x1 = Math.min(comp.maxX, comp.minX + Math.round((i + 1) * step) - 1)
+    const slice = compBBox(mask, W, x0, x1, comp.minY, comp.maxY)
+    if (slice.area < 3000) continue
+    let sx = 0
+    for (let y = slice.minY; y <= slice.maxY; y++) {
+      for (let x = slice.minX; x <= slice.maxX; x++) {
+        if (mask[y * W + x]) sx += x
+      }
+    }
+    const cx = Math.round(sx / slice.area)
+    const half = Math.min(Math.round(slice.h * 0.58), Math.round(W * 0.07))
+    const bx0 = Math.max(comp.minX, cx - half), bx1 = Math.min(comp.maxX, cx + half)
+    const by0 = Math.max(comp.minY, slice.minY - 2), by1 = Math.min(comp.maxY, slice.maxY + 2)
+        boxes.push(compBBox(mask, W, bx0, bx1, by0, by1))
+  }
+  boxes.sort((a, b) => a.minX - b.minX)
+  const kept = []
+  for (const box of boxes) {
+    const prev = kept[kept.length - 1]
+    if (prev) {
+      const overlap = Math.min(prev.maxX, box.maxX) - Math.max(prev.minX, box.minX)
+      if (overlap > pitch * 0.45) continue
+    }
+    kept.push(box)
+  }
+  return kept
+}
+
 function detectBulbs(data, W, H) {
   const mask = new Uint8Array(W * H)
   for (let m = 0; m < W * H; m++) {
@@ -198,6 +249,22 @@ function detectBulbs(data, W, H) {
   }
   const seen = new Uint8Array(W * H)
   const bulbs = []
+  const visit = (comp, depth) => {
+    const aspect = comp.w / comp.h
+    // 宽组件 = 多颗灯泡连体 → 按间距切分；深度保护防不收敛递归
+    if ((comp.w > W * 0.07 || aspect > 1.5) && depth < 3) {
+      const parts = splitWideComponent(mask, W, comp)
+      if (process.env.DBG) console.error(`SPLIT d${depth} ${comp.w}x${comp.h} -> ${parts.length} parts`)
+      for (const part of parts) visit(part, depth + 1)
+      return
+    }
+    if (comp.area < 3000) return
+    if (comp.w < W * 0.018 || comp.w > W * 0.2) return
+    if (aspect < 0.35 || aspect > 1.7) return
+    if (process.env.DBG) console.error(`ACCEPT d${depth} ${comp.w}x${comp.h} area=${comp.area}`)
+    bulbs.push(comp)
+  }
+  const comps = []
   for (let start = 0; start < W * H; start++) {
     if (!mask[start] || seen[start]) continue
     let minX = W, minY = H, maxX = -1, maxY = -1, area = 0
@@ -216,13 +283,11 @@ function detectBulbs(data, W, H) {
         if (mask[nm] && !seen[nm]) { seen[nm] = 1; q.push(nm) }
       }
     }
-    const bw = maxX - minX + 1, bh = maxY - minY + 1
-    if (area < 3000) continue
-    if (bw < W * 0.02 || bw > W * 0.14) continue
-    const aspect = bw / bh
-    if (aspect < 0.35 || aspect > 1.5) continue
-    bulbs.push({ minX, minY, maxX, maxY, w: bw, h: bh })
+    comps.push({ minX, minY, maxX, maxY, w: maxX - minX + 1, h: maxY - minY + 1, area })
   }
+  comps.sort((a, b) => b.area - a.area)
+  if (process.env.DBG) console.error(`top comps: ${comps.slice(0, 4).map((c) => `${c.w}x${c.h}a${c.area}`).join(', ')}`)
+  for (const comp of comps) visit(comp, 0)
   bulbs.sort((p, q) => p.minX - q.minX)
   return bulbs
 }
@@ -265,7 +330,7 @@ for (const source of SOURCES) {
     // 灯串拆分：电线底图 + 每颗灯泡精灵 + 位置清单（端上做逐灯随机闪烁）
     const bulbs = detectBulbs(data, W, H)
     console.log(`检测到灯泡 ${bulbs.length} 颗`)
-    if (bulbs.length < 6 || bulbs.length > 14) throw new Error(`灯泡检测数量异常: ${bulbs.length}`)
+    if (bulbs.length < 6 || bulbs.length > 22) throw new Error(`灯泡检测数量异常: ${bulbs.length}`)
     const baseRaw = eraseBulbsKeepCable(raw, data, W, H, bulbs)
     const cableBoxes = components(baseRaw, W, H).filter((b) => b.area >= 400)
     const stringBox = bboxOf(cableBoxes, W, H, 4)
@@ -275,8 +340,8 @@ for (const source of SOURCES) {
     const resizedBase = await sharp(croppedBase).resize({ width: 640, kernel: 'lanczos3' }).png().toBuffer()
     const baseMeta = await sharp(resizedBase).raw().toBuffer({ resolveWithObject: true })
     const baseOut = await png8(baseMeta.data, baseMeta.info.width, baseMeta.info.height, 1)
-    await writeFile(resolve(outDir, 'photo-wall-lights-v1.png'), baseOut)
-    report.push({ name: 'photo-wall-lights-v1.png (电线底图)', width: baseMeta.info.width, height: baseMeta.info.height, bytes: baseOut.byteLength })
+    await writeFile(resolve(outDir, 'photo-wall-lights-v2.png'), baseOut)
+    report.push({ name: 'photo-wall-lights-v2.png (电线底图)', width: baseMeta.info.width, height: baseMeta.info.height, bytes: baseOut.byteLength })
 
     const CELL = 64
     const cells = []
@@ -308,8 +373,8 @@ for (const source of SOURCES) {
     }).composite(composites).png().toBuffer()
     const sheetRaw = await sharp(sheetPng).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     const sheetOut = await png8(sheetRaw.data, sheetRaw.info.width, sheetRaw.info.height, 1)
-    await writeFile(resolve(outDir, 'photo-wall-bulbs-v1.png'), sheetOut)
-    report.push({ name: `photo-wall-bulbs-v1.png (${cells.length} 灯泡)`, width: sheetRaw.info.width, height: sheetRaw.info.height, bytes: sheetOut.byteLength })
+    await writeFile(resolve(outDir, 'photo-wall-bulbs-v2.png'), sheetOut)
+    report.push({ name: `photo-wall-bulbs-v2.png (${cells.length} 灯泡)`, width: sheetRaw.info.width, height: sheetRaw.info.height, bytes: sheetOut.byteLength })
 
     // 位置清单：相对电线底图（640 宽盒）的百分比几何 + 确定性随机闪烁参数
     const scale = 640 / stringBox.w
