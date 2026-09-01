@@ -420,6 +420,24 @@
   gap: 16rpx;
 }
 
+.miniapp-gm__actions--gap {
+  margin-top: 16rpx;
+}
+
+.miniapp-gm__divider {
+  height: 2rpx;
+  margin: 8rpx 0 24rpx;
+  background: #f0ded1;
+}
+
+.miniapp-gm__section {
+  display: block;
+  margin-bottom: 12rpx;
+  color: #382b23;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
 .miniapp-gm__submit {
   flex: 1;
   margin: 0;

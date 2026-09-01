@@ -43,7 +43,7 @@ describe('nest scene layout', () => {
 
   it('keeps shortcuts inside the shorter scene with balanced spacing', () => {
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?top:\s*84px;/)
+    expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?top:\s*108px;/)
     expect(styles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*?gap:\s*16px;/)
   })
 })

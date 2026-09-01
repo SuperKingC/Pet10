@@ -1,9 +1,12 @@
 import { randomBytes } from 'node:crypto'
 import type { RepositoryBundle } from '../repositories/contracts.js'
+import { ITEM_CATALOG } from '../domain/itemCatalog.js'
 import type { createFriendshipService } from './friendshipService.js'
 
 const MAX_COUNT = 10
 const GM_USERNAME_PREFIX = 'gm_friend_'
+/** GM 发放道具：每次每件道具加的数量（可重复点） */
+const GM_ITEM_GRANT_COUNT = 9
 
 function randomSuffix() {
   return randomBytes(6).toString('hex')
@@ -55,6 +58,24 @@ export function createGmService(
         removed.push({ userId: other.id, displayName: other.displayName })
       }
       return { removed }
+    },
+
+    // GM 便利操作作用于当前账号的全部房间（正常场景只有一个共养小窝）
+    async addNestItems(userId: string) {
+      const rooms = await repositories.rooms.listForUser(userId)
+      const items = Object.values(ITEM_CATALOG).map((item) => ({ itemId: item.id, count: GM_ITEM_GRANT_COUNT }))
+      for (const room of rooms) {
+        await repositories.inventory.addBatch(room.id, items)
+      }
+      return { rooms: rooms.length, grantedPerItem: GM_ITEM_GRANT_COUNT }
+    },
+
+    async setWardrobeUnlockAll(userId: string, enabled: boolean) {
+      const rooms = await repositories.rooms.listForUser(userId)
+      for (const room of rooms) {
+        await repositories.wardrobe.setGmUnlockAll(room.id, enabled)
+      }
+      return { rooms: rooms.length, gmUnlockAll: enabled }
     }
   }
 }

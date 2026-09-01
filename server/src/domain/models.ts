@@ -319,5 +319,7 @@ export interface OutfitMatchStreak {
 export interface WardrobeState {
   roomId: Id
   equipped: string
+  /** GM 全解锁开关（测试用）：true 时衣柜忽略解锁条件 */
+  gmUnlockAll: boolean
   updatedAt: Date
 }

@@ -59,4 +59,36 @@ describe('gm routes', () => {
     expect(response.body.removed).toHaveLength(1)
     expect(response.body.removed[0].displayName).toBe('测试好友1')
   })
+
+  it('grants nest items for the authenticated user', async () => {
+    const app = buildApp({
+      addFriends: async () => ({ added: [] }),
+      removeFriends: async () => ({ removed: [] }),
+      addNestItems: async (userId) => ({ rooms: userId === 'user-1' ? 1 : 0, grantedPerItem: 9 }),
+      setWardrobeUnlockAll: async () => ({ rooms: 1, gmUnlockAll: true })
+    })
+
+    const response = await request(app).post('/nest/items')
+
+    expect(response.status).toBe(201)
+    expect(response.body).toEqual({ rooms: 1, grantedPerItem: 9 })
+  })
+
+  it('toggles wardrobe unlock-all and rejects invalid payload', async () => {
+    const setWardrobeUnlockAll = async (_userId: string, enabled: boolean) => ({ rooms: 1, gmUnlockAll: enabled })
+    const app = buildApp({
+      addFriends: async () => ({ added: [] }),
+      removeFriends: async () => ({ removed: [] }),
+      addNestItems: async () => ({ rooms: 1, grantedPerItem: 9 }),
+      setWardrobeUnlockAll
+    })
+
+    const ok = await request(app).post('/wardrobe/unlock-all').send({ enabled: true })
+    expect(ok.status).toBe(200)
+    expect(ok.body).toEqual({ rooms: 1, gmUnlockAll: true })
+
+    const bad = await request(app).post('/wardrobe/unlock-all').send({ enabled: 'yes' })
+    expect(bad.status).toBe(400)
+    expect(bad.body.error).toBe('invalid_enabled')
+  })
 })

@@ -22,6 +22,8 @@ export interface WardrobeUnlockContext {
   codewordStreak: number
   /** 默契换装历史最高连胜 */
   matchBestStreak: number
+  /** GM 全解锁开关（测试用）：true 时忽略全部解锁条件 */
+  gmUnlockAll?: boolean
 }
 
 export interface WardrobeSuitDef {
@@ -102,6 +104,11 @@ export function serializeEquippedPieces(pieces: WardrobeOutfitPieces): string {
   return JSON.stringify({ body: pieces.body, hat: pieces.hat, scarf: pieces.scarf, bag: pieces.bag })
 }
 
+/** 套装可用性：GM 全解锁时无视条件，否则按目录条件判定（穿戴/默契提交与解锁视图共用同一口径） */
+export function isSuitAvailable(suit: WardrobeSuitDef, context: WardrobeUnlockContext): boolean {
+  return context.gmUnlockAll === true || suit.isUnlocked(context)
+}
+
 /** 解锁视图：目录顺序 + unlocked 标记（服务端计算，客户端不重复判定） */
 export function resolveWardrobeUnlock(context: WardrobeUnlockContext): Array<{
   key: WardrobeSuitKey
@@ -113,6 +120,6 @@ export function resolveWardrobeUnlock(context: WardrobeUnlockContext): Array<{
     key: suit.key,
     name: suit.name,
     conditionText: suit.conditionText,
-    unlocked: suit.isUnlocked(context)
+    unlocked: isSuitAvailable(suit, context)
   }))
 }

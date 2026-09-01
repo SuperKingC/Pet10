@@ -118,6 +118,24 @@ describe('wardrobe service', () => {
     await expect(service.submitMatchPick(room.id, user.id, 'default')).resolves.toMatchObject({ myPick: 'default' })
   })
 
+  it('gm unlock-all opens every suit and reverts when disabled', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createService(repositories)
+    await expect(service.setEquipped(room.id, user.id, 'overalls')).rejects.toThrow('wardrobe_locked')
+
+    await repositories.wardrobe.setGmUnlockAll(room.id, true)
+    const view = await service.get(room.id, user.id)
+    expect(view.items.every((item) => item.unlocked)).toBe(true)
+    // GM 全解锁下：锁定套装可直接穿戴，也可参与当日默契
+    await expect(service.setEquipped(room.id, user.id, 'overalls')).resolves.toMatchObject({ equipped: 'overalls' })
+    await expect(service.submitMatchPick(room.id, user.id, 'dress')).resolves.toMatchObject({ myPick: 'dress' })
+
+    await repositories.wardrobe.setGmUnlockAll(room.id, false)
+    const reverted = await service.get(room.id, user.id)
+    expect(reverted.items.filter((item) => item.unlocked).map((item) => item.key)).toEqual(['default', 'scarf', 'hoodie'])
+    await expect(service.setEquipped(room.id, user.id, 'dress')).rejects.toThrow('wardrobe_locked')
+  })
+
   it('single pick does not settle', async () => {
     const { repositories, user, room } = await createPairRoom()
     const settled: MatchSettledEvent[] = []

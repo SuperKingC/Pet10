@@ -166,6 +166,33 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
     }
   }
 
+  // 小窝 GM：不关弹窗，方便连续加道具/切解锁开关
+  const addGmNestItems = async () => {
+    if (gmBusy) return
+    setGmBusy(true)
+    try {
+      await gmApi.addNestItems()
+      Taro.showToast({ title: '狗粮/皮球/香皂 各+9', icon: 'success' })
+    } catch {
+      Taro.showToast({ title: '添加失败', icon: 'none' })
+    } finally {
+      setGmBusy(false)
+    }
+  }
+
+  const setGmWardrobeUnlock = async (enabled: boolean) => {
+    if (gmBusy) return
+    setGmBusy(true)
+    try {
+      await gmApi.setWardrobeUnlockAll(enabled)
+      Taro.showToast({ title: enabled ? '已解锁全部衣服' : '已恢复条件解锁', icon: 'success' })
+    } catch {
+      Taro.showToast({ title: '操作失败', icon: 'none' })
+    } finally {
+      setGmBusy(false)
+    }
+  }
+
   const confirmDeactivate = async () => {
     if (deactivateBusy) return
     setDeactivateBusy(true)
@@ -302,6 +329,22 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
             </Button>
             <Button className="miniapp-gm__delete" disabled={gmBusy} onClick={() => void removeGmFriends()}>
               删除测试好友
+            </Button>
+          </View>
+          <View className="miniapp-gm__divider" />
+          <Text className="miniapp-gm__section">小窝调试</Text>
+          <Text className="miniapp-gm__intro">给当前账号的小窝发放照顾道具；衣柜全解锁用于测试，可随时恢复按条件解锁。重新打开衣柜面板即可看到最新解锁状态。</Text>
+          <View className="miniapp-gm__actions">
+            <Button className="miniapp-gm__submit" disabled={gmBusy} onClick={() => void addGmNestItems()}>
+              道具各 +9
+            </Button>
+            <Button className="miniapp-gm__delete" disabled={gmBusy} onClick={() => void setGmWardrobeUnlock(true)}>
+              解锁全部衣服
+            </Button>
+          </View>
+          <View className="miniapp-gm__actions miniapp-gm__actions--gap">
+            <Button className="miniapp-gm__delete" disabled={gmBusy} onClick={() => void setGmWardrobeUnlock(false)}>
+              恢复条件解锁
             </Button>
           </View>
         </MiniappModal>

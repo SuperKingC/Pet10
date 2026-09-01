@@ -224,6 +224,8 @@ export interface WardrobeRepository {
   getState(roomId: string): Promise<WardrobeState>
   /** 保存当前套装；未初始化则建行 */
   setEquipped(roomId: string, equipped: string): Promise<WardrobeState>
+  /** GM 全解锁开关（测试用） */
+  setGmUnlockAll(roomId: string, enabled: boolean): Promise<WardrobeState>
 }
 
 export interface OutfitMatchRepository {

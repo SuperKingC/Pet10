@@ -1,6 +1,7 @@
 import type { PetEventStat } from '../domain/models.js'
 import {
   findWardrobeSuit,
+  isSuitAvailable,
   parseEquippedPieces,
   resolveWardrobeUnlock,
   serializeEquippedPieces,
@@ -78,7 +79,10 @@ export function createWardrobeService(repositories: RepositoryBundle, options?: 
   async function unlockContext(roomId: string): Promise<WardrobeUnlockContext> {
     const pet = await repositories.pets.findByRoomId(roomId)
     const stats = pet ? await repositories.petEvents.statsByRoom(pet.id) : []
-    const matchStreak = await repositories.outfitMatch.getStreak(roomId)
+    const [matchStreak, wardrobeState] = await Promise.all([
+      repositories.outfitMatch.getStreak(roomId),
+      repositories.wardrobe.getState(roomId)
+    ])
     const codewordStreak = await computeBothAnsweredStreak(
       repositories.codewords,
       roomId,
@@ -89,7 +93,8 @@ export function createWardrobeService(repositories: RepositoryBundle, options?: 
       taskClaims: statTotal(stats, 'task_claim'),
       sleepCount: statTotal(stats, 'sleep'),
       codewordStreak,
-      matchBestStreak: matchStreak?.bestStreak ?? 0
+      matchBestStreak: matchStreak?.bestStreak ?? 0,
+      gmUnlockAll: wardrobeState.gmUnlockAll
     }
   }
 
@@ -179,7 +184,7 @@ export function createWardrobeService(repositories: RepositoryBundle, options?: 
         if (!key) continue
         const suit = findWardrobeSuit(key)
         if (!suit || suit.category !== slot) throw new Error('invalid_suit')
-        if (!suit.isUnlocked(context)) throw new Error('wardrobe_locked')
+        if (!isSuitAvailable(suit, context)) throw new Error('wardrobe_locked')
       }
       await repositories.wardrobe.setEquipped(roomId, serializeEquippedPieces(pieces))
       return { equipped: pieces.body, outfit: pieces }
@@ -194,7 +199,7 @@ export function createWardrobeService(repositories: RepositoryBundle, options?: 
       const suit = findWardrobeSuit(itemKey)
       if (!suit || !suit.matchable) throw new Error('invalid_suit')
       const context = await unlockContext(roomId)
-      if (!suit.isUnlocked(context)) throw new Error('wardrobe_locked')
+      if (!isSuitAvailable(suit, context)) throw new Error('wardrobe_locked')
       await repositories.outfitMatch.setPick(roomId, today, userId, itemKey)
       await trySettleToday(roomId)
       return matchTodayView(roomId, userId, today)

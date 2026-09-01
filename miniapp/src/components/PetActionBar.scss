@@ -15,10 +15,11 @@
 .pet-actions-item--empty { background: #f3e3d3; border-color: #d9b28c; }
 .pet-actions-item--empty .pet-actions-item-count { color: #b39478; }
 .pet-actions-item-icon { width: 32px; height: 32px; }
-.pet-actions-item-count { color: #7a5236; font-size: 20px; font-weight: 600; line-height: 1.1; }
+/* 数量放大到与标题同级字号：芯片里的关键信息是库存数 */
+.pet-actions-item-count { color: #7a5236; font-size: 26px; font-weight: 600; line-height: 1.1; }
 .pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 8px; }
 .pet-action-button { position: relative; display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: var(--font-size-aux); }
 /* 只命中主贴片图（直接子级）：避免命中其它嵌套图 */
-.pet-action-button > image { width: 120px; height: 128px; }
+.pet-action-button > image { width: 108px; height: 115px; }
 /* 0 库存只置灰（不改透明度，保持色彩层次），点击提示去任务面板 */
 .pet-action-button--locked > image { filter: grayscale(1); }

@@ -166,6 +166,9 @@ export async function ensureRuntimeMigrations(database: MigrationDatabase): Prom
       updated_at timestamptz NOT NULL DEFAULT now()
     );
 
+    -- GM 全解锁开关（测试用）：true 时衣柜忽略解锁条件
+    ALTER TABLE pet_wardrobe ADD COLUMN IF NOT EXISTS gm_unlock_all boolean NOT NULL DEFAULT false;
+
     CREATE TABLE IF NOT EXISTS outfit_match_daily (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,

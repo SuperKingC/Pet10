@@ -75,4 +75,30 @@ describe('gm service', () => {
     expect(result.removed).toHaveLength(0)
     expect(await repositories.relationships.listAcceptedForUser(me.id)).toHaveLength(0)
   })
+
+  it('adds care items to every room of the user', async () => {
+    const { repositories, gm } = setup()
+    const me = await repositories.users.create({ email: 'me@example.com', username: 'me', displayName: '我' })
+    const room = await repositories.rooms.createPetDm(me.id)
+
+    const result = await gm.addNestItems(me.id)
+
+    expect(result).toEqual({ rooms: 1, grantedPerItem: 9 })
+    const counts = Object.fromEntries(
+      (await repositories.inventory.listByRoom(room.id)).map((item) => [item.itemId, item.count])
+    )
+    expect(counts).toEqual({ dog_food: 9, ball: 9, soap: 9 })
+  })
+
+  it('toggles the wardrobe gm unlock-all flag on and off', async () => {
+    const { repositories, gm } = setup()
+    const me = await repositories.users.create({ email: 'me@example.com', username: 'me', displayName: '我' })
+    const room = await repositories.rooms.createPetDm(me.id)
+
+    await expect(gm.setWardrobeUnlockAll(me.id, true)).resolves.toEqual({ rooms: 1, gmUnlockAll: true })
+    expect((await repositories.wardrobe.getState(room.id)).gmUnlockAll).toBe(true)
+
+    await expect(gm.setWardrobeUnlockAll(me.id, false)).resolves.toEqual({ rooms: 1, gmUnlockAll: false })
+    expect((await repositories.wardrobe.getState(room.id)).gmUnlockAll).toBe(false)
+  })
 })

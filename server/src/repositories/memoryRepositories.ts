@@ -717,10 +717,17 @@ export function createMemoryRepositories(options: { now?: () => Date } = {}): Re
 
   const wardrobeRepo: WardrobeRepository = {
     async getState(roomId) {
-      return wardrobeStates.get(roomId) ?? { roomId, equipped: 'default', updatedAt: now() }
+      return wardrobeStates.get(roomId) ?? { roomId, equipped: 'default', gmUnlockAll: false, updatedAt: now() }
     },
     async setEquipped(roomId, equipped) {
-      const next: WardrobeState = { roomId, equipped, updatedAt: now() }
+      const current = await wardrobeRepo.getState(roomId)
+      const next: WardrobeState = { ...current, equipped, updatedAt: now() }
+      wardrobeStates.set(roomId, next)
+      return next
+    },
+    async setGmUnlockAll(roomId, enabled) {
+      const current = await wardrobeRepo.getState(roomId)
+      const next: WardrobeState = { ...current, gmUnlockAll: enabled, updatedAt: now() }
       wardrobeStates.set(roomId, next)
       return next
     }

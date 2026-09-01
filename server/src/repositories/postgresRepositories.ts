@@ -595,14 +595,20 @@ export function createPostgresRepositories(database: Database): RepositoryBundle
     },
     wardrobe: {
       getState: (roomId) => one(
-        'SELECT room_id, equipped, updated_at FROM pet_wardrobe WHERE room_id=$1',
+        'SELECT room_id, equipped, gm_unlock_all, updated_at FROM pet_wardrobe WHERE room_id=$1',
         [roomId]
       ),
       setEquipped: (roomId, equipped) => one(
         `INSERT INTO pet_wardrobe(room_id,equipped) VALUES($1,$2)
          ON CONFLICT(room_id) DO UPDATE SET equipped=EXCLUDED.equipped, updated_at=now()
-         RETURNING room_id, equipped, updated_at`,
+         RETURNING room_id, equipped, gm_unlock_all, updated_at`,
         [roomId, equipped]
+      ),
+      setGmUnlockAll: (roomId, enabled) => one(
+        `INSERT INTO pet_wardrobe(room_id,gm_unlock_all) VALUES($1,$2)
+         ON CONFLICT(room_id) DO UPDATE SET gm_unlock_all=EXCLUDED.gm_unlock_all, updated_at=now()
+         RETURNING room_id, equipped, gm_unlock_all, updated_at`,
+        [roomId, enabled]
       )
     },
     outfitMatch: {
