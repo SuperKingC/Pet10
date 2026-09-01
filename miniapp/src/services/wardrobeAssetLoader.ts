@@ -35,7 +35,10 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
 
   function readIndex(): Record<string, string> {
     try {
-      return deps.readIndex() ?? {}
+      const stored = deps.readIndex()
+      // 微信 getStorageSync 无值时返回 ''（不是 null/undefined），?? 兜不住；
+      // 空串当索引用会在写回时抛 "Cannot create property ... on string ''"，非对象一律回空索引
+      return stored && typeof stored === 'object' ? stored : {}
     } catch {
       return {}
     }

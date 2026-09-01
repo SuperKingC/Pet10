@@ -92,4 +92,24 @@ describe('suit asset service', () => {
     expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
   })
+
+  it('treats an empty-string storage index as empty (fresh Taro storage returns "")', async () => {
+    const writeIndex = vi.fn()
+    const service = createSuitAssetService(makeDeps({
+      writeIndex,
+      // 真机/模拟器 getStorageSync 无值时返回 ''，依赖类型上写 Record 但运行时是字符串
+      readIndex: () => '' as unknown as Record<string, string>,
+    }))
+    // 修复前：下载成功后 index['hoodie-icon-v2.png'] = path 抛 "Cannot create property ... on string ''"
+    const results = await service.ensureSuitAssets(['hoodie'])
+    expect(results.hoodie).toEqual({
+      icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
+      display: 'wxfile://usr/wardrobe-hoodie-v1.png',
+    })
+    expect(writeIndex).toHaveBeenCalledWith({
+      'hoodie-icon-v2.png': 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
+      'hoodie-v1.png': 'wxfile://usr/wardrobe-hoodie-v1.png',
+    })
+    expect(await service.ensureFile('xiaoduoli-sleep-v1.png')).toBe('wxfile://usr/wardrobe-xiaoduoli-sleep-v1.png')
+  })
 })
