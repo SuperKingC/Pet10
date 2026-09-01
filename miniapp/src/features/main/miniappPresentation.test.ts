@@ -373,6 +373,22 @@ describe('miniapp ui presentation rules', () => {
     expect(avatarStat.size).toBeLessThan(80 * 1024)
   })
 
+  it('pages the wardrobe rack by category and layers body garments over the default portrait', () => {
+    const panel = fs.readFileSync(path.resolve(__dirname, 'MiniappWardrobePanel.tsx'), 'utf8')
+    const portrait = fs.readFileSync(path.resolve(__dirname, 'MiniappOutfitPortrait.tsx'), 'utf8')
+    const model = fs.readFileSync(path.resolve(__dirname, '../../domain/wardrobeModel.ts'), 'utf8')
+    // 目录分页：Swiper 每页一类、最多 6 件，左右滑翻页（不再是一个长网格）
+    expect(panel).toContain('wardrobePages(view.items)')
+    expect(panel).toContain('<Swiper')
+    expect(panel).toContain('<SwiperItem')
+    expect(panel).not.toContain('renderSection(')
+    // 主体服装=原装立绘+切件层叠加（不再整套替换整图）；配饰恒定定位
+    expect(portrait).toContain("resolveSuitDisplay('default')")
+    expect(portrait).toContain('resolveBodyLayerStyle')
+    expect(portrait).toContain('resolveOverlayStyle(key as SuitKey)')
+    expect(model).not.toContain('BODY_OVERLAY_STYLE')
+  })
+
   it('labels friend senders in shared rooms and keeps a single room entry list', () => {
     const component = fs.readFileSync(path.resolve(__dirname, 'MiniappMessagesView.tsx'), 'utf8')
     const indexPage = fs.readFileSync(path.resolve(__dirname, '../../pages/index/index.tsx'), 'utf8')

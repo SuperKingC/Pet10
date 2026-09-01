@@ -4,6 +4,7 @@ import { suitAssets } from '../../services/wardrobeSuitAssets'
 import {
   isOverlaySuit,
   OUTFIT_LAYER_STYLE,
+  resolveBodyLayerStyle,
   resolveOverlayStyle,
   suitCategory,
   type OutfitPieces,
@@ -24,11 +25,13 @@ interface MiniappOutfitPortraitProps {
 
 /**
  * 小多利立绘（衣柜版）。两种模式：
- * - pieces 模式：主体服装整身立绘 + 每类配饰按标定叠加（原装用 OUTFIT_LAYER_STYLE，其余主体用 BODY_OVERLAY_STYLE）；
- *   容器宽度由调用方按 suitDisplayWidth(key, flowHeight) 给定、高度传 flowHeight，保证图盒=容器盒且尺寸恒定。
- * - suitKey 模式（兼容）：单套装展示；配饰套装仍叠在原装立绘上。
+ * - pieces 模式：底图恒为原装立绘，主体服装以切件层（BODY_LAYER_STYLE）叠加、配饰按标定叠加
+ *   （OUTFIT_LAYER_STYLE，所有主体同一套——画布对齐后定位不再随主体换算）；切件未下载时先显示原装。
+ *   容器宽度由调用方按 suitDisplayWidth('default', flowHeight) 给定、高度传 flowHeight，
+ *   保证图盒=容器盒且尺寸恒定。
+ * - suitKey 模式（兼容，照片墙套装卡）：单套装整套立绘展示；配饰套装仍叠在原装立绘上。
  * 叠穿层加载完成前微信 image 会按默认尺寸铺开盖在小多利身上（拉伸闪现），
- * 因此叠穿层 onLoad 前保持透明，加载后 180ms 淡入。
+ * 因此叠加层 onLoad 前保持透明，加载后淡入。
  */
 export function MiniappOutfitPortrait({ suitKey, pieces, flowHeight, className }: MiniappOutfitPortraitProps) {
   const [layerLoaded, setLayerLoaded] = useState<Record<string, boolean>>({})
@@ -40,11 +43,13 @@ export function MiniappOutfitPortrait({ suitKey, pieces, flowHeight, className }
   if (pieces) {
     if (!flowHeight) throw new Error('MiniappOutfitPortrait flow 模式必须传 flowHeight')
     const body = pieces.body && suitCategory(pieces.body) === 'body' ? pieces.body : 'default'
-    const baseDisplay = suitAssets.resolveSuitDisplay(body)
+    const baseDisplay = suitAssets.resolveSuitDisplay('default')
+    const bodyLayerSrc = body === 'default' ? null : suitAssets.resolveSuitLayer(body)
+    const bodyLayerStyle = body === 'default' ? undefined : resolveBodyLayerStyle(body)
     const accessories = (['hat', 'scarf', 'bag'] as const).flatMap((slot) => {
       const key = pieces[slot]
       if (!key) return []
-      const style = resolveOverlayStyle(body, key as SuitKey)
+      const style = resolveOverlayStyle(key as SuitKey)
       if (!style) return []
       return [{ slot, key, style, src: suitAssets.resolveSuitDisplay(key) }]
     })
@@ -54,6 +59,15 @@ export function MiniappOutfitPortrait({ suitKey, pieces, flowHeight, className }
         style={{ height: `${flowHeight}rpx` }}
       >
         <Image className="outfit-portrait__image outfit-portrait__image--flow" src={baseDisplay} mode="aspectFill" />
+        {bodyLayerSrc && bodyLayerStyle && (
+          <Image
+            className={`outfit-portrait__layer${layerLoaded.body ? ' outfit-portrait__layer--ready' : ''}`}
+            src={bodyLayerSrc}
+            mode="widthFix"
+            style={bodyLayerStyle}
+            onLoad={() => setLayerLoaded((current) => ({ ...current, body: true }))}
+          />
+        )}
         {accessories.map((layer) => (
           <Image
             key={layer.key}

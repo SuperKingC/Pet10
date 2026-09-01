@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Image, Text, View } from '@tarojs/components'
+import { Image, Swiper, SwiperItem, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { wardrobeApi } from '../../services/wardrobeApi'
@@ -13,8 +13,10 @@ import {
   suitBadge,
   suitCategory,
   suitDisplayWidth,
+  wardrobePages,
   type OutfitPieces,
   type SuitCategory,
+  type SuitKey,
   type WardrobeView
 } from '../../domain/wardrobeModel'
 import { MiniappOutfitPortrait } from './MiniappOutfitPortrait'
@@ -96,7 +98,8 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
 
   const unlockedCount = view ? view.items.filter((item) => item.unlocked).length : 0
   const bodyFiles = assetMap[pieces.body] ?? suitAssets.getCachedSuitFiles(pieces.body)
-  const assetReady = pieces.body === 'default' || Boolean(bodyFiles)
+  // 主体服装=切件叠加：切件就位才算就绪（未就绪先显示原装立绘+提示）
+  const assetReady = pieces.body === 'default' || Boolean(bodyFiles?.layer)
 
   const save = async () => {
     if (!roomId || !view || saving) return
@@ -210,15 +213,8 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
     )
   }
 
-  const renderSection = (label: string) => (
-    <View className="wardrobe-grid__section">
-      <Text className="wardrobe-grid__section-text">{label}</Text>
-      <View className="wardrobe-grid__section-line" />
-    </View>
-  )
-
-  const bodyItems = view?.items.filter((item) => suitCategory(item.key) === 'body') ?? []
-  const accessoryItems = view?.items.filter((item) => suitCategory(item.key) !== 'body') ?? []
+  // 目录分页：按类别归组、每页最多 6 件（2×3），左右滑翻页（wardrobeModel.wardrobePages）
+  const pages = view ? wardrobePages(view.items) : []
 
   return (
     <View className="wardrobe-panel">
@@ -242,10 +238,11 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
         )}
       </View>
 
-      {/* 试衣间场景：小多利站上华丽舞台（内景即舞台，聚光柔光+名牌浮层） */}
+      {/* 试衣间场景：小多利站上华丽舞台（内景即舞台，聚光柔光+名牌浮层）。
+          立绘盒恒为原装 436/700 比例（主体服装走切件叠加），高度 330 缩小一档让戴帽不出场景顶 */}
       <View className="wardrobe-scene">
-        <View className="wardrobe-scene__portrait" style={{ width: `${suitDisplayWidth(pieces.body, 366)}rpx` }}>
-          <MiniappOutfitPortrait pieces={pieces} flowHeight={366} />
+        <View className="wardrobe-scene__portrait" style={{ width: `${suitDisplayWidth('default', 330)}rpx` }}>
+          <MiniappOutfitPortrait pieces={pieces} flowHeight={330} />
         </View>
         {!assetReady && (
           <Text className="wardrobe-scene__pending">画稿云端准备中…</Text>
@@ -275,21 +272,33 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
 
       <View className="wardrobe-rack">
         <View className="wardrobe-rack__pole" />
-        <View className="wardrobe-grid">
-          {view === null && <View className="wardrobe-grid__skeleton" />}
-          {view !== null && (
-            <>
-              {renderSection('🐾 主体服装（选一件）')}
-              <View className="wardrobe-grid__cards">
-                {bodyItems.map(renderItem)}
-              </View>
-              {renderSection('🎀 配饰（可叠穿）')}
-              <View className="wardrobe-grid__cards wardrobe-grid__cards--accessory">
-                {accessoryItems.map(renderItem)}
-              </View>
-            </>
-          )}
-        </View>
+        {view === null && (
+          <View className="wardrobe-grid">
+            <View className="wardrobe-grid__skeleton" />
+          </View>
+        )}
+        {view !== null && (
+          <Swiper
+            className="wardrobe-pager"
+            indicatorDots
+            indicatorColor="rgba(122, 85, 49, .22)"
+            indicatorActiveColor="#e88f3c"
+          >
+            {pages.map((page, pageIndex) => (
+              <SwiperItem key={`${page.kind}-${pageIndex}`}>
+                <View className="wardrobe-page">
+                  <View className="wardrobe-grid__section">
+                    <Text className="wardrobe-grid__section-text">{page.label}</Text>
+                    <View className="wardrobe-grid__section-line" />
+                  </View>
+                  <View className="wardrobe-grid__cards">
+                    {page.items.map(renderItem)}
+                  </View>
+                </View>
+              </SwiperItem>
+            ))}
+          </Swiper>
+        )}
       </View>
 
       {view && !assetReady && (

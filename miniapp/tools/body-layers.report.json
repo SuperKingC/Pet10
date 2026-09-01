@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-09-01T12:05:01.551Z",
+  "canvas": [
+    436,
+    700
+  ],
+  "bodyCenterX": 218,
+  "layers": [
+    {
+      "key": "hoodie",
+      "file": "public/wardrobe/hoodie-layer-v1.png",
+      "src": "design-assets/wardrobe/gen-hoodie-wear-v1.png",
+      "bbox": {
+        "x": 94,
+        "y": 392,
+        "w": 248,
+        "h": 270
+      },
+      "bytes": 52050,
+      "style": {
+        "left": "21.56%",
+        "top": "56.00%",
+        "width": "56.88%"
+      }
+    },
+    {
+      "key": "overalls",
+      "file": "public/wardrobe/overalls-layer-v1.png",
+      "src": "design-assets/wardrobe/gen-overalls-wear-v1.png",
+      "bbox": {
+        "x": 139,
+        "y": 402,
+        "w": 158,
+        "h": 263
+      },
+      "bytes": 30726,
+      "style": {
+        "left": "31.88%",
+        "top": "57.43%",
+        "width": "36.24%"
+      }
+    },
+    {
+      "key": "dress",
+      "file": "public/wardrobe/dress-layer-v1.png",
+      "src": "design-assets/wardrobe/gen-dress-wear-v1.png",
+      "bbox": {
+        "x": 92,
+        "y": 396,
+        "w": 252,
+        "h": 276
+      },
+      "bytes": 43848,
+      "style": {
+        "left": "21.10%",
+        "top": "56.57%",
+        "width": "57.80%"
+      }
+    },
+    {
+      "key": "raincoat",
+      "file": "public/wardrobe/raincoat-layer-v1.png",
+      "src": "design-assets/wardrobe/gen-raincoat-wear-v1.png",
+      "bbox": {
+        "x": 77,
+        "y": 396,
+        "w": 282,
+        "h": 266
+      },
+      "bytes": 49087,
+      "style": {
+        "left": "17.66%",
+        "top": "56.57%",
+        "width": "64.68%"
+      }
+    },
+    {
+      "key": "pajamas",
+      "file": "public/wardrobe/pajamas-layer-v1.png",
+      "src": "design-assets/wardrobe/gen-pajamas-wear-v1.png",
+      "bbox": {
+        "x": 94,
+        "y": 398,
+        "w": 248,
+        "h": 270
+      },
+      "bytes": 50027,
+      "style": {
+        "left": "21.56%",
+        "top": "56.86%",
+        "width": "56.88%"
+      }
+    }
+  ]
+}

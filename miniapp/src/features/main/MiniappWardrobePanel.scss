@@ -212,28 +212,31 @@
 }
 .wardrobe-rack__pole::before { left: -10rpx; }
 .wardrobe-rack__pole::after { right: -10rpx; }
-.wardrobe-grid {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 6rpx 4rpx 18rpx;
+/* 目录分页：每页一类的 2×3 网格，左右滑翻页，底部小圆点指示 */
+.wardrobe-pager { height: 380rpx; }
+.wardrobe-page {
+  height: 100%;
+  padding: 6rpx 4rpx 30rpx;
+  box-sizing: border-box;
 }
-/* 分类分区标题（主体服装 / 配饰） */
-.wardrobe-grid__section { display: flex; align-items: center; gap: 16rpx; padding: 12rpx 4rpx 12rpx; }
-.wardrobe-grid__section-text { color: #a1764f; font-size: var(--font-size-aux); font-weight: var(--font-weight-semibold); }
-.wardrobe-grid__section-line { flex: 1; border-top: 2rpx dashed #e8d5bd; }
-.wardrobe-grid__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18rpx; align-content: start; }
+.wardrobe-grid {
+  padding: 6rpx 4rpx 0;
+}
 .wardrobe-grid__skeleton {
   width: 100%;
-  height: 300rpx;
+  height: 380rpx;
   border-radius: 20rpx;
   background: linear-gradient(100deg, #f7e8d6 40%, #fcf3e6 50%, #f7e8d6 60%);
   background-size: 200% 100%;
   animation: wardrobe-shimmer 1.4s linear infinite;
 }
 @keyframes wardrobe-shimmer { to { background-position: -200% 0; } }
+
+/* 分类分区标题（每页顶部：主体服装 / 配饰） */
+.wardrobe-grid__section { display: flex; align-items: center; gap: 16rpx; padding: 12rpx 4rpx 12rpx; }
+.wardrobe-grid__section-text { color: #a1764f; font-size: var(--font-size-aux); font-weight: var(--font-weight-semibold); }
+.wardrobe-grid__section-line { flex: 1; border-top: 2rpx dashed #e8d5bd; }
+.wardrobe-grid__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18rpx; align-content: start; }
 
 .wardrobe-card {
   position: relative;

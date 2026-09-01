@@ -43,11 +43,12 @@ export function isBundledSuit(key: string): boolean {
 
 /**
  * 三件「叠穿件」的定位元数据：紧裁服装图按百分比绝对定位叠到原装小多利立绘（436×700）上。
- * 数值与 miniapp/tools/make-wardrobe-suits.mjs 的 cx/ty/w 标定一致，改素材必须同步。
+ * 主体服装改为「原装立绘 + 服装切件」后，所有穿戴都画在同一张原装画布上，
+ * 配饰恒定用这一套定位，不再随主体服装换算。
  */
 export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hat: { left: '25.00%', top: '6.86%', width: '50.00%' },
-  scarf: { left: '21.10%', top: '49.14%', width: '57.80%' },
+  hat: { left: '25.00%', top: '3.14%', width: '50.00%' },
+  scarf: { left: '21.10%', top: '57.86%', width: '57.80%' },
   bag: { left: '21.10%', top: '74.00%', width: '27.52%' }
 }
 
@@ -73,39 +74,23 @@ export interface OutfitPieces {
 
 export const EMPTY_OUTFIT: OutfitPieces = { body: 'default', hat: null, scarf: null, bag: null }
 
-/** 主体服装（非原装）× 配饰的叠加定位：由 miniapp/tools/calibrate-body-overlays.mjs 按同姿势紧裁立绘线性换算，改素材必须重跑 */
-export const BODY_OVERLAY_STYLE: Partial<Record<string, Partial<Record<SuitKey, { left: string; top: string; width: string }>>>> = {
-  hoodie: {
-    hat: { left: '29.66%', top: '6.86%', width: '40.68%' },
-    scarf: { left: '26.49%', top: '49.14%', width: '47.02%' },
-    bag: { left: '26.49%', top: '74.00%', width: '22.39%' }
-  },
-  overalls: {
-    hat: { left: '26.27%', top: '6.86%', width: '47.46%' },
-    scarf: { left: '22.57%', top: '49.14%', width: '54.86%' },
-    bag: { left: '22.57%', top: '74.00%', width: '26.12%' }
-  },
-  dress: {
-    hat: { left: '27.14%', top: '6.86%', width: '45.71%' },
-    scarf: { left: '23.58%', top: '49.14%', width: '52.84%' },
-    bag: { left: '23.58%', top: '74.00%', width: '25.16%' }
-  },
-  raincoat: {
-    hat: { left: '23.64%', top: '6.86%', width: '52.73%' },
-    scarf: { left: '19.52%', top: '49.14%', width: '60.95%' },
-    bag: { left: '19.52%', top: '74.00%', width: '29.02%' }
-  },
-  pajamas: {
-    hat: { left: '19.05%', top: '6.86%', width: '61.90%' },
-    scarf: { left: '14.22%', top: '49.14%', width: '71.55%' },
-    bag: { left: '14.22%', top: '74.00%', width: '34.07%' }
-  }
+/** 主体服装切件的叠加定位（436×700 原装画布百分比），由 miniapp/tools/cut-worn-garments.mjs 标定生成，改素材必须重跑 */
+export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
+  hoodie: { left: '21.56%', top: '56.00%', width: '56.88%' },
+  overalls: { left: '31.88%', top: '57.43%', width: '36.24%' },
+  dress: { left: '21.10%', top: '56.57%', width: '57.80%' },
+  raincoat: { left: '17.66%', top: '56.57%', width: '64.68%' },
+  pajamas: { left: '21.56%', top: '56.86%', width: '56.88%' }
 }
 
-/** 某主体服装上某配饰的叠加定位；无标定返回 undefined（不渲染该配饰） */
-export function resolveOverlayStyle(body: SuitKey, accessory: SuitKey): { left: string; top: string; width: string } | undefined {
-  if (body === 'default') return OUTFIT_LAYER_STYLE[accessory]
-  return BODY_OVERLAY_STYLE[body]?.[accessory]
+/** 某主体服装切件在原装立绘上的叠加定位；原装无切件返回 undefined */
+export function resolveBodyLayerStyle(body: SuitKey): { left: string; top: string; width: string } | undefined {
+  return BODY_LAYER_STYLE[body]
+}
+
+/** 配饰叠加定位：所有穿戴都叠在同一张原装画布上，恒定用同一套标定 */
+export function resolveOverlayStyle(accessory: SuitKey): { left: string; top: string; width: string } | undefined {
+  return OUTFIT_LAYER_STYLE[accessory]
 }
 
 /** 各主体立绘宽高比（w/h）：固定显示高度下按此换算宽度，保证 aspectFit 恰好满盒（叠加定位与图对齐的前提） */
@@ -149,11 +134,13 @@ export function outfitPiecesFromView(view: WardrobeView | null | undefined): Out
 export interface SuitAssetFiles {
   /** 网格服装特写图标 */
   icon: string
-  /** 预览/场景展示素材：叠穿件=同一张服装图，主体服装=整套穿装立绘 */
+  /** 展示素材：叠穿件=服装图（网格与叠加共用），主体服装=整套穿装立绘（照片墙套装卡用） */
   display: string
+  /** 主体服装切件叠加层（叠在原装立绘上）；叠穿件无此文件 */
+  layer?: string
 }
 
-/** 每套的素材文件名：叠穿件网格图标=完整服饰、叠加层=切前襟（围巾）或整件（帽/包）；主体服装图标(AI)+立绘(旧) */
+/** 每套的素材文件名：叠穿件一张文件、主体服装 icon+立绘+切件层三张 */
 export function suitAssetFiles(key: string): SuitAssetFiles {
   if (isOverlaySuit(key)) {
     // 网格展示完整服饰；围巾的叠加层是折线切出的前襟（完整版叠图会盖住脸），帽/包整件即可叠
@@ -161,7 +148,7 @@ export function suitAssetFiles(key: string): SuitAssetFiles {
     const display = key === 'scarf' ? 'outfit-scarf-cut-v2.png' : icon
     return { icon, display }
   }
-  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png` }
+  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-v1.png` }
 }
 
 /** 获得途径徽章：从条件文案派生，未解锁的套装显示途径角标 */
@@ -180,6 +167,32 @@ export function suitBadge(item: WardrobeItem): '任务' | '等级' | '暗号' | 
 export function selectedOrDefault(view: WardrobeView | null, selected: string | null): string {
   if (selected) return selected
   return view?.equipped ?? 'default'
+}
+
+/** 每页最多 6 件（2 行 × 3 列），同类超出翻下页，左右滑切换 */
+export const WARDROBE_PAGE_SIZE = 6
+
+export interface WardrobePage {
+  kind: 'body' | 'accessory'
+  label: string
+  items: WardrobeItem[]
+}
+
+/** 目录 → 分页：先按类别归组（主体服装在前），组内按每页 6 件切块 */
+export function wardrobePages(items: WardrobeItem[]): WardrobePage[] {
+  const body = items.filter((item) => suitCategory(item.key) === 'body')
+  const accessory = items.filter((item) => suitCategory(item.key) !== 'body')
+  const chunk = (list: WardrobeItem[], kind: WardrobePage['kind'], label: string): WardrobePage[] => {
+    const pages: WardrobePage[] = []
+    for (let start = 0; start < list.length; start += WARDROBE_PAGE_SIZE) {
+      pages.push({ kind, label, items: list.slice(start, start + WARDROBE_PAGE_SIZE) })
+    }
+    return pages
+  }
+  return [
+    ...chunk(body, 'body', '🐾 主体服装（选一件）'),
+    ...chunk(accessory, 'accessory', '🎀 配饰（可叠穿）')
+  ]
 }
 
 /** 今日默契状态一句话（用于衣柜面板与底部横卡） */

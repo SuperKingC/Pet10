@@ -1,6 +1,6 @@
 /**
  * 衣柜套装资产解析与按需下载（核心逻辑，依赖注入以便测试）。
- * 文件命名与 wardrobeModel.suitAssetFiles 同口径：叠穿件一张文件、主体服装 icon+display 两张。
+ * 文件命名与 wardrobeModel.suitAssetFiles 同口径：叠穿件一张文件、主体服装 icon+display+layer 三张。
  * 展示解析是同步的（不逐次做 fs access），文件被系统清理后由 ensureSuitAssets 的存在性检查自愈。
  * Taro/require 的运行时绑定见 wardrobeSuitAssets.ts。
  */
@@ -22,8 +22,10 @@ export interface SuitAssetDeps {
 export interface SuitFiles {
   /** 网格服装特写图标 */
   icon: string
-  /** 预览/场景展示素材 */
+  /** 预览/场景展示素材（主体服装=整套立绘，照片墙套装卡用） */
   display: string
+  /** 主体服装切件叠加层（叠在原装立绘上）；叠穿件缺省 */
+  layer?: string
 }
 
 export const WARDROBE_ASSET_STORAGE_KEY = 'wardrobeSuitAssets'
@@ -56,13 +58,14 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
     return bundledOf(fileName) ?? readIndex()[fileName] ?? null
   }
 
-  /** 套装双文件本地解析：任一缺失返回 null（调用方回退默认立绘/占位态） */
+  /** 套装文件本地解析：任一缺失返回 null（调用方回退默认立绘/占位态）；主体服装要求三件齐 */
   function getCachedSuitFiles(key: string): SuitFiles | null {
     const files = suitAssetFiles(key)
     const icon = resolveFile(files.icon)
     const display = resolveFile(files.display)
-    if (!icon || !display) return null
-    return { icon, display }
+    const layer = files.layer ? resolveFile(files.layer) : undefined
+    if (!icon || !display || (files.layer && !layer)) return null
+    return { icon, display, layer }
   }
 
   /** 场景立绘解析：叠穿件永远叠在原装立绘上；拿不到展示素材时兜底回默认 */
@@ -72,6 +75,13 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
       if (resolved) return resolved
     }
     return deps.bundledImages.default
+  }
+
+  /** 主体服装切件层解析：原装/叠穿件/未下载返回 null（调用方不渲染该层） */
+  function resolveSuitLayer(key: string | null | undefined): string | null {
+    if (!key || key === 'default') return null
+    const fileName = suitAssetFiles(key).layer
+    return fileName ? resolveFile(fileName) : null
   }
 
   async function downloadToUserPath(fileName: string): Promise<string | null> {
@@ -99,7 +109,8 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
           }
           const files = suitAssetFiles(key)
           const saved: Record<string, string> = {}
-          for (const fileName of [files.icon, files.display]) {
+          const wanted = [files.icon, files.display, files.layer].filter((f): f is string => Boolean(f))
+          for (const fileName of wanted) {
             const bundled = bundledOf(fileName)
             if (bundled) {
               saved[fileName] = bundled
@@ -116,8 +127,12 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
               saved[fileName] = path
             }
           }
-          if (saved[files.icon] && saved[files.display]) {
-            results[key] = { icon: saved[files.icon], display: saved[files.display] }
+          if (wanted.every((fileName) => saved[fileName])) {
+            results[key] = {
+              icon: saved[files.icon],
+              display: saved[files.display],
+              ...(files.layer ? { layer: saved[files.layer] } : {})
+            }
           }
         })
       )
@@ -150,7 +165,7 @@ export function createSuitAssetService(deps: SuitAssetDeps) {
     })
   }
 
-  return { getCachedSuitFiles, resolveSuitDisplay, ensureSuitAssets, ensureFile }
+  return { getCachedSuitFiles, resolveSuitDisplay, resolveSuitLayer, ensureSuitAssets, ensureFile }
 }
 
 export type SuitAssetService = ReturnType<typeof createSuitAssetService>

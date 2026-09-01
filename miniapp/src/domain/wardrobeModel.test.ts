@@ -6,12 +6,15 @@ import {
   matchSummary,
   OUTFIT_LAYER_STYLE,
   outfitPiecesFromView,
+  resolveBodyLayerStyle,
   resolveOverlayStyle,
   selectedOrDefault,
   suitAssetFiles,
   suitBadge,
   suitCategory,
   suitDisplayWidth,
+  WARDROBE_PAGE_SIZE,
+  wardrobePages,
   type MatchToday,
   type WardrobeItem,
   type WardrobeView
@@ -46,15 +49,18 @@ describe('wardrobe model', () => {
       expect(Number.parseFloat(style!.width)).toBeLessThan(100)
       expect(Number.parseFloat(style!.top)).toBeLessThan(100)
     }
+    // 帽檐停在眼眶上方（top ≈ 3%），围巾卡在下巴之下（top ≈ 58%）不盖嘴
+    expect(Number.parseFloat(OUTFIT_LAYER_STYLE.hat!.top)).toBeLessThan(5)
+    expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeGreaterThan(55)
     // 网格图标=完整服饰；围巾叠加层用折线切出的前襟
     expect(suitAssetFiles('hat')).toEqual({ icon: 'outfit-hat-v3.png', display: 'outfit-hat-v3.png' })
     expect(suitAssetFiles('scarf')).toEqual({ icon: 'outfit-scarf-v2.png', display: 'outfit-scarf-cut-v2.png' })
     expect(suitAssetFiles('bag')).toEqual({ icon: 'outfit-bag-v3.png', display: 'outfit-bag-v3.png' })
   })
 
-  it('body suits use separate icon and full-render files', () => {
-    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png' })
-    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png' })
+  it('body suits use icon + full render + cut layer files', () => {
+    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png', layer: 'hoodie-layer-v1.png' })
+    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png', layer: 'raincoat-layer-v1.png' })
   })
 
   it('derives path badges from condition text of locked suits', () => {
@@ -82,16 +88,24 @@ describe('wardrobe model', () => {
     expect(matchSummary(match())).toBe('各选一套当日装扮，一致即默契达成')
   })
 
-  it('categorizes suits and resolves per-body overlay styles', () => {
+  it('categorizes suits and keeps overlay placement constant across bodies', () => {
     expect(suitCategory('default')).toBe('body')
     expect(suitCategory('hoodie')).toBe('body')
     expect(suitCategory('hat')).toBe('hat')
     expect(suitCategory('scarf')).toBe('scarf')
     expect(suitCategory('bag')).toBe('bag')
-    // 原装用全局标定；其余主体用逐套标定（calibrate-body-overlays.mjs 换算值抽查）
-    expect(resolveOverlayStyle('default', 'hat')).toEqual({ left: '25.00%', top: '6.86%', width: '50.00%' })
-    expect(resolveOverlayStyle('hoodie', 'hat')).toEqual({ left: '29.66%', top: '6.86%', width: '40.68%' })
-    expect(resolveOverlayStyle('pajamas', 'bag')).toEqual({ left: '14.22%', top: '74.00%', width: '34.07%' })
+    // 配饰恒定叠在原装画布上，与主体服装无关
+    for (const key of ['hat', 'scarf', 'bag'] as const) {
+      expect(resolveOverlayStyle(key)).toBe(OUTFIT_LAYER_STYLE[key])
+    }
+    // 每套主体服装都有切件定位，且切件顶都在下巴（≈54.5%）之下——任何服装都不挡头
+    for (const body of ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'] as const) {
+      const style = resolveBodyLayerStyle(body)
+      expect(style).toBeDefined()
+      expect(Number.parseFloat(style!.top)).toBeGreaterThan(54)
+      expect(Number.parseFloat(style!.width)).toBeLessThan(70)
+    }
+    expect(resolveBodyLayerStyle('default')).toBeUndefined()
   })
 
   it('derives outfit pieces from the view and drops locked pieces', () => {
@@ -115,5 +129,34 @@ describe('wardrobe model', () => {
     // 固定高度按立绘比例换算宽度
     expect(suitDisplayWidth('default', 700)).toBe(436)
     expect(suitDisplayWidth('pajamas', 320)).toBe(161)
+  })
+
+  it('pages the catalog by category with six cards per page', () => {
+    expect(WARDROBE_PAGE_SIZE).toBe(6)
+    const catalog: WardrobeItem[] = [
+      // 服务端目录顺序穿插类别：分页必须先按类别归组（主体在前、配饰在后）
+      item({ key: 'default', name: '原装小多利' }),
+      item({ key: 'scarf', name: '围巾' }),
+      item({ key: 'hoodie', name: '连帽衫' }),
+      item({ key: 'overalls', name: '背带裤' }),
+      item({ key: 'dress', name: '小裙子' }),
+      item({ key: 'raincoat', name: '雨衣' }),
+      item({ key: 'pajamas', name: '睡衣' }),
+      item({ key: 'bag', name: '小包' }),
+      item({ key: 'hat', name: '帽子' })
+    ]
+    const pages = wardrobePages(catalog)
+    expect(pages.map((page) => page.kind)).toEqual(['body', 'accessory'])
+    expect(pages[0].items.map((i) => i.key)).toEqual(['default', 'hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'])
+    expect(pages[0].label).toContain('主体服装')
+    expect(pages[1].items.map((i) => i.key)).toEqual(['scarf', 'bag', 'hat'])
+    expect(pages[1].label).toContain('配饰')
+    // 同类超出 6 件切块翻页（13 件主体 → 6+6+1 三页）
+    const many: WardrobeItem[] = Array.from({ length: 13 }, (_, i) => item({ key: 'default', name: `狗${i}` }))
+    const paged = wardrobePages(many)
+    expect(paged.length).toBe(3)
+    expect(paged.map((page) => page.items.length)).toEqual([6, 6, 1])
+    expect(paged.every((page) => page.kind === 'body')).toBe(true)
+    expect(wardrobePages([])).toEqual([])
   })
 })

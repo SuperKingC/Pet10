@@ -36,6 +36,27 @@ describe('suit asset service', () => {
     expect(service.resolveSuitDisplay('hoodie')).toBe('bundled-default.png')
     expect(service.resolveSuitDisplay(null)).toBe('bundled-default.png')
     expect(service.resolveSuitDisplay('scarf')).toBe('bundled-scarf-cut.png')
+    // 切件层：叠穿件/原装没有，主体服装未缓存时为 null
+    expect(service.resolveSuitLayer('scarf')).toBeNull()
+    expect(service.resolveSuitLayer('default')).toBeNull()
+    expect(service.resolveSuitLayer('hoodie')).toBeNull()
+  })
+
+  it('treats a body suit as ready only when the layer is cached too', () => {
+    const index = {
+      'hoodie-icon-v2.png': 'wxfile://usr/hoodie-icon.png',
+      'hoodie-v1.png': 'wxfile://usr/hoodie-full.png'
+    }
+    const service = createSuitAssetService(makeDeps({ readIndex: () => index }))
+    // icon+display 在而切件层缺失：不算就绪（预览回退原装立绘）
+    expect(service.getCachedSuitFiles('hoodie')).toBeNull()
+    index['hoodie-layer-v1.png'] = 'wxfile://usr/hoodie-layer.png'
+    expect(service.getCachedSuitFiles('hoodie')).toEqual({
+      icon: 'wxfile://usr/hoodie-icon.png',
+      display: 'wxfile://usr/hoodie-full.png',
+      layer: 'wxfile://usr/hoodie-layer.png'
+    })
+    expect(service.resolveSuitLayer('hoodie')).toBe('wxfile://usr/hoodie-layer.png')
   })
 
   it('short-circuits the default suit to the bundled portrait without downloads', async () => {
@@ -46,18 +67,23 @@ describe('suit asset service', () => {
     expect(download).not.toHaveBeenCalled()
   })
 
-  it('downloads both icon and display for body suits and indexes them', async () => {
+  it('downloads icon, display and layer for body suits and indexes them', async () => {
     const download = vi.fn(async () => 'wxfile://tmp/x')
     const saveFile = vi.fn(async () => undefined)
     const service = createSuitAssetService(makeDeps({ download, saveFile }))
     const results = await service.ensureSuitAssets(['hoodie'])
     expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
+    expect(download).toHaveBeenCalledWith('hoodie-layer-v1.png')
     expect(saveFile).toHaveBeenCalledWith('wxfile://tmp/x', 'wxfile://usr/wardrobe-hoodie-icon-v2.png')
-    expect(results.hoodie).toEqual({ icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png', display: 'wxfile://usr/wardrobe-hoodie-v1.png' })
+    expect(results.hoodie).toEqual({
+      icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
+      display: 'wxfile://usr/wardrobe-hoodie-v1.png',
+      layer: 'wxfile://usr/wardrobe-hoodie-layer-v1.png'
+    })
     // 第二次直接命中缓存，不再下载
     await service.ensureSuitAssets(['hoodie'])
-    expect(download).toHaveBeenCalledTimes(2)
+    expect(download).toHaveBeenCalledTimes(3)
   })
 
   it('keeps silent when a remote asset is unavailable and skips the suit', async () => {
@@ -88,9 +114,10 @@ describe('suit asset service', () => {
     const deps = makeDeps({ download, fileExists: async () => false })
     const service = createSuitAssetService(deps)
     await service.ensureSuitAssets(['hoodie'])
-    expect(download).toHaveBeenCalledTimes(2)
+    expect(download).toHaveBeenCalledTimes(3)
     expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
+    expect(download).toHaveBeenCalledWith('hoodie-layer-v1.png')
   })
 
   it('treats an empty-string storage index as empty (fresh Taro storage returns "")', async () => {
@@ -105,10 +132,12 @@ describe('suit asset service', () => {
     expect(results.hoodie).toEqual({
       icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
       display: 'wxfile://usr/wardrobe-hoodie-v1.png',
+      layer: 'wxfile://usr/wardrobe-hoodie-layer-v1.png',
     })
     expect(writeIndex).toHaveBeenCalledWith({
       'hoodie-icon-v2.png': 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
       'hoodie-v1.png': 'wxfile://usr/wardrobe-hoodie-v1.png',
+      'hoodie-layer-v1.png': 'wxfile://usr/wardrobe-hoodie-layer-v1.png',
     })
     expect(await service.ensureFile('xiaoduoli-sleep-v1.png')).toBe('wxfile://usr/wardrobe-xiaoduoli-sleep-v1.png')
   })

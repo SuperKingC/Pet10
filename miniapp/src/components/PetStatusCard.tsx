@@ -53,9 +53,10 @@ const DANMAKU_TOP_RANGE = [8, 38] as const
 export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act = 'stand' }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 240px 盒一致。
+  // 主体服装走切件叠加后画布恒为原装 436/700 比例，宽度按 default 换算。
   // 立绘必须显式宽高（flowHeight）而非 widthFix：兄弟节点 setData 时微信会重测量 widthFix 图，开关名片/切回小窝立绘就闪一下
   // 注意内联宽度必须显式 rpx：Taro 只转换样式表里的 px，内联 px 会按设备像素渲染（=双倍 rpx），立绘撑出盒底被场景裁脚
-  const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 240) : null
+  const outfitWidth = outfitPieces ? suitDisplayWidth('default', 240) : null
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
   const [moveAssets, setMoveAssets] = useState<{ frameA: string; frameB: string; doll: string } | null>(null)

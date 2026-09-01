@@ -109,7 +109,7 @@ describe('miniapp main layout', () => {
     expect(statusCardStyles).toMatch(/\.pet-card-background\s*\{[\s\S]*height:\s*100%;/)
     // 立绘 149×240 坐在地毯上：脚底 bottom 38 再靠前（v9 地毯渲染后约 y403..489，脚底在地毯中央偏前）
     expect(statusCardStyles).toMatch(/\.pet-avatar-image\s*\{[^}]*bottom:\s*38px;[^}]*width:\s*149px;[^}]*height:\s*240px;/)
-    expect(statusCardSource).toContain('suitDisplayWidth(outfitPieces.body, 240)')
+    expect(statusCardSource).toContain("suitDisplayWidth('default', 240)")
     // flow 内联宽度必须显式 rpx：Taro pxtransform 不转换内联样式，写成 px 会在真机按设备像素渲染（立绘放大一倍撑出盒底）
     expect(statusCardSource).toContain('`${outfitWidth}rpx`')
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
