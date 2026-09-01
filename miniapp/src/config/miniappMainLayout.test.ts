@@ -30,8 +30,8 @@ describe('miniapp main layout', () => {
     expect(nestStyles).toMatch(/\.miniapp-nest__scene\s*\{[\s\S]*position:\s*relative;/)
     // 快捷入口整列收进 500px 场景内，不再垂直居中溢出到卡片下方
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*position:\s*absolute;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*84px;/)
-    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*right:\s*8px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*108px;/)
+    expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*right:\s*24px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*flex-direction:\s*column;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*gap:\s*16px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcut\s*\{[\s\S]*width:\s*92px;/)
@@ -90,16 +90,16 @@ describe('miniapp main layout', () => {
     expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
-    // 背景 v8 横构图（窗加高减少上方留白、牌子右上避开气泡、地毯靠前）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
+    // 背景 v9 横构图（窗加高、牌子中上偏右略降与气泡错开、地毯靠前）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="aspectFill"')
-    expect(statusCardSource).toContain("require('../assets/room-background-v8.jpg')")
+    expect(statusCardSource).toContain("require('../assets/room-background-v9.jpg')")
     expect(statusCardSource).toContain('xiaoduoliDanmaku')
     expect(statusCardSource).toContain('pet-danmaku')
     expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*500px;/)
     expect(statusCardStyles).toMatch(/\.pet-card-background\s*\{[\s\S]*height:\s*100%;/)
-    // 立绘 140×225 坐在地毯上：脚底 bottom 50 随 v8 地毯靠前落位（地毯渲染后约 y399..494）
-    expect(statusCardStyles).toMatch(/\.pet-avatar-image\s*\{[^}]*bottom:\s*50px;[^}]*width:\s*140px;[^}]*height:\s*225px;/)
-    expect(statusCardSource).toContain('suitDisplayWidth(outfitPieces.body, 225)')
+    // 立绘 149×240 坐在地毯上：脚底 bottom 38 再靠前（v9 地毯渲染后约 y403..489，脚底在地毯中央偏前）
+    expect(statusCardStyles).toMatch(/\.pet-avatar-image\s*\{[^}]*bottom:\s*38px;[^}]*width:\s*149px;[^}]*height:\s*240px;/)
+    expect(statusCardSource).toContain('suitDisplayWidth(outfitPieces.body, 240)')
     // flow 内联宽度必须显式 rpx：Taro pxtransform 不转换内联样式，写成 px 会在真机按设备像素渲染（立绘放大一倍撑出盒底）
     expect(statusCardSource).toContain('`${outfitWidth}rpx`')
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)

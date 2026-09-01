@@ -21,7 +21,7 @@ type Props = {
   /** 小窝行为幕：非站姿时立绘切换对应分镜（素材未就绪保持站姿不切换） */
   act?: NestPetAct
 }
-const roomBackground = require('../assets/room-background-v8.jpg')
+const roomBackground = require('../assets/room-background-v9.jpg')
 // 睡姿/行进幕底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
@@ -52,9 +52,9 @@ const DANMAKU_TOP_RANGE = [8, 38] as const
 
 export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOpenCard, act = 'stand' }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
-  // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 225px 盒一致
+  // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 240px 盒一致
   // 注意内联宽度必须显式 rpx：Taro 只转换样式表里的 px，内联 px 会按设备像素渲染（=双倍 rpx），立绘撑出盒底被场景裁脚
-  const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 225) : null
+  const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 240) : null
   const [speechIndex, setSpeechIndex] = useState(0)
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
