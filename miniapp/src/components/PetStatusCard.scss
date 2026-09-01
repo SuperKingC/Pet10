@@ -121,15 +121,15 @@
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
 
-/* 小多利名片入口：COS 名片小卡图（5:3）微倾斜叠在场景左下，名字放卡面右侧留白；
-   图未就绪时同款 CSS 卡面兜底，排版不变。点开名片弹窗。 */
+/* 小多利名牌：手绘卡通小卡图（COS）微倾斜叠在场景左下，纯展示不点击（名片弹窗已移除）；
+   图未就绪时同款 CSS 卡面兜底，名字居中。 */
 .pet-name-card {
   position: absolute;
   bottom: 24px;
   left: 24px;
   z-index: 3;
-  width: 200rpx;
-  height: 125rpx;
+  width: 176rpx;
+  height: 121rpx;
   border-radius: 16rpx;
   transform: rotate(-2deg);
   background: linear-gradient(155deg, #fdf3dc 0%, #f7e3bd 100%);
@@ -138,7 +138,6 @@
     inset 0 0 0 4rpx rgba(217, 178, 140, .55),
     0 8rpx 18rpx rgba(113, 77, 38, .25);
 }
-.pet-name-card--hover { opacity: .85; transform: rotate(-2deg) scale(.96); }
 .pet-name-card__art {
   position: absolute;
   inset: 0;
@@ -150,14 +149,13 @@
 .pet-name-card__art--on { opacity: 1; }
 .pet-name-card__name {
   position: absolute;
-  top: 50%;
-  left: 44%;
-  right: 6%;
-  transform: translateY(-50%);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #5e3b1d;
   font-size: 28rpx;
   font-weight: var(--font-weight-bold);
-  text-align: center;
 }
 
 .pet-card-experience { padding: 16px 24px 18px; }

@@ -1,7 +1,7 @@
-// 小多利名片素材出件：design-assets/nest 的白底 AI 源图 → 归档 2048 宽 JPEG（删 raw PNG 以免 check-assets 缺登记）。
-// ① 弹窗竖版底图 pet-card-source-v2.jpg → 顶部裁 8%（压低立绘占比给档案文字让位）→ cover 900×1350 mozjpeg → public/wardrobe/pet-card-v2.jpg（COS，不占包体）
-// ② 入口小卡 pet-card-entry-v1-raw.png → solid 模式去底（四边洪水填充近白 + 封闭近白保护 + 贴边软 alpha）→ 内容紧裁 → 480 宽 PNG8 + TinyPNG → public/wardrobe/pet-card-entry-v1.png（COS，不占包体）
-// 去底策略沿用 make-item-icons-v5.mjs。运行：node miniapp/tools/make-pet-card-assets.mjs
+// 小多利名牌入口小卡出件：design-assets/nest 的白底 AI 源图 → 归档 2048 宽 JPEG（删 raw PNG 以免 check-assets 缺登记）
+// → solid 模式去底（四边洪水填充近白 + 封闭近白保护 + 贴边软 alpha）→ 内容紧裁 → 460 宽 PNG8 + TinyPNG
+// → public/wardrobe/pet-card-entry-v2.png（COS，不占包体）。去底策略沿用 make-item-icons-v5.mjs。
+// 运行：node miniapp/tools/make-pet-card-entry.mjs
 import { readFile, writeFile, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
@@ -10,6 +10,7 @@ import sharp from 'sharp'
 const root = path.resolve(import.meta.dirname, '../..')
 const srcDir = path.join(root, 'design-assets/nest')
 const outDir = path.join(root, 'public/wardrobe')
+const OUT_VERSION = 'v2'
 
 const isNearWhite = (r, g, b) => r >= 246 && g >= 244 && b >= 242
 
@@ -137,62 +138,30 @@ async function archiveSource(rawPng, archiveJpg) {
 const tinifyKeys = await loadTinifyKeys()
 if (tinifyKeys.length === 0) process.stdout.write('提示：.env 无 TINIFY key，跳过 TinyPNG（仅 PNG8）\n')
 
-// ① 弹窗竖版底图：顶部裁 3%（耳朵顶约在源图 4.4%，留安全边）再 cover 到 900×1350（2:3，与卡片 620×980 同比例近似零裁切）；
-// 底部两角的爪印/骨头涂鸦带（y≥84%）用同行中部干净纸纹盖掉，给签名行让位（归档源图保留原样）
-{
-  const raw = path.join(srcDir, 'pet-card-source-v2-raw.png')
-  const src = existsSync(raw)
-    ? await archiveSource(raw, 'pet-card-source-v2.jpg')
-    : path.join(srcDir, 'pet-card-source-v2.jpg')
-  if (existsSync(src)) {
-    const meta = await sharp(src).metadata()
-    const cropTop = Math.round(meta.height * 0.03)
-    const base = sharp(src)
-      .extract({ left: 0, top: cropTop, width: meta.width, height: meta.height - cropTop })
-      .resize(900, 1350, { fit: 'cover', position: 'centre' })
-    const baseBuf = await base.jpeg({ quality: 100 }).toBuffer()
-    // 干净纸纹补丁：从中部裁同高度条带，分别盖住左下/右下角
-    const patch = await sharp(baseBuf).extract({ left: 250, top: 1130, width: 420, height: 220 }).toBuffer()
-    const cleaned = await sharp(baseBuf)
-      .composite([
-        { input: patch, left: 0, top: 1130 },
-        { input: patch, left: 480, top: 1130 },
-      ])
-      .toBuffer()
-    const jpeg = await sharp(cleaned).jpeg({ quality: 70, mozjpeg: true }).toBuffer()
-    const outFile = path.join(outDir, 'pet-card-v2.jpg')
-    await writeFile(outFile, jpeg)
-    process.stdout.write(`${path.relative(root, outFile)} ${jpeg.length}B (source ${path.basename(src)}, cropTop ${cropTop}px)\n`)
-  } else {
-    process.stdout.write('跳过弹窗底图：缺 pet-card-source-v2-raw.png / pet-card-source-v2.jpg\n')
-  }
+const raw = path.join(srcDir, `pet-card-entry-${OUT_VERSION}-raw.png`)
+const src = existsSync(raw)
+  ? await archiveSource(raw, `pet-card-entry-source-${OUT_VERSION}.jpg`)
+  : path.join(srcDir, `pet-card-entry-source-${OUT_VERSION}.jpg`)
+if (!existsSync(src)) {
+  process.stdout.write(`跳过：缺 pet-card-entry-${OUT_VERSION}-raw.png / 归档源图\n`)
+  process.exit(0)
 }
-
-// ② 入口小卡：去底 + 紧裁 + 480 宽 PNG8（显示约 200×125rpx，3x 富余）
-{
-  const raw = path.join(srcDir, 'pet-card-entry-v1-raw.png')
-  const src = existsSync(raw)
-    ? await archiveSource(raw, 'pet-card-entry-source-v1.jpg')
-    : path.join(srcDir, 'pet-card-entry-source-v1.jpg')
-  if (existsSync(src)) {
-    const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-    const W = info.width, H = info.height
-    const bg = floodBackground(data, W, H)
-    const solid = applySolid(data, W, H, bg)
-    const box = alphaBox(solid, W, H, 4)
-    let png = await sharp(solid, { raw: { width: W, height: H, channels: 4 } })
-      .extract(box)
-      .resize({ width: 480, withoutEnlargement: true, kernel: 'lanczos3' })
-      .png({ palette: true, compressionLevel: 9 })
-      .toBuffer()
-    if (tinifyKeys.length > 0) {
-      const shrunk = await tinify(png, tinifyKeys)
-      if (shrunk) png = shrunk
-    }
-    const outFile = path.join(outDir, 'pet-card-entry-v1.png')
-    await writeFile(outFile, png)
-    process.stdout.write(`${path.relative(root, outFile)} ${png.length}B (box ${box.width}x${box.height} → ${Math.round(box.width * (480 / box.width))}x${Math.round((480 / box.width) * box.height)})\n`)
-  } else {
-    process.stdout.write('跳过入口小卡：缺 pet-card-entry-v1-raw.png\n')
-  }
+const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+const W = info.width, H = info.height
+const bg = floodBackground(data, W, H)
+const solid = applySolid(data, W, H, bg)
+const box = alphaBox(solid, W, H, 4)
+let png = await sharp(solid, { raw: { width: W, height: H, channels: 4 } })
+  .extract(box)
+  .resize({ width: 460, withoutEnlargement: true, kernel: 'lanczos3' })
+  .png({ palette: true, compressionLevel: 9 })
+  .toBuffer()
+if (tinifyKeys.length > 0) {
+  const shrunk = await tinify(png, tinifyKeys)
+  if (shrunk) png = shrunk
 }
+const outFile = path.join(outDir, `pet-card-entry-${OUT_VERSION}.png`)
+await writeFile(outFile, png)
+const outW = Math.min(460, box.width)
+const outH = Math.round((outW / box.width) * box.height)
+process.stdout.write(`${path.relative(root, outFile)} ${png.length}B (box ${box.width}x${box.height} → ${outW}x${outH}，纵横比 ${(box.width / box.height).toFixed(3)})\n`)

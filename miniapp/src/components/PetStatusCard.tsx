@@ -16,8 +16,6 @@ type Props = {
   suitKey?: string | null
   /** 按类别完整穿戴（主体+配饰多层叠加）；缺省时回退 suitKey 单套装展示 */
   outfitPieces?: OutfitPieces
-  /** 点「小多利」名片打开名片弹窗 */
-  onOpenCard?: () => void
   /** 小窝行为幕：非站姿时立绘切换对应分镜（素材未就绪保持站姿不切换） */
   act?: NestPetAct
 }
@@ -28,7 +26,7 @@ const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
 const DOLL_FILE = 'xiaoduoli-doll-v1.png'
 // 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
-const CARD_ENTRY_FILE = 'pet-card-entry-v1.png'
+const CARD_ENTRY_FILE = 'pet-card-entry-v2.png'
 // ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
 // 失败时回退 <Image> 直连 URL：image 组件不受 downloadFile 域名校验约束，本地静态服务/COS 均可直接显示
 const actAssetUrl = (file: string) => `${resolveAssetBaseUrl()}/wardrobe/${file}`
@@ -52,7 +50,7 @@ interface DanmakuItem {
 /** 弹幕横幅在场景上半部漂浮（避开小多利头顶以下区域） */
 const DANMAKU_TOP_RANGE = [8, 38] as const
 
-export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOpenCard, act = 'stand' }: Props) {
+export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act = 'stand' }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 240px 盒一致。
   // 立绘必须显式宽高（flowHeight）而非 widthFix：兄弟节点 setData 时微信会重测量 widthFix 图，开关名片/切回小窝立绘就闪一下
@@ -215,13 +213,8 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
             </View>
           )}
         </View>
-        <View
-          className="pet-name-card"
-          hoverClass="pet-name-card--hover"
-          hoverStayTime={80}
-          onClick={onOpenCard}
-        >
-          {/* 名片小卡图加载后淡入盖过兜底卡面；名字整段叠在卡面右侧留白，不再有「名片」二字 */}
+        {/* 小多利名牌：纯展示（名片弹窗已按 2026-09-01 反馈移除），手绘卡通小卡叠宠物名 */}
+        <View className="pet-name-card" aria-label="小多利名牌">
           {cardEntrySrc && (
             <Image
               className={`pet-name-card__art${cardEntryLoaded ? ' pet-name-card__art--on' : ''}`}

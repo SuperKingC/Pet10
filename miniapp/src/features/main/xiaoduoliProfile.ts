@@ -1,6 +1,6 @@
 /**
- * 小多利档案文案：名片弹窗与「我的 → 关于小多利」共用同一份，改文案只改这里。
- * 每行自带「标签：内容」全量文本，两端都整行展示，不做省略。
+ * 小多利档案文案：「我的 → 关于小多利」展示用（原与名片弹窗共用，名片弹窗已移除）。
+ * 每行自带「标签：内容」全量文本，整行展示不省略。
  */
 export const XIAODUOLI_PROFILE_HEADLINE = '小多利 · 男 · 仅此一只'
 
@@ -10,10 +10,3 @@ export const XIAODUOLI_PROFILE_LINES = [
   '爱好：喜欢出去玩，喜欢吃东西。',
   '工作经验：等妈妈回家。全年无休，从不迟到，多次获得“第一个冲到门口”奖。',
 ] as const
-
-/** 按第一个「：」拆成标签与内容；文案保证带冒号，拆不开时整行落回内容位 */
-export function splitProfileLine(line: string): { label: string; content: string } {
-  const index = line.indexOf('：')
-  if (index < 0) return { label: '', content: line }
-  return { label: `${line.slice(0, index + 1)}`, content: line.slice(index + 1) }
-}

@@ -14,7 +14,6 @@ import { MiniappNestLetter } from './MiniappNestLetter'
 import { MiniappNestTaskPanel } from './MiniappNestTaskPanel'
 import { MiniappPhotoWallPanel } from './MiniappPhotoWallPanel'
 import { MiniappWardrobePanel } from './MiniappWardrobePanel'
-import { MiniappPetCardModal } from './MiniappPetCardModal'
 import { getNestSceneMode, shouldLockNestPageScroll, type NestSceneMode } from './miniappViewModel'
 import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import { wardrobeApi } from '../../services/wardrobeApi'
@@ -62,7 +61,6 @@ export function MiniappNestView({
   const [taskPanelOpen, setTaskPanelOpen] = useState(false)
   const [wardrobePanelOpen, setWardrobePanelOpen] = useState(false)
   const [photoWallPanelOpen, setPhotoWallPanelOpen] = useState(false)
-  const [petCardOpen, setPetCardOpen] = useState(false)
   const [wardrobeView, setWardrobeView] = useState<WardrobeView | null>(null)
   // 小窝行为幕：照顾动作驱动（睡觉→入睡、玩耍→出发叼娃），站立时按随机间隔自动闲逛一趟；
   // 判定收敛 domain/nestPetAct 纯函数，组件只持状态与定时器回收
@@ -159,11 +157,6 @@ export function MiniappNestView({
     (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
   )
   const sceneMode = getNestSceneMode(context, pet, roomId, unlock)
-  // 名片上的铲屎官署名：当前账号 + 共养好友
-  const petCardOwners = [
-    context?.user.displayName,
-    context?.rooms.find((room) => room.id === roomId)?.partner.displayName,
-  ].filter((name): name is string => Boolean(name && name.trim()))
 
   useEffect(() => {
     onSceneModeChange(sceneMode)
@@ -199,7 +192,7 @@ export function MiniappNestView({
         {nestHeader}
         <View className="miniapp-nest__scene">
           {sceneMode === 'active' && pet
-            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} outfitPieces={wardrobeView ? outfitPiecesFromView(wardrobeView) : undefined} onOpenCard={() => setPetCardOpen(true)} act={petAct.act} />
+            ? <PetStatusCard pet={pet} onOpenMemories={onOpenMemories} outfitPieces={wardrobeView ? outfitPiecesFromView(wardrobeView) : undefined} act={petAct.act} />
             : <View className="miniapp-nest__loading" />}
 
           {sceneMode === 'active' && (
@@ -221,14 +214,6 @@ export function MiniappNestView({
 
         {sceneMode === 'active' && <MiniappContributionBoard contributions={contributions} names={names} />}
       </View>
-      {sceneMode === 'active' && pet && (
-        <MiniappPetCardModal
-          open={petCardOpen}
-          pet={pet}
-          owners={petCardOwners}
-          onClose={() => setPetCardOpen(false)}
-        />
-      )}
       {taskPanelOpen && (
         <View className="journal-anniv-overlay">
           <MiniappNestTaskPanel roomId={roomId} onClose={() => setTaskPanelOpen(false)} />
