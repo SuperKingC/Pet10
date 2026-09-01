@@ -135,7 +135,6 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
       </View>
 
       <View className="wardrobe-match">
-        <View className="wardrobe-match__tail" />
         <View className="wardrobe-match__head">
           <Text className="wardrobe-match__title">今日默契换装</Text>
           {view && view.match.streak > 0 && (

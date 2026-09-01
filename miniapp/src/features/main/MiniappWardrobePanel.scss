@@ -65,38 +65,38 @@
   height: 434rpx;
   margin-top: -8rpx;
 }
-/* 顶光聚光锥：呼吸明暗，罩在立绘上方 */
+/* 顶部柔光罩：无边缘的光晕，呼吸明暗 */
 .wardrobe-scene::before {
   content: '';
   position: absolute;
-  top: -26rpx;
+  top: -20rpx;
   left: 50%;
-  width: 360rpx;
-  height: 290rpx;
-  margin-left: -180rpx;
-  background: linear-gradient(180deg, rgba(255, 226, 160, .5), rgba(255, 226, 160, 0) 80%);
-  clip-path: polygon(40% 0, 60% 0, 97% 100%, 3% 100%);
+  width: 480rpx;
+  height: 330rpx;
+  margin-left: -240rpx;
+  background: radial-gradient(ellipse at 50% 8%, rgba(255, 228, 165, .5), rgba(255, 228, 165, 0) 68%);
   pointer-events: none;
   animation: wardrobe-spotlight 3.4s ease-in-out infinite;
 }
 @keyframes wardrobe-spotlight { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
-/* 地板椭圆光影 */
+/* 脚下木纹圆台：小多利真的「站上去」 */
 .wardrobe-scene::after {
   content: '';
   position: absolute;
-  bottom: 26rpx;
+  bottom: 24rpx;
   left: 50%;
-  width: 220rpx;
-  height: 30rpx;
-  margin-left: -110rpx;
+  width: 330rpx;
+  height: 46rpx;
+  margin-left: -165rpx;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(122, 85, 49, .3), transparent 70%);
+  background: url('../../assets/decor/wood-board-v1.png') repeat-x center / 192rpx 128rpx;
+  box-shadow: inset 0 -7rpx 10rpx rgba(84, 55, 28, .28), inset 0 3rpx 5rpx rgba(255, 240, 214, .55), 0 10rpx 18rpx rgba(84, 55, 28, .26);
 }
 .wardrobe-scene__portrait {
   position: relative;
   width: 300rpx;
   height: 366rpx;
-  margin: 0 auto;
+  margin: 22rpx auto 0;
   animation: wardrobe-breathe 3.4s ease-in-out infinite;
   transform-origin: 50% 100%;
 }
@@ -107,7 +107,7 @@
 .wardrobe-scene__pending {
   position: absolute;
   left: 50%;
-  bottom: 96rpx;
+  bottom: 104rpx;
   transform: translateX(-50%);
   padding: 4rpx 18rpx;
   border-radius: 999rpx;
@@ -119,7 +119,7 @@
 .wardrobe-scene__name {
   position: absolute;
   left: 50%;
-  bottom: 8rpx;
+  bottom: 4rpx;
   transform: translateX(-50%);
   padding: 6rpx 30rpx;
   border-radius: 999rpx;
@@ -135,8 +135,8 @@
 /* 立绘旁的两颗闪烁星星 */
 .wardrobe-scene__spark {
   position: absolute;
-  width: 22rpx;
-  height: 22rpx;
+  width: 16rpx;
+  height: 16rpx;
   pointer-events: none;
   animation: wardrobe-sparkle 2.8s ease-in-out infinite;
 }
@@ -146,18 +146,18 @@
   position: absolute;
   left: 50%;
   top: 0;
-  width: 4rpx;
+  width: 3rpx;
   height: 100%;
-  margin-left: -2rpx;
-  border-radius: 4rpx;
-  background: #f0b25e;
+  margin-left: -1.5rpx;
+  border-radius: 3rpx;
+  background: #eeb266;
 }
 .wardrobe-scene__spark::after { transform: rotate(90deg); }
-.wardrobe-scene__spark--a { top: 26rpx; left: calc(50% + 168rpx); }
-.wardrobe-scene__spark--b { bottom: 128rpx; left: calc(50% - 186rpx); transform: scale(.78); animation-delay: 1.4s; }
+.wardrobe-scene__spark--a { top: 44rpx; left: calc(50% + 158rpx); }
+.wardrobe-scene__spark--b { bottom: 158rpx; left: calc(50% - 172rpx); transform: scale(.72); animation-delay: 1.4s; }
 @keyframes wardrobe-sparkle { 0%, 100% { opacity: .2; } 50% { opacity: .95; } }
 
-/* —— 默契条：全宽细卡接在场景下方，尾巴指向小多利 —— */
+/* —— 默契条：全宽柔和卡接在场景下方 —— */
 .wardrobe-match {
   position: relative;
   flex-shrink: 0;
@@ -167,23 +167,12 @@
   margin: 10rpx 4rpx 16rpx;
   padding: 18rpx 24rpx 16rpx;
   border-radius: 24rpx;
-  background: rgba(255, 253, 248, .97);
-  border: 2rpx dashed #e8cfa8;
+  background: linear-gradient(180deg, #fffdf8 0%, #fff7ea 100%);
+  border: 2rpx solid #f0dcc8;
   box-shadow: 0 8rpx 20rpx rgba(84, 55, 28, .1);
   animation: wardrobe-pop .34s cubic-bezier(.34, 1.56, .64, 1) both;
 }
 @keyframes wardrobe-pop { from { opacity: 0; transform: scale(.96) translateY(10rpx); } to { opacity: 1; transform: none; } }
-.wardrobe-match__tail {
-  position: absolute;
-  top: -12rpx;
-  left: 120rpx;
-  width: 22rpx;
-  height: 22rpx;
-  background: #fffdf8;
-  border-left: 2rpx dashed #e8cfa8;
-  border-top: 2rpx dashed #e8cfa8;
-  transform: rotate(45deg);
-}
 .wardrobe-match__head { display: flex; align-items: center; gap: 12rpx; }
 .wardrobe-match__title { color: #382b23; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .wardrobe-match__flame {
@@ -256,25 +245,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 14rpx 10rpx 14rpx;
-  border-radius: 22rpx;
-  background: #fffdf8;
-  border: 3rpx solid #f3e3cd;
-  box-shadow: 0 6rpx 16rpx rgba(113, 77, 38, .08);
-  transform-origin: 50% -16rpx;
+  padding: 16rpx 10rpx 14rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(180deg, #fffdf9 0%, #fdf4e6 100%);
+  border: 2rpx solid #f3e3cd;
+  box-shadow: 0 8rpx 18rpx rgba(113, 77, 38, .09), inset 0 2rpx 0 rgba(255, 255, 255, .85);
+  transform-origin: 50% 0;
   animation: wardrobe-hang-in .5s cubic-bezier(.3, 1.35, .6, 1) both;
 }
-/* 挂钩：从卡片顶伸向挂杆的小钩 */
-.wardrobe-card::before {
+/* 图标下的柔光圆座：服装像陈列在展台上 */
+.wardrobe-card::after {
   content: '';
   position: absolute;
-  top: -18rpx;
+  z-index: -1;
+  top: 22rpx;
   left: 50%;
-  width: 6rpx;
-  height: 18rpx;
-  margin-left: -3rpx;
-  border-radius: 3rpx;
-  background: linear-gradient(180deg, #c99a63, #b98d5e);
+  width: 152rpx;
+  height: 152rpx;
+  margin-left: -76rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fdefd7 0%, #fae4c2 56%, rgba(250, 228, 194, 0) 74%);
 }
 .wardrobe-card:nth-child(3n + 2) { animation-delay: .07s; }
 .wardrobe-card:nth-child(3n) { animation-delay: .14s; }
@@ -301,7 +291,8 @@
   85% { transform: translateY(-4rpx) rotate(.8deg); }
   100% { transform: translateY(-4rpx) rotate(0); }
 }
-.wardrobe-card--locked { background: #f6f0e5; border-color: #eadfcd; }
+.wardrobe-card--locked { background: linear-gradient(180deg, #f8f2e8, #f3ebdd); border-color: #eadfcd; }
+.wardrobe-card--locked::after { opacity: .4; }
 .wardrobe-card__ribbon {
   position: absolute;
   top: -12rpx;

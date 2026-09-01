@@ -55,7 +55,7 @@
 .nest-task-board__inner {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 30rpx;
   padding: 18rpx 22rpx;
   border-radius: 22rpx;
   background: #fffdf8;
@@ -76,7 +76,6 @@
   font-weight: var(--font-weight-semibold);
   text-align: center;
 }
-.nest-task-board__divider { width: 2rpx; align-self: stretch; margin: 6rpx 0; background: repeating-linear-gradient(180deg, #e3c79d 0 10rpx, transparent 10rpx 18rpx); }
 .nest-task-board__checkin {
   flex-shrink: 0;
   padding: 20rpx 34rpx;

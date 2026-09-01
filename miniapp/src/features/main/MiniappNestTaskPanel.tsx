@@ -193,7 +193,6 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
               </View>
             ))}
           </View>
-          <View className="nest-task-board__divider" />
           {checkinTask && (
             <View
               hoverClass="nest-task-board__checkin--press"
