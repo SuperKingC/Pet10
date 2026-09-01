@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Button, Image, Text, View } from '@tarojs/components'
-import { TAROT_CARD_BACK } from './tarotAssets'
+import { getTarotCardBack } from './tarotAssets'
 
 interface MiniappTarotCutStageProps {
   cutCount: number
@@ -17,7 +17,7 @@ function CutPile() {
         <View key={index} className="miniapp-tarot__cut-sheet" style={{ top: `${index * 3}rpx` }} />
       ))}
       <View className="miniapp-tarot__cut-face">
-        <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
+        <Image src={getTarotCardBack()} mode="aspectFill" fadeIn={false} />
       </View>
     </View>
   )

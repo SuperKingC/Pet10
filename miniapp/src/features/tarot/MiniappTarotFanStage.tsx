@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Button, Image, Text, View } from '@tarojs/components'
 import type { TarotCandidate } from './tarotCards'
-import { TAROT_CARD_BACK } from './tarotAssets'
+import { getTarotCardBack } from './tarotAssets'
 
 interface MiniappTarotFanStageProps {
   candidates: TarotCandidate[]
@@ -41,7 +41,7 @@ export function MiniappTarotFanStage({
               : 'miniapp-tarot__picked-slot'}
           >
             {picked[order] !== undefined && (
-              <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
+              <Image src={getTarotCardBack()} mode="aspectFill" fadeIn={false} />
             )}
           </View>
         ))}
@@ -61,7 +61,7 @@ export function MiniappTarotFanStage({
             disabled={picked.includes(index) || flyingCard !== undefined}
             onClick={() => onPick(index)}
           >
-            <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
+            <Image src={getTarotCardBack()} mode="aspectFill" fadeIn={false} />
           </Button>
         ))}
       </View>

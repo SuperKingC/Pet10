@@ -37,15 +37,16 @@ jobs:
       - name: Validate preview environment
         env:
           TARO_API_BASE_URL: ${{ secrets.TARO_PREVIEW_API_BASE_URL }}
-          TARO_TAROT_ASSET_BASE_URL: ${{ secrets.TARO_TAROT_ASSET_BASE_URL }}
+          # 旧 secret 名保持不变，映射到统一资产基址 TARO_ASSET_BASE_URL（塔罗 /tarot、衣柜 /wardrobe 各自拼子路径）
+          TARO_ASSET_BASE_URL: ${{ secrets.TARO_TAROT_ASSET_BASE_URL }}
         run: |
           test -n "$TARO_API_BASE_URL"
-          test -n "$TARO_TAROT_ASSET_BASE_URL"
+          test -n "$TARO_ASSET_BASE_URL"
 
       - name: Build miniapp
         env:
           TARO_API_BASE_URL: ${{ secrets.TARO_PREVIEW_API_BASE_URL }}
-          TARO_TAROT_ASSET_BASE_URL: ${{ secrets.TARO_TAROT_ASSET_BASE_URL }}
+          TARO_ASSET_BASE_URL: ${{ secrets.TARO_TAROT_ASSET_BASE_URL }}
         run: npm run build:weapp --prefix miniapp
 
       - name: Write WeChat upload key

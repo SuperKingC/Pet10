@@ -1,8 +1,4 @@
-const assetBaseUrl = (
-  typeof TARO_TAROT_ASSET_BASE_URL === 'string'
-    ? TARO_TAROT_ASSET_BASE_URL
-    : ''
-).replace(/\/$/, '')
+import { resolveAssetBaseUrl } from '../../services/assetBaseUrl'
 
 const artworkFiles = [
   'the-fool.jpg',
@@ -29,17 +25,25 @@ const artworkFiles = [
   'the-world.jpg',
 ]
 
-export const TAROT_SANCTUARY_BACKGROUND = `${assetBaseUrl}/tarot/ui/sanctuary-background.jpg`
-export const TAROT_CARD_BACK = `${assetBaseUrl}/tarot/ui/card-back.jpg`
+// 塔罗资源统一挂在资产版本根的 /tarot 子路径下；路径由塔罗功能自持，与其它功能解耦
+export function getTarotSanctuaryBackground(): string {
+  return `${resolveAssetBaseUrl()}/tarot/ui/sanctuary-background.jpg`
+}
 
-export const TAROT_RESOURCE_URLS: string[] = [
-  TAROT_SANCTUARY_BACKGROUND,
-  TAROT_CARD_BACK,
-  ...Array.from({ length: 22 }, (_, i) => getTarotArtworkUrl(i)),
-]
+export function getTarotCardBack(): string {
+  return `${resolveAssetBaseUrl()}/tarot/ui/card-back.jpg`
+}
 
 export function getTarotArtworkUrl(cardId: number): string {
-  return `${assetBaseUrl}/tarot/cards/${artworkFiles[cardId] ?? artworkFiles[0]}`
+  return `${resolveAssetBaseUrl()}/tarot/cards/${artworkFiles[cardId] ?? artworkFiles[0]}`
+}
+
+export function getTarotResourceUrls(): string[] {
+  return [
+    getTarotSanctuaryBackground(),
+    getTarotCardBack(),
+    ...Array.from({ length: 22 }, (_, i) => getTarotArtworkUrl(i)),
+  ]
 }
 
 /**
@@ -49,7 +53,7 @@ export function getTarotArtworkUrl(cardId: number): string {
 export async function preloadTarotResources(
   onProgress: (progress: number) => void = () => undefined,
 ): Promise<void> {
-  const urls = TAROT_RESOURCE_URLS
+  const urls = getTarotResourceUrls()
   if (urls.length === 0) {
     onProgress(1)
     return

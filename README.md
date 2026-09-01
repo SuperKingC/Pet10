@@ -25,12 +25,14 @@ npm run check:assets
 npm run verify:full
 ```
 
-小程序构建需要提供塔罗资源 COS 基址：
+小程序构建需要提供静态资产 COS 基址（塔罗拼 `/tarot/`、衣柜套装拼 `/wardrobe/` 子路径）：
 
 ```powershell
-$env:TARO_TAROT_ASSET_BASE_URL = "https://<bucket>.cos.<region>.myqcloud.com/pet10-web/<完整提交SHA>"
+$env:TARO_ASSET_BASE_URL = "https://<bucket>.cos.<region>.myqcloud.com/pet10-web/<完整提交SHA>"
 npm run build:weapp --prefix miniapp
 ```
+
+本地快速验收未上 COS 的资源：`npx http-server public -p 8787` 后，另设 `$env:TARO_ASSET_DEV_BASE_URL = "http://127.0.0.1:8787"` 构建——开发者工具模拟器走本机地址，真机与正式包仍走正式域名。
 
 ## 文档入口
 

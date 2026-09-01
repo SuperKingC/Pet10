@@ -38,7 +38,7 @@ flowchart LR
 4. `design-assets/` 不进入上传；小程序本体通过微信开发者工具上传，也不经过 COS。
 5. CORS 允许小程序请求来源使用 `GET`、`HEAD`，允许请求头 `*`，暴露 `Content-Length`、`ETag`。
 6. 上传对象设置 `Cache-Control: public, max-age=31536000, immutable` 和 `Content-Disposition: inline`。
-7. 小程序构建必须提供 `TARO_TAROT_ASSET_BASE_URL`，指向当前 COS 版本目录；COS 域名必须加入微信小程序后台的 downloadFile 合法域名。
+7. 小程序构建必须提供 `TARO_ASSET_BASE_URL`，指向当前 COS 版本目录；COS 域名必须加入微信小程序后台的 downloadFile 合法域名。
 8. 上传失败或版本资源校验不通过时，部署停止且不报告成功。
 
 回滚塔罗资源时，重新用旧提交 SHA 构建小程序并指向旧版本目录即可；旧 COS 目录保持不可变，不需要重新上传。
@@ -62,6 +62,6 @@ flowchart LR
 3. 使用 `miniprogram-ci` 生成微信预览二维码。
 4. 将二维码作为 Actions artifact 下载到手机后扫码体验。
 
-需要在 GitHub Actions Secrets 配置 `WECHAT_APPID`、`WECHAT_PRIVATE_KEY`、`TARO_PREVIEW_API_BASE_URL` 和 `TARO_TAROT_ASSET_BASE_URL`。预览 API 必须指向测试环境，避免体验操作写入生产数据；预览构建要求塔罗资源地址显式配置。上传密钥只在 CI 临时目录中使用，不能提交到仓库。该流程只生成预览二维码，不合并分支、不发布生产环境。
+需要在 GitHub Actions Secrets 配置 `WECHAT_APPID`、`WECHAT_PRIVATE_KEY`、`TARO_PREVIEW_API_BASE_URL` 和 `TARO_TAROT_ASSET_BASE_URL`（旧 secret 名，注入构建变量 `TARO_ASSET_BASE_URL`）。预览 API 必须指向测试环境，避免体验操作写入生产数据；预览构建要求静态资产地址显式配置。上传密钥只在 CI 临时目录中使用，不能提交到仓库。该流程只生成预览二维码，不合并分支、不发布生产环境。
 
 详细配置见后续的 `docs/operations/lighthouse-deployment.md`。

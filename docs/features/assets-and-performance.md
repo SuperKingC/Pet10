@@ -25,7 +25,7 @@ flowchart LR
 ## 当前资源状态
 
 - 正式塔罗牌面位于 `public/tarot/cards/`，塔罗背景和牌背位于 `public/tarot/ui/`；这是仓库中唯一的运行时静态资源目录。
-- 生产环境把 `public/tarot/cards/`、`public/tarot/ui/` 上传到 COS，每次发布使用完整 Git 提交 SHA 作为版本目录，小程序通过 `TARO_TAROT_ASSET_BASE_URL` 直接拉取。
+- 生产环境把 `public/tarot/cards/`、`public/tarot/ui/`（塔罗）与 `public/wardrobe/`（衣柜套装）上传到 COS，每次发布使用完整 Git 提交 SHA 作为版本目录，小程序通过 `TARO_ASSET_BASE_URL` 直接拉取：塔罗拼 `/tarot/...`、衣柜套装拼 `/wardrobe/...` 子路径（`assetBaseUrl.ts` 统一解析；本地开发可另设 `TARO_ASSET_DEV_BASE_URL` 让开发者工具模拟器访问本机 http-server，真机与正式包仍走正式域名）。
 - 小多利、动作图标、小窝背景、导航图标、消息空态插画、小记拍立得/按钮插画和邀请纸箱图层打包在 `miniapp/src/assets/`，随小程序构建产物分发，单张控制在 180 KB 安全线内。
 - 原始概念图位于 `design-assets/tarot/concepts/` 和 `design-assets/nest/`，标记为 `source-only`，不属于生产静态资源；其中 `xiaoduoli-peek-source.png` 同时是小多利探头运行时图层（body/eyes）的直接出件源。
 - 机器可读清单位于 `docs/assets/asset-manifest.json`。

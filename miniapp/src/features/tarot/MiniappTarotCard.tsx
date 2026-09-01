@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Image, Text, View } from '@tarojs/components'
 import type { DrawnTarotCard } from './tarotCards'
-import { getTarotArtworkUrl, TAROT_CARD_BACK } from './tarotAssets'
+import { getTarotArtworkUrl, getTarotCardBack } from './tarotAssets'
 
 interface MiniappTarotCardProps {
   drawn: DrawnTarotCard
@@ -36,7 +36,7 @@ export function MiniappTarotCard({ drawn, flipped, compact = false }: MiniappTar
     >
       <View className="miniapp-tarot-card__body">
         <View className="miniapp-tarot-card__face miniapp-tarot-card__back">
-          <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
+          <Image src={getTarotCardBack()} mode="aspectFill" fadeIn={false} />
         </View>
         <View className="miniapp-tarot-card__face miniapp-tarot-card__front">
           {!artFailed ? (

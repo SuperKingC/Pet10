@@ -3,7 +3,8 @@
 //   node scripts/miniapp-preview-local.mjs            # 跳过构建，假定 dist 已最新
 //   node scripts/miniapp-preview-local.mjs --build    # 先清缓存并重新构建再预览
 // 预览推送依赖：微信开发者工具已安装且微信已登录；IDE HTTP 服务端口已在
-// 「设置 → 安全设置」开启。塔罗资源地址通过 TARO_TAROT_ASSET_BASE_URL 提供。
+// 「设置 → 安全设置」开启。静态资产地址通过 TARO_ASSET_BASE_URL 提供；本地开发可另设
+// TARO_ASSET_DEV_BASE_URL（如 http://127.0.0.1:8787），开发者工具模拟器走本机地址，真机走正式域名。
 import { spawnSync } from 'node:child_process'
 import { existsSync, rmSync } from 'node:fs'
 import { resolve } from 'node:path'

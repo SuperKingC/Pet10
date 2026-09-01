@@ -52,7 +52,7 @@ AI 必须先确认：
 回滚方式：
 ```
 
-默认预览方式：执行 `npm run build:weapp --prefix miniapp` 后，在微信开发者工具中编译并预览 `miniapp/dist`；涉及塔罗资源时必须提供 `TARO_TAROT_ASSET_BASE_URL` 指向的 COS 版本目录。
+默认预览方式：执行 `npm run build:weapp --prefix miniapp` 后，在微信开发者工具中编译并预览 `miniapp/dist`；涉及塔罗/衣柜网络资源时必须提供 `TARO_ASSET_BASE_URL` 指向的 COS 版本目录，本地快速验收可设 `TARO_ASSET_DEV_BASE_URL=http://127.0.0.1:8787` 并用 `npx http-server public -p 8787` 模拟 COS（仅模拟器生效，真机仍走正式域名）。
 
 你确认视觉效果前，不要让 AI 合并或部署。
 

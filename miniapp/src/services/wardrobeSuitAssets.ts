@@ -4,6 +4,7 @@ import {
   WARDROBE_ASSET_STORAGE_KEY,
   type SuitAssetDeps
 } from './wardrobeAssetLoader'
+import { resolveAssetBaseUrl } from './assetBaseUrl'
 
 // 随包文件：原装立绘 + 三件叠穿服装件（网格图标 v2 + 围巾折线切前襟叠加层 v2）
 const defaultPortrait = require('../assets/xiaoduoli.png')
@@ -43,7 +44,8 @@ const deps: SuitAssetDeps = {
   download: (fileName) =>
     new Promise<string>((resolve, reject) => {
       Taro.downloadFile({
-        url: `${TARO_WARDROBE_ASSET_BASE_URL}/${fileName}`,
+        // 衣柜套装挂在资产版本根的 /wardrobe 子路径下，路径由衣柜功能自持（与塔罗解耦）
+        url: `${resolveAssetBaseUrl()}/wardrobe/${fileName}`,
         success: (result) =>
           result.statusCode === 200
             ? resolve(result.tempFilePath)

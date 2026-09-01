@@ -12,12 +12,19 @@ describe('miniapp API build config', () => {
     )
   })
 
-  it('requires a tarot asset base URL at build time', () => {
+  it('requires a shared asset base URL at build time', () => {
     const configSource = readFileSync(resolve(miniappRoot(), 'config/index.ts'), 'utf8')
 
-    expect(configSource).toContain('process.env.TARO_TAROT_ASSET_BASE_URL')
-    expect(configSource).toContain('TARO_TAROT_ASSET_BASE_URL is required')
+    expect(configSource).toContain('process.env.TARO_ASSET_BASE_URL')
+    expect(configSource).toContain('TARO_ASSET_BASE_URL is required')
     expect(configSource).not.toContain("'https://pet10kk.com'")
-    expect(configSource).toContain('TARO_TAROT_ASSET_BASE_URL:')
+    expect(configSource).toContain('TARO_ASSET_BASE_URL:')
+  })
+
+  it('keeps the simulator dev base opt-in so production builds never point at localhost', () => {
+    const configSource = readFileSync(resolve(miniappRoot(), 'config/index.ts'), 'utf8')
+
+    expect(configSource).toContain("process.env.TARO_ASSET_DEV_BASE_URL?.trim() || ''")
+    expect(configSource).toContain('TARO_ASSET_DEV_BASE_URL:')
   })
 })

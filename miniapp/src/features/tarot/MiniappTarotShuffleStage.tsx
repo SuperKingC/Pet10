@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Image, Text, View } from '@tarojs/components'
-import { TAROT_CARD_BACK } from './tarotAssets'
+import { getTarotCardBack } from './tarotAssets'
 
 interface MiniappTarotShuffleStageProps {
   progress: number
@@ -55,7 +55,7 @@ export function MiniappTarotShuffleStage({
       >
         {Array.from({ length: 10 }, (_, index) => (
           <View key={index} className={`miniapp-tarot__deck-card miniapp-tarot__deck-card--${index + 1}`}>
-            <Image src={TAROT_CARD_BACK} mode="aspectFill" fadeIn={false} />
+            <Image src={getTarotCardBack()} mode="aspectFill" fadeIn={false} />
           </View>
         ))}
         <View className="miniapp-tarot__shuffle-orbit miniapp-tarot__shuffle-orbit--outer" />

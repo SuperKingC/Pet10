@@ -10,7 +10,7 @@ import { MiniappTarotFanStage } from './MiniappTarotFanStage'
 import { MiniappTarotRevealStage } from './MiniappTarotRevealStage'
 import { MiniappTarotReadingStage } from './MiniappTarotReadingStage'
 import { MiniappTarotHistoryPanel } from './MiniappTarotHistoryPanel'
-import { TAROT_SANCTUARY_BACKGROUND, preloadTarotResources } from './tarotAssets'
+import { getTarotSanctuaryBackground, preloadTarotResources } from './tarotAssets'
 import { createTarotCandidates } from './tarotCards'
 import { createInitialTarotFlow, tarotFlowReducer } from './tarotFlow'
 import { listTarotHistory, saveTarotReading } from './tarotHistory'
@@ -108,7 +108,7 @@ export function MiniappTarotFlow({ roomId, onClose, onShareTitleChange }: Miniap
     <View className={['miniapp-tarot', leaving ? 'miniapp-tarot--leaving' : ''].filter(Boolean).join(' ')}>
       <Image
         className="miniapp-tarot__background"
-        src={TAROT_SANCTUARY_BACKGROUND}
+        src={getTarotSanctuaryBackground()}
         mode="aspectFill"
         fadeIn={false}
       />
