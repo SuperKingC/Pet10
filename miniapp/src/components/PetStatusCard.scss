@@ -1,7 +1,7 @@
 /* 小窝状态卡：上半场景（背景通栏顶对齐裁底 + 小多利踩地脚线 + 说话飘字 + 名片入口），下半紧凑状态区。
-   场景收矮到 400px 让名片/状态区/贡献榜免滚动可见；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
+   场景收矮到 465px 让贡献榜底部与 tab 栏保持标准间距；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
-.pet-card-scene { position: relative; height: 400px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
+.pet-card-scene { position: relative; height: 465px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
 .pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
 /* 背景通栏（658rpx 宽 → 高约 896rpx），顶部对齐，底部溢出裁掉 */
 .pet-card-background { position: absolute; top: 0; left: 0; width: 100%; }

@@ -1,4 +1,4 @@
-.pet-actions-panel { margin-top: 8px; padding: 16px 20px; border: 1px solid #e8bd91; border-radius: 22px; background: #fff7e9; }
+.pet-actions-panel { margin-top: 14px; padding: 16px 20px; border: 1px solid #e8bd91; border-radius: 22px; background: #fff7e9; }
 .pet-actions-title { color: #a98d7e; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
 .pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 8px; }
 .pet-action-button { position: relative; display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: var(--font-size-aux); }
