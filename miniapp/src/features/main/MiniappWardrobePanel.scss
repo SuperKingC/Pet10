@@ -31,12 +31,22 @@
 .wardrobe-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
 .wardrobe-panel__count {
   margin-left: auto;
-  padding: 8rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+  padding: 10rpx 20rpx;
   border-radius: 999rpx;
   background: #fdeeda;
   color: #b07a3f;
   font-size: 22rpx;
   font-weight: var(--font-weight-bold);
+}
+.wardrobe-panel__count-dots { display: flex; gap: 6rpx; }
+.wardrobe-panel__count-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: #ecd9c0; }
+.wardrobe-panel__count-dot--on {
+  background: linear-gradient(135deg, #f7b35c, #e88f3c);
+  box-shadow: 0 0 6rpx rgba(232, 143, 60, .55);
 }
 .wardrobe-panel__caption { display: block; padding-bottom: 18rpx; color: #a89489; font-size: var(--font-size-aux); }
 
@@ -98,6 +108,30 @@
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(122, 85, 49, .28), transparent 70%);
 }
+/* 拍立得旁的两颗闪烁星星 */
+.wardrobe-stage__spark {
+  position: absolute;
+  width: 22rpx;
+  height: 22rpx;
+  pointer-events: none;
+  animation: wardrobe-sparkle 2.8s ease-in-out infinite;
+}
+.wardrobe-stage__spark::before,
+.wardrobe-stage__spark::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 4rpx;
+  height: 100%;
+  margin-left: -2rpx;
+  border-radius: 4rpx;
+  background: #f0b25e;
+}
+.wardrobe-stage__spark::after { transform: rotate(90deg); }
+.wardrobe-stage__spark--a { top: -4rpx; right: -6rpx; }
+.wardrobe-stage__spark--b { bottom: 70rpx; left: -10rpx; transform: scale(.78); animation-delay: 1.4s; }
+@keyframes wardrobe-sparkle { 0%, 100% { opacity: .2; } 50% { opacity: .95; } }
 .wardrobe-stage__pending { position: absolute; left: 0; right: 0; bottom: 74rpx; color: #bda893; font-size: 22rpx; text-align: center; }
 .wardrobe-stage__name {
   position: relative;
@@ -347,6 +381,7 @@
   .wardrobe-stage { transform: none; }
   .wardrobe-stage::before { animation: none; opacity: .7; }
   .wardrobe-stage__inner { animation: none; }
+  .wardrobe-stage__spark { animation: none; opacity: .6; }
   .wardrobe-bubble { animation: none; }
   .wardrobe-panel__backdrop { animation: wardrobe-fade .32s ease-out both; }
 }

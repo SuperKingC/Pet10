@@ -107,6 +107,14 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
         <Text className="wardrobe-panel__title">衣柜</Text>
         {view && (
           <View className="wardrobe-panel__count">
+            <View className="wardrobe-panel__count-dots">
+              {view.items.map((item) => (
+                <View
+                  key={item.key}
+                  className={`wardrobe-panel__count-dot${item.unlocked ? ' wardrobe-panel__count-dot--on' : ''}`}
+                />
+              ))}
+            </View>
             <Text>已解锁 {unlockedCount}/{view.items.length}</Text>
           </View>
         )}
@@ -120,6 +128,8 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
             <MiniappOutfitPortrait suitKey={currentItem?.unlocked ? currentKey : 'default'} />
           </View>
           <View className="wardrobe-stage__floor" />
+          <View className="wardrobe-stage__spark wardrobe-stage__spark--a" />
+          <View className="wardrobe-stage__spark wardrobe-stage__spark--b" />
           {!assetReady && currentItem?.unlocked && (
             <Text className="wardrobe-stage__pending">画稿云端准备中…</Text>
           )}

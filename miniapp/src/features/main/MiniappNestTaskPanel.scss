@@ -14,10 +14,21 @@
 }
 .nest-task-panel__top { flex-shrink: 0; display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0 8rpx; }
 .nest-task-panel__title { color: #382b23; font-size: var(--font-size-page-title); font-weight: var(--font-weight-bold); }
-.nest-task-panel__caption { display: block; padding-bottom: 20rpx; color: #a89489; font-size: var(--font-size-aux); }
+.nest-task-panel__sub { flex-shrink: 0; display: flex; align-items: center; gap: 14rpx; padding-bottom: 20rpx; }
+.nest-task-panel__caption { flex: 1; min-width: 0; color: #a89489; font-size: var(--font-size-aux); }
+.nest-task-panel__progress-chip {
+  flex-shrink: 0;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: #fdeeda;
+  color: #b07a3f;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-semibold);
+}
 
-/* —— 木框看板：道具口袋 + 每日签到 —— */
+/* —— 木框看板：道具口袋 + 每日签到（四角木螺丝钉装饰） —— */
 .nest-task-board {
+  position: relative;
   flex-shrink: 0;
   margin-bottom: 22rpx;
   padding: 10rpx;
@@ -27,6 +38,19 @@
   box-shadow: 0 10rpx 24rpx rgba(126, 82, 49, .18), inset 0 2rpx 0 rgba(255, 255, 255, .3);
   animation: nest-task-drop .42s cubic-bezier(.22, 1, .36, 1) both;
 }
+.nest-task-board::before,
+.nest-task-board::after {
+  content: '';
+  position: absolute;
+  top: 16rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f4e0bd, #a97844);
+  box-shadow: inset 0 1rpx 2rpx rgba(58, 36, 23, .55);
+}
+.nest-task-board::before { left: 16rpx; }
+.nest-task-board::after { right: 16rpx; }
 @keyframes nest-task-drop { from { opacity: 0; transform: translateY(-20rpx); } to { opacity: 1; transform: none; } }
 .nest-task-board__inner {
   display: flex;
@@ -97,6 +121,18 @@
   animation: nest-task-card-in .5s cubic-bezier(.22, 1, .36, 1) both;
 }
 @keyframes nest-task-card-in { from { opacity: 0; transform: translateY(-26rpx) scale(.97); } to { opacity: 1; transform: none; } }
+/* 类别色脊：每日橙 / 成就粉 */
+.nest-task-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20rpx;
+  bottom: 20rpx;
+  width: 6rpx;
+  border-radius: 0 6rpx 6rpx 0;
+  background: linear-gradient(180deg, #f7b35c, #e88f3c);
+}
+.nest-task-card--achievement::before { background: linear-gradient(180deg, #ef9d9a, #e2697c); }
 .nest-task-card--complete { background: linear-gradient(180deg, #fff3dd, #ffe9cd); border-color: #f0c188; }
 .nest-task-card__icon-ring {
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;

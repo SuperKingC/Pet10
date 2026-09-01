@@ -83,6 +83,8 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
   }
 
   const { daily, achievement } = groupTasks(tasks ?? [])
+  const loadedTasks = tasks ?? []
+  const claimedCount = loadedTasks.filter((task) => task.claimed).length
   const counts: Record<ItemId, number> = {
     dog_food: itemCount(inventory, 'dog_food'),
     ball: itemCount(inventory, 'ball'),
@@ -95,7 +97,11 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
     const delay = Math.min(index * 70, 420)
     return (
       <View
-        className={`nest-task-card${task.complete && !task.claimed ? ' nest-task-card--complete' : ''}`}
+        className={[
+          'nest-task-card',
+          task.scope === 'achievement' ? 'nest-task-card--achievement' : 'nest-task-card--daily',
+          task.complete && !task.claimed ? ' nest-task-card--complete' : '',
+        ].join(' ')}
         key={task.key}
         style={{ animationDelay: `${delay}ms` }}
       >
@@ -168,7 +174,14 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
         <MiniappBackButton onClick={onClose} />
         <Text className="nest-task-panel__title">任务</Text>
       </View>
-      <Text className="nest-task-panel__caption">完成任务拿道具，道具用来照顾小多利。</Text>
+      <View className="nest-task-panel__sub">
+        <Text className="nest-task-panel__caption">完成任务拿道具，道具用来照顾小多利。</Text>
+        {tasks !== null && loadedTasks.length > 0 && (
+          <View className="nest-task-panel__progress-chip">
+            <Text>已领 {claimedCount}/{loadedTasks.length}</Text>
+          </View>
+        )}
+      </View>
 
       <View className="nest-task-board">
         <View className="nest-task-board__inner">
@@ -203,9 +216,9 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
         )}
         {tasks !== null && (
           <>
-            {renderSection('每日任务')}
+            {renderSection('🐾 每日任务')}
             {daily.map(renderTask)}
-            {renderSection('成就')}
+            {renderSection('🏆 成就')}
             {achievement.map(renderTask)}
           </>
         )}

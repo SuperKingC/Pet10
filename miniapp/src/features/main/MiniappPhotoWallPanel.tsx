@@ -131,6 +131,8 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
         className={`photo-wall-card${index % 2 === 0 ? ' photo-wall-card--tilt-left' : ' photo-wall-card--tilt-right'}`}
         key={item.id}
         style={{ animationDelay: `${Math.min(index * 80, 480)}ms` }}
+        hoverClass="photo-wall-card--press"
+        hoverStayTime={120}
         onClick={() => openPreview(item)}
       >
         {index % 2 === 0 ? <View className="photo-wall-card__pin" /> : <View className="photo-wall-card__tape" />}
@@ -160,11 +162,23 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
       <View className="photo-wall-panel__top">
         <MiniappBackButton onClick={onClose} />
         <Text className="photo-wall-panel__title">照片墙</Text>
-        <View className="photo-wall-panel__upload" onClick={choosePhoto}>
+        <View hoverClass="photo-wall-panel__upload--press" hoverStayTime={120} className="photo-wall-panel__upload" onClick={choosePhoto}>
           <Text>＋ 贴照片</Text>
         </View>
       </View>
-      <Text className="photo-wall-panel__caption">你们的共同回忆贴在软木墙上，双方都能贴、能改、能撕。</Text>
+      <View className="photo-wall-panel__sub">
+        <Text className="photo-wall-panel__caption">你们的共同回忆贴在软木墙上，双方都能贴、能改、能撕。</Text>
+        {photos !== null && photos.length > 0 && (
+          <View className="photo-wall-panel__count-chip">
+            <Text>{photos.length} 张回忆</Text>
+          </View>
+        )}
+      </View>
+      <View className="photo-wall-lights">
+        {Array.from({ length: 12 }).map((_, bulb) => (
+          <View key={bulb} className="photo-wall-lights__bulb" />
+        ))}
+      </View>
 
       {composePath && (
         <View className="photo-wall-compose">
