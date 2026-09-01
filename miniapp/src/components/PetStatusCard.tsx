@@ -1,5 +1,5 @@
 import { Image, Text, View } from '@tarojs/components'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { PetState } from '../domain/types'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
 import { getXiaoduoliSpeech } from '../features/main/xiaoduoliSpeech'
@@ -13,7 +13,7 @@ type Props = {
   /** 点「小多利」名片打开名片弹窗 */
   onOpenCard?: () => void
 }
-const roomBackground = require('../assets/room-background-v4.jpg')
+const roomBackground = require('../assets/room-background-v5.jpg')
 // 四项状态各自同色系渐变（深→浅），与经验条同一质感语言
 const statuses = [
   ['饱食', 'hunger', '#f3a85d', '#f8c48d'],
@@ -34,12 +34,16 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, onOpenCard }: Prop
     return () => clearInterval(timer)
   }, [])
   const speech = getXiaoduoliSpeech(pet, speechIndex)
+  // 背景元素固定不变：memo 掉，避免每 6s 换飘字重渲染时 widthFix 图重新测量导致背景闪动
+  const backdrop = useMemo(
+    () => <Image className="pet-card-background" src={roomBackground} mode="widthFix" />,
+    [],
+  )
 
   return (
     <View className="pet-status-card">
       <View className="pet-card-scene">
-        {/* 背景通栏铺满宽度、顶部对齐，底部超出部分裁掉 */}
-        <Image className="pet-card-background" src={roomBackground} mode="widthFix" />
+        {backdrop}
         <Text className="pet-level">Lv.{pet.level}</Text>
         <View className="pet-avatar-image">
           <MiniappOutfitPortrait suitKey={suitKey} />

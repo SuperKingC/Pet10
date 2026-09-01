@@ -1,13 +1,14 @@
 /* 小窝状态卡：上半场景（背景横幅通栏 + 小多利踩地毯 + 说话飘字 + 名片入口），下半紧凑状态区。
-   背景 v4 为按 3:2 场景比例 AI 重生成的横构图房间（窗/牌/架/地毯全部在画内），widthFix 显示高
-   439rpx = 场景高，严丝合缝无空带无两侧留白；状态条加粗提质感；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
+   背景 v5 按 3:2 场景比例 AI 重生成（窗/「Happy Day」牌/矮书架齐全，地毯缩为中心椭圆、四周露地板），
+   widthFix 显示高 439rpx = 场景高，严丝合缝无空带无两侧留白；竖版原图放横框时「元素全+不留白+更高」
+   三者不可兼得（需 897rpx 高），439 为不滚动前提下的定案高度；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
 .pet-card-scene { position: relative; height: 439px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
 .pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
 /* 背景通栏（658rpx 宽 × 2/3 比例 → 高约 439rpx = 场景高），顶部对齐 */
 .pet-card-background { position: absolute; top: 0; left: 0; width: 100%; }
-/* 小多利立绘随横幅场景缩至 180×212，居中偏下踩地毯（bottom 14px，水平位置出图后按地毯中心校准） */
-.pet-avatar-image { position: absolute; bottom: 14px; left: 50%; z-index: 2; width: 180px; height: 212px; transform: translateX(-50%); }
+/* 小多利居中偏下踩在居中椭圆地毯上（bottom 14px） */
+.pet-avatar-image { position: absolute; bottom: 14px; left: 50%; z-index: 2; width: 200px; height: 236px; transform: translateX(-50%); }
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
 
@@ -33,19 +34,19 @@
 .pet-name-card__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .pet-name-card__hint { color: #b08d67; font-size: 20rpx; letter-spacing: 2rpx; }
 
-/* 小多利说话飘字：头顶上方气泡（狗头顶约 y 250，双行气泡底不超过 225），换文案重新弹入 + 轻微浮动 */
+/* 小多利说话飘字：左上气泡（悬在窗前，避开右侧「Happy Day」木牌文字区；狗头顶约 y 214，
+   双行气泡底不超过 204），换文案重新弹入 + 轻微浮动 */
 .pet-speech {
   position: absolute;
-  top: 104px;
-  left: 50%;
+  top: 88px;
+  left: 24px;
   z-index: 3;
-  max-width: 76%;
-  padding: 12px 26px;
+  max-width: 52%;
+  padding: 12px 24px;
   border: 2px solid #f0dcc8;
   border-radius: 999px;
   background: rgba(255, 253, 248, .94);
   box-shadow: 0 8px 18px rgba(113, 77, 38, .16);
-  transform: translateX(-50%);
   animation: pet-speech-pop .32s cubic-bezier(.3, 1.4, .5, 1) backwards, pet-speech-bob 3.2s ease-in-out .4s infinite;
 }
 .pet-speech__text { color: #5e3b1d; font-size: var(--font-size-secondary); font-weight: var(--font-weight-medium); }
@@ -60,12 +61,13 @@
 .status-item { min-width: 0; }
 
 @keyframes pet-speech-pop {
-  from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.9); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  /* 只做轻微位移+缩放，不淡出：换文案时气泡始终不透明，避免背景透出闪烁 */
+  from { opacity: 1; transform: translateY(8px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes pet-speech-bob {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-6px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .pet-speech { animation: none; }
