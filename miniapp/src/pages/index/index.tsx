@@ -4,9 +4,11 @@ import Taro from '@tarojs/taro'
 import { buildInvitationShare } from '../../domain/invitationShare'
 import type { PetAction, PetState } from '../../domain/types'
 import { insufficientMessage } from '../../domain/nestTaskModel'
+import { applyMockPetAction } from '../../domain/gmTestMode'
 import { resolveInvitationLaunchToken } from '../../domain/invitationLaunch'
 import { hasAuthenticatedSession, isAccountMissingError } from '../../domain/sessionState'
 import { authApi } from '../../services/authApi'
+import { readGmTestMode } from '../../services/gmTestStorage'
 import { MiniappLoginScreen } from '../../features/auth/MiniappLoginScreen'
 import { MiniappLaunchLoading } from '../../features/auth/MiniappLaunchLoading'
 import { authenticatedLaunchAssets, prepareLaunchAssets } from '../../services/launchAssetLoader'
@@ -84,6 +86,8 @@ export default function Index() {
   const [overlay, setOverlay] = useState<'' | 'addFriend' | 'circle' | 'coRaisePicker' | 'confirm'>('')
   // 小窝空状态邀请入口打开的选择合养好友弹窗（同样走 overlay）
   const [nestCoRaiseOpen, setNestCoRaiseOpen] = useState(false)
+  // GM 本地测试模式：照顾动作与换装走本地模拟（services/gmTestStorage），不依赖服务端
+  const [gmTest, setGmTest] = useState(() => readGmTestMode())
   // 待确认的合养邀请通知（确认弹窗数据）与确认请求状态
   const [coRaiseConfirmInvitation, setCoRaiseConfirmInvitation] = useState<{ relationshipId: string; fromName: string } | null>(null)
   const [coRaiseConfirmBusy, setCoRaiseConfirmBusy] = useState(false)
@@ -202,6 +206,7 @@ export default function Index() {
   Taro.useDidShow(() => {
     setAccessToken(getAccessToken())
     setJournalRefreshKey((key) => key + 1)
+    setGmTest(readGmTestMode())
   })
 
   useEffect(() => {
@@ -264,6 +269,12 @@ export default function Index() {
 
   const handleAction = async (action: PetAction) => {
     if (!pet || !roomId) return
+    // GM 本地测试模式：不发请求，本地推进状态（行为幕照常由 NestView 驱动）
+    if (gmTest) {
+      setPet(applyMockPetAction(pet, action))
+      setMessage(actionMessages[action])
+      return
+    }
     setLoading(true)
     try {
       setPet(await petApi.applyAction(roomId, action))
@@ -399,7 +410,15 @@ export default function Index() {
       />
     }
     if (activeTab === 'me') {
-      return <MiniappMeView context={context} onLogout={logout} onDataChanged={() => void loadContext(roomId)} />
+      return <MiniappMeView
+        context={context}
+        onLogout={logout}
+        onDataChanged={() => {
+          // GM 开关在这里改：立即重读本地开关，再走常规上下文刷新
+          setGmTest(readGmTestMode())
+          void loadContext(roomId)
+        }}
+      />
     }
     return <MiniappNestView
       context={context}
@@ -407,6 +426,7 @@ export default function Index() {
       roomId={roomId}
       boxPhase={boxPhase}
       footer={nestFooter}
+      gmTest={gmTest}
       onAction={handleAction}
       onOpenMemories={() => void openMemories()}
       onSceneModeChange={setNestSceneMode}

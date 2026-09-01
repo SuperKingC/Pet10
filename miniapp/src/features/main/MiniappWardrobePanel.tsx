@@ -3,6 +3,8 @@ import { Image, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { wardrobeApi } from '../../services/wardrobeApi'
+import { readTestOutfit, writeTestOutfit } from '../../services/gmTestStorage'
+import { buildMockWardrobeView } from '../../domain/gmTestMode'
 import { suitAssets, type SuitFiles } from '../../services/wardrobeSuitAssets'
 import {
   EMPTY_OUTFIT,
@@ -27,14 +29,17 @@ const lockBadge = require('../../assets/wardrobe/lock-badge-v1.png')
 
 interface MiniappWardrobePanelProps {
   roomId: string
+  /** GM 本地测试模式：目录/解锁/保存全走本地模拟，不请求服务端 */
+  gmTest?: boolean
   onClose(): void
   /** 保存装扮/提交默契后通知外层刷新（小窝立绘与底部默契卡） */
   onChanged?(): void
 }
 
 // 衣柜面板：「华丽舞台」试衣间场景 + 按类别穿戴（主体服装单选 + 帽/巾/包各一件可叠穿）。
-// 默契换装每天一次，双方主体一致即达成。解锁判定全部来自服务端，面板只展示与提交。
-export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWardrobePanelProps) {
+// 默契换装每天一次，双方主体一致即达成。解锁判定全部来自服务端，面板只展示与提交；
+// GM 本地测试模式（gmTest）例外：目录/解锁来自本地模拟，保存写本地持久化。
+export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChanged }: MiniappWardrobePanelProps) {
   const [view, setView] = useState<WardrobeView | null>(null)
   const [pieces, setPieces] = useState<OutfitPieces>(EMPTY_OUTFIT)
   const [assetMap, setAssetMap] = useState<Record<string, SuitFiles>>({})
@@ -63,6 +68,16 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
   }, [])
 
   const refresh = useCallback(() => {
+    // GM 本地测试模式：模拟视图（全部解锁）+ 本地持久化的穿戴；素材仍从 COS 预取
+    if (gmTest) {
+      const pieces = readTestOutfit()
+      const next = buildMockWardrobeView(pieces)
+      setView(next)
+      setPieces(pieces)
+      void suitAssets.ensureSuitAssets(next.items.map((item) => item.key))
+        .then((assets) => setAssetMap((current) => ({ ...current, ...assets })))
+      return
+    }
     if (!roomId) return
     void wardrobeApi.get(roomId).then((next) => {
       setView(next)
@@ -71,7 +86,7 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
       void suitAssets.ensureSuitAssets(next.items.map((item) => item.key))
         .then((assets) => setAssetMap((current) => ({ ...current, ...assets })))
     }).catch(() => setView(null))
-  }, [roomId])
+  }, [roomId, gmTest])
 
   useEffect(() => {
     setView(null)
@@ -87,6 +102,13 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
     if (!roomId || !view || saving) return
     setSaving(true)
     try {
+      // GM 本地测试模式：只写本地持久化，外层据此刷新小窝立绘
+      if (gmTest) {
+        writeTestOutfit(pieces)
+        Taro.showToast({ title: '已换上（本地测试）', icon: 'none' })
+        onChanged?.()
+        return
+      }
       await wardrobeApi.setEquipped(roomId, pieces)
       Taro.showToast({ title: '换好啦！', icon: 'none' })
       onChanged?.()
@@ -102,6 +124,12 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
     if (!roomId || !view || submitting || view.match.myPick) return
     setSubmitting(true)
     try {
+      // GM 本地测试模式：只在本地登记今日选择（无服务端结算）
+      if (gmTest) {
+        setView((current) => (current ? { ...current, match: { ...current.match, myPick: pieces.body } } : current))
+        Taro.showToast({ title: '已登记（本地测试，不走服务端）', icon: 'none' })
+        return
+      }
       const match = await wardrobeApi.submitMatchPick(roomId, pieces.body)
       Taro.showToast({
         title: match.matchedToday ? `心有灵犀！连胜 ${match.streak} 天` : '已提交，等 TA 揭晓',

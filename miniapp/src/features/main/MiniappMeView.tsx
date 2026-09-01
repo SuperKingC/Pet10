@@ -6,6 +6,7 @@ import { socialApi, type MiniappNotification } from '../../services/socialApi'
 import { accountApi } from '../../services/accountApi'
 import { clearAccessToken } from '../../services/apiClient'
 import { gmApi } from '../../services/gmApi'
+import { readGmTestMode, writeGmTestMode } from '../../services/gmTestStorage'
 import { showInfo } from '../../services/feedback'
 import { defaultAvatarConfig, parseAvatarConfig, type MiniappAvatarConfig } from '../../domain/avatarConfig'
 import { MiniappAvatarEditor } from './MiniappAvatarEditor'
@@ -48,6 +49,8 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
   const [gmOpen, setGmOpen] = useState(false)
   const [gmCount, setGmCount] = useState(1)
   const [gmBusy, setGmBusy] = useState(false)
+  // GM 本地测试模式开关：纯本地存储，不依赖服务端（services/gmTestStorage）
+  const [gmTestMode, setGmTestMode] = useState(() => readGmTestMode())
   const [deactivateOpen, setDeactivateOpen] = useState(false)
   const [deactivateBusy, setDeactivateBusy] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -193,6 +196,19 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
     }
   }
 
+  // 本地测试模式开关：纯本地生效（onDataChanged 让首页立即重读开关），不走服务端
+  const toggleGmTestMode = () => {
+    const next = !gmTestMode
+    writeGmTestMode(next)
+    setGmTestMode(next)
+    Taro.showToast({
+      title: next ? '已开启：照顾与换装走本地模拟' : '已关闭：恢复服务端真实数据',
+      icon: 'none',
+      duration: 1800
+    })
+    onDataChanged?.()
+  }
+
   const confirmDeactivate = async () => {
     if (deactivateBusy) return
     setDeactivateBusy(true)
@@ -333,7 +349,7 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
           </View>
           <View className="miniapp-gm__divider" />
           <Text className="miniapp-gm__section">小窝调试</Text>
-          <Text className="miniapp-gm__intro">给当前账号的小窝发放照顾道具；衣柜全解锁用于测试，可随时恢复按条件解锁。重新打开衣柜面板即可看到最新解锁状态。</Text>
+          <Text className="miniapp-gm__intro">给当前账号的小窝发放照顾道具；衣柜全解锁用于测试，可随时恢复。重新打开衣柜面板即见最新状态。</Text>
           <View className="miniapp-gm__actions">
             <Button className="miniapp-gm__submit" disabled={gmBusy} onClick={() => void addGmNestItems()}>
               道具各 +9
@@ -345,6 +361,18 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
           <View className="miniapp-gm__actions miniapp-gm__actions--gap">
             <Button className="miniapp-gm__delete" disabled={gmBusy} onClick={() => void setGmWardrobeUnlock(false)}>
               恢复条件解锁
+            </Button>
+          </View>
+          <View className="miniapp-gm__divider" />
+          <Text className="miniapp-gm__section">本地测试模式</Text>
+          <Text className="miniapp-gm__intro">开启后照顾与换装不请求服务端：道具各 99、动作本地回状态，衣服全部可穿、保存在本机，用于自测表现；关闭即恢复真实数据。</Text>
+          <View className="miniapp-gm__actions">
+            <Button
+              className={gmTestMode ? 'miniapp-gm__delete' : 'miniapp-gm__submit'}
+              disabled={gmBusy}
+              onClick={toggleGmTestMode}
+            >
+              {gmTestMode ? '关闭本地测试模式' : '开启本地测试模式'}
             </Button>
           </View>
         </MiniappModal>

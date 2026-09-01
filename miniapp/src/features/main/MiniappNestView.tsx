@@ -5,6 +5,7 @@ import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
 import { NEST_PET_FETCH_MS, NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, NEST_PET_WANDER_MS, nextWanderDelayMs, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
 import { unlockRoom } from '../../domain/xiaoduoliUnlock'
+import { MOCK_WARDROBE_CATALOG, buildMockWardrobeView } from '../../domain/gmTestMode'
 import { PetActionBar } from '../../components/PetActionBar'
 import { PetStatusCard } from '../../components/PetStatusCard'
 import { MiniappContributionBoard } from './MiniappContributionBoard'
@@ -18,6 +19,7 @@ import { socialApi, type MiniappContribution } from '../../services/socialApi'
 import { wardrobeApi } from '../../services/wardrobeApi'
 import { suitAssets } from '../../services/wardrobeSuitAssets'
 import { reconcileStoredUnlock, writeUnlockState } from '../../services/xiaoduoliUnlockStorage'
+import { readTestOutfit } from '../../services/gmTestStorage'
 import { outfitPiecesFromView, type WardrobeView } from '../../domain/wardrobeModel'
 import './MiniappNestView.scss'
 
@@ -37,6 +39,8 @@ interface MiniappNestViewProps {
   onInvitePress?(): void
   /** 底部操作区（反馈文案 + 邀请/解锁按钮），锁定态时渲染进固定层 */
   footer?: ReactNode
+  /** GM 本地测试模式：照顾动作/衣柜走本地模拟，不依赖服务端 */
+  gmTest?: boolean
 }
 
 export function MiniappNestView({
@@ -50,6 +54,7 @@ export function MiniappNestView({
   onJumpFinished,
   onInvitePress,
   footer,
+  gmTest = false,
 }: MiniappNestViewProps) {
   const [contributions, setContributions] = useState<MiniappContribution[]>([])
   const [taskPanelOpen, setTaskPanelOpen] = useState(false)
@@ -120,19 +125,29 @@ export function MiniappNestView({
     return () => { cancelled = true }
   }, [roomId])
 
-  // 衣柜状态（当前套装 + 今日默契）：小窝立绘替换与底部默契卡共用；GET 顺带幂等结算当日默契
+  // 衣柜状态（当前套装 + 今日默契）：小窝立绘替换与底部默契卡共用；GET 顺带幂等结算当日默契。
+  // GM 本地测试模式不发 API 请求：视图与穿戴来自本地模拟与本地持久化；素材仍从 COS 预取
+  // （静态资源与 API 服务无关，取不到时 resolveSuitDisplay 回退原装立绘）
   const [suitAssetVersion, setSuitAssetVersion] = useState(0)
   const refreshWardrobe = useCallback(() => {
+    const prefetchAssets = (keys: string[]) => {
+      void suitAssets.ensureSuitAssets(keys)
+        .then((assets) => { if (Object.keys(assets).length > 0) setSuitAssetVersion((version) => version + 1) })
+    }
+    if (gmTest) {
+      setWardrobeView(buildMockWardrobeView(readTestOutfit()))
+      prefetchAssets(MOCK_WARDROBE_CATALOG.map((item) => item.key))
+      return
+    }
     if (!roomId) return
     void wardrobeApi.get(roomId)
       .then((view) => {
         setWardrobeView(view)
         // 解锁套装静默预取云端素材，取回后触发一次重渲染换上立绘
-        void suitAssets.ensureSuitAssets(view.items.filter((item) => item.unlocked).map((item) => item.key))
-          .then((assets) => { if (Object.keys(assets).length > 0) setSuitAssetVersion((version) => version + 1) })
+        prefetchAssets(view.items.filter((item) => item.unlocked).map((item) => item.key))
       })
       .catch(() => setWardrobeView(null))
-  }, [roomId])
+  }, [roomId, gmTest])
 
   useEffect(() => {
     refreshWardrobe()
@@ -200,7 +215,7 @@ export function MiniappNestView({
           )}
         </View>
 
-        {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} onAction={handlePetAction} />}
+        {sceneMode === 'active' && pet && <PetActionBar roomId={roomId} gmTest={gmTest} onAction={handlePetAction} />}
 
         {sceneMode === 'active' && <MiniappContributionBoard contributions={contributions} names={names} />}
       </View>
@@ -221,6 +236,7 @@ export function MiniappNestView({
         <View className="journal-anniv-overlay">
           <MiniappWardrobePanel
             roomId={roomId}
+            gmTest={gmTest}
             onClose={() => setWardrobePanelOpen(false)}
             onChanged={refreshWardrobe}
           />

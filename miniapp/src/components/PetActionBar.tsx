@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { Image, Text, View } from '@tarojs/components'
 import type { PetAction } from '../domain/types'
 import { ACTION_ITEM, insufficientMessage, type MiniappInventory } from '../domain/nestTaskModel'
+import { MOCK_INVENTORY } from '../domain/gmTestMode'
 import { nestTaskApi } from '../services/nestTaskApi'
 import './PetActionBar.scss'
 
 type Props = {
   roomId: string
+  /** GM 本地测试模式：库存用本地模拟（各 99），不请求服务端 */
+  gmTest?: boolean
   onAction: (action: PetAction) => void
 }
 const actions: Array<[PetAction, string, string]> = [
@@ -22,17 +25,21 @@ const itemIcon = (itemId: string) => require(`../assets/items/item-${itemId}-v5.
 // 道具不再钉在按钮角标上（道具种类会扩展，吃/用/消耗语义各不相同）：
 // 统一收进标题右侧的道具芯片栏，随库存自动增减；0 库存动作只置灰按钮，
 // 不改透明度，点击提示去任务面板；睡觉免费永远可用。
-export function PetActionBar({ roomId, onAction }: Props) {
+export function PetActionBar({ roomId, gmTest = false, onAction }: Props) {
   const [inventory, setInventory] = useState<MiniappInventory | null>(null)
 
   useEffect(() => {
+    if (gmTest) {
+      setInventory(MOCK_INVENTORY)
+      return
+    }
     if (!roomId) return
     let cancelled = false
     void nestTaskApi.inventory(roomId)
       .then((result) => { if (!cancelled) setInventory(result) })
       .catch(() => { if (!cancelled) setInventory({ items: [] }) })
     return () => { cancelled = true }
-  }, [roomId])
+  }, [roomId, gmTest])
 
   const countOf = (action: PetAction) => {
     const itemId = ACTION_ITEM[action]
