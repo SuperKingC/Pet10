@@ -34,7 +34,7 @@ import { MiniappMemoryPanel } from '../../features/main/MiniappMemoryPanel'
 import { MiniappGamesPage } from '../../features/main/MiniappGamesPage'
 import { MiniappGobangPanel } from '../../features/main/MiniappGobangPanel'
 import { MiniappTarotFlow } from '../../features/tarot/MiniappTarotFlow'
-import { getInvitationButtonState, getNestActionButton, shouldShowNestFeedback, type NestSceneMode } from '../../features/main/miniappViewModel'
+import { getInvitationButtonState, getNestActionButton, type NestSceneMode } from '../../features/main/miniappViewModel'
 import './index.scss'
 
 // 确认弹窗顶部的小多利头像（头部裁切版，圆形/大图统一用这张）
@@ -351,10 +351,10 @@ export default function Index() {
   // 小多利一人一只：已在养（任一房间带 pet）时小窝空态邀请入口不再出现
   const hasPetSomewhere = Boolean(context?.rooms.some((room) => room.pet))
 
-  // 小窝底部操作区（反馈 + 邀请/解锁按钮）：锁定/空状态时由 NestView 渲染进固定全屏层
+  // 小窝底部操作区（邀请/解锁按钮）：动作反馈不再以文字提示呈现（贡献榜下方不再出现「四脚朝天…」类文案），
+  // 锁定/空状态时由 NestView 渲染进固定全屏层
   const nestFooter = hasAuthenticatedSession(accessToken) && activeTab === 'nest' ? (
     <>
-      {shouldShowNestFeedback(activeTab, loading, message) && <View className="feedback"><Text>{loading ? '正在同步…' : message}</Text></View>}
       {nestAction === null ? null : nestAction.kind === 'unlock' ? (
         <Button className="share-button" disabled={nestAction.disabled} onClick={() => setBoxPhase('jumping')}>
           {nestAction.label}

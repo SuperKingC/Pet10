@@ -16,7 +16,7 @@ const actions: Array<[PetAction, string, string]> = [
   ['sleep', '睡觉', require('../assets/action-sleep.png')],
 ]
 
-const itemIcon = (itemId: string) => require(`../assets/items/item-${itemId}-v2.png`)
+const itemIcon = (itemId: string) => require(`../assets/items/item-${itemId}-v3.png`)
 
 // 按钮文字已烙在图标图里，不另渲染文本，避免框下出现重复说明。
 // v2 起喂食/玩耍/清洁消耗道具：按钮右上角显示库存角标，0 库存灰置，
