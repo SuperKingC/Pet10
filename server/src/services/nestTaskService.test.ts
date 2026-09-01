@@ -124,6 +124,7 @@ describe('nest task service (preset tasks)', () => {
     expect(await service.consumeForAction(room.id, user.id, 'sleep')).toBeNull()
     expect(ACTION_COST.sleep).toBeUndefined()
     expect(STARTER_POUCH.dog_food).toBeGreaterThan(0)
+    expect(STARTER_POUCH.bone).toBeGreaterThan(0)
   })
 
   it('outsiders cannot list or claim', async () => {

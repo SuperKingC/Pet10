@@ -7,6 +7,7 @@ import {
   getTaskButton,
   groupTasks,
   itemCount,
+  ITEM_NAMES,
   rewardSummary,
   type ItemId,
   type MiniappInventory,
@@ -14,9 +15,9 @@ import {
 } from '../../domain/nestTaskModel'
 import './MiniappNestTaskPanel.scss'
 
-const itemIcon = (itemId: ItemId) => require(`../../assets/items/item-${itemId}-v4.png`)
+const itemIcon = (itemId: ItemId) => require(`../../assets/items/item-${itemId}-v5.png`)
 
-const POCKET_ITEMS: Array<[ItemId, number]> = [['dog_food', 0], ['ball', 0], ['soap', 0]]
+const POCKET_ITEMS: Array<[ItemId, number]> = [['dog_food', 0], ['ball', 0], ['soap', 0], ['bone', 0]]
 
 interface MiniappNestTaskPanelProps {
   roomId: string
@@ -49,7 +50,7 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
     try {
       const result = await nestTaskApi.claim(roomId, task.key)
       const gain = result.grantedItems
-        .map((item) => `${item.itemId === 'dog_food' ? '狗粮' : item.itemId === 'ball' ? '皮球' : '香皂'}×${item.count}`)
+        .map((item) => `${ITEM_NAMES[item.itemId] ?? item.itemId}×${item.count}`)
         .join(' ')
       Taro.showToast({ title: `获得 ${gain}！`, icon: 'none' })
       setBurst(task.key)
@@ -89,6 +90,7 @@ export function MiniappNestTaskPanel({ roomId, onClose }: MiniappNestTaskPanelPr
     dog_food: itemCount(inventory, 'dog_food'),
     ball: itemCount(inventory, 'ball'),
     soap: itemCount(inventory, 'soap'),
+    bone: itemCount(inventory, 'bone'),
   }
   const checkinTask = daily.find((task) => task.key === 'daily_checkin')
 

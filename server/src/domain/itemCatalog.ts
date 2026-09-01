@@ -1,6 +1,6 @@
 import type { NestTaskRepeat, PetAction } from './models.js'
 
-export type ItemId = 'dog_food' | 'ball' | 'soap'
+export type ItemId = 'dog_food' | 'ball' | 'soap' | 'bone'
 
 export interface ItemDef {
   id: ItemId
@@ -18,7 +18,8 @@ export const ACTION_COST: Partial<Record<PetAction, ItemId>> = {
 export const ITEM_CATALOG: Record<ItemId, ItemDef> = {
   dog_food: { id: 'dog_food', name: '狗粮', icon: 'dog_food' },
   ball: { id: 'ball', name: '皮球', icon: 'ball' },
-  soap: { id: 'soap', name: '香皂', icon: 'soap' }
+  soap: { id: 'soap', name: '香皂', icon: 'soap' },
+  bone: { id: 'bone', name: '骨头', icon: 'bone' }
 }
 
 export function isItemId(value: string): value is ItemId {
@@ -29,7 +30,8 @@ export function isItemId(value: string): value is ItemId {
 export const STARTER_POUCH: Record<ItemId, number> = {
   dog_food: 3,
   ball: 2,
-  soap: 2
+  soap: 2,
+  bone: 1
 }
 
 /** 建任务时奖励数量的上限（按周期防刷） */

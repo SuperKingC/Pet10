@@ -49,6 +49,7 @@ describe('nest task model (preset tasks)', () => {
   it('summarizes rewards and insufficient messages in Chinese', () => {
     expect(rewardSummary(task({ rewardItems: [{ itemId: 'dog_food', count: 2 }] }))).toBe('狗粮×2')
     expect(rewardSummary(task({ rewardItems: [{ itemId: 'ball', count: 1 }, { itemId: 'soap', count: 1 }] }))).toBe('皮球×1 + 香皂×1')
+    expect(rewardSummary(task({ rewardItems: [{ itemId: 'bone', count: 2 }] }))).toBe('骨头×2')
     expect(insufficientMessage('feed')).toContain('狗粮')
   })
 

@@ -87,7 +87,7 @@ describe('gm service', () => {
     const counts = Object.fromEntries(
       (await repositories.inventory.listByRoom(room.id)).map((item) => [item.itemId, item.count])
     )
-    expect(counts).toEqual({ dog_food: 9, ball: 9, soap: 9 })
+    expect(counts).toEqual({ dog_food: 9, ball: 9, soap: 9, bone: 9 })
   })
 
   it('toggles the wardrobe gm unlock-all flag on and off', async () => {

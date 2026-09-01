@@ -1,6 +1,6 @@
 /** 系统预设任务（用户只完成不创建）的前端模型，与服务端 nestTaskCatalog/service 同口径 */
 
-export type ItemId = 'dog_food' | 'ball' | 'soap'
+export type ItemId = 'dog_food' | 'ball' | 'soap' | 'bone'
 export type NestTaskScope = 'daily' | 'achievement'
 export type NestTaskMetric = 'checkin' | 'feed' | 'play' | 'clean' | 'sleep' | 'outfit_match'
 
@@ -33,7 +33,8 @@ export const ACTION_ITEM: Partial<Record<'feed' | 'play' | 'clean' | 'sleep', It
 export const ITEM_NAMES: Record<ItemId, string> = {
   dog_food: '狗粮',
   ball: '皮球',
-  soap: '香皂'
+  soap: '香皂',
+  bone: '骨头'
 }
 
 export function itemCount(inventory: MiniappInventory | null, itemId: ItemId): number {
