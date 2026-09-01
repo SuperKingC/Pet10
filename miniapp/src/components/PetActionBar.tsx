@@ -19,8 +19,9 @@ const actions: Array<[PetAction, string, string]> = [
 const itemIcon = (itemId: string) => require(`../assets/items/item-${itemId}-v4.png`)
 
 // 按钮文字已烙在图标图里，不另渲染文本，避免框下出现重复说明。
-// v2 起喂食/玩耍/清洁消耗道具：按钮右上角显示库存角标，0 库存灰置，
-// 点击提示去任务面板；睡觉免费永远可用。
+// 道具不再钉在按钮角标上（道具种类会扩展，吃/用/消耗语义各不相同）：
+// 统一收进标题右侧的道具芯片栏，随库存自动增减；0 库存动作只置灰按钮，
+// 不改透明度，点击提示去任务面板；睡觉免费永远可用。
 export function PetActionBar({ roomId, onAction }: Props) {
   const [inventory, setInventory] = useState<MiniappInventory | null>(null)
 
@@ -40,7 +41,22 @@ export function PetActionBar({ roomId, onAction }: Props) {
   }
 
   return <View className="pet-actions-panel">
-    <Text className="pet-actions-title">照顾小多利</Text>
+    <View className="pet-actions-head">
+      <Text className="pet-actions-title">照顾小多利</Text>
+      {inventory && inventory.items.length > 0 && (
+        <View className="pet-actions-items">
+          {inventory.items.map((item) => (
+            <View
+              key={item.itemId}
+              className={`pet-actions-item${item.count === 0 ? ' pet-actions-item--empty' : ''}`}
+            >
+              <Image className="pet-actions-item-icon" src={itemIcon(item.itemId)} mode="aspectFit" />
+              <Text className="pet-actions-item-count">×{item.count}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
     <View className="pet-actions">
       {actions.map(([action, , icon]) => {
         const count = countOf(action)
@@ -59,12 +75,6 @@ export function PetActionBar({ roomId, onAction }: Props) {
             }}
           >
             <Image src={icon} mode="aspectFit" />
-            {count !== null && (
-              <View className={`pet-action-button__badge${locked ? ' pet-action-button__badge--empty' : ''}`}>
-                <Image className="pet-action-button__badge-icon" src={itemIcon(ACTION_ITEM[action]!)} mode="aspectFit" />
-                <Text className="pet-action-button__badge-count">×{count}</Text>
-              </View>
-            )}
           </View>
         )
       })}

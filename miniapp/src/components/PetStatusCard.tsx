@@ -21,7 +21,7 @@ type Props = {
   /** 小窝行为幕：非站姿时立绘切换对应分镜（素材未就绪保持站姿不切换） */
   act?: NestPetAct
 }
-const roomBackground = require('../assets/room-background-v5.jpg')
+const roomBackground = require('../assets/room-background-v6.jpg')
 // 睡姿/行进幕底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'

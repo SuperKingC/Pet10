@@ -28,7 +28,7 @@ describe('miniapp main layout', () => {
     const meStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappMeView.scss'), 'utf8')
 
     expect(nestStyles).toMatch(/\.miniapp-nest__scene\s*\{[\s\S]*position:\s*relative;/)
-    // 快捷入口整列收进 439px 场景内，不再垂直居中溢出到卡片下方
+    // 快捷入口整列收进 500px 场景内，不再垂直居中溢出到卡片下方
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*position:\s*absolute;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*top:\s*84px;/)
     expect(nestStyles).toMatch(/\.miniapp-nest__shortcuts\s*\{[\s\S]*right:\s*8px;/)
@@ -90,12 +90,12 @@ describe('miniapp main layout', () => {
     expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
-    // 背景 v5 横构图（窗/牌/架/地毯全部在画内，地毯缩为中心椭圆）aspectFill 定高填充；场景 439px；状态条加粗 16rpx
+    // 背景 v6 横构图（窗/牌/架/地毯全部在画内，上下留白已裁）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="aspectFill"')
-    expect(statusCardSource).toContain("require('../assets/room-background-v5.jpg')")
+    expect(statusCardSource).toContain("require('../assets/room-background-v6.jpg')")
     expect(statusCardSource).toContain('xiaoduoliDanmaku')
     expect(statusCardSource).toContain('pet-danmaku')
-    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*439px;/)
+    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*500px;/)
     expect(statusCardStyles).toMatch(/\.pet-card-background\s*\{[\s\S]*height:\s*100%;/)
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
   })

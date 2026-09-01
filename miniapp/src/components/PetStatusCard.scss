@@ -1,9 +1,9 @@
 /* 小窝状态卡：上半场景（背景横幅通栏 + 小多利踩地毯 + 说话飘字 + 名片入口），下半紧凑状态区。
    背景 v5 按 3:2 场景比例 AI 重生成（窗/「Happy Day」牌/矮书架齐全，地毯缩为中心椭圆、四周露地板），
    widthFix 显示高 439rpx = 场景高，严丝合缝无空带无两侧留白；竖版原图放横框时「元素全+不留白+更高」
-   三者不可兼得（需 897rpx 高），439 为不滚动前提下的定案高度；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
+   三者不可兼得（需 897rpx 高），500 为不滚动前提下的高度上限（背景 v6 按此比例生成）；整卡与照顾栏/贡献榜保证小窝一屏不放滚动。 */
 .pet-status-card { overflow: hidden; border-radius: 28px; background: #fffaf6; box-shadow: 0 12px 32px rgba(113,77,38,.12); }
-.pet-card-scene { position: relative; height: 439px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
+.pet-card-scene { position: relative; height: 500px; overflow: hidden; background: linear-gradient(180deg,#ffe9c7,#fff4df); }
 .pet-card-scene::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(255,242,221,.08),rgba(143,91,52,.1)); content: ''; pointer-events: none; }
 /* 背景通栏 aspectFill 定高填充（720×480 素材与 658×439 场景同比例，无裁切）：
    显式 width+height 摆脱 widthFix —— 微信 widthFix 图在兄弟节点 setData 时会重测量导致背景闪动 */
@@ -41,7 +41,7 @@
   30% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-12px) scale(1.08); }
 }
-/* 行进幕（闲逛/叼娃）：走路两帧资产统一画布 234×150（468×300 @2x），脚底贴地毯基线；
+/* 行进幕（闲逛/叼娃）：走路两帧资产统一显示缩到与站姿同比例（62×40px，狗宽与站姿 106rpx 相当），脚底贴地毯基线；
    travel 一镜到底负责路径与转身翻面，hop 叼娃落地后的庆祝蹦跳，bobber 步点颠步+身体轻摇，
    两帧 step-end 交替（腾空/触地 + 尾巴一高一低=边走边摇尾）。分镜总时长与 domain 常量一致：
    闲逛 7s（NEST_PET_WANDER_MS）、叼娃 9s（NEST_PET_FETCH_MS） */
@@ -49,9 +49,9 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 234px;
-  height: 150px;
-  margin-left: -117px;
+  width: 62px;
+  height: 40px;
+  margin-left: -31px;
   opacity: 0;
   transition: opacity .3s ease;
 }
@@ -71,8 +71,8 @@
 .pet-move-stage--wander .pet-move-travel { animation: pet-wander-travel 7s ease-in-out forwards; }
 @keyframes pet-wander-travel {
   0% { transform: translateX(0) scaleX(1); }
-  42% { transform: translateX(48px) scaleX(1); }
-  46% { transform: translateX(48px) scaleX(-1); }
+  42% { transform: translateX(110px) scaleX(1); }
+  46% { transform: translateX(110px) scaleX(-1); }
   92% { transform: translateX(0) scaleX(-1); }
   96%, 100% { transform: translateX(0) scaleX(1); }
 }
@@ -80,35 +80,35 @@
 .pet-move-stage--fetch .pet-move-travel { animation: pet-fetch-travel 9s ease-in-out forwards; }
 @keyframes pet-fetch-travel {
   0% { transform: translateX(0) scaleX(1); opacity: 1; }
-  13% { transform: translateX(-48px) scaleX(1); opacity: 1; }
-  20% { transform: translateX(-118px) scaleX(1); opacity: 0; }
-  26% { transform: translateX(-118px) scaleX(1); opacity: 0; }
-  27% { transform: translateX(-118px) scaleX(-1); opacity: 1; }
+  13% { transform: translateX(-60px) scaleX(1); opacity: 1; }
+  20% { transform: translateX(-170px) scaleX(1); opacity: 0; }
+  26% { transform: translateX(-170px) scaleX(1); opacity: 0; }
+  27% { transform: translateX(-170px) scaleX(-1); opacity: 1; }
   56% { transform: translateX(0) scaleX(-1); opacity: 1; }
   100% { transform: translateX(0) scaleX(-1); opacity: 1; }
 }
 .pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
 @keyframes pet-fetch-hop {
   0%, 58% { transform: translateY(0); }
-  62% { transform: translateY(-24px); }
+  62% { transform: translateY(-12px); }
   65% { transform: translateY(0); }
-  68% { transform: translateY(-9px); }
+  68% { transform: translateY(-5px); }
   71%, 100% { transform: translateY(0); }
 }
 /* 娃娃基位在地板（bottom 2px），叼着时抬到嘴部高度（-40px），回落带抛物线+落地压扁回弹 */
 .pet-move-doll {
   position: absolute;
-  left: 18px;
+  left: 9px;
   bottom: 2px;
-  width: 46px;
-  height: 64px;
+  width: 24px;
+  height: 33px;
   opacity: 0;
 }
 .pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
 @keyframes pet-fetch-doll {
-  0%, 26% { transform: translateY(-40px); opacity: 0; }
-  27% { transform: translateY(-40px); opacity: 1; }
-  55% { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+  0%, 26% { transform: translateY(-20px); opacity: 0; }
+  27% { transform: translateY(-20px); opacity: 1; }
+  55% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
   58% { transform: translateY(-48px) rotate(-12deg); }
   62% { transform: translateY(0) rotate(8deg); }
   65% { transform: translateY(0) rotate(0deg) scaleY(.9); }

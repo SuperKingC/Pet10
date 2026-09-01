@@ -1,23 +1,24 @@
 .pet-actions-panel { margin-top: 14px; padding: 16px 20px; border: 1px solid #e8bd91; border-radius: 22px; background: #fff7e9; }
 .pet-actions-title { color: #a98d7e; font-size: var(--font-size-aux); font-weight: var(--font-weight-medium); }
-.pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 8px; }
-.pet-action-button { position: relative; display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: var(--font-size-aux); }
-/* 只命中主贴片图（直接子级）：道具角标图标若被此规则命中，会按 120×128 铺满盖住按钮 */
-.pet-action-button > image { width: 120px; height: 128px; }
-.pet-action-button--locked image { opacity: .45; filter: grayscale(.6); }
-.pet-action-button__badge {
-  position: absolute;
-  top: -14px;
-  right: -2px;
+/* 标题行：左标题右道具芯片栏；道具种类扩展时自动换行，不挤按钮 */
+.pet-actions-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pet-actions-items { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.pet-actions-item {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 10px 4px 6px;
+  padding: 2px 8px 2px 4px;
   background: #fffdf8;
   border: 1px solid #e8bd91;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(126, 82, 49, .15);
 }
-.pet-action-button__badge--empty { opacity: .75; background: #f3e3d3; border-color: #d9b28c; }
-.pet-action-button__badge-icon { width: 40px; height: 40px; }
-.pet-action-button__badge-count { color: #7a5236; font-size: 22px; font-weight: 600; line-height: 1.1; }
+.pet-actions-item--empty { background: #f3e3d3; border-color: #d9b28c; }
+.pet-actions-item--empty .pet-actions-item-count { color: #b39478; }
+.pet-actions-item-icon { width: 32px; height: 32px; }
+.pet-actions-item-count { color: #7a5236; font-size: 20px; font-weight: 600; line-height: 1.1; }
+.pet-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 8px; }
+.pet-action-button { position: relative; display: flex; flex-direction: column; align-items: center; color: #765c47; font-size: var(--font-size-aux); }
+/* 只命中主贴片图（直接子级）：避免命中其它嵌套图 */
+.pet-action-button > image { width: 120px; height: 128px; }
+/* 0 库存只置灰（不改透明度，保持色彩层次），点击提示去任务面板 */
+.pet-action-button--locked > image { filter: grayscale(1); }
