@@ -119,41 +119,36 @@ export function MiniappWardrobePanel({ roomId, onClose, onChanged }: MiniappWard
           </View>
         )}
       </View>
-      <Text className="wardrobe-panel__caption">给小多利挑一件今日装扮，还能和对方玩「默契换装」。</Text>
-
-      <View className="wardrobe-showcase">
-        <View className="wardrobe-stage">
-          <View className="wardrobe-stage__tape" />
-          <View className="wardrobe-stage__inner">
-            <MiniappOutfitPortrait suitKey={currentItem?.unlocked ? currentKey : 'default'} />
-          </View>
-          <View className="wardrobe-stage__floor" />
-          <View className="wardrobe-stage__spark wardrobe-stage__spark--a" />
-          <View className="wardrobe-stage__spark wardrobe-stage__spark--b" />
-          {!assetReady && currentItem?.unlocked && (
-            <Text className="wardrobe-stage__pending">画稿云端准备中…</Text>
-          )}
-          <View className="wardrobe-stage__name">
-            <Text>{currentItem?.name ?? '原装小多利'}</Text>
-          </View>
+      {/* 试衣间场景：小多利直接站在衣柜内景的地板上（内景大图即舞台，聚光灯/星星/名牌浮层） */}
+      <View className="wardrobe-scene">
+        <View className="wardrobe-scene__portrait">
+          <MiniappOutfitPortrait suitKey={currentItem?.unlocked ? currentKey : 'default'} />
         </View>
+        {!assetReady && currentItem?.unlocked && (
+          <Text className="wardrobe-scene__pending">画稿云端准备中…</Text>
+        )}
+        <View className="wardrobe-scene__name">
+          <Text>{currentItem?.name ?? '原装小多利'}</Text>
+        </View>
+        <View className="wardrobe-scene__spark wardrobe-scene__spark--a" />
+        <View className="wardrobe-scene__spark wardrobe-scene__spark--b" />
+      </View>
 
-        <View className="wardrobe-bubble">
-          <View className="wardrobe-bubble__head">
-            <Text className="wardrobe-bubble__title">今日默契换装</Text>
-            {view && view.match.streak > 0 && (
-              <View className="wardrobe-bubble__flame"><Text>🔥×{view.match.streak}</Text></View>
-            )}
-          </View>
-          <Text className="wardrobe-bubble__summary">{view ? matchSummary(view.match) : '…'}</Text>
+      <View className="wardrobe-match">
+        <View className="wardrobe-match__tail" />
+        <View className="wardrobe-match__head">
+          <Text className="wardrobe-match__title">今日默契换装</Text>
           {view && view.match.streak > 0 && (
-            <View className="wardrobe-bubble__streak-row">
-              <View className="wardrobe-bubble__chip"><Text>当前 {view.match.streak} 天</Text></View>
-              <View className="wardrobe-bubble__chip wardrobe-bubble__chip--ghost"><Text>最高 {view.match.bestStreak} 天</Text></View>
-            </View>
+            <View className="wardrobe-match__flame"><Text>🔥×{view.match.streak}</Text></View>
           )}
-          <View className="wardrobe-bubble__tail" />
         </View>
+        <Text className="wardrobe-match__summary">{view ? matchSummary(view.match) : '…'}</Text>
+        {view && view.match.streak > 0 && (
+          <View className="wardrobe-match__streak-row">
+            <View className="wardrobe-match__chip"><Text>当前 {view.match.streak} 天</Text></View>
+            <View className="wardrobe-match__chip wardrobe-match__chip--ghost"><Text>最高 {view.match.bestStreak} 天</Text></View>
+          </View>
+        )}
       </View>
 
       <View className="wardrobe-rack">

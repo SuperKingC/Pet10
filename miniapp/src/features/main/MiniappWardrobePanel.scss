@@ -21,8 +21,8 @@
 @keyframes wardrobe-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wardrobe-drift { from { transform: scale(1); } to { transform: scale(1.035); } }
 .wardrobe-panel__top,
-.wardrobe-panel__caption,
-.wardrobe-showcase,
+.wardrobe-scene,
+.wardrobe-match,
 .wardrobe-rack,
 .wardrobe-panel__hint,
 .wardrobe-panel__actions { position: relative; z-index: 1; }
@@ -48,52 +48,55 @@
   background: linear-gradient(135deg, #f7b35c, #e88f3c);
   box-shadow: 0 0 6rpx rgba(232, 143, 60, .55);
 }
-.wardrobe-panel__caption { display: block; padding-bottom: 18rpx; color: #a89489; font-size: var(--font-size-aux); }
-
-/* —— 试衣间舞台 + 默契气泡 —— */
-.wardrobe-showcase { flex-shrink: 0; display: flex; align-items: stretch; gap: 22rpx; padding: 6rpx 6rpx 24rpx; }
-
-.wardrobe-stage {
+/* —— 试衣间场景：内景大图即舞台，小多利站在地板上（立绘放大居中，聚光灯+地板影+星星+名牌浮层） —— */
+.wardrobe-panel__backdrop-fade {
+  position: absolute;
+  top: 330rpx;
+  left: 0;
+  width: 100%;
+  height: 130rpx;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(253, 243, 227, 0) 0%, rgba(253, 243, 227, .6) 55%, #fdf3e3 100%);
+}
+.wardrobe-scene {
   position: relative;
   flex-shrink: 0;
-  width: 296rpx;
-  padding: 26rpx 20rpx 18rpx;
-  border-radius: 8rpx;
-  background: linear-gradient(180deg, #fffdf8 0%, #fff6e6 62%, #fdeeda 100%);
-  box-shadow: 0 14rpx 30rpx rgba(84, 55, 28, .18);
-  transform: rotate(-1.6deg);
+  height: 434rpx;
+  margin-top: -8rpx;
 }
 /* 顶光聚光锥：呼吸明暗，罩在立绘上方 */
-.wardrobe-stage::before {
+.wardrobe-scene::before {
   content: '';
   position: absolute;
-  top: -30rpx;
+  top: -26rpx;
   left: 50%;
-  width: 320rpx;
-  height: 250rpx;
-  margin-left: -160rpx;
-  background: linear-gradient(180deg, rgba(255, 226, 160, .55), rgba(255, 226, 160, 0) 80%);
+  width: 360rpx;
+  height: 290rpx;
+  margin-left: -180rpx;
+  background: linear-gradient(180deg, rgba(255, 226, 160, .5), rgba(255, 226, 160, 0) 80%);
   clip-path: polygon(40% 0, 60% 0, 97% 100%, 3% 100%);
   pointer-events: none;
   animation: wardrobe-spotlight 3.4s ease-in-out infinite;
 }
 @keyframes wardrobe-spotlight { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
-.wardrobe-stage__tape {
+/* 地板椭圆光影 */
+.wardrobe-scene::after {
+  content: '';
   position: absolute;
-  top: -14rpx;
+  bottom: 26rpx;
   left: 50%;
-  width: 132rpx;
-  height: 34rpx;
-  margin-left: -66rpx;
-  border-radius: 6rpx;
-  background: linear-gradient(180deg, rgba(247, 214, 156, .9), rgba(240, 196, 122, .85));
-  box-shadow: 0 4rpx 8rpx rgba(84, 55, 28, .14);
-  transform: rotate(-3deg);
+  width: 220rpx;
+  height: 30rpx;
+  margin-left: -110rpx;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(122, 85, 49, .3), transparent 70%);
 }
-.wardrobe-stage__inner {
+.wardrobe-scene__portrait {
   position: relative;
-  width: 100%;
-  height: 328rpx;
+  width: 300rpx;
+  height: 366rpx;
+  margin: 0 auto;
   animation: wardrobe-breathe 3.4s ease-in-out infinite;
   transform-origin: 50% 100%;
 }
@@ -101,23 +104,44 @@
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.014); }
 }
-.wardrobe-stage__floor {
-  width: 176rpx;
-  height: 22rpx;
-  margin: -10rpx auto 0;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(122, 85, 49, .28), transparent 70%);
+.wardrobe-scene__pending {
+  position: absolute;
+  left: 50%;
+  bottom: 96rpx;
+  transform: translateX(-50%);
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 253, 248, .88);
+  color: #a89489;
+  font-size: var(--font-size-aux);
+  white-space: nowrap;
 }
-/* 拍立得旁的两颗闪烁星星 */
-.wardrobe-stage__spark {
+.wardrobe-scene__name {
+  position: absolute;
+  left: 50%;
+  bottom: 8rpx;
+  transform: translateX(-50%);
+  padding: 6rpx 30rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #f7b35c, #e88f3c);
+  color: #fff;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 6rpx 14rpx rgba(232, 143, 60, .32);
+  white-space: nowrap;
+  animation: wardrobe-name-pop .4s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+@keyframes wardrobe-name-pop { from { opacity: 0; transform: translateX(-50%) scale(.8); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+/* 立绘旁的两颗闪烁星星 */
+.wardrobe-scene__spark {
   position: absolute;
   width: 22rpx;
   height: 22rpx;
   pointer-events: none;
   animation: wardrobe-sparkle 2.8s ease-in-out infinite;
 }
-.wardrobe-stage__spark::before,
-.wardrobe-stage__spark::after {
+.wardrobe-scene__spark::before,
+.wardrobe-scene__spark::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -128,71 +152,59 @@
   border-radius: 4rpx;
   background: #f0b25e;
 }
-.wardrobe-stage__spark::after { transform: rotate(90deg); }
-.wardrobe-stage__spark--a { top: -4rpx; right: -6rpx; }
-.wardrobe-stage__spark--b { bottom: 70rpx; left: -10rpx; transform: scale(.78); animation-delay: 1.4s; }
+.wardrobe-scene__spark::after { transform: rotate(90deg); }
+.wardrobe-scene__spark--a { top: 26rpx; left: calc(50% + 168rpx); }
+.wardrobe-scene__spark--b { bottom: 128rpx; left: calc(50% - 186rpx); transform: scale(.78); animation-delay: 1.4s; }
 @keyframes wardrobe-sparkle { 0%, 100% { opacity: .2; } 50% { opacity: .95; } }
-.wardrobe-stage__pending { position: absolute; left: 0; right: 0; bottom: 74rpx; color: #bda893; font-size: 22rpx; text-align: center; }
-.wardrobe-stage__name {
-  position: relative;
-  margin: 8rpx auto 0;
-  width: fit-content;
-  padding: 6rpx 26rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #f7b35c, #e88f3c);
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: var(--font-weight-bold);
-  box-shadow: 0 6rpx 14rpx rgba(232, 143, 60, .32);
-}
 
-.wardrobe-bubble {
+/* —— 默契条：全宽细卡接在场景下方，尾巴指向小多利 —— */
+.wardrobe-match {
   position: relative;
-  flex: 1;
-  min-width: 0;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
-  padding: 22rpx 24rpx;
+  gap: 8rpx;
+  margin: 10rpx 4rpx 16rpx;
+  padding: 18rpx 24rpx 16rpx;
   border-radius: 24rpx;
-  background: rgba(255, 253, 248, .96);
+  background: rgba(255, 253, 248, .97);
   border: 2rpx dashed #e8cfa8;
   box-shadow: 0 8rpx 20rpx rgba(84, 55, 28, .1);
   animation: wardrobe-pop .34s cubic-bezier(.34, 1.56, .64, 1) both;
 }
-@keyframes wardrobe-pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
-.wardrobe-bubble__tail {
+@keyframes wardrobe-pop { from { opacity: 0; transform: scale(.96) translateY(10rpx); } to { opacity: 1; transform: none; } }
+.wardrobe-match__tail {
   position: absolute;
-  left: -14rpx;
-  top: 56rpx;
-  width: 24rpx;
-  height: 24rpx;
+  top: -12rpx;
+  left: 120rpx;
+  width: 22rpx;
+  height: 22rpx;
   background: #fffdf8;
   border-left: 2rpx dashed #e8cfa8;
-  border-bottom: 2rpx dashed #e8cfa8;
+  border-top: 2rpx dashed #e8cfa8;
   transform: rotate(45deg);
 }
-.wardrobe-bubble__head { display: flex; align-items: center; gap: 12rpx; }
-.wardrobe-bubble__title { color: #382b23; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
-.wardrobe-bubble__flame {
+.wardrobe-match__head { display: flex; align-items: center; gap: 12rpx; }
+.wardrobe-match__title { color: #382b23; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
+.wardrobe-match__flame {
   padding: 2rpx 14rpx;
   border-radius: 999rpx;
   background: #fdeeda;
   color: #d0763c;
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: var(--font-weight-bold);
 }
-.wardrobe-bubble__summary { color: #6b543f; font-size: var(--font-size-secondary); line-height: 1.55; }
-.wardrobe-bubble__streak-row { display: flex; gap: 12rpx; }
-.wardrobe-bubble__chip {
+.wardrobe-match__summary { color: #6b543f; font-size: var(--font-size-secondary); line-height: 1.55; }
+.wardrobe-match__streak-row { display: flex; gap: 12rpx; }
+.wardrobe-match__chip {
   padding: 4rpx 16rpx;
   border-radius: 999rpx;
   background: linear-gradient(135deg, #f7b35c, #e88f3c);
   color: #fff;
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: var(--font-weight-bold);
 }
-.wardrobe-bubble__chip--ghost { background: #f1e5d3; color: #8a6f5c; }
+.wardrobe-match__chip--ghost { background: #f1e5d3; color: #8a6f5c; }
 
 /* —— 挂杆（木纹贴图横切 + 两端圆头球）+ 衣架钩服装网格 —— */
 .wardrobe-rack { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -378,10 +390,10 @@
   .wardrobe-grid__skeleton { animation: none; }
   .wardrobe-card { animation: none; }
   .wardrobe-card--selected { animation: none; transform: translateY(-4rpx); }
-  .wardrobe-stage { transform: none; }
-  .wardrobe-stage::before { animation: none; opacity: .7; }
-  .wardrobe-stage__inner { animation: none; }
-  .wardrobe-stage__spark { animation: none; opacity: .6; }
-  .wardrobe-bubble { animation: none; }
+  .wardrobe-scene::before { animation: none; opacity: .7; }
+  .wardrobe-scene__portrait { animation: none; }
+  .wardrobe-scene__spark { animation: none; opacity: .6; }
+  .wardrobe-scene__name { animation: none; }
+  .wardrobe-match { animation: none; }
   .wardrobe-panel__backdrop { animation: wardrobe-fade .32s ease-out both; }
 }
