@@ -52,9 +52,9 @@ const DANMAKU_TOP_RANGE = [8, 38] as const
 
 export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOpenCard, act = 'stand' }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
-  // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 119px 盒一致（立绘特写构图头占比高，渲染过大读作巨大狗头，0.7× 缩档坐在地毯中央）
+  // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 170px 盒一致
   // 注意内联宽度必须显式 rpx：Taro 只转换样式表里的 px，内联 px 会按设备像素渲染（=双倍 rpx），立绘撑出盒底被场景裁脚
-  const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 119) : null
+  const outfitWidth = outfitPieces ? suitDisplayWidth(outfitPieces.body, 170) : null
   const [speechIndex, setSpeechIndex] = useState(0)
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
