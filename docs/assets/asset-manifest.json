@@ -440,11 +440,6 @@
       "purpose": "Anniversary balloon sticker icon, hand-drawn rose balloon with brown outline, string and sparkle accents, transparent background"
     },
     {
-      "path": "miniapp/src/assets/room-background.jpg",
-      "category": "runtime-feature",
-      "purpose": "Nest pet scene background, center-cropped to the 345:470 display ratio at 720x981 mozjpeg q80"
-    },
-    {
       "path": "miniapp/src/assets/login-background.jpg",
       "category": "runtime-feature",
       "purpose": "Full-screen login page background: hand-painted gouache morning living room with Xiaoduoli waving on a rug; quiet bottom third reserved for the login CTA"
@@ -668,6 +663,16 @@
       "path": "design-assets/wardrobe/gen-bag-v1.png",
       "category": "source-only",
       "purpose": "AI-generated standalone crossbody bag source illustration (2048², white bg)"
+    },
+    {
+      "path": "miniapp/src/assets/room-background-v2.jpg",
+      "category": "runtime-feature",
+      "purpose": "Nest pet-card room backdrop (window left, shelf right), AI-regenerated at the exact card aspect from the previous room background, mozjpeg q78"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-nest-room-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated nest room backdrop source (2496x1664), regenerated from the previous room background for the correct card aspect"
     }
   ]
 }

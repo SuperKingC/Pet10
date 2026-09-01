@@ -188,7 +188,7 @@ npm run build:weapp --prefix miniapp
 | `action-play.png` | 449×474 | 22 KB | 玩耍动作 |
 | `action-clean.png` | 448×474 | 24 KB | 清洁动作 |
 | `action-sleep.png` | 447×474 | 22 KB | 睡觉动作 |
-| `room-background.jpg` | 720×981 | 76 KB | 小窝宠物场景背景（按显示比例 345:470 裁切） |
+| `room-background-v2.jpg` | 750×437 | 45 KB | 小窝宠物场景背景（AI 按容器比例 686:400 重生成，内容与原背景一致；旧 720×981 版被 aspectFill 裁切弃用） |
 | `navigation/game.png` | 256×256 | 12 KB | 爪印菜单游戏入口图标 |
 | `navigation/tarot.png` | 256×256 | 16 KB | 爪印菜单塔罗占卜入口图标 |
 | `navigation/gobang.png` | 256×256 | 18 KB | 游戏中心五子棋入口图标 |

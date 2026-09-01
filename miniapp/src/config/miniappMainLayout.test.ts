@@ -90,9 +90,9 @@ describe('miniapp main layout', () => {
     expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
-    // 背景通栏 widthFix 顶部对齐裁掉底部；场景 560px；状态条加粗 16rpx
+    // 背景通栏 widthFix 顶部对齐裁掉底部；场景 400px（贡献榜免滚动可见）；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="widthFix"')
-    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*560px;/)
+    expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*400px;/)
     expect(statusCardStyles).toMatch(/\.pet-card-background\s*\{[\s\S]*top:\s*0;/)
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
   })

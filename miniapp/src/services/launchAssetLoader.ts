@@ -15,7 +15,7 @@ export const loginAssets: LaunchAsset[] = [
 
 export const authenticatedLaunchAssets: LaunchAsset[] = [
   ...loginAssets,
-  { id: 'room-background', label: '小窝场景', src: require('../assets/room-background.jpg') },
+  { id: 'room-background', label: '小窝场景', src: require('../assets/room-background-v2.jpg') },
   { id: 'tab-bar-background', label: '导航', src: require('../assets/navigation/tab-bar-background.png') },
   { id: 'nest', label: '导航', src: require('../assets/navigation/nest.png') },
   { id: 'journal', label: '导航', src: require('../assets/navigation/journal.png') },
