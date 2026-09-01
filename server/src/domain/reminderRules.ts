@@ -41,16 +41,39 @@ function reminderContent(text: string) {
   return text.replace(/^.*?提醒我/, '').trim().replace(/[。！!]+$/, '')
 }
 
+const CN_NUM: Record<string, number> = {
+  一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9
+}
+
+/** 中文数量词解析：支持阿拉伯数字、一~九/两、十/十五/二十、半 */
+function parseCnAmount(token: string): number | null {
+  if (/^\d+$/.test(token)) return Number(token)
+  if (token === '半') return 0.5
+  if (token === '十') return 10
+  const tensMatch = token.match(/^([一二两三四五六七八九])?十([一二三四五六七八九])?$/)
+  if (tensMatch) {
+    const tens = (tensMatch[1] ? CN_NUM[tensMatch[1]] : 1) * 10
+    const ones = tensMatch[2] ? CN_NUM[tensMatch[2]] : 0
+    return tens + ones
+  }
+  return CN_NUM[token] ?? null
+}
+
 export function parseReminderRequest(text: string, now = new Date()): ParsedReminder | null {
   if (!text.includes('提醒我')) return null
-  const content = reminderContent(text)
-  if (!content) return null
+  const contentBase = reminderContent(text)
+  if (!contentBase) return null
 
-  const relative = text.match(/(\d+)\s*(分钟|小时)后提醒我/)
+  // 相对时间：一分钟后 / 3小时之后 / 半小时后提醒我（时间短语在「提醒我」前后都支持）
+  const relative = text.match(/([0-9一二两三四五六七八九十半]+)\s*个?\s*(分钟|小时)\s*(?:之|以)?后/)
   if (relative) {
-    const amount = Number(relative[1])
-    const unitMs = relative[2] === '小时' ? 60 * 60 * 1000 : 60 * 1000
-    return { content, scheduleType: 'once', nextRunAt: new Date(now.getTime() + amount * unitMs) }
+    const amount = parseCnAmount(relative[1])
+    if (amount && amount > 0) {
+      const unitMs = relative[2] === '小时' ? 60 * 60 * 1000 : 60 * 1000
+      const content = contentBase.split(relative[0]).join('').replace(/^[，,、_\-\s]+/, '').trim()
+      if (!content) return null
+      return { content, scheduleType: 'once', nextRunAt: new Date(now.getTime() + Math.round(amount * unitMs)) }
+    }
   }
 
   const time = parseHour(text)
@@ -59,7 +82,7 @@ export function parseReminderRequest(text: string, now = new Date()): ParsedRemi
 
   if (text.includes('明天')) {
     return {
-      content,
+      content: contentBase,
       scheduleType: 'once',
       nextRunAt: toUtc(parts.year, parts.month, parts.day + 1, time.hour, time.minute)
     }
@@ -68,7 +91,7 @@ export function parseReminderRequest(text: string, now = new Date()): ParsedRemi
   if (text.includes('每天')) {
     let nextRunAt = toUtc(parts.year, parts.month, parts.day, time.hour, time.minute)
     if (nextRunAt <= now) nextRunAt = toUtc(parts.year, parts.month, parts.day + 1, time.hour, time.minute)
-    return { content, scheduleType: 'daily', nextRunAt }
+    return { content: contentBase, scheduleType: 'daily', nextRunAt }
   }
 
   const weekly = text.match(/每周([一二三四五六日天])/)
@@ -80,7 +103,7 @@ export function parseReminderRequest(text: string, now = new Date()): ParsedRemi
       daysAhead += 7
       nextRunAt = toUtc(parts.year, parts.month, parts.day + daysAhead, time.hour, time.minute)
     }
-    return { content, scheduleType: 'weekly', weekday, nextRunAt }
+    return { content: contentBase, scheduleType: 'weekly', weekday, nextRunAt }
   }
 
   return null

@@ -12,6 +12,35 @@ describe('parseReminderRequest', () => {
     })
   })
 
+  it('parses relative reminders with chinese numerals and variants', () => {
+    expect(parseReminderRequest('一分钟后提醒我更新', now)).toEqual({
+      content: '更新',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T02:01:00.000Z')
+    })
+    expect(parseReminderRequest('能不能一分钟之后提醒我更新', now)).toEqual({
+      content: '更新',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T02:01:00.000Z')
+    })
+    expect(parseReminderRequest('半小时后提醒我喝水', now)).toEqual({
+      content: '喝水',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T02:30:00.000Z')
+    })
+    // 时间短语在「提醒我」后面：内容里要去掉时间短语
+    expect(parseReminderRequest('提醒我一分钟后关火', now)).toEqual({
+      content: '关火',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T02:01:00.000Z')
+    })
+    expect(parseReminderRequest('两个小时之后提醒我取快递', now)).toEqual({
+      content: '取快递',
+      scheduleType: 'once',
+      nextRunAt: new Date('2026-08-12T04:00:00.000Z')
+    })
+  })
+
   it('parses tomorrow morning in Asia/Shanghai', () => {
     expect(parseReminderRequest('明天早上8点提醒我带伞', now)).toEqual({
       content: '带伞',

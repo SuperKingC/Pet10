@@ -20,8 +20,8 @@ const CHAT_SILENCE_HOURS = 24
 const LONELY_CHAT_SILENCE_HOURS = 12
 /** 上一条宠物消息距今必须超过该小时数（天然冷却，重启不丢） */
 const PET_MESSAGE_GUARD_HOURS = 12
-/** 沉默 48 小时发一条朋友圈 */
-const MOMENT_SILENCE_HOURS = 48
+/** 沉默满 24 小时发一条朋友圈（主人一天没来，它就自己去小多利圈碎碎念） */
+const MOMENT_SILENCE_HOURS = 24
 /** 上一条宠物帖子距今必须超过该小时数 */
 const PET_POST_GUARD_HOURS = 24
 
