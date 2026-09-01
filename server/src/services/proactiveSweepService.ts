@@ -1,5 +1,7 @@
 import type { Room } from '../domain/models.js'
 import type { PetMoodKey } from '../domain/petMoodRules.js'
+import type { MomentTopic } from '../domain/momentRules.js'
+import { pickMomentTopic, MOMENT_SILENCE_HOURS } from '../domain/momentRules.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 import type { AiService } from './aiService.js'
 import type { createPetMoodService } from './petMoodService.js'
@@ -20,10 +22,7 @@ const CHAT_SILENCE_HOURS = 24
 const LONELY_CHAT_SILENCE_HOURS = 12
 /** 上一条宠物消息距今必须超过该小时数（天然冷却，重启不丢） */
 const PET_MESSAGE_GUARD_HOURS = 12
-/** 沉默满 24 小时发一条朋友圈（主人一天没来，它就自己去小多利圈碎碎念） */
-const MOMENT_SILENCE_HOURS = 24
-/** 上一条宠物帖子距今必须超过该小时数 */
-const PET_POST_GUARD_HOURS = 24
+/** 发圈触发阈值/节流/时段档规则统一在 domain/momentRules */
 
 const PROACTIVE_FALLBACKS: Record<PetMoodKey, string[]> = {
   happy: [
@@ -48,11 +47,30 @@ const PROACTIVE_FALLBACKS: Record<PetMoodKey, string[]> = {
   ]
 }
 
-const MOMENT_FALLBACKS = [
-  '汪，今天也有好好吃饭好好睡觉，就是有点想你们。',
-  '小多利把玩具咬出了三个洞，等你们回来验收！',
-  '阳光正好，小多利睡了个四脚朝天的午觉，满分！'
-]
+/** 发圈主题 → 模板兜底（AI 不可用时用；memory 帖无模板，失败即跳过） */
+const MOMENT_FALLBACKS: Record<MomentTopic, string[]> = {
+  missing: [
+    '汪，今天也有好好吃饭好好睡觉，就是有点想你们。',
+    '趴在门口等了好久，你们什么时候回来呀。'
+  ],
+  morning: [
+    '早安！小多利刚睡醒，毛都翘成一朵花了～',
+    '梦见一根超级大的骨头，醒来口水把窝垫弄湿了一块…'
+  ],
+  noon: [
+    '午饭时间到！今天也是准时干饭的乖小狗！',
+    '晒着太阳打了个大哈欠，午觉走起～'
+  ],
+  afternoon: [
+    '下午的太阳正正好，玩具又被我咬出三个洞，满分！',
+    '刚刚对着窗外汪了两声，感觉发泄多了。'
+  ],
+  night: [
+    '打哈欠…今晚也要四脚朝天睡觉，晚安汪～',
+    '睡前偷偷把一块小饼干藏进了窝里，嘘，别告诉谁。'
+  ],
+  memory: []
+}
 
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)]
@@ -65,6 +83,7 @@ export function createProactiveSweepService({
   emit,
   mood,
   now = () => new Date(),
+  random = Math.random,
   logError = (message, error) => console.error(message, error)
 }: ProactiveSweepDependencies) {
   async function getOwners(roomId: string, lastUserSenderId?: string): Promise<string[]> {
@@ -122,21 +141,27 @@ export function createProactiveSweepService({
       return
     }
 
-    if (silenceHours <= MOMENT_SILENCE_HOURS) return
-    const recentPosts = await repositories.posts.listByRoom(room.id, 5)
-    const lastPetPostAt = recentPosts.find((post) => post.authorType === 'pet')?.createdAt
-    const petPostIdleHours = lastPetPostAt
-      ? (nowMs - lastPetPostAt.getTime()) / 3_600_000
-      : Number.POSITIVE_INFINITY
-    if (petPostIdleHours <= PET_POST_GUARD_HOURS) return
+    // 发圈判定：主人沉默想念帖 或 生活时段日常帖；日上限/最小间隔/时段档统一在 momentRules
+    const petPosts = (await repositories.posts.listByRoom(room.id, 20))
+      .filter((post) => post.authorType === 'pet')
+    const topic = pickMomentTopic({
+      now: now(),
+      petPostTimes: petPosts.map((post) => post.createdAt),
+      userSilenceHours: silenceHours,
+      random: random()
+    })
+    if (!topic) return
     const memories = await repositories.memories.listByRoom(room.id)
     const composed = await ai.composeMomentPost?.({
-      trigger: 'silence',
+      trigger: topic === 'missing' ? 'silence' : 'daily',
+      topic,
       moodLine: moodContext?.state.toneHint,
       silenceHours,
       memories: memories.map((memory) => memory.text)
     })
-    const text = composed ?? pick(MOMENT_FALLBACKS)
+    const fallbacks = MOMENT_FALLBACKS[topic]
+    const text = composed ?? (fallbacks.length > 0 ? pick(fallbacks) : null)
+    if (!text) return
     const post = await repositories.posts.createAsPet(room.id, text)
     emit(room.id, 'post.new', post)
   }

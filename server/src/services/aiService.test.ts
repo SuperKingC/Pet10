@@ -197,6 +197,30 @@ describe('AiService intelligent replies', () => {
     await expect(ai.composeReminderAnnouncement!('关火')).resolves.toBe('汪！锅还在烧呢，快去关火！')
   })
 
+  it('composes moment posts with a topic-specific scene', async () => {
+    const fetchImpl = createFetchReply('早饭想吃三根火腿肠！')
+    const ai = createAiService(config, { fetchImpl })
+
+    await expect(ai.composeMomentPost!({
+      trigger: 'daily',
+      topic: 'morning',
+      moodLine: '你现在心情很好'
+    })).resolves.toBe('早饭想吃三根火腿肠！')
+
+    const body = String(fetchImpl.mock.calls[0][1]?.body)
+    expect(body).toContain('早安')
+    expect(body).toContain('你现在心情很好')
+  })
+
+  it('composes missing-you moments with the silence duration', async () => {
+    const fetchImpl = createFetchReply('汪，有点想你们。')
+    const ai = createAiService(config, { fetchImpl })
+
+    await ai.composeMomentPost!({ trigger: 'silence', topic: 'missing', silenceHours: 30 })
+
+    expect(String(fetchImpl.mock.calls[0][1]?.body)).toContain('30 小时')
+  })
+
   it('returns null for reminder helpers when AI is disabled', async () => {
     const ai = createAiService({ ...config, enabled: false, apiKey: undefined }, { fetchImpl: createFetchReply('x') })
     await expect(ai.parseReminderFallback!('提醒我喂猫', new Date())).resolves.toBeNull()

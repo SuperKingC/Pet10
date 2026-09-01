@@ -56,7 +56,7 @@ describe('proactive sweep service', () => {
     currentTime = T0
     const ai = baseAi()
     const mood = createPetMoodService({ repositories, now: () => new Date(currentTime) })
-    const sweep = createProactiveSweepService({ repositories, ai, emit: vi.fn(), mood, now: () => new Date(currentTime) })
+    const sweep = createProactiveSweepService({ repositories, ai, emit: vi.fn(), mood, now: () => new Date(currentTime), random: () => 0.99 })
 
     await sweep.runOnce()
 
@@ -146,11 +146,53 @@ describe('proactive sweep service', () => {
     currentTime = T0
     const ai = baseAi()
     const mood = createPetMoodService({ repositories, now: () => new Date(currentTime) })
-    const sweep = createProactiveSweepService({ repositories, ai, emit: vi.fn(), mood, now: () => new Date(currentTime) })
+    const sweep = createProactiveSweepService({ repositories, ai, emit: vi.fn(), mood, now: () => new Date(currentTime), random: () => 0.99 })
 
     await sweep.runOnce()
 
     expect(ai.composeProactiveMessage).not.toHaveBeenCalled()
+    expect(ai.composeMomentPost).not.toHaveBeenCalled()
+  })
+
+  it('posts a daily-life moment during a life slot like a real user', async () => {
+    // 上海时间 07:30（morning 档）：主人 2 小时前还说过话，掷骰通过 → 发早安日常帖
+    let currentTime = Date.UTC(2026, 8, 1, 5, 30) // 上海 05:30 建房
+    const { repositories, first, room } = await createPairRoom(() => new Date(currentTime))
+    await repositories.messages.create({ roomId: room.id, senderType: 'user', senderId: first.id, kind: 'text', text: '我先去洗漱' })
+    currentTime = Date.UTC(2026, 8, 1, 23, 30) // 上海 07:30
+    const ai = baseAi()
+    const emit = vi.fn()
+    const mood = createPetMoodService({ repositories, now: () => new Date(currentTime) })
+    const sweep = createProactiveSweepService({ repositories, ai, emit, mood, now: () => new Date(currentTime), random: () => 0 })
+
+    await sweep.runOnce()
+
+    expect(ai.composeProactiveMessage).not.toHaveBeenCalled()
+    expect(ai.composeMomentPost).toHaveBeenCalledWith(expect.objectContaining({
+      trigger: 'daily',
+      topic: 'morning'
+    }))
+    expect(emit).toHaveBeenCalledWith(room.id, 'post.new', expect.objectContaining({
+      authorType: 'pet',
+      text: '想你们的一天。'
+    }))
+
+    // 该档今天已发过：不再重复发
+    await sweep.runOnce()
+    expect(ai.composeMomentPost).toHaveBeenCalledTimes(1)
+  })
+
+  it('skips the slot moment when the dice fail', async () => {
+    let currentTime = Date.UTC(2026, 8, 1, 5, 30)
+    const { repositories, first, room } = await createPairRoom(() => new Date(currentTime))
+    await repositories.messages.create({ roomId: room.id, senderType: 'user', senderId: first.id, kind: 'text', text: '我先去洗漱' })
+    currentTime = Date.UTC(2026, 8, 1, 23, 30) // 上海 07:30 morning 档
+    const ai = baseAi()
+    const mood = createPetMoodService({ repositories, now: () => new Date(currentTime) })
+    const sweep = createProactiveSweepService({ repositories, ai, emit: vi.fn(), mood, now: () => new Date(currentTime), random: () => 0.99 })
+
+    await sweep.runOnce()
+
     expect(ai.composeMomentPost).not.toHaveBeenCalled()
   })
 })

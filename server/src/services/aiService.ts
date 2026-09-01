@@ -1,5 +1,6 @@
 import type { ChatMessage, Pet, PetMemory, User } from '../domain/models.js'
 import type { ParsedReminder } from '../domain/reminderRules.js'
+import type { MomentTopic } from '../domain/momentRules.js'
 import type { ServerConfig } from '../config.js'
 import { buildSystemPrompt } from '../ai/persona.js'
 import { routeAiQuestion } from './aiRouting.js'
@@ -25,8 +26,10 @@ export interface ComposeProactiveInput {
 }
 
 export interface ComposeMomentInput {
-  /** silence=被冷落太久；memory=从刚记住的聊天要点发散 */
-  trigger: 'silence' | 'memory'
+  /** silence=主人冷清太久；daily=时段日常帖；memory=从刚记住的聊天要点发散 */
+  trigger: 'silence' | 'daily' | 'memory'
+  /** 发圈主题方向（silence→missing；daily→对应时段），避免每条都像「想你们」 */
+  topic?: MomentTopic
   memoryText?: string
   moodLine?: string
   silenceHours?: number
@@ -64,6 +67,16 @@ const unavailableSearch: SearchService = {
   async search() {
     return { status: 'unavailable', results: [] }
   }
+}
+
+/** 发圈主题 → 情景设定（喂给文案 prompt 的第一句事实） */
+const MOMENT_TOPIC_SCENES: Record<MomentTopic, (input: ComposeMomentInput) => string> = {
+  missing: (input) => `主人们已经大约 ${Math.max(1, Math.round(input.silenceHours ?? 0))} 小时没和你说话了，你有点想他们。`,
+  morning: () => '你刚睡醒，正在发一条早安动态（可以提梦、炸毛、想吃早饭）。',
+  noon: () => '到午饭时间了，写一条干饭或晒太阳打盹的动态。',
+  afternoon: () => '下午玩耍时间，写一条玩玩具/晒太阳/对着窗外发呆的动态。',
+  night: () => '到睡觉时间了，写一条晚安动态（打哈欠、四脚朝天睡姿、藏小饼干之类的）。',
+  memory: (input) => `刚刚你们的聊天里发生了件值得记的小事：${input.memoryText ?? ''}`
 }
 
 function formatSearchEvidence(results: SearchResult[]): string {
@@ -219,15 +232,16 @@ export function createAiService(config: ServerConfig['ai'], dependencies: AiServ
 
     async composeMomentPost(input) {
       if (!config.enabled || !config.apiKey) return null
-      const situation = input.trigger === 'memory'
-        ? `刚刚你们的聊天里发生了件值得记的小事：${input.memoryText ?? ''}`
-        : `主人们已经大约 ${Math.max(1, Math.round(input.silenceHours ?? 0))} 小时没和你说话了，你有点想他们。`
+      const topic: MomentTopic = input.trigger === 'memory'
+        ? 'memory'
+        : input.topic ?? 'missing'
+      const situation = MOMENT_TOPIC_SCENES[topic](input)
       const prompt = [
         '你是小多利，一只调皮的小狗幼崽，要给自己的「小多利圈」发一条动态（像朋友圈）。',
         situation,
         input.moodLine ? `你现在的心情：${input.moodLine}` : '你现在心情平和。',
-        input.memories && input.memories.length > 0 ? `你们之间的一些旧事：${input.memories.slice(0, 5).join('；')}` : '',
-        '写一条不超过 40 个字的动态文案：小狗口吻、天真调皮，可以带颜文字；不要引号、不要话题标签、不要解释，只输出文案本身。'
+        input.memories && input.memories.length > 0 ? `你们之间的一些旧事（可以自然呼应，不要硬凑）：${input.memories.slice(0, 5).join('；')}` : '',
+        '写一条不超过 40 个字的动态文案：小狗口吻、天真调皮、有生活画面感，可以带颜文字；不要引号、不要话题标签、不要解释，只输出文案本身。'
       ].filter(Boolean).join('\n')
       try {
         const raw = await chat([{ role: 'user', content: prompt }])

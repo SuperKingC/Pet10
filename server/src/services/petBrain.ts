@@ -4,6 +4,7 @@ import type { AiService } from './aiService.js'
 import type { PetActionOutcome } from './petService.js'
 import type { createReminderService } from './reminderService.js'
 import type { createPetMoodService } from './petMoodService.js'
+import { canPostMoment } from '../domain/momentRules.js'
 import { computeMoodState } from '../domain/petMoodRules.js'
 
 interface PetBrainDependencies {
@@ -220,20 +221,18 @@ export function createPetBrain({ repositories, ai, emit, reminders, mood, logErr
     }
   }
 
-  /** 刚记住的聊天要点：小概率（每房每天至多一条）发散成一条小多利圈动态，AI 不可用就跳过 */
+  /** 刚记住的聊天要点：小概率（与 sweep 发圈共用日上限/最小间隔节流）发散成一条小多利圈动态，AI 不可用就跳过 */
   async function maybePostMomentFromMemory(roomId: string, memory: PetMemory) {
     if (!ai.composeMomentPost) return
     if (Math.random() >= MEMORY_MOMENT_CHANCE) return
     try {
-      const recentPosts = await repositories.posts.listByRoom(roomId, 5)
-      const today = new Date().toISOString().slice(0, 10)
-      const postedToday = recentPosts.some((post) =>
-        post.authorType === 'pet' && post.createdAt.toISOString().slice(0, 10) === today
-      )
-      if (postedToday) return
+      const petPosts = (await repositories.posts.listByRoom(roomId, 20))
+        .filter((post) => post.authorType === 'pet')
+      if (!canPostMoment(petPosts.map((post) => post.createdAt), new Date())) return
       const moodContext = await mood?.getMoodContext(roomId)
       const text = await ai.composeMomentPost({
         trigger: 'memory',
+        topic: 'memory',
         memoryText: memory.text,
         moodLine: moodContext?.state.toneHint
       })
