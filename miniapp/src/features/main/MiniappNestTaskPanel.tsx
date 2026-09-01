@@ -14,7 +14,7 @@ import {
 } from '../../domain/nestTaskModel'
 import './MiniappNestTaskPanel.scss'
 
-const itemIcon = (itemId: ItemId) => require(`../../assets/items/item-${itemId}-v1.png`)
+const itemIcon = (itemId: ItemId) => require(`../../assets/items/item-${itemId}-v4.png`)
 
 const POCKET_ITEMS: Array<[ItemId, number]> = [['dog_food', 0], ['ball', 0], ['soap', 0]]
 
