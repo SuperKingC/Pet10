@@ -27,6 +27,8 @@ const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
 const DOLL_FILE = 'xiaoduoli-doll-v1.png'
+// 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
+const CARD_ENTRY_FILE = 'pet-card-entry-v1.png'
 // ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
 // 失败时回退 <Image> 直连 URL：image 组件不受 downloadFile 域名校验约束，本地静态服务/COS 均可直接显示
 const actAssetUrl = (file: string) => `${resolveAssetBaseUrl()}/wardrobe/${file}`
@@ -59,6 +61,8 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
   const [moveAssets, setMoveAssets] = useState<{ frameA: string; frameB: string; doll: string } | null>(null)
+  const [cardEntrySrc, setCardEntrySrc] = useState<string | null>(null)
+  const [cardEntryLoaded, setCardEntryLoaded] = useState(false)
   const sleeping = act === 'sleep'
   const moving = act === 'wander' || act === 'fetch'
   // 三张行进素材齐了才播分镜；没就绪时保持站姿，动作静默跳过
@@ -69,6 +73,14 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
     void suitAssets.ensureFile(SLEEP_POSE_FILE)
       .then((path) => { if (!cancelled) setSleepSrc(path ?? actAssetUrl(SLEEP_POSE_FILE)) })
       .catch(() => { if (!cancelled) setSleepSrc(actAssetUrl(SLEEP_POSE_FILE)) })
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    void suitAssets.ensureFile(CARD_ENTRY_FILE)
+      .then((path) => { if (!cancelled) setCardEntrySrc(path ?? actAssetUrl(CARD_ENTRY_FILE)) })
+      .catch(() => { if (!cancelled) setCardEntrySrc(actAssetUrl(CARD_ENTRY_FILE)) })
     return () => { cancelled = true }
   }, [])
 
@@ -209,8 +221,17 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, onOp
           hoverStayTime={80}
           onClick={onOpenCard}
         >
+          {/* 名片小卡图加载后淡入盖过兜底卡面；名字整段叠在卡面右侧留白，不再有「名片」二字 */}
+          {cardEntrySrc && (
+            <Image
+              className={`pet-name-card__art${cardEntryLoaded ? ' pet-name-card__art--on' : ''}`}
+              src={cardEntrySrc}
+              mode="aspectFill"
+              fadeIn={false}
+              onLoad={() => setCardEntryLoaded(true)}
+            />
+          )}
           <Text className="pet-name-card__name">{pet.name}</Text>
-          <Text className="pet-name-card__hint">名片</Text>
         </View>
         {onOpenMemories && (
           <View className="pet-memory-button" onClick={onOpenMemories}>

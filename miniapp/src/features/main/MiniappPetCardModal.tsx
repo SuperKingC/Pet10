@@ -2,11 +2,15 @@ import { Image, Text, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import type { PetMood, PetState } from '../../domain/types'
 import { MiniappModal } from '../../components/MiniappModal'
+import { resolveAssetBaseUrl } from '../../services/assetBaseUrl'
 import { suitAssets } from '../../services/wardrobeSuitAssets'
+import { splitProfileLine, XIAODUOLI_PROFILE_LINES } from './xiaoduoliProfile'
 import './MiniappPetCardModal.scss'
 
-// 名片底图走 COS 按需下载（水彩大图不占包体），加载失败回退同色系渐变卡面
-const PET_CARD_FILE = 'pet-card-v1.jpg'
+// 名片底图走 COS 按需下载（竖版水彩大图不占包体），加载失败回退同色系渐变卡面；
+// ensureFile 的下载链路在部分环境会失败（系统代理拦截 localhost 等），回退 image 直连 URL
+const PET_CARD_FILE = 'pet-card-v2.jpg'
+const petCardUrl = () => `${resolveAssetBaseUrl()}/wardrobe/${PET_CARD_FILE}`
 
 const moodTitles: Record<PetMood, string> = {
   happy: '开心果',
@@ -23,7 +27,7 @@ type Props = {
   onClose(): void
 }
 
-/** 小多利名片弹窗：水彩名片底图 + 右侧留白区排版真实资料，点小窝里的名牌打开。 */
+/** 小多利名片弹窗：竖版名片卡面（上立绘下档案），档案全文案参考「关于小多利」整行展示不省略。 */
 export function MiniappPetCardModal({ open, pet, owners, onClose }: Props) {
   const [cardSrc, setCardSrc] = useState<string | null>(null)
 
@@ -31,8 +35,8 @@ export function MiniappPetCardModal({ open, pet, owners, onClose }: Props) {
     if (!open || cardSrc) return
     let cancelled = false
     void suitAssets.ensureFile(PET_CARD_FILE)
-      .then((path) => { if (!cancelled && path) setCardSrc(path) })
-      .catch(() => undefined)
+      .then((path) => { if (!cancelled) setCardSrc(path ?? petCardUrl()) })
+      .catch(() => { if (!cancelled) setCardSrc(petCardUrl()) })
     return () => { cancelled = true }
   }, [open, cardSrc])
 
@@ -49,24 +53,27 @@ export function MiniappPetCardModal({ open, pet, owners, onClose }: Props) {
               <Text className="pet-card__name">{pet.name}</Text>
               <Text className="pet-card__level">Lv.{pet.level}</Text>
             </View>
+            {/* 服务端心情引擎的动态文案优先（含被冷落推导），缺省退回本地昵称 */}
+            <Text className="pet-card__mood">今天的心情：{pet.moodCaption ?? moodTitles[pet.moodLabel]}</Text>
             <View className="pet-card__divider" />
-            <View className="pet-card__field">
-              <Text className="pet-card__label">今天的心情</Text>
-              {/* 服务端心情引擎的动态文案优先（含被冷落推导），缺省退回本地昵称 */}
-              <Text className="pet-card__value">{pet.moodCaption ?? moodTitles[pet.moodLabel]}</Text>
+            {XIAODUOLI_PROFILE_LINES.map((line) => {
+              const { label, content } = splitProfileLine(line)
+              return (
+                <Text className="pet-card__line" key={line}>
+                  {label && <Text className="pet-card__line-label">{label}</Text>}
+                  {content}
+                </Text>
+              )
+            })}
+            <View className="pet-card__footer">
+              <Text className="pet-card__line pet-card__owners">
+                <Text className="pet-card__line-label">铲屎官：</Text>
+                {ownerLine}
+              </Text>
+              <Text className="pet-card__signature">汪！很高兴认识你们</Text>
             </View>
-            <View className="pet-card__field">
-              <Text className="pet-card__label">品种</Text>
-              <Text className="pet-card__value">全球限定一只的小狗</Text>
-            </View>
-            <View className="pet-card__field">
-              <Text className="pet-card__label">铲屎官</Text>
-              <Text className="pet-card__value pet-card__value--owners">{ownerLine}</Text>
-            </View>
-            <Text className="pet-card__signature">汪！很高兴认识你们</Text>
           </View>
         </View>
-        <Text className="pet-card__hint">小多利独一无二的身份名片</Text>
       </View>
     </MiniappModal>
   )

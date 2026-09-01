@@ -81,15 +81,29 @@ describe('miniapp main layout', () => {
   it('drops the outfit match card and opens the pet card modal from the scene', () => {
     const nestSource = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappNestView.tsx'), 'utf8')
     const petCardSource = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappPetCardModal.tsx'), 'utf8')
+    const petCardStyles = fs.readFileSync(path.join(root, 'features', 'main', 'MiniappPetCardModal.scss'), 'utf8')
     const statusCardSource = fs.readFileSync(path.join(root, 'components', 'PetStatusCard.tsx'), 'utf8')
     const statusCardStyles = fs.readFileSync(path.join(root, 'components', 'PetStatusCard.scss'), 'utf8')
 
     // 今日默契换装栏从小窝移除（入口收进衣柜面板），名片弹窗接在场景名牌上
     expect(nestSource).not.toContain('MiniappOutfitMatchCard')
     expect(nestSource).toContain('MiniappPetCardModal')
-    expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
+    expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v2.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
+    // 入口是生成的名片小卡图（COS），不再渲染「名片」二字提示
+    expect(statusCardSource).toContain("const CARD_ENTRY_FILE = 'pet-card-entry-v1.png'")
+    expect(statusCardSource).not.toContain('pet-name-card__hint')
+    expect(statusCardSource).not.toContain('>名片<')
+    // 名片档案文案与「我的 → 关于小多利」共用 xiaoduoliProfile，全文案整行展示、禁省略号截断
+    const profileSource = fs.readFileSync(path.join(root, 'features', 'main', 'xiaoduoliProfile.ts'), 'utf8')
+    expect(profileSource).toContain('外貌：没人知道我是什么品种。长得有点像柯基，只是腿短了点。')
+    expect(profileSource).toContain('性格：大部分时候老实巴交，很喜欢笑。遇到莫名其妙的事，会皱着眉头斜眼看人。')
+    expect(profileSource).toContain('爱好：喜欢出去玩，喜欢吃东西。')
+    expect(profileSource).toContain('工作经验：等妈妈回家。全年无休，从不迟到，多次获得“第一个冲到门口”奖。')
+    expect(petCardSource).toContain('XIAODUOLI_PROFILE_LINES.map')
+    expect(petCardStyles).not.toContain('text-overflow')
+    expect(petCardStyles).not.toContain('white-space: nowrap')
     // 背景 v11 横构图（窗比 v10 略大、牌/柜略小、地毯居中靠前）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="aspectFill"')
     expect(statusCardSource).toContain("require('../assets/room-background-v11.jpg')")
