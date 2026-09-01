@@ -8,11 +8,11 @@
 /* 背景通栏 aspectFill 定高填充（720×480 素材与 658×439 场景同比例，无裁切）：
    显式 width+height 摆脱 widthFix —— 微信 widthFix 图在兄弟节点 setData 时会重测量导致背景闪动 */
 .pet-card-background { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* 小多利居中坐在居中椭圆地毯上：v7 背景地毯缩小（渲染后约 y385..475、中心距底约 70），
-   立绘 120×192、脚底 bottom 60 落在地毯中央偏前，四周留出地毯边缘读作「坐在垫子上」
-   （106/212 时代的「巨大」判定是内联 px 双倍渲染的历史误判；用户实测阶梯 74 小→106 偏小→120 合适） */
-.pet-avatar-image { position: absolute; bottom: 60px; left: 50%; z-index: 2; width: 120px; height: 192px; transform: translateX(-50%); }
-/* 睡姿：睡觉动作后站姿与四脚朝天 COS 姿态图（272×155 = 480×274 随 120 站姿同比例）交叉淡入 300ms；
+/* 小多利居中坐在居中椭圆地毯上：v8 背景窗加高元素放大、地毯靠前（渲染后约 y399..494、中心距底约 57），
+   立绘 140×225、脚底 bottom 50 落在地毯中央偏前，四周留出地毯边缘读作「坐在垫子上」
+   （尺寸阶梯：212/148 内联 px 双倍渲染误判→74 小→106 偏小→120 偏小→140 合适） */
+.pet-avatar-image { position: absolute; bottom: 50px; left: 50%; z-index: 2; width: 140px; height: 225px; transform: translateX(-50%); }
+/* 睡姿：睡觉动作后站姿与四脚朝天 COS 姿态图（319×182 = 480×274 随 140 站姿同比例）交叉淡入 300ms；
    睡姿图未就绪时保持站姿，躺姿随盒底落在地毯中央，肚皮呼吸以底边为轴不离地 */
 .pet-avatar-stand { position: absolute; inset: 0; transition: opacity .3s ease; }
 .pet-avatar-stand--hidden { opacity: 0; }
@@ -20,8 +20,8 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 272px;
-  height: 155px;
+  width: 319px;
+  height: 182px;
   opacity: 0;
   transform: translateX(-50%);
   transform-origin: 50% 100%;
@@ -43,7 +43,7 @@
   30% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-12px) scale(1.08); }
 }
-/* 行进幕（闲逛/叼娃）：走路两帧资产统一显示缩到与站姿同比例（70×45px，随站姿 120rpx 同比例），脚底随盒底落在地毯中央；
+/* 行进幕（闲逛/叼娃）：走路两帧资产统一显示缩到与站姿同比例（82×53px，随站姿 140rpx 同比例），脚底随盒底落在地毯中央；
    travel 一镜到底负责路径与转身翻面，hop 叼娃落地后的庆祝蹦跳，bobber 步点颠步+身体轻摇，
    两帧 step-end 交替（腾空/触地 + 尾巴一高一低=边走边摇尾）。分镜总时长与 domain 常量一致：
    闲逛 7s（NEST_PET_WANDER_MS）、叼娃 9s（NEST_PET_FETCH_MS） */
@@ -51,9 +51,9 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 70px;
-  height: 45px;
-  margin-left: -35px;
+  width: 82px;
+  height: 53px;
+  margin-left: -41px;
   opacity: 0;
   transition: opacity .3s ease;
 }
@@ -67,7 +67,7 @@
 .pet-move-bobber { animation: pet-move-bob .42s ease-in-out infinite; }
 @keyframes pet-move-bob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-3px) rotate(-1.2deg); }
+  50% { transform: translateY(-4px) rotate(-1.2deg); }
 }
 /* 闲逛：中心→右缘（狗几乎占满场景宽，走到鼻尖将触边即折返）→翻面走回中心 */
 .pet-move-stage--wander .pet-move-travel { animation: pet-wander-travel 7s ease-in-out forwards; }
@@ -92,26 +92,26 @@
 .pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 9s ease-in-out forwards; }
 @keyframes pet-fetch-hop {
   0%, 58% { transform: translateY(0); }
-  62% { transform: translateY(-14px); }
+  62% { transform: translateY(-16px); }
   65% { transform: translateY(0); }
-  68% { transform: translateY(-6px); }
+  68% { transform: translateY(-7px); }
   71%, 100% { transform: translateY(0); }
 }
-/* 娃娃基位在地毯上（bottom 2px），叼着时抬到嘴部高度（-23px），回落带抛物线+落地压扁回弹 */
+/* 娃娃基位在地毯上（bottom 2px），叼着时抬到嘴部高度（-27px），回落带抛物线+落地压扁回弹 */
 .pet-move-doll {
   position: absolute;
-  left: 10px;
+  left: 12px;
   bottom: 2px;
-  width: 27px;
-  height: 37px;
+  width: 32px;
+  height: 43px;
   opacity: 0;
 }
 .pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 9s ease-in-out forwards; }
 @keyframes pet-fetch-doll {
-  0%, 26% { transform: translateY(-23px); opacity: 0; }
-  27% { transform: translateY(-23px); opacity: 1; }
-  55% { transform: translateY(-23px) rotate(0deg); opacity: 1; }
-  58% { transform: translateY(-54px) rotate(-12deg); }
+  0%, 26% { transform: translateY(-27px); opacity: 0; }
+  27% { transform: translateY(-27px); opacity: 1; }
+  55% { transform: translateY(-27px) rotate(0deg); opacity: 1; }
+  58% { transform: translateY(-63px) rotate(-12deg); }
   62% { transform: translateY(0) rotate(8deg); }
   65% { transform: translateY(0) rotate(0deg) scaleY(.9); }
   68% { transform: translateY(0) rotate(0deg) scaleY(1); }
@@ -143,12 +143,12 @@
 .pet-name-card__name { color: #5e3b1d; font-size: var(--font-size-card-title); font-weight: var(--font-weight-bold); }
 .pet-name-card__hint { color: #b08d67; font-size: 20rpx; letter-spacing: 2rpx; }
 
-/* 小多利说话飘字：单行、悬在头顶上方（top 150：v7 牌子底渲染后约 133，留出净空不挡牌子；
-   狗头顶 248，气泡底约 204 仍读作「狗在说话」），
+/* 小多利说话飘字：单行、悬在头顶上方（top 140：v8 牌子底渲染后约 98 净空充足；
+   狗头顶 225，气泡底约 194 仍读作「狗在说话」），
    气泡常驻不重挂载只换字，杜绝背景/服饰闪动 */
 .pet-speech {
   position: absolute;
-  top: 150px;
+  top: 140px;
   left: 50%;
   z-index: 3;
   max-width: 88%;

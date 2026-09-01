@@ -90,17 +90,16 @@ describe('miniapp main layout', () => {
     expect(petCardSource).toContain("const PET_CARD_FILE = 'pet-card-v1.jpg'")
     expect(statusCardSource).toContain('onOpenCard')
     expect(statusCardSource).toContain('pet-name-card')
-    // 背景 v7 横构图（牌子挂中上偏右避开气泡、地毯缩小）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
+    // 背景 v8 横构图（窗加高减少上方留白、牌子右上避开气泡、地毯靠前）aspectFill 定高填充；场景 500px；状态条加粗 16rpx
     expect(statusCardSource).toContain('mode="aspectFill"')
-    expect(statusCardSource).toContain("require('../assets/room-background-v7.jpg')")
+    expect(statusCardSource).toContain("require('../assets/room-background-v8.jpg')")
     expect(statusCardSource).toContain('xiaoduoliDanmaku')
     expect(statusCardSource).toContain('pet-danmaku')
     expect(statusCardStyles).toMatch(/\.pet-card-scene\s*\{[\s\S]*height:\s*500px;/)
     expect(statusCardStyles).toMatch(/\.pet-card-background\s*\{[\s\S]*height:\s*100%;/)
-    // 立绘 120×192 坐在地毯上：脚底 bottom 60 落在地毯中央偏前（v7 地毯渲染后约 y385..475）
-    // （106/212 曾被判「巨大」是内联 px 双倍渲染的误判；用户实测阶梯 74 小→106 偏小→120 合适）
-    expect(statusCardStyles).toMatch(/\.pet-avatar-image\s*\{[^}]*bottom:\s*60px;[^}]*width:\s*120px;[^}]*height:\s*192px;/)
-    expect(statusCardSource).toContain('suitDisplayWidth(outfitPieces.body, 192)')
+    // 立绘 140×225 坐在地毯上：脚底 bottom 50 随 v8 地毯靠前落位（地毯渲染后约 y399..494）
+    expect(statusCardStyles).toMatch(/\.pet-avatar-image\s*\{[^}]*bottom:\s*50px;[^}]*width:\s*140px;[^}]*height:\s*225px;/)
+    expect(statusCardSource).toContain('suitDisplayWidth(outfitPieces.body, 225)')
     // flow 内联宽度必须显式 rpx：Taro pxtransform 不转换内联样式，写成 px 会在真机按设备像素渲染（立绘放大一倍撑出盒底）
     expect(statusCardSource).toContain('`${outfitWidth}rpx`')
     expect(statusCardStyles).toMatch(/\.experience-track,\s*\.status-track\s*\{[\s\S]*height:\s*16rpx;/)
