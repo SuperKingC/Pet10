@@ -3,14 +3,22 @@
 // 去底策略沿用 make-photo-wall-decor.mjs 的 solid 模式：四边洪水填充近白背景 +
 // 封闭近白保护（奶白骨身/球面条纹等内部浅色保持不透明）+ 贴边软 alpha 反解。
 // 运行：node miniapp/tools/make-item-icons-v5.mjs
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, rm } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import sharp from 'sharp'
 
 const root = path.resolve(import.meta.dirname, '../..')
 const srcDir = path.join(root, 'design-assets/nest')
 const outDir = path.join(root, 'miniapp/src/assets/items')
-const ITEMS = ['dog_food', 'ball', 'soap', 'bone']
+// v6：皮球去球面星星/爱心贴片与旁侧点缀、骨头去蝴蝶结与旁侧点缀（用户反馈），狗粮/香皂沿用 v5 源图只换文件名防缓存
+const OUT_VERSION = 'v6'
+const SOURCE_MAP = {
+  dog_food: 'item-dog-food-v5-source.jpg',
+  ball: 'item-ball-v6-source.jpg',
+  soap: 'item-soap-v5-source.jpg',
+  bone: 'item-bone-v6-source.jpg'
+}
 // 72px = 任务面板口袋槽 72rpx 的 2x（照顾栏芯片 32px 只有 2.25x 富余）；80px 一轮实测超出主包红线
 const SIZE = 72
 const PAD = 8
@@ -135,10 +143,18 @@ async function tinify(buffer, keys) {
 const tinifyKeys = await loadTinifyKeys()
 if (tinifyKeys.length === 0) process.stdout.write('提示：.env 无 TINIFY key，跳过 TinyPNG（仅 PNG8）\n')
 
-for (const name of ITEMS) {
-  // 源图文件名用连字符（item-dog-food-v5-source.jpg），出件用道具 id 下划线（item-dog_food-v5.png）
-  // 2K PNG 源图首次运行时已转 2048 宽 JPEG 归档，重跑（调 SIZE 等）直接读 JPEG
-  const srcFile = path.join(srcDir, `item-${name.replace(/_/g, '-')}-v5-source.jpg`)
+for (const [name, sourceFile] of Object.entries(SOURCE_MAP)) {
+  // 出件用道具 id 下划线（item-dog_food-v6.png）；新 2K PNG 源图先转 2048 宽 JPEG 归档，历史源图直接读已归档 JPEG
+  let srcFile = path.join(srcDir, sourceFile)
+  const srcPng = path.join(srcDir, sourceFile.replace(/\.jpg$/, '.png'))
+  if (existsSync(srcPng)) {
+    const jpeg = await sharp(srcPng).resize({ width: 2048, withoutEnlargement: true }).jpeg({ quality: 78, mozjpeg: true }).toBuffer()
+    await writeFile(srcFile, jpeg)
+    await rm(srcPng)
+  } else if (!existsSync(srcFile)) {
+    process.stdout.write(`跳过 ${name}：缺源图 ${sourceFile}\n`)
+    continue
+  }
   const { data, info } = await sharp(srcFile).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const W = info.width, H = info.height
   const bg = floodBackground(data, W, H)
@@ -153,7 +169,7 @@ for (const name of ITEMS) {
     const shrunk = await tinify(png, tinifyKeys)
     if (shrunk) png = shrunk
   }
-  const outFile = path.join(outDir, `item-${name}-v5.png`)
+  const outFile = path.join(outDir, `item-${name}-${OUT_VERSION}.png`)
   await writeFile(outFile, png)
-  process.stdout.write(`${path.relative(root, outFile)} ${png.length}B (source ${path.basename(srcFile)}, box ${box.width}x${box.height})\n`)
+  process.stdout.write(`${path.relative(root, outFile)} ${png.length}B (source ${sourceFile}, box ${box.width}x${box.height})\n`)
 }

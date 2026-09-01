@@ -19,7 +19,7 @@ const actions: Array<[PetAction, string, string]> = [
   ['sleep', '睡觉', require('../assets/action-sleep.png')],
 ]
 
-const itemIcon = (itemId: string) => require(`../assets/items/item-${itemId}-v5.png`)
+const itemIcon = (itemId: string) => require(`../assets/items/item-${itemId}-v6.png`)
 
 // 按钮文字已烙在图标图里，不另渲染文本，避免框下出现重复说明。
 // 道具不再钉在按钮角标上（道具种类会扩展，吃/用/消耗语义各不相同）：
