@@ -231,7 +231,7 @@
 .status-item { min-width: 0; }
 
 /* 弹幕：b 站式横向匀速漂过（右缘外 → 左缘外），暖棕字 + 奶白光晕保证浅色墙面上可读，
-   出画后由定时器移除 */
+   出画后由定时器移除；fill-mode backwards 让连发错峰（animation-delay 期间）保持起点在右缘外不露馅 */
 .pet-danmaku {
   position: absolute;
   left: 0;
@@ -242,7 +242,7 @@
   white-space: nowrap;
   pointer-events: none;
   text-shadow: 0 0 8rpx rgba(255, 250, 240, .95), 0 0 3rpx rgba(255, 250, 240, .9), 0 2rpx 3rpx rgba(255, 250, 240, .8);
-  animation: pet-danmaku-drift linear;
+  animation: pet-danmaku-drift linear backwards;
 }
 @keyframes pet-danmaku-drift {
   /* 起点：右缘外（场景宽 658 + 余量）；终点：完全漂出左缘 */

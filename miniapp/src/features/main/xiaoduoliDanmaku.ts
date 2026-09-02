@@ -5,11 +5,15 @@ type DanmakuPet = Pick<PetState, 'hunger' | 'mood' | 'energy' | 'health' | 'mood
 /** 弹幕计划：所有状态都飘（需求告急/低落时降频并换专属文案），只是频率和语气不同 */
 export interface DanmakuPlan {
   intervalMs: number
-  burst: number
 }
 
 /** 同屏弹幕上限：超过后等旧弹幕漂出再补，避免糊满背景 */
-export const DANMAKU_MAX_CONCURRENT = 5
+export const DANMAKU_MAX_CONCURRENT = 10
+
+/** 照顾动作（喂食/玩耍等）刷新状态后的连发条数：整屏弹幕流庆祝 */
+export const ACTION_BURST = 10
+/** 连发流相邻两条的起漂间隔（ms），错峰避免十条挤在同一起点 */
+export const ACTION_BURST_STAGGER_MS = 350
 
 // 激动档弹幕：心情引擎 happy 档或数值心情很高时，像 b 站弹幕一样高频飘
 const excitedPool = [
@@ -65,17 +69,18 @@ function lowNeedsKind(pet: DanmakuPet): 'hungry' | 'tired' | 'sick' | 'sleepy' |
 
 /**
  * 弹幕触发规则：任何状态都飘，情绪决定频率与语气——
- * 激动（心情引擎 happy 档或 mood ≥ 75）7s 一条、状态刷新连发 3 条；
+ * 激动（心情引擎 happy 档或 mood ≥ 75）7s 一条；
  * 平稳（content 或 mood ≥ 45）12s 一条；需求告急（饿/累/病/困）10s 一条抱怨文案；
  * 心情引擎低落档（bored/sulky/angry）14s 一条小脾气。
+ * 照顾动作刷新状态时另按 ACTION_BURST 连发弹幕流。
  */
 export function getDanmakuPlan(pet: DanmakuPet): DanmakuPlan {
   if (pet.moodState === 'bored' || pet.moodState === 'sulky' || pet.moodState === 'angry') {
-    return { intervalMs: 14000, burst: 1 }
+    return { intervalMs: 14000 }
   }
-  if (lowNeedsKind(pet)) return { intervalMs: 10000, burst: 1 }
-  if (pet.moodState === 'happy' || pet.mood >= 75) return { intervalMs: 7000, burst: 3 }
-  return { intervalMs: 12000, burst: 1 }
+  if (lowNeedsKind(pet)) return { intervalMs: 10000 }
+  if (pet.moodState === 'happy' || pet.mood >= 75) return { intervalMs: 7000 }
+  return { intervalMs: 12000 }
 }
 
 /** 按当前情绪选弹幕文案：激动/平稳/需求告急/低落各有专属池；index 驱动轮播 */

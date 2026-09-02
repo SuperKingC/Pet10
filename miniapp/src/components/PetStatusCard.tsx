@@ -4,7 +4,7 @@ import type { PetState } from '../domain/types'
 import { suitDisplayWidth, type OutfitPieces } from '../domain/wardrobeModel'
 import { type NestPetAct } from '../domain/nestPetAct'
 import { MiniappOutfitPortrait } from '../features/main/MiniappOutfitPortrait'
-import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
+import { ACTION_BURST, ACTION_BURST_STAGGER_MS, DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from '../features/main/xiaoduoliDanmaku'
 import { suitAssets } from '../services/wardrobeSuitAssets'
 import { resolveAssetBaseUrl } from '../services/assetBaseUrl'
 import './PetStatusCard.scss'
@@ -47,6 +47,8 @@ interface DanmakuItem {
   top: number
   /** 漂过整个场景的耗时（秒） */
   duration: number
+  /** 起漂延迟（秒）：连发流错峰用，0 = 立即 */
+  delay: number
 }
 
 /** 弹幕横幅在场景上半部漂浮（避开小多利头顶以下区域） */
@@ -136,7 +138,7 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
     removeTimersRef.current = []
   }, [])
 
-  const spawnDanmaku = useCallback((count: number) => {
+  const spawnDanmaku = useCallback((count: number, staggerMs = 0) => {
     if (count <= 0) return
     const items: DanmakuItem[] = []
     for (let i = 0; i < count; i++) {
@@ -146,25 +148,27 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
         text: pickDanmakuText(pet, danmakuIndexRef.current++),
         top: DANMAKU_TOP_RANGE[0] + ((id * 53) % (DANMAKU_TOP_RANGE[1] - DANMAKU_TOP_RANGE[0])),
         duration: 6 + (id % 4),
+        delay: staggerMs > 0 ? (i * staggerMs) / 1000 : 0,
       }
       removeTimersRef.current.push(setTimeout(() => {
         setDanmaku((current) => current.filter((entry) => entry.id !== id))
-      }, item.duration * 1000 + 100))
+      }, item.delay * 1000 + item.duration * 1000 + 100))
       items.push(item)
     }
     setDanmaku((current) => [...current, ...items])
   }, [pet])
 
-  // 状态刷新（动作后服务端返回新 pet）→ 连发庆祝弹幕
+  // 状态刷新（照顾按钮动作后返回新 pet）→ 10 条错峰弹幕流庆祝
   useEffect(() => {
     if (lastPetRef.current === pet) return
     lastPetRef.current = pet
-    spawnDanmaku(getDanmakuPlan(pet).burst)
+    spawnDanmaku(ACTION_BURST, ACTION_BURST_STAGGER_MS)
   }, [pet, spawnDanmaku])
 
-  // 周期弹幕：按情绪档位定频率；睡觉时不飘弹幕，只留 Zzz；首条 2s 内出现让用户立刻看到
+  // 周期弹幕：按情绪档位定频率（plan.active 死判断已修——此前周期弹幕从未触发，只有动作连发在飘）；
+  // 睡觉时不飘弹幕只留 Zzz；首条 2s 内出现让用户立刻看到
   useEffect(() => {
-    if (!plan.active || sleeping) return
+    if (sleeping) return
     const first = setTimeout(() => spawnDanmaku(1), 2000)
     const timer = setInterval(() => spawnDanmaku(1), plan.intervalMs)
     return () => { clearTimeout(first); clearInterval(timer) }
@@ -178,7 +182,7 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
           <Text
             key={item.id}
             className="pet-danmaku"
-            style={{ top: `${item.top}%`, animationDuration: `${item.duration}s` }}
+            style={{ top: `${item.top}%`, animationDuration: `${item.duration}s`, animationDelay: `${item.delay}s` }}
           >
             {item.text}
           </Text>

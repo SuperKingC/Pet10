@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from './xiaoduoliDanmaku'
+import { ACTION_BURST, DANMAKU_MAX_CONCURRENT, getDanmakuPlan, pickDanmakuText } from './xiaoduoliDanmaku'
 
 const basePet = {
   hunger: 80,
@@ -12,7 +12,6 @@ const basePet = {
 describe('danmaku plan', () => {
   it('always stays active — every mood state gets a plan', () => {
     expect(getDanmakuPlan({ ...basePet, moodState: 'happy' }).intervalMs).toBe(7000)
-    expect(getDanmakuPlan({ ...basePet, moodState: 'happy' }).burst).toBe(3)
     expect(getDanmakuPlan({ ...basePet, moodState: undefined, mood: 80 }).intervalMs).toBe(7000)
     expect(getDanmakuPlan({ ...basePet, moodState: 'content', mood: 60 }).intervalMs).toBe(12000)
     expect(getDanmakuPlan({ ...basePet, moodState: undefined, mood: 50 }).intervalMs).toBe(12000)
@@ -48,6 +47,10 @@ describe('danmaku text', () => {
   })
 
   it('caps concurrent danmaku to keep the scene readable', () => {
-    expect(DANMAKU_MAX_CONCURRENT).toBe(5)
+    expect(DANMAKU_MAX_CONCURRENT).toBe(10)
+  })
+
+  it('bursts a ten-line stream when a care action refreshes the pet state', () => {
+    expect(ACTION_BURST).toBe(10)
   })
 })
