@@ -24,7 +24,7 @@ const roomBackground = require('../assets/room-background-v11.jpg')
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
-const DOLL_FILE = 'xiaoduoli-doll-v1.png'
+const DOLL_FILE = 'xiaoduoli-doll-v2.png'
 // 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
 const CARD_ENTRY_FILE = 'pet-card-entry-v2.png'
 // ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），

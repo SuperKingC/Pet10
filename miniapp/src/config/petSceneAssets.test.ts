@@ -49,7 +49,7 @@ describe('miniapp pet scene assets', () => {
   })
 
   it('walk frames and doll ship via COS static assets for the wander/fetch acts', () => {
-    const files = ['xiaoduoli-walk-a-v1.png', 'xiaoduoli-walk-b-v1.png', 'xiaoduoli-doll-v1.png']
+    const files = ['xiaoduoli-walk-a-v1.png', 'xiaoduoli-walk-b-v1.png', 'xiaoduoli-doll-v2.png']
     for (const fileName of files) {
       const assetPath = resolve(miniappRoot(), `../public/wardrobe/${fileName}`)
       expect(existsSync(assetPath), fileName).toBe(true)
