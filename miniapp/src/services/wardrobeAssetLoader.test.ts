@@ -50,7 +50,7 @@ describe('suit asset service', () => {
     const service = createSuitAssetService(makeDeps({ readIndex: () => index }))
     // icon+display 在而切件层缺失：不算就绪（预览回退原装立绘）
     expect(service.getCachedSuitFiles('hoodie')).toBeNull()
-    index['hoodie-layer-v12.png'] = 'wxfile://usr/hoodie-layer.png'
+    index['hoodie-layer-v13.png'] = 'wxfile://usr/hoodie-layer.png'
     expect(service.getCachedSuitFiles('hoodie')).toEqual({
       icon: 'wxfile://usr/hoodie-icon.png',
       display: 'wxfile://usr/hoodie-full.png',
@@ -74,12 +74,12 @@ describe('suit asset service', () => {
     const results = await service.ensureSuitAssets(['hoodie'])
     expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
-    expect(download).toHaveBeenCalledWith('hoodie-layer-v12.png')
+    expect(download).toHaveBeenCalledWith('hoodie-layer-v13.png')
     expect(saveFile).toHaveBeenCalledWith('wxfile://tmp/x', 'wxfile://usr/wardrobe-hoodie-icon-v2.png')
     expect(results.hoodie).toEqual({
       icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
       display: 'wxfile://usr/wardrobe-hoodie-v1.png',
-      layer: 'wxfile://usr/wardrobe-hoodie-layer-v12.png'
+      layer: 'wxfile://usr/wardrobe-hoodie-layer-v13.png'
     })
     // 第二次直接命中缓存，不再下载
     await service.ensureSuitAssets(['hoodie'])
@@ -117,7 +117,7 @@ describe('suit asset service', () => {
     expect(download).toHaveBeenCalledTimes(3)
     expect(download).toHaveBeenCalledWith('hoodie-icon-v2.png')
     expect(download).toHaveBeenCalledWith('hoodie-v1.png')
-    expect(download).toHaveBeenCalledWith('hoodie-layer-v12.png')
+    expect(download).toHaveBeenCalledWith('hoodie-layer-v13.png')
   })
 
   it('treats an empty-string storage index as empty (fresh Taro storage returns "")', async () => {
@@ -132,12 +132,12 @@ describe('suit asset service', () => {
     expect(results.hoodie).toEqual({
       icon: 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
       display: 'wxfile://usr/wardrobe-hoodie-v1.png',
-      layer: 'wxfile://usr/wardrobe-hoodie-layer-v12.png',
+      layer: 'wxfile://usr/wardrobe-hoodie-layer-v13.png',
     })
     expect(writeIndex).toHaveBeenCalledWith({
       'hoodie-icon-v2.png': 'wxfile://usr/wardrobe-hoodie-icon-v2.png',
       'hoodie-v1.png': 'wxfile://usr/wardrobe-hoodie-v1.png',
-      'hoodie-layer-v12.png': 'wxfile://usr/wardrobe-hoodie-layer-v12.png',
+      'hoodie-layer-v13.png': 'wxfile://usr/wardrobe-hoodie-layer-v13.png',
     })
     expect(await service.ensureFile('xiaoduoli-sleep-v1.png')).toBe('wxfile://usr/wardrobe-xiaoduoli-sleep-v1.png')
   })
