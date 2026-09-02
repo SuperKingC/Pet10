@@ -80,11 +80,15 @@ describe('miniapp pet scene assets', () => {
     expect(stageBlock).toContain('margin-left: -136px;')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(wanderBlock).toContain('0% { transform: translateX(0) scaleX(-1); }')
-    expect(wanderBlock).toContain('34% { transform: translateX(64px) scaleX(-1); }')
-    expect(wanderBlock).toContain('39% { transform: translateX(64px) scaleX(-1); }')
-    expect(wanderBlock).toContain('45% { transform: translateX(64px) scaleX(1); }')
-    expect(wanderBlock).toContain('88%, 100% { transform: translateX(0) scaleX(1); }')
+    // 横穿全场：中间出发（面朝左，素材原生朝向）→左缘→掉头→右缘→掉头→回中间接站姿
+    expect(wanderBlock).toContain('0% { transform: translateX(0) scaleX(1); }')
+    expect(wanderBlock).toContain('27% { transform: translateX(-200px) scaleX(1); }')
+    expect(wanderBlock).toContain('31% { transform: translateX(-200px) scaleX(1); }')
+    expect(wanderBlock).toContain('36% { transform: translateX(-200px) scaleX(-1); }')
+    expect(wanderBlock).toContain('64% { transform: translateX(200px) scaleX(-1); }')
+    expect(wanderBlock).toContain('68% { transform: translateX(200px) scaleX(-1); }')
+    expect(wanderBlock).toContain('73% { transform: translateX(200px) scaleX(1); }')
+    expect(wanderBlock).toContain('94%, 100% { transform: translateX(0) scaleX(1); }')
 
     const fetchBlock = sceneStyle.match(/@keyframes pet-fetch-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(fetchBlock).toContain('26% { transform: translateX(-270px) scaleX(-1); opacity: 0; }')
