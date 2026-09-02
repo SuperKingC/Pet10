@@ -30,8 +30,9 @@ describe('miniapp pet scene assets', () => {
     expect(wardrobeSource).toContain('flowHeight={330}')
   })
 
-  it('sleep pose ships via COS static assets and the nest scene wires the sleep act', () => {
-    const sleepPosePath = resolve(miniappRoot(), '../public/wardrobe/xiaoduoli-sleep-v1.png')
+  it('sleep pose ships bundled (download chain removed) and the nest scene wires the sleep act', () => {
+    // 睡姿改随包：下载链路（ensureFile→直链回退）在开发者工具会因域名校验/代理失败导致狗不见
+    const sleepPosePath = resolve(miniappRoot(), 'src/assets/wardrobe/xiaoduoli-sleep-v1.png')
     const componentSource = readFileSync(
       resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'),
       'utf8',
@@ -43,7 +44,8 @@ describe('miniapp pet scene assets', () => {
 
     expect(existsSync(sleepPosePath)).toBe(true)
     expect(statSync(sleepPosePath).size).toBeLessThanOrEqual(180 * 1024)
-    expect(componentSource).toContain("suitAssets.ensureFile(SLEEP_POSE_FILE)")
+    expect(componentSource).toContain("require('../assets/wardrobe/xiaoduoli-sleep-v1.png')")
+    expect(componentSource).toContain('setSleepSrc(sleepBundled)')
     expect(componentSource).toContain('pet-avatar-sleep')
     expect(nestViewSource).toContain('act={petAct.act}')
   })

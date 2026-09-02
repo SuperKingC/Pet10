@@ -20,19 +20,17 @@ type Props = {
   act?: NestPetAct
 }
 const roomBackground = require('../assets/room-background-v11.jpg')
+// 睡姿/名片改随包：下载链路（ensureFile→直链回退）在开发者工具会因域名校验/代理失败导致狗不见、名片显旧
+const sleepBundled = require('../assets/wardrobe/xiaoduoli-sleep-v1.png')
+const cardEntryBundled = require('../assets/wardrobe/pet-card-entry-v3.png')
 // 叼球道具：照顾栏玩趣同款蓝色皮球（随包资产，免 COS 加载），挂 bobber 跟随颠步
 const ballAsset = require('../assets/items/item-ball-fetch-v1.png')
-// 睡姿/行进幕底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
-const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 // 闲逛用闭嘴跑步态（v1），叼球才用大张嘴步态（v2，嘴缝夹球）——两套画布不同由 CSS 按 act 切舞台宽
 const WANDER_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WANDER_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
 const FETCH_FRAME_A_FILE = 'xiaoduoli-walk-a-v2.png'
 const FETCH_FRAME_B_FILE = 'xiaoduoli-walk-b-v2.png'
-// 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
-const CARD_ENTRY_FILE = 'pet-card-entry-v3.png'
-// ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
-// 失败时回退 <Image> 直连 URL：image 组件不受 downloadFile 域名校验约束，本地静态服务/COS 均可直接显示
+// 步态帧走 COS 按需下载（水彩大图不占包体），ensureFile 失败时回退 <Image> 直连 URL
 const actAssetUrl = (file: string) => `${resolveAssetBaseUrl()}/wardrobe/${file}`
 // 四项状态各自同色系渐变（深→浅），与经验条同一质感语言
 const statuses = [
@@ -74,19 +72,13 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
   const movingVisible = moving && moveAssets !== null
 
   useEffect(() => {
-    let cancelled = false
-    void suitAssets.ensureFile(SLEEP_POSE_FILE)
-      .then((path) => { if (!cancelled) setSleepSrc(path ?? actAssetUrl(SLEEP_POSE_FILE)) })
-      .catch(() => { if (!cancelled) setSleepSrc(actAssetUrl(SLEEP_POSE_FILE)) })
-    return () => { cancelled = true }
+    // 睡姿随包：不再走下载缓存（开发者工具下载链路易失败导致狗不见）
+    setSleepSrc(sleepBundled)
   }, [])
 
   useEffect(() => {
-    let cancelled = false
-    void suitAssets.ensureFile(CARD_ENTRY_FILE)
-      .then((path) => { if (!cancelled) setCardEntrySrc(path ?? actAssetUrl(CARD_ENTRY_FILE)) })
-      .catch(() => { if (!cancelled) setCardEntrySrc(actAssetUrl(CARD_ENTRY_FILE)) })
-    return () => { cancelled = true }
+    // 名片入口随包：同上（下载失败会一直显示 CSS 兜底旧卡面）
+    setCardEntrySrc(cardEntryBundled)
   }, [])
 
   useEffect(() => {
