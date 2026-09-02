@@ -96,6 +96,8 @@ describe('miniapp pet scene assets', () => {
     // 舞台宽度按 act 分：闲逛 272（v1 画布 468）/叼球 300（v2 画布 514），狗显示高一致
     expect(sceneStyle).toContain('.pet-move-stage--wander { width: 272px; margin-left: -136px; }')
     expect(sceneStyle).toContain('.pet-move-stage--fetch { width: 300px; margin-left: -150px; }')
+    // mouth-open 整体上移 14px：v2 帧构图头部更低，底对齐后视觉偏下看不全
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth-open { bottom: 14px; animation: pet-fetch-mouth-open 11s step-end forwards; }')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     // 横穿全场、屏幕外掉头：中间（面朝左）→整只跑出左屏（±480≈舞台 272 全出画）→屏幕外停步掉头→
