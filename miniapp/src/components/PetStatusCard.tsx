@@ -190,10 +190,10 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
               <View className="pet-move-travel">
                 <View className="pet-move-hop">
                   <View className="pet-move-bobber">
-                    {/* 叼着的玩偶挂进 bobber 且垫在帧后面：跟随颠步/轻摇，后端被吻部遮住只露前半 */}
-                    <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
                     <Image className="pet-move-frame" src={moveAssets.frameA} mode="aspectFit" />
                     <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.frameB} mode="aspectFit" />
+                    {/* 叼着的球挂进 bobber 且压在帧上层：叼在张开的嘴前，跟随颠步/轻摇一起动 */}
+                    <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
                   </View>
                 </View>
                 {/* 落地的玩偶留在 travel 层不随颠步：抛出弹地后停留再淡出 */}
