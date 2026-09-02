@@ -2,7 +2,7 @@
 // ① 检测黑剪影 bbox 与原装立绘犬身 bbox 做等比仿射对齐（底边+水平居中）
 // ② 键控抠除黑色狗身（软 alpha 羽化黑边）
 // ③ 边界泛洪去除残留白底（胸前白抽绳等内部白色件保留）
-// ④ 输出 436×700 全画布服装叠层 public/wardrobe/{suit}-layer-v9.png
+// ④ 输出 436×700 全画布服装叠层 public/wardrobe/{suit}-layer-v4.png
 //    ——全画布定位 {left:0,top:0,width:100%}，位置由生成图天然决定，不再人工标定
 // 运行：node miniapp/tools/cut-chroma-garments.mjs
 import { writeFile } from 'node:fs/promises'
@@ -63,15 +63,15 @@ for (const suit of SUITS) {
   const genRaw = await rawOf(src)
   const dogBbox = bboxOf(genRaw.data, genRaw.w, genRaw.h, isBlack)
   // 等比缩放：黑剪影高 → 原装犬身高；水平按 bbox 中心对齐、垂直按底边对齐
-  const GROW = 1.12 // 包裹放大：服装层绕底边中心再放大（用户反馈 8% 仍小一圈，提到 12% 更贴身）
-  const scale = ((baseBbox.maxY - baseBbox.minY + 1) / (dogBbox.maxY - dogBbox.minY + 1)) * GROW
+  const scale = (baseBbox.maxY - baseBbox.minY + 1) / (dogBbox.maxY - dogBbox.minY + 1)
   const scaledW = Math.max(1, Math.round(genRaw.w * scale))
   const scaled = await sharp(src).resize(scaledW).png().toBuffer()
   const sm = await rawOf(scaled)
   const sDog = bboxOf(sm.data, sm.w, sm.h, isBlack)
   const offX = Math.round((baseBbox.minX + baseBbox.maxX) / 2 - (sDog.minX + sDog.maxX) / 2)
   const offY = Math.round(baseBbox.maxY - sDog.maxY)
-  console.log(suit + ': scale=' + scale.toFixed(3) + ' off=(' + offX + ',' + offY + ')')
+  console.log(`${suit}: scale=${scale.toFixed(3)} off=(${offX},${offY})`)
+
   // 键控：生成图逐像素 → 贴到 436×700 画布（对齐后坐标），黑→软透明
   const canvas = Buffer.alloc(BASE_W * BASE_H * 4)
   for (let y = 0; y < sm.h; y++) {
@@ -163,36 +163,13 @@ for (const suit of SUITS) {
       sizes.push(size)
     }
     const maxSize = Math.max(...sizes, 1)
-    let mainCompId = 0
-    for (let i = 0; i < sizes.length; i++) {
-      if (sizes[i] === maxSize) { mainCompId = i; break }
-    }
     for (let i = 0; i < n; i++) {
       if (compId[i] >= 0 && sizes[compId[i]] < maxSize * 0.005) canvas[i * 4 + 3] = 0
-    }
-    // 头颈区（y<420）孤立斑块清除：生成图在已抠掉的黑头区域偶尔留下溅点/碎块，
-    // 与衣服主体不相连且小于主体的 8%——按成分质心判定后丢弃（帽兜/肩布属于主成分不受影响）
-    const compStats = new Map()
-    for (let i = 0; i < n; i++) {
-      const id = compId[i]
-      if (id < 0 || canvas[i * 4 + 3] < 10) continue
-      const st = compStats.get(id) ?? { size: 0, sumY: 0 }
-      st.size++
-      st.sumY += (i / BASE_W) | 0
-      compStats.set(id, st)
-    }
-    for (const [id, st] of compStats) {
-      if (id === mainCompId) continue
-      if (st.size < maxSize * 0.08 && st.sumY / st.size < 420) {
-        for (let i = 0; i < n; i++) {
-          if (compId[i] === id) canvas[i * 4 + 3] = 0
-        }
-      }
     }
   }
   // 黑→白过渡带的抗锯齿灰环清除：对 alpha 做 3 轮最小值侵蚀——
   // 紧邻透明区的灰环逐轮变透明，衣服自身边缘仅收 3px 且更柔和
-  for (let iter = 0; iter < 2; iter++) {
+  for (let iter = 0; iter < 3; iter++) {
     const src = Buffer.from(canvas)
     for (let y = 0; y < BASE_H; y++) {
       for (let x = 0; x < BASE_W; x++) {
@@ -205,48 +182,15 @@ for (const suit of SUITS) {
         if (minA < canvas[o]) canvas[o] = minA
       }
     }
-  };
-  // 软扩边：衣服边缘向外生长 2 轮（带颜色复制、alpha 衰减），把相邻的底图毛包进衣服边缘——
-  // 生成图衣服略窄于黑剪影身体时，边缘会露毛；外扩后读作衣服包住蓬毛
-  for (let iter = 0; iter < 2; iter++) {
-    const src = Buffer.from(canvas)
-    for (let y = 0; y < BASE_H; y++) {
-      for (let x = 0; x < BASE_W; x++) {
-        const o = (y * BASE_W + x) * 4
-        if (src[o + 3] >= 40) continue
-        // 舌区保持敞开：软扩边不得爬进领口 V 开口里的舌头周围
-        const gy = y / BASE_H * 700, gx = x / BASE_W * 436
-        if (gy > 355 && gy < 400 && gx > 180 && gx < 260) continue
-        let bestA = 0
-        let br = 0, bg2 = 0, bb = 0
-        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const nx = x + dx, ny = y + dy
-          if (nx < 0 || ny < 0 || nx >= BASE_W || ny >= BASE_H) continue
-          const no = (ny * BASE_W + nx) * 4
-          if (src[no + 3] > bestA) { bestA = src[no + 3]; br = src[no]; bg2 = src[no + 1]; bb = src[no + 2] }
-        }
-        if (bestA > 40) {
-          canvas[o] = br; canvas[o + 1] = bg2; canvas[o + 2] = bb
-          canvas[o + 3] = Math.min(220, Math.round(bestA * 0.8))
-        }
-      }
-    }
-  }
-  // 舌头硬净空：舌体盒（画布 x200-253, y356-396，含外扩余量抗重采样渗色）内清空全部叠层像素——
-  // 无论生成图衣领怎么画，舌头永远完整露出（底图舌头直接可见）
-  for (let y = 356; y <= 396; y++) {
-    for (let x = 200; x <= 253; x++) {
-      canvas[(y * BASE_W + x) * 4 + 3] = 0
-    }
   }
   const png = await sharp(canvas, { raw: { width: BASE_W, height: BASE_H, channels: 4 } })
     .png({ palette: true, colors: 256, compressionLevel: 9 })
     .toBuffer()
-  const out = path.join(root, `public/wardrobe/${suit}-layer-v9.png`)
+  const out = path.join(root, `public/wardrobe/${suit}-layer-v4.png`)
   await writeFile(out, png)
   layers[suit] = true
-  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v9.png`, src: `design-assets/wardrobe/gen-${suit}-chroma-v1.png`, bytes: png.byteLength, scale: Number(scale.toFixed(3)) })
-  console.log(`${suit}-layer-v9.png ${(png.byteLength / 1024).toFixed(1)}KB`)
+  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v4.png`, src: `design-assets/wardrobe/gen-${suit}-chroma-v1.png`, bytes: png.byteLength, scale: Number(scale.toFixed(3)) })
+  console.log(`${suit}-layer-v4.png ${(png.byteLength / 1024).toFixed(1)}KB`)
 }
 
 console.log('\n// 全画布服装叠层：定位恒为 {left:0%, top:0%, width:100%}（位置由 chroma 生成图决定）')
@@ -270,7 +214,7 @@ let x = 0
 for (const suit of SUITS) {
   if (!layers[suit]) continue
   const comps = [{ input: baseBuf, left: 0, top: 0 }]
-  comps.push({ input: await sharp(path.join(root, `public/wardrobe/${suit}-layer-v9.png`)).resize(Math.round(BASE_W * SCALE), Math.round(BASE_H * SCALE)).png().toBuffer(), left: 0, top: 0 })
+  comps.push({ input: await sharp(path.join(root, `public/wardrobe/${suit}-layer-v4.png`)).resize(Math.round(BASE_W * SCALE), Math.round(BASE_H * SCALE)).png().toBuffer(), left: 0, top: 0 })
   for (const [acc, [, l, t, w]] of Object.entries(ACCESSORIES)) {
     comps.push({
       input: await sharp(accBufs[acc]).resize({ width: Math.round((w / 100) * BASE_W * SCALE) }).png().toBuffer(),
