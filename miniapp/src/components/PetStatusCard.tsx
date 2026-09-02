@@ -30,8 +30,17 @@ const WANDER_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WANDER_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
 const FETCH_FRAME_A_FILE = 'xiaoduoli-walk-a-v2.png'
 const FETCH_FRAME_B_FILE = 'xiaoduoli-walk-b-v2.png'
+// 趴下休息姿（闭眼单帧）与站姿眨眼眼层（眼组+眼窝底毛条带）走 COS 按需下载（不占包体），
+// 未就绪时趴下静默跳过保持站姿、眨眼不叠层（原眼仍在，观感正常）
+const LYING_POSE_FILE = 'xiaoduoli-lying-v1.png'
+const SIT_EYES_FILE = 'xiaoduoli-sit-eyes-v1.png'
+const SIT_UNDERLAY_FILE = 'xiaoduoli-sit-underlay-v1.png'
 // 步态帧走 COS 按需下载（水彩大图不占包体），ensureFile 失败时回退 <Image> 直连 URL
 const actAssetUrl = (file: string) => `${resolveAssetBaseUrl()}/wardrobe/${file}`
+// 站姿眨眼：眼组条带在 436×700 立绘图盒内的定位与压扁支点（与 cut-xiaoduoli-sit-eye-layers.mjs 出件常量同源）；
+// 图盒 149×240px → 缩放系数 149/436，条带显示尺寸与偏移按此换算写死进 SCSS
+const SIT_BLINK_INTERVAL_MIN_MS = 2200
+const SIT_BLINK_INTERVAL_MAX_MS = 6200
 // 四项状态各自同色系渐变（深→浅），与经验条同一质感语言
 const statuses = [
   ['饱食', 'hunger', '#f3a85d', '#f8c48d'],
@@ -54,6 +63,13 @@ interface DanmakuItem {
 /** 弹幕横幅在场景上半部漂浮（避开小多利头顶以下区域） */
 const DANMAKU_TOP_RANGE = [8, 38] as const
 
+/** 眨眼间隔：2.2~6.2s 随机（注入 random 便于测试） */
+export function nextSitBlinkDelayMs(random: () => number): number {
+  return Math.round(
+    SIT_BLINK_INTERVAL_MIN_MS + random() * (SIT_BLINK_INTERVAL_MAX_MS - SIT_BLINK_INTERVAL_MIN_MS),
+  )
+}
+
 export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act = 'stand' }: Props) {
   const experiencePercent = Math.min(100, (pet.experience / pet.experienceToNextLevel) * 100)
   // flow 模式立绘按固定高度换算宽度（图盒=容器盒，配饰百分比定位与图对齐）；高度与当前 .pet-avatar-image 240px 盒一致。
@@ -69,9 +85,16 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
   const [cardEntrySrc, setCardEntrySrc] = useState<string | null>(null)
   const [cardEntryLoaded, setCardEntryLoaded] = useState(false)
   const sleeping = act === 'sleep'
+  const lying = act === 'lie'
   const moving = act === 'wander' || act === 'fetch'
   // 三张行进素材齐了才播分镜；没就绪时保持站姿，动作静默跳过
   const movingVisible = moving && moveAssets !== null
+  // 趴姿素材就绪才切趴下幕；未就绪保持站姿（动作静默跳过）
+  const [lyingSrc, setLyingSrc] = useState<string | null>(null)
+  const lyingVisible = lying && lyingSrc !== null
+  // 眨眼眼层（眼组+眼窝底毛）：就绪后站立时按随机间隔压扁眨眼；未就绪不叠层
+  const [sitEyeAssets, setSitEyeAssets] = useState<{ eyes: string; underlay: string } | null>(null)
+  const [blinkTick, setBlinkTick] = useState(0)
 
   useEffect(() => {
     // 睡姿随包：不再走下载缓存（开发者工具下载链路易失败导致狗不见）
@@ -82,6 +105,42 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
     // 名片入口随包：同上（下载失败会一直显示 CSS 兜底旧卡面）
     setCardEntrySrc(cardEntryBundled)
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    void Promise.all([
+      suitAssets.ensureFile(LYING_POSE_FILE),
+      suitAssets.ensureFile(SIT_EYES_FILE),
+      suitAssets.ensureFile(SIT_UNDERLAY_FILE),
+    ])
+      .then(([lie, eyes, underlay]) => {
+        if (cancelled) return
+        setLyingSrc(lie ?? actAssetUrl(LYING_POSE_FILE))
+        setSitEyeAssets({ eyes: eyes ?? actAssetUrl(SIT_EYES_FILE), underlay: underlay ?? actAssetUrl(SIT_UNDERLAY_FILE) })
+      })
+      .catch(() => { if (!cancelled) {
+        setLyingSrc(actAssetUrl(LYING_POSE_FILE))
+        setSitEyeAssets({ eyes: actAssetUrl(SIT_EYES_FILE), underlay: actAssetUrl(SIT_UNDERLAY_FILE) })
+      } })
+    return () => { cancelled = true }
+  }, [])
+
+  // 眨眼调度：站立且眼层就绪时按 2.2~6.2s 随机间隔触发一次压扁动画（key 换挡重放动画；
+  // 非 stand 行为幕期间暂停——趴下/睡觉本身闭眼、行进帧无眼层对位）
+  useEffect(() => {
+    if (act !== 'stand' || !sitEyeAssets) return
+    let alive = true
+    let timer: ReturnType<typeof setTimeout>
+    const schedule = () => {
+      timer = setTimeout(() => {
+        if (!alive) return
+        setBlinkTick((tick) => tick + 1)
+        schedule()
+      }, nextSitBlinkDelayMs(Math.random))
+    }
+    schedule()
+    return () => { alive = false; clearTimeout(timer) }
+  }, [act, sitEyeAssets])
 
   useEffect(() => {
     let cancelled = false
@@ -189,9 +248,27 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
         ))}
         <Text className="pet-level">Lv.{pet.level}</Text>
         <View className="pet-avatar-image" style={outfitWidth ? { width: `${outfitWidth}rpx` } : undefined}>
-          <View className={`pet-avatar-stand${sleeping || movingVisible ? ' pet-avatar-stand--hidden' : ''}`}>
+          <View className={`pet-avatar-stand${sleeping || movingVisible || lyingVisible ? ' pet-avatar-stand--hidden' : ''} pet-avatar-stand--breathing`}>
             {portrait}
+            {/* 站姿眨眼：眼窝底毛层常驻盖住原眼（静止时逐像素同底图不可见），眼组层按随机间隔
+                整组压扁成闭眼线；A/B 两条同款动画类交替触发重播（不重挂 image，避免 COS 图重新加载闪烁） */}
+            {sitEyeAssets && (
+              <View className="pet-sit-blink" aria-hidden>
+                <Image className="pet-sit-blink__underlay" src={sitEyeAssets.underlay} mode="scaleToFill" fadeIn={false} />
+                <View className={`pet-sit-blink__group pet-sit-blink__group--${blinkTick % 2 ? 'b' : 'a'}`}>
+                  <Image className="pet-sit-blink__eyes" src={sitEyeAssets.eyes} mode="scaleToFill" fadeIn={false} />
+                </View>
+              </View>
+            )}
           </View>
+          {/* 趴下休息幕：趴姿闭眼单帧交叉淡入（素材未就绪保持站姿），以底边为轴轻呼吸，到点回站姿 */}
+          {lyingSrc && (
+            <Image
+              className={`pet-avatar-lying${lyingVisible ? ' pet-avatar-lying--on' : ''}`}
+              src={lyingSrc}
+              mode="aspectFit"
+            />
+          )}
           {moveAssets && act !== 'sleep' && (
             <View className={`pet-move-stage pet-move-stage--${act}`} aria-hidden>
               <View className="pet-move-travel">

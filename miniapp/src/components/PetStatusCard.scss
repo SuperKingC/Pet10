@@ -16,6 +16,47 @@
    睡姿图未就绪时保持站姿，躺姿随盒底落在地毯中央，肚皮呼吸以底边为轴不离地 */
 .pet-avatar-stand { position: absolute; left: 0; top: 0; right: 0; bottom: 0; transition: opacity .3s ease; }
 .pet-avatar-stand--hidden { opacity: 0; }
+/* 站姿呼吸：以底边为轴 scaleY 1→0.988 循环（箱中呼吸同量级，远比睡姿呼吸轻），衣服叠穿层在容器内随动 */
+.pet-avatar-stand--breathing { transform-origin: 50% 100%; animation: pet-stand-breathe 3.2s ease-in-out infinite; }
+@keyframes pet-stand-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(.988); }
+}
+/* 站姿眨眼：眼组/眼窝底毛条带（240×98 画布，COS）按图盒百分比定位（149×240 图盒，
+   条带 x98 y146 w240 h98 → 缩放系数 149/436≈0.3417：显示 82.0×33.5、偏移 left 33.5 top 49.9）；
+   底毛常驻盖住原眼（静止时逐像素同底图），眼组绕双眼中心线（条带内 y≈50.3%）压扁 200ms；
+   A/B 同款两条动画类交替换挡重播，避免重挂 image 重新加载 */
+.pet-sit-blink { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; }
+.pet-sit-blink__underlay, .pet-sit-blink__group, .pet-sit-blink__eyes { position: absolute; width: 82px; height: 33.5px; left: 33.5px; top: 49.9px; }
+.pet-sit-blink__group { transform-origin: 50% 50.3%; }
+.pet-sit-blink__group--a { animation: pet-sit-eye-squash-a 200ms ease-in-out both; }
+.pet-sit-blink__group--b { animation: pet-sit-eye-squash-b 200ms ease-in-out both; }
+@keyframes pet-sit-eye-squash-a {
+  0%, 100% { transform: scaleY(1); }
+  25%, 65% { transform: scaleY(.08); }
+}
+@keyframes pet-sit-eye-squash-b {
+  0%, 100% { transform: scaleY(1); }
+  25%, 65% { transform: scaleY(.08); }
+}
+/* 趴下休息幕：趴姿闭眼单帧（583×260 COS 资产，显示高 130 = 站姿 240 的 54%，宽 291.5），
+   素材未就绪保持站姿；交叉淡入 300ms，趴姿以底边为轴轻呼吸（比睡姿呼吸轻一档），到点回站姿 */
+.pet-avatar-lying {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 291.5px;
+  height: 130px;
+  opacity: 0;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  transition: opacity .3s ease;
+}
+.pet-avatar-lying--on { opacity: 1; animation: pet-lying-breathe 2.2s ease-in-out .35s infinite; }
+@keyframes pet-lying-breathe {
+  0%, 100% { transform: translateX(-50%) scaleY(1); }
+  50% { transform: translateX(-50%) scaleY(.985); }
+}
 .pet-avatar-sleep {
   position: absolute;
   left: 50%;
@@ -251,8 +292,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .pet-danmaku { animation: none; visibility: hidden; }
-  .pet-avatar-stand, .pet-avatar-sleep, .pet-move-stage { transition: none; }
+  .pet-avatar-stand, .pet-avatar-sleep, .pet-avatar-lying, .pet-move-stage { transition: none; }
   .pet-avatar-sleep--on { animation: none; }
+  /* 站姿呼吸/眨眼/趴姿呼吸全部静止：呼吸类 animation 移除，眨眼 A/B 类动画禁用（狗睁眼静止） */
+  .pet-avatar-stand--breathing, .pet-avatar-lying--on, .pet-sit-blink__group--a, .pet-sit-blink__group--b { animation: none; }
   .pet-sleep-zzz__z { animation: none; opacity: 1; }
   .pet-name-card__art { transition: none; }
   /* 行进分镜整体不播：两帧（A 常亮/B 基态隐身）与颠步静止、路径与蹦跳取消、娃娃不出现 */

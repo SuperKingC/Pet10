@@ -160,4 +160,50 @@ describe('miniapp pet scene assets', () => {
     expect(frameBBlock).toContain('50%, 92% { opacity: 0; }')
     expect(sceneStyle).toContain('.pet-move-frame, .pet-move-bobber { animation: none; }')
   })
+
+  it('sit idle breathes, blinks via squash eye layers, and the lie act fades in a closed-eye pose', () => {
+    // 站姿三细节：①呼吸（stand 容器以底边为轴 scaleY 微呼吸，衣服层随容器同动）
+    // ②眨眼（箱中同款「眼窝底毛+眼组压扁」：眼层 COS 条带按图盒定位，A/B 双动画类交替重播）
+    // ③趴下（lie 行为幕闭眼单帧交叉淡入+轻呼吸，domain 有独立调度间隔常量）
+    const componentSource = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.tsx'), 'utf8')
+    const sceneStyle = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.scss'), 'utf8')
+    const nestViewSource = readFileSync(resolve(miniappRoot(), 'src/features/main/MiniappNestView.tsx'), 'utf8')
+    const domainSource = readFileSync(resolve(miniappRoot(), 'src/domain/nestPetAct.ts'), 'utf8')
+
+    // 素材走 COS 按需下载（不占包体），与步态帧同链路
+    for (const fileName of ['xiaoduoli-lying-v1.png', 'xiaoduoli-sit-eyes-v1.png', 'xiaoduoli-sit-underlay-v1.png']) {
+      const assetPath = resolve(miniappRoot(), `../public/wardrobe/${fileName}`)
+      expect(existsSync(assetPath), fileName).toBe(true)
+      expect(statSync(assetPath).size, fileName).toBeLessThanOrEqual(180 * 1024)
+    }
+    expect(componentSource).toContain('LYING_POSE_FILE')
+    expect(componentSource).toContain('SIT_EYES_FILE')
+    expect(componentSource).toContain('SIT_UNDERLAY_FILE')
+
+    // 呼吸：站姿容器呼吸动画 + reduced-motion 静止
+    expect(componentSource).toContain('pet-avatar-stand--breathing')
+    expect(sceneStyle).toContain('.pet-avatar-stand--breathing { transform-origin: 50% 100%; animation: pet-stand-breathe 3.2s ease-in-out infinite; }')
+    const breatheBlock = sceneStyle.match(/@keyframes pet-stand-breathe \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(breatheBlock).toContain('50% { transform: scaleY(.988); }')
+
+    // 眨眼：A/B 双类交替 + 底毛/眼组双层 + 支点压扁 200ms + 降级静止
+    expect(componentSource).toContain('pet-sit-blink__group--${blinkTick % 2 ? \'b\' : \'a\'}')
+    expect(componentSource).toContain('nextSitBlinkDelayMs(Math.random)')
+    expect(sceneStyle).toContain('.pet-sit-blink__group { transform-origin: 50% 50.3%; }')
+    expect(sceneStyle).toContain('.pet-sit-blink__group--a { animation: pet-sit-eye-squash-a 200ms ease-in-out both; }')
+    const squashBlock = sceneStyle.match(/@keyframes pet-sit-eye-squash-a \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(squashBlock).toContain('25%, 65% { transform: scaleY(.08); }')
+
+    // 趴下：lie 幕素材就绪门控 + 底边轴轻呼吸 + domain 调度（与闲逛并行的独立间隔）
+    expect(componentSource).toContain('pet-avatar-lying')
+    expect(componentSource).toContain("lyingVisible = lying && lyingSrc !== null")
+    expect(sceneStyle).toContain('.pet-avatar-lying--on { opacity: 1; animation: pet-lying-breathe 2.2s ease-in-out .35s infinite; }')
+    expect(nestViewSource).toContain("act: 'lie'")
+    expect(nestViewSource).toContain('nextLieDelayMs(Math.random)')
+    expect(domainSource).toContain('NEST_PET_LIE_MS = 9000')
+    expect(domainSource).toContain('NEST_PET_LIE_DELAY_MIN_MS = 36000')
+
+    // reduced-motion：呼吸/眨眼/趴姿呼吸全部静止
+    expect(sceneStyle).toContain('.pet-avatar-stand--breathing, .pet-avatar-lying--on, .pet-sit-blink__group--a, .pet-sit-blink__group--b { animation: none; }')
+  })
 })

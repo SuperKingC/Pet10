@@ -4,7 +4,7 @@ import type { PetAction } from '../../domain/types'
 import type { LaunchContext } from '../../services/launchContextApi'
 import type { PetState } from '../../domain/types'
 import type { ItemId } from '../../domain/nestTaskModel'
-import { NEST_PET_FETCH_MS, NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, NEST_PET_WANDER_MS, nextWanderDelayMs, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
+import { NEST_PET_FETCH_MS, NEST_PET_LIE_MS, NEST_PET_SLEEP_MS, NEST_PET_STAND_ACT, NEST_PET_WANDER_MS, nextLieDelayMs, nextWanderDelayMs, reduceNestPetAct, type NestPetActState } from '../../domain/nestPetAct'
 import { unlockRoom } from '../../domain/xiaoduoliUnlock'
 import { MOCK_WARDROBE_CATALOG, buildMockWardrobeView } from '../../domain/gmTestMode'
 import { PetActionBar } from '../../components/PetActionBar'
@@ -74,10 +74,10 @@ export function MiniappNestView({
     onAction(action, itemId)
   }, [onAction])
 
-  // 睡觉/叼娃到点收幕回站姿
+  // 睡觉/叼娃/趴下到点收幕回站姿
   useEffect(() => {
-    if (petAct.act !== 'sleep' && petAct.act !== 'fetch') return
-    const totalMs = petAct.act === 'sleep' ? NEST_PET_SLEEP_MS : NEST_PET_FETCH_MS
+    if (petAct.act !== 'sleep' && petAct.act !== 'fetch' && petAct.act !== 'lie') return
+    const totalMs = petAct.act === 'sleep' ? NEST_PET_SLEEP_MS : petAct.act === 'fetch' ? NEST_PET_FETCH_MS : NEST_PET_LIE_MS
     const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), totalMs)
     return () => clearTimeout(timer)
   }, [petAct.act, petAct.wakeAt])
@@ -93,6 +93,22 @@ export function MiniappNestView({
     }
     if (petAct.act === 'wander') {
       const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), NEST_PET_WANDER_MS)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [petAct.act])
+
+  // 趴下调度：站立时独立随机等待趴下一趟（与闲逛各算各的，先到先得，被占时静默跳过本轮）
+  useEffect(() => {
+    if (petAct.act === 'stand') {
+      const timer = setTimeout(
+        () => setPetAct({ act: 'lie', wakeAt: Date.now() + NEST_PET_LIE_MS }),
+        nextLieDelayMs(Math.random),
+      )
+      return () => clearTimeout(timer)
+    }
+    if (petAct.act === 'lie') {
+      const timer = setTimeout(() => setPetAct(NEST_PET_STAND_ACT), NEST_PET_LIE_MS)
       return () => clearTimeout(timer)
     }
     return undefined

@@ -1,7 +1,7 @@
 import type { PetAction } from './types'
 
-/** 小窝行为幕：站姿 / 睡觉 / 闲逛（走来走去）/ 叼娃娃 */
-export type NestPetAct = 'stand' | 'sleep' | 'wander' | 'fetch'
+/** 小窝行为幕：站姿 / 睡觉 / 闲逛（走来走去）/ 叼娃娃 / 趴下休息 */
+export type NestPetAct = 'stand' | 'sleep' | 'wander' | 'fetch' | 'lie'
 
 export type NestPetActState = { act: NestPetAct; wakeAt: number }
 
@@ -14,6 +14,11 @@ export const NEST_PET_WANDER_MS = 7000
 /** 闲逛调度间隔：站立时随机等待后出发一趟 */
 export const NEST_PET_WANDER_DELAY_MIN_MS = 24000
 export const NEST_PET_WANDER_DELAY_MAX_MS = 54000
+/** 趴下休息单次时长：交叉淡入趴姿 + 一段趴姿呼吸，到点自己站起来 */
+export const NEST_PET_LIE_MS = 9000
+/** 趴下调度间隔：站立时随机等待后趴下一趟（与闲逛错开，站姿停留时穿插「呼吸+眨眼+趴下」三种 idle 细节） */
+export const NEST_PET_LIE_DELAY_MIN_MS = 36000
+export const NEST_PET_LIE_DELAY_MAX_MS = 78000
 
 export const NEST_PET_STAND_ACT: NestPetActState = { act: 'stand', wakeAt: 0 }
 
@@ -35,5 +40,12 @@ export function reduceNestPetAct(
 export function nextWanderDelayMs(random: () => number): number {
   return Math.round(
     NEST_PET_WANDER_DELAY_MIN_MS + random() * (NEST_PET_WANDER_DELAY_MAX_MS - NEST_PET_WANDER_DELAY_MIN_MS),
+  )
+}
+
+/** 趴下调度：站立时随机等待 36~78s 趴下一趟（注入 random 便于测试） */
+export function nextLieDelayMs(random: () => number): number {
+  return Math.round(
+    NEST_PET_LIE_DELAY_MIN_MS + random() * (NEST_PET_LIE_DELAY_MAX_MS - NEST_PET_LIE_DELAY_MIN_MS),
   )
 }

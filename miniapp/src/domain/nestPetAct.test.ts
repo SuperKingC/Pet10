@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   NEST_PET_FETCH_MS,
+  NEST_PET_LIE_DELAY_MAX_MS,
+  NEST_PET_LIE_DELAY_MIN_MS,
+  NEST_PET_LIE_MS,
   NEST_PET_SLEEP_MS,
   NEST_PET_STAND_ACT,
   NEST_PET_WANDER_DELAY_MAX_MS,
   NEST_PET_WANDER_DELAY_MIN_MS,
+  nextLieDelayMs,
   nextWanderDelayMs,
   reduceNestPetAct,
 } from './nestPetAct'
@@ -59,6 +63,16 @@ describe('nextWanderDelayMs', () => {
     expect(nextWanderDelayMs(() => 0.999999)).toBeLessThanOrEqual(NEST_PET_WANDER_DELAY_MAX_MS)
     expect(nextWanderDelayMs(() => 0.5)).toBe(
       Math.round(NEST_PET_WANDER_DELAY_MIN_MS + 0.5 * (NEST_PET_WANDER_DELAY_MAX_MS - NEST_PET_WANDER_DELAY_MIN_MS)),
+    )
+  })
+})
+
+describe('nextLieDelayMs', () => {
+  it('在配置的延迟区间内取值', () => {
+    expect(nextLieDelayMs(() => 0)).toBe(NEST_PET_LIE_DELAY_MIN_MS)
+    expect(nextLieDelayMs(() => 0.999999)).toBeLessThanOrEqual(NEST_PET_LIE_DELAY_MAX_MS)
+    expect(nextLieDelayMs(() => 0.5)).toBe(
+      Math.round(NEST_PET_LIE_DELAY_MIN_MS + 0.5 * (NEST_PET_LIE_DELAY_MAX_MS - NEST_PET_LIE_DELAY_MIN_MS)),
     )
   })
 })
