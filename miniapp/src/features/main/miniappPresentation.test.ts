@@ -373,14 +373,16 @@ describe('miniapp ui presentation rules', () => {
     expect(avatarStat.size).toBeLessThan(80 * 1024)
   })
 
-  it('pages the wardrobe rack by category and layers body garments over the default portrait', () => {
+  it('pages the wardrobe rack with category tabs and layers body garments over the default portrait', () => {
     const panel = fs.readFileSync(path.resolve(__dirname, 'MiniappWardrobePanel.tsx'), 'utf8')
     const portrait = fs.readFileSync(path.resolve(__dirname, 'MiniappOutfitPortrait.tsx'), 'utf8')
     const model = fs.readFileSync(path.resolve(__dirname, '../../domain/wardrobeModel.ts'), 'utf8')
-    // 目录分页：Swiper 每页一类、最多 6 件，左右滑翻页（不再是一个长网格）
+    // 标签页（服饰/配饰）+ Swiper 联动：每页一类最多 6 件完整显示，同类超出左右滑
     expect(panel).toContain('wardrobePages(view.items)')
     expect(panel).toContain('<Swiper')
     expect(panel).toContain('<SwiperItem')
+    expect(panel).toContain('wardrobe-tab')
+    expect(panel).toContain('setActiveKind')
     expect(panel).not.toContain('renderSection(')
     // 主体服装=原装立绘+切件层叠加（不再整套替换整图）；配饰恒定定位
     expect(portrait).toContain("resolveSuitDisplay('default')")

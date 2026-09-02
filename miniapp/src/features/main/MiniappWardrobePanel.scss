@@ -212,11 +212,32 @@
 }
 .wardrobe-rack__pole::before { left: -10rpx; }
 .wardrobe-rack__pole::after { right: -10rpx; }
-/* 目录分页：每页一类的 2×3 网格，左右滑翻页，底部小圆点指示 */
-.wardrobe-pager { height: 380rpx; }
+/* 目录标签页（服饰/配饰）：挂杆下的小木牌药丸，与 Swiper 联动（滑动也会带动选中） */
+.wardrobe-tabs { display: flex; align-items: center; gap: 14rpx; padding: 2rpx 8rpx 14rpx; }
+.wardrobe-tab {
+  padding: 10rpx 28rpx;
+  border-radius: 999rpx;
+  background: #fff7ea;
+  border: 2rpx solid #f0dcc8;
+  color: #8a6f5c;
+  font-size: var(--font-size-aux);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 3rpx 8rpx rgba(113, 77, 38, .08);
+}
+.wardrobe-tab--on {
+  background: linear-gradient(135deg, #f7b35c, #e88f3c);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6rpx 14rpx rgba(232, 143, 60, .3);
+}
+.wardrobe-tab--press { transform: scale(.95); filter: brightness(.96); }
+.wardrobe-tabs__hint { margin-left: auto; color: #b39c88; font-size: 20rpx; }
+.wardrobe-grid__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14rpx; align-content: start; }
+/* 目录分页：两行卡片完整显示（锁定卡条件文案压成单行），同类超出 6 件切块翻页 */
+.wardrobe-pager { height: 516rpx; }
 .wardrobe-page {
   height: 100%;
-  padding: 6rpx 4rpx 30rpx;
+  padding: 4rpx 4rpx 26rpx;
   box-sizing: border-box;
 }
 .wardrobe-grid {
@@ -224,7 +245,7 @@
 }
 .wardrobe-grid__skeleton {
   width: 100%;
-  height: 380rpx;
+  height: 516rpx;
   border-radius: 20rpx;
   background: linear-gradient(100deg, #f7e8d6 40%, #fcf3e6 50%, #f7e8d6 60%);
   background-size: 200% 100%;
@@ -232,18 +253,12 @@
 }
 @keyframes wardrobe-shimmer { to { background-position: -200% 0; } }
 
-/* 分类分区标题（每页顶部：主体服装 / 配饰） */
-.wardrobe-grid__section { display: flex; align-items: center; gap: 16rpx; padding: 12rpx 4rpx 12rpx; }
-.wardrobe-grid__section-text { color: #a1764f; font-size: var(--font-size-aux); font-weight: var(--font-weight-semibold); }
-.wardrobe-grid__section-line { flex: 1; border-top: 2rpx dashed #e8d5bd; }
-.wardrobe-grid__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18rpx; align-content: start; }
-
 .wardrobe-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 10rpx 14rpx;
+  padding: 12rpx 10rpx 12rpx;
   border-radius: 24rpx;
   background: linear-gradient(180deg, #fffdf9 0%, #fdf4e6 100%);
   border: 2rpx solid #f3e3cd;
@@ -256,11 +271,11 @@
   content: '';
   position: absolute;
   z-index: -1;
-  top: 22rpx;
+  top: 18rpx;
   left: 50%;
-  width: 152rpx;
-  height: 152rpx;
-  margin-left: -76rpx;
+  width: 140rpx;
+  height: 140rpx;
+  margin-left: -70rpx;
   border-radius: 50%;
   background: radial-gradient(circle, #fdefd7 0%, #fae4c2 56%, rgba(250, 228, 194, 0) 74%);
 }
@@ -330,7 +345,7 @@
   box-shadow: 0 4rpx 10rpx rgba(232, 143, 60, .4);
   border: 3rpx solid #fffdf8;
 }
-.wardrobe-card__suit { width: 100%; height: 168rpx; }
+.wardrobe-card__suit { width: 100%; height: 156rpx; }
 .wardrobe-card__suit--pending {
   display: flex;
   align-items: center;
@@ -340,7 +355,7 @@
 }
 .wardrobe-card__pending-text { color: #b39c88; font-size: 22rpx; }
 /* 锁定态：真实样子置灰 + 手绘金锁徽章浮层 */
-.wardrobe-card__suit--locked { position: relative; width: 100%; height: 168rpx; }
+.wardrobe-card__suit--locked { position: relative; width: 100%; height: 156rpx; }
 .wardrobe-card__suit-img { width: 100%; height: 100%; filter: grayscale(1); opacity: .38; }
 .wardrobe-card__lock-badge {
   position: absolute;
@@ -351,9 +366,20 @@
   margin: -30rpx 0 0 -30rpx;
   filter: drop-shadow(0 4rpx 8rpx rgba(84, 55, 28, .35));
 }
-.wardrobe-card__name { margin-top: 10rpx; color: #5e4a38; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
+.wardrobe-card__name { margin-top: 6rpx; color: #5e4a38; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .wardrobe-card--locked .wardrobe-card__name { color: #a99884; }
-.wardrobe-card__condition { margin-top: 2rpx; color: #b39c88; font-size: 20rpx; text-align: center; line-height: 1.4; }
+/* 条件文案压成单行省略：保证两行卡片完整落在分页内；完整条件点卡片时 toast 全文提示 */
+.wardrobe-card__condition {
+  margin-top: 2rpx;
+  max-width: 100%;
+  color: #b39c88;
+  font-size: 20rpx;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .wardrobe-panel__hint { flex-shrink: 0; padding: 4rpx 8rpx 12rpx; color: #b39c88; font-size: 22rpx; }
 

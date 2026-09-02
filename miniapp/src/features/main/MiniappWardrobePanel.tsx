@@ -48,6 +48,7 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
   const [backdropSrc, setBackdropSrc] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [activeKind, setActiveKind] = useState<SuitCategory>('body')
 
   useEffect(() => {
     let cancelled = false
@@ -213,8 +214,14 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
     )
   }
 
-  // 目录分页：按类别归组、每页最多 6 件（2×3），左右滑翻页（wardrobeModel.wardrobePages）
+  // 目录分页：标签页（服饰/配饰）+ Swiper 联动，每页最多 6 件（2×3）完整显示，
+  // 同类超出 6 件切块成多页左右滑（wardrobeModel.wardrobePages）
   const pages = view ? wardrobePages(view.items) : []
+  const activeIndex = Math.max(0, pages.findIndex((page) => page.kind === activeKind))
+  const onPageChange = (event: { detail: { current: number } }) => {
+    const kind = pages[event.detail.current]?.kind
+    if (kind && kind !== activeKind) setActiveKind(kind)
+  }
 
   return (
     <View className="wardrobe-panel">
@@ -272,6 +279,27 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
 
       <View className="wardrobe-rack">
         <View className="wardrobe-rack__pole" />
+        {view !== null && (
+          <View className="wardrobe-tabs">
+            <View
+              hoverClass="wardrobe-tab--press"
+              hoverStayTime={120}
+              className={`wardrobe-tab${activeKind === 'body' ? ' wardrobe-tab--on' : ''}`}
+              onClick={() => setActiveKind('body')}
+            >
+              <Text>🐾 服饰</Text>
+            </View>
+            <View
+              hoverClass="wardrobe-tab--press"
+              hoverStayTime={120}
+              className={`wardrobe-tab${activeKind === 'accessory' ? ' wardrobe-tab--on' : ''}`}
+              onClick={() => setActiveKind('accessory')}
+            >
+              <Text>🎀 配饰</Text>
+            </View>
+            <Text className="wardrobe-tabs__hint">{activeKind === 'body' ? '选一件主体服装' : '可叠穿，再点摘下'}</Text>
+          </View>
+        )}
         {view === null && (
           <View className="wardrobe-grid">
             <View className="wardrobe-grid__skeleton" />
@@ -280,6 +308,8 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
         {view !== null && (
           <Swiper
             className="wardrobe-pager"
+            current={activeIndex}
+            onChange={onPageChange}
             indicatorDots
             indicatorColor="rgba(122, 85, 49, .22)"
             indicatorActiveColor="#e88f3c"
@@ -287,10 +317,6 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
             {pages.map((page, pageIndex) => (
               <SwiperItem key={`${page.kind}-${pageIndex}`}>
                 <View className="wardrobe-page">
-                  <View className="wardrobe-grid__section">
-                    <Text className="wardrobe-grid__section-text">{page.label}</Text>
-                    <View className="wardrobe-grid__section-line" />
-                  </View>
                   <View className="wardrobe-grid__cards">
                     {page.items.map(renderItem)}
                   </View>
