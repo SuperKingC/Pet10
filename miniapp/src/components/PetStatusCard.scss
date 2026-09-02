@@ -122,8 +122,8 @@
    两套帧画布不同（468/514），mouth-closed 用 wander 舞台宽、mouth-open 用 fetch 舞台宽。
    mouth-open 整体上移 14px：v2 大嘴帧构图头部更低（画布内容 512 宽 vs v1 465，同高下躯干压低），
    底对齐后视觉偏下、前腿贴地看不全——上移后头部与闲逛同高（球在层内随之同步） */
-.pet-move-stage--fetch .pet-move-mouth-closed { width: 273px; animation: pet-fetch-mouth-closed 11s step-end forwards; }
-.pet-move-stage--fetch .pet-move-mouth-open { bottom: 14px; animation: pet-fetch-mouth-open 11s step-end forwards; }
+.pet-move-stage--fetch .pet-move-mouth-closed { position: absolute; left: 0; top: 0; bottom: 0; width: 273px; height: 175px; animation: pet-fetch-mouth-closed 11s step-end forwards; }
+.pet-move-stage--fetch .pet-move-mouth-open { position: absolute; left: 0; top: 0; right: 0; bottom: 14px; width: 300px; height: 175px; animation: pet-fetch-mouth-open 11s step-end forwards; }
 @keyframes pet-fetch-mouth-closed {
   0%, 29% { opacity: 1; }
   30%, 87% { opacity: 0; }

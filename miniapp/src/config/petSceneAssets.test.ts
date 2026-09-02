@@ -97,7 +97,9 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--wander { width: 272px; margin-left: -136px; }')
     expect(sceneStyle).toContain('.pet-move-stage--fetch { width: 300px; margin-left: -150px; }')
     // mouth-open 整体上移 14px：v2 帧构图头部更低，底对齐后视觉偏下看不全
-    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth-open { bottom: 14px; animation: pet-fetch-mouth-open 11s step-end forwards; }')
+    // mouth 层不在四边定位规则成员里，微信 image 又不吃推导尺寸——必须自身带绝对定位+显式宽高（022310f 后 fdd1c4e 无效的教训）
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth-closed { position: absolute; left: 0; top: 0; bottom: 0; width: 273px; height: 175px; animation: pet-fetch-mouth-closed 11s step-end forwards; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth-open { position: absolute; left: 0; top: 0; right: 0; bottom: 14px; width: 300px; height: 175px; animation: pet-fetch-mouth-open 11s step-end forwards; }')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     // 横穿全场、屏幕外掉头：中间（面朝左）→整只跑出左屏（±480≈舞台 272 全出画）→屏幕外停步掉头→
