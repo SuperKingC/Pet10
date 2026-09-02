@@ -68,23 +68,34 @@ describe('miniapp pet scene assets', () => {
   })
 
   it('turn choreography pauses before flipping and the fetch return fades in instead of popping', () => {
-    // 掉头平滑化契约：到边先停步再翻面（scaleX 连续过 0 缓冲），回程同样停步后翻回；
-    // 叼娃场外换向后边走入边淡入（26%→30%），娃娃与狗同步淡入不再瞬现
+    // 掉头平滑化契约：到边先停步再翻面（scaleX 连续过 0 缓冲）；步态素材原生朝左（眼鼻在左），
+    // 闲逛去程向右必须 scaleX(-1)，否则是倒着跑；叼娃场外换向后边走入边淡入（26%→30%）；
+    // 娃娃与狗同步淡入不再瞬现；舞台 224×144、脚线 bottom 50px 落在墙脚线地面（y≈412）
     const sceneStyle = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.scss'), 'utf8')
 
+    const stageBlock = sceneStyle.match(/\.pet-move-stage \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(stageBlock).toContain('bottom: 50px;')
+    expect(stageBlock).toContain('width: 224px;')
+    expect(stageBlock).toContain('height: 144px;')
+    expect(stageBlock).toContain('margin-left: -112px;')
+
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(wanderBlock).toContain('34% { transform: translateX(54px) scaleX(1); }')
-    expect(wanderBlock).toContain('39% { transform: translateX(54px) scaleX(1); }')
-    expect(wanderBlock).toContain('45% { transform: translateX(54px) scaleX(-1); }')
-    expect(wanderBlock).toContain('93% { transform: translateX(0) scaleX(-1); }')
-    expect(wanderBlock).toContain('100% { transform: translateX(0) scaleX(1); }')
+    expect(wanderBlock).toContain('0% { transform: translateX(0) scaleX(-1); }')
+    expect(wanderBlock).toContain('34% { transform: translateX(54px) scaleX(-1); }')
+    expect(wanderBlock).toContain('39% { transform: translateX(54px) scaleX(-1); }')
+    expect(wanderBlock).toContain('45% { transform: translateX(54px) scaleX(1); }')
+    expect(wanderBlock).toContain('88%, 100% { transform: translateX(0) scaleX(1); }')
 
     const fetchBlock = sceneStyle.match(/@keyframes pet-fetch-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(fetchBlock).toContain('26% { transform: translateX(-150px) scaleX(-1); opacity: 0; }')
-    expect(fetchBlock).toContain('30% { transform: translateX(-136px) scaleX(-1); opacity: 1; }')
+    expect(fetchBlock).toContain('26% { transform: translateX(-216px) scaleX(-1); opacity: 0; }')
+    expect(fetchBlock).toContain('30% { transform: translateX(-196px) scaleX(-1); opacity: 1; }')
+
+    const dollRule = sceneStyle.match(/\.pet-move-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(dollRule).toContain('width: 86px;')
+    expect(dollRule).toContain('height: 120px;')
 
     const dollBlock = sceneStyle.match(/@keyframes pet-fetch-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(dollBlock).toContain('30% { transform: translateY(6px); opacity: 1; }')
+    expect(dollBlock).toContain('30% { transform: translateY(9px); opacity: 1; }')
 
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
     expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
