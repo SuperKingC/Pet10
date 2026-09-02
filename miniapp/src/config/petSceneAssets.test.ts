@@ -129,7 +129,7 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).not.toContain('pet-move-doll--drop')
 
     // 玩具球只保留叼着的一只（挂 bobber 压帧上层），抛出即消失、无落地停留段（放下球直接坐好）
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 8px; top: 57px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }')
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 8px; top: 71px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }')
     const carryBob = sceneStyle.match(/@keyframes pet-doll-carry-bob \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(carryBob).toContain('50% { transform: translateY(3px); }')
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''
@@ -137,6 +137,10 @@ describe('miniapp pet scene assets', () => {
     expect(dollCarry).toContain('88%, 100% { opacity: 0; }')
     expect(sceneStyle).not.toContain('pet-fetch-doll-drop')
 
+    // fetch 收尾定格：帧交替/颠步只跑 23 次（23×0.42s≈88%×11s 跑到位即停），forwards 停在 A 可见静止末态
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-frame { animation: pet-fetch-frame-a .42s linear 23 forwards; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-frame--b { opacity: 0; animation: pet-fetch-frame-b .42s linear 23 forwards; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-bobber { animation: pet-fetch-bob .42s ease-in-out 23 forwards; }')
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
     expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
     // image 组件不吃四边推导尺寸（背景/娃娃/名牌图均显式宽高才正常）：步态帧必须显式撑满舞台，

@@ -135,7 +135,27 @@
   30%, 87% { opacity: 1; }
   88%, 100% { opacity: 0; }
 }
+
+/* 收尾无原地跑：fetch 下帧交替/颠步只跑 23 次（23×0.42s≈9.68s = 88%×11s，恰跑到位瞬间停），
+   forwards 定格在 A 可见/B 隐身的静止末态，后 1.3s 狗静止收口等站姿淡入，不再原地小跑 */
 .pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 11s ease-in-out forwards; }
+.pet-move-stage--fetch .pet-move-frame { animation: pet-fetch-frame-a .42s linear 23 forwards; }
+.pet-move-stage--fetch .pet-move-frame--b { opacity: 0; animation: pet-fetch-frame-b .42s linear 23 forwards; }
+@keyframes pet-fetch-frame-a {
+  0%, 42% { opacity: 0; }
+  50%, 92% { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes pet-fetch-frame-b {
+  0%, 42% { opacity: 1; }
+  50%, 92% { opacity: 0; }
+  100% { opacity: 0; }
+}
+.pet-move-stage--fetch .pet-move-bobber { animation: pet-fetch-bob .42s ease-in-out 23 forwards; }
+@keyframes pet-fetch-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(-1.2deg); }
+}
 @keyframes pet-fetch-hop {
   0%, 88% { transform: translateY(0); }
   90% { transform: translateY(-14px); }
@@ -146,7 +166,7 @@
    再叠 0.42s 独立浮动（咬着球随跑动上下颠，与步频同拍）；球 88% 抛出后直接消失（不再落地停留），
    狗落地即闭嘴坐好，没有原地段 */
 .pet-move-doll { position: absolute; width: 44px; height: 45px; opacity: 0; }
-.pet-move-doll--carry { left: 8px; top: 57px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }
+.pet-move-doll--carry { left: 8px; top: 71px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }
 @keyframes pet-doll-carry-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(3px); }
