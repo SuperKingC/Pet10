@@ -30,7 +30,7 @@ const WANDER_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
 const FETCH_FRAME_A_FILE = 'xiaoduoli-walk-a-v2.png'
 const FETCH_FRAME_B_FILE = 'xiaoduoli-walk-b-v2.png'
 // 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
-const CARD_ENTRY_FILE = 'pet-card-entry-v2.png'
+const CARD_ENTRY_FILE = 'pet-card-entry-v3.png'
 // ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
 // 失败时回退 <Image> 直连 URL：image 组件不受 downloadFile 域名校验约束，本地静态服务/COS 均可直接显示
 const actAssetUrl = (file: string) => `${resolveAssetBaseUrl()}/wardrobe/${file}`

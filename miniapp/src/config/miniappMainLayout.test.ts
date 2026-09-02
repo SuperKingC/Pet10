@@ -91,7 +91,7 @@ describe('miniapp main layout', () => {
     expect(statusCardSource).not.toContain('onOpenCard')
     expect(statusCardSource).not.toContain('pet-name-card--hover')
     // 名牌是生成的手绘卡通小卡图（COS，无角色），不再渲染「名片」二字提示
-    expect(statusCardSource).toContain("const CARD_ENTRY_FILE = 'pet-card-entry-v2.png'")
+    expect(statusCardSource).toContain("const CARD_ENTRY_FILE = 'pet-card-entry-v3.png'")
     expect(statusCardSource).not.toContain('pet-name-card__hint')
     expect(statusCardSource).not.toContain('>名片<')
     // 档案文案单源模块（「我的 → 关于小多利」使用）保留四行全文

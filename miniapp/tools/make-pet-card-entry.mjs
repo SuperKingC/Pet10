@@ -1,6 +1,6 @@
 // 小多利名牌入口小卡出件：design-assets/nest 的白底 AI 源图 → 归档 2048 宽 JPEG（删 raw PNG 以免 check-assets 缺登记）
-// → solid 模式去底（四边洪水填充近白 + 封闭近白保护 + 贴边软 alpha）→ 内容紧裁 → 460 宽 PNG8 + TinyPNG
-// → public/wardrobe/pet-card-entry-v2.png（COS，不占包体）。去底策略沿用 make-item-icons-v5.mjs。
+// → solid 模式去底（四边洪水填充近白 + 封闭近白保护 + 贴边软 alpha）→ 内容紧裁 → 360 宽（显示 120rpx 的 3x）+ 缩放后轻锐化
+//   → PNG8 + TinyPNG → public/wardrobe/pet-card-entry-v3.png（COS，不占包体）。去底策略沿用 make-item-icons-v5.mjs。
 // 运行：node miniapp/tools/make-pet-card-entry.mjs
 import { readFile, writeFile, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
@@ -10,7 +10,9 @@ import sharp from 'sharp'
 const root = path.resolve(import.meta.dirname, '../..')
 const srcDir = path.join(root, 'design-assets/nest')
 const outDir = path.join(root, 'public/wardrobe')
-const OUT_VERSION = 'v2'
+const OUT_VERSION = 'v3'
+// 显示 120rpx≈60 逻辑 px，出 3x（180 物理 px）宽即 360；超采样过多反而被渲染端双线性平均得发糊
+const OUT_WIDTH = 360
 
 const isNearWhite = (r, g, b) => r >= 246 && g >= 244 && b >= 242
 
@@ -139,11 +141,12 @@ const tinifyKeys = await loadTinifyKeys()
 if (tinifyKeys.length === 0) process.stdout.write('提示：.env 无 TINIFY key，跳过 TinyPNG（仅 PNG8）\n')
 
 const raw = path.join(srcDir, `pet-card-entry-${OUT_VERSION}-raw.png`)
+// 出件版本与源图版本解耦：同一张源图可反复重出（锐化参数/尺寸调整不用重新生图）
 const src = existsSync(raw)
   ? await archiveSource(raw, `pet-card-entry-source-${OUT_VERSION}.jpg`)
-  : path.join(srcDir, `pet-card-entry-source-${OUT_VERSION}.jpg`)
+  : path.join(srcDir, 'pet-card-entry-source-v2.jpg')
 if (!existsSync(src)) {
-  process.stdout.write(`跳过：缺 pet-card-entry-${OUT_VERSION}-raw.png / 归档源图\n`)
+  process.stdout.write('跳过：缺 pet-card-entry-v3-raw.png / pet-card-entry-source-v2.jpg 归档源图\n')
   process.exit(0)
 }
 const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
@@ -153,7 +156,9 @@ const solid = applySolid(data, W, H, bg)
 const box = alphaBox(solid, W, H, 4)
 let png = await sharp(solid, { raw: { width: W, height: H, channels: 4 } })
   .extract(box)
-  .resize({ width: 460, withoutEnlargement: true, kernel: 'lanczos3' })
+  .resize({ width: OUT_WIDTH, withoutEnlargement: true, kernel: 'lanczos3' })
+  // 缩放平均会糊掉虚线框等细笔画，轻锐化把边缘对比拉回来
+  .sharpen({ sigma: 0.6, m1: 0.6, m2: 1.6 })
   .png({ palette: true, compressionLevel: 9 })
   .toBuffer()
 if (tinifyKeys.length > 0) {
@@ -162,6 +167,6 @@ if (tinifyKeys.length > 0) {
 }
 const outFile = path.join(outDir, `pet-card-entry-${OUT_VERSION}.png`)
 await writeFile(outFile, png)
-const outW = Math.min(460, box.width)
+const outW = Math.min(OUT_WIDTH, box.width)
 const outH = Math.round((outW / box.width) * box.height)
 process.stdout.write(`${path.relative(root, outFile)} ${png.length}B (box ${box.width}x${box.height} → ${outW}x${outH}，纵横比 ${(box.width / box.height).toFixed(3)})\n`)
