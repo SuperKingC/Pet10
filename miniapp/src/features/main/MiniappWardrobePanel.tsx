@@ -254,9 +254,6 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
         {!assetReady && (
           <Text className="wardrobe-scene__pending">画稿云端准备中…</Text>
         )}
-        <View className="wardrobe-scene__name">
-          <Text>{view ? (view.items.find((item) => item.key === pieces.body)?.name ?? '原装小多利') : '…'}</Text>
-        </View>
         <View className="wardrobe-scene__spark wardrobe-scene__spark--a" />
         <View className="wardrobe-scene__spark wardrobe-scene__spark--b" />
       </View>

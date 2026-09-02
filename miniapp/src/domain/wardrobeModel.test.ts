@@ -98,12 +98,13 @@ describe('wardrobe model', () => {
     for (const key of ['hat', 'scarf', 'bag'] as const) {
       expect(resolveOverlayStyle(key)).toBe(OUTFIT_LAYER_STYLE[key])
     }
-    // 每套主体服装都有切件定位，且切件顶都在下巴（≈54.5%）之下——任何服装都不挡头
+    // 每套主体服装都有切件定位：领口都在颊毛下缘（≈61%）之下不挡头，宽度贴体宽（60-80% 画布宽）
     for (const body of ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'] as const) {
       const style = resolveBodyLayerStyle(body)
       expect(style).toBeDefined()
-      expect(Number.parseFloat(style!.top)).toBeGreaterThan(54)
-      expect(Number.parseFloat(style!.width)).toBeLessThan(70)
+      expect(Number.parseFloat(style!.top)).toBeGreaterThan(60)
+      expect(Number.parseFloat(style!.width)).toBeGreaterThan(60)
+      expect(Number.parseFloat(style!.width)).toBeLessThan(80)
     }
     expect(resolveBodyLayerStyle('default')).toBeUndefined()
   })

@@ -76,11 +76,11 @@ export const EMPTY_OUTFIT: OutfitPieces = { body: 'default', hat: null, scarf: n
 
 /** 主体服装切件的叠加定位（436×700 原装画布百分比），由 miniapp/tools/cut-worn-garments.mjs 标定生成，改素材必须重跑 */
 export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hoodie: { left: '19.95%', top: '56.00%', width: '60.09%' },
-  overalls: { left: '22.48%', top: '57.43%', width: '55.05%' },
-  dress: { left: '19.27%', top: '56.29%', width: '61.47%' },
-  raincoat: { left: '16.05%', top: '56.29%', width: '67.89%' },
-  pajamas: { left: '19.27%', top: '56.57%', width: '61.47%' }
+  hoodie: { left: '13.30%', top: '62.86%', width: '73.39%' },
+  overalls: { left: '15.60%', top: '63.57%', width: '68.81%' },
+  dress: { left: '12.84%', top: '62.14%', width: '74.54%' },
+  raincoat: { left: '12.16%', top: '62.86%', width: '75.69%' },
+  pajamas: { left: '13.53%', top: '63.14%', width: '72.94%' }
 }
 
 /** 某主体服装切件在原装立绘上的叠加定位；原装无切件返回 undefined */

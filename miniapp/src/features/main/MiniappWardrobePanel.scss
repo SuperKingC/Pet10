@@ -106,24 +106,6 @@
   font-size: var(--font-size-aux);
   white-space: nowrap;
 }
-/* 名牌压在舞台前沿（层级高于内景图，修复名牌被圆台遮挡） */
-.wardrobe-scene__name {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  z-index: 2;
-  padding: 6rpx 30rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #f7b35c, #e88f3c);
-  color: #fff;
-  font-size: var(--font-size-aux);
-  font-weight: var(--font-weight-bold);
-  box-shadow: 0 6rpx 14rpx rgba(232, 143, 60, .32);
-  white-space: nowrap;
-  animation: wardrobe-name-pop .4s cubic-bezier(.34, 1.56, .64, 1) both;
-}
-@keyframes wardrobe-name-pop { from { opacity: 0; transform: translateX(-50%) scale(.8); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
 /* 立绘旁的两颗闪烁星星 */
 .wardrobe-scene__spark {
   position: absolute;
@@ -412,7 +394,6 @@
   .wardrobe-scene::before { animation: none; opacity: .7; }
   .wardrobe-scene__portrait .outfit-portrait { animation: none; }
   .wardrobe-scene__spark { animation: none; opacity: .6; }
-  .wardrobe-scene__name { animation: none; }
   .wardrobe-match { animation: none; }
   .wardrobe-panel__backdrop { animation: wardrobe-fade .32s ease-out both; }
 }

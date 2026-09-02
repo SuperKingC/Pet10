@@ -17,14 +17,14 @@ const BASE_H = 700
 const BODY_CX = 218
 
 // 每件服装在原装画布上的目标几何：top=领口/肩线 y(px)，bottom=下摆 y(px)，width=目标显示宽(px)。
-// 宽度允许 ≤20% 温和横向拉伸（水彩软布料上不可感知），水平以犬身中轴 x=218 居中；
-// 体宽（胸部最宽处）约 340px，目标宽取体宽 60-68%。
+// 领口卡在颊毛下缘（≈430）之下、下摆停在爪垫上方；体宽（胸部最宽处）约 342px，
+// 目标宽取体宽 88-96%（袖子摊到接近身体轮廓），水平以犬身中轴 x=218 居中，拉伸 ≤20%。
 const TARGETS = {
-  hoodie: { top: 392, bottom: 672, width: 262 },
-  overalls: { top: 402, bottom: 668, width: 240 },
-  dress: { top: 394, bottom: 676, width: 268 },
-  raincoat: { top: 394, bottom: 670, width: 296 },
-  pajamas: { top: 396, bottom: 672, width: 268 }
+  hoodie: { top: 440, bottom: 670, width: 320 },
+  overalls: { top: 445, bottom: 672, width: 300 },
+  dress: { top: 435, bottom: 678, width: 325 },
+  raincoat: { top: 440, bottom: 672, width: 330 },
+  pajamas: { top: 442, bottom: 674, width: 318 }
 }
 
 // 配饰在原装立绘上的几何（与 wardrobeModel.OUTFIT_LAYER_STYLE 同源，px on 436×700）。
