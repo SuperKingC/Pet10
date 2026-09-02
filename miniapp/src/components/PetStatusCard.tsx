@@ -201,8 +201,9 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
               <View className="pet-move-travel">
                 <View className="pet-move-hop">
                   <View className="pet-move-bobber">
-                    {/* mouth 双层按分镜进度切帧（CSS step-end）：闲逛恒闭嘴；叼球 0~30% 闭嘴去程、
-                        30~88% 大嘴 v2 叼球、88% 后闭嘴收口放球——放下球时嘴同时回到默认 */}
+                    {/* mouth 双层包装 View 按分镜进度切层（CSS step-end）；层内帧 A/B 保持各自的互斥淡化动画——
+                        切层动画不能直接写在 Image 上，会覆盖帧 B 的淡化导致两帧同屏（八条腿叠影）。
+                        闲逛恒闭嘴层；叼球 0~30% 闭嘴去程、30~88% 大嘴 v2 叼球、88% 后闭嘴收口放球 */}
                     {act === 'wander' && (
                       <>
                         <Image className="pet-move-frame" src={moveAssets.wanderA} mode="aspectFit" />
@@ -211,12 +212,16 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
                     )}
                     {act === 'fetch' && (
                       <>
-                        <Image className="pet-move-mouth-closed" src={moveAssets.wanderA} mode="aspectFit" />
-                        <Image className="pet-move-mouth-closed pet-move-frame--b" src={moveAssets.wanderB} mode="aspectFit" />
-                        <Image className="pet-move-mouth-open" src={moveAssets.fetchA} mode="aspectFit" />
-                        <Image className="pet-move-mouth-open pet-move-frame--b" src={moveAssets.fetchB} mode="aspectFit" />
-                        {/* 球压在帧上层（缩小让嘴可见：鼻尖露球顶、下颚舌头露球下），随 mouth 层同窗口出现 */}
-                        <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
+                        <View className="pet-move-mouth pet-move-mouth--closed">
+                          <Image className="pet-move-frame" src={moveAssets.wanderA} mode="aspectFit" />
+                          <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.wanderB} mode="aspectFit" />
+                        </View>
+                        <View className="pet-move-mouth pet-move-mouth--open">
+                          <Image className="pet-move-frame" src={moveAssets.fetchA} mode="aspectFit" />
+                          <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.fetchB} mode="aspectFit" />
+                          {/* 球在张嘴层内：随该层一起出现/消失，压在帧上层（缩小让嘴可见） */}
+                          <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
+                        </View>
                       </>
                     )}
                   </View>

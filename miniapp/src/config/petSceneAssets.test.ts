@@ -69,15 +69,15 @@ describe('miniapp pet scene assets', () => {
     expect(componentSource).toContain('WANDER_FRAME_B_FILE')
     expect(componentSource).toContain('FETCH_FRAME_A_FILE')
     expect(componentSource).toContain('FETCH_FRAME_B_FILE')
-    expect(componentSource).toContain('pet-move-mouth-closed')
-    expect(componentSource).toContain('pet-move-mouth-open')
+    expect(componentSource).toContain('pet-move-mouth pet-move-mouth--closed')
+    expect(componentSource).toContain('pet-move-mouth pet-move-mouth--open')
     expect(componentSource).toContain("act === 'wander' && (")
-    // 球压在帧上层（球在前缩小让嘴可见）：carry Image 在帧 Image 之后渲染
-    const bobber = componentSource.slice(
-      componentSource.indexOf('pet-move-bobber'),
-      componentSource.indexOf('pet-move-bobber') + 1400,
+    // 球压在帧上层（球在前缩小让嘴可见）：张嘴包装层内的 carry 在帧之后渲染
+    const openMouth = componentSource.slice(
+      componentSource.indexOf('pet-move-mouth--open'),
+      componentSource.indexOf('pet-move-mouth--open') + 800,
     )
-    expect(bobber.indexOf('pet-move-doll--carry')).toBeGreaterThan(bobber.indexOf('pet-move-frame'))
+    expect(openMouth.indexOf('pet-move-doll--carry')).toBeGreaterThan(openMouth.indexOf('pet-move-frame'))
     expect(componentSource).toContain("require('../assets/items/item-ball-fetch-v1.png')")
     expect(componentSource).toContain('pet-move-stage')
     expect(componentSource).toContain('pet-move-doll--carry')
@@ -98,8 +98,10 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--fetch { width: 300px; margin-left: -150px; }')
     // mouth-open 整体上移 14px：v2 帧构图头部更低，底对齐后视觉偏下看不全
     // mouth 层不在四边定位规则成员里，微信 image 又不吃推导尺寸——必须自身带绝对定位+显式宽高（022310f 后 fdd1c4e 无效的教训）
-    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth-closed { position: absolute; left: 0; top: 0; bottom: 0; width: 273px; height: 175px; animation: pet-fetch-mouth-closed 11s step-end forwards; }')
-    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth-open { position: absolute; left: 0; top: 0; right: 0; bottom: 14px; width: 300px; height: 175px; animation: pet-fetch-mouth-open 11s step-end forwards; }')
+    // 切层动画写在包装 View 上（写在 Image 上会覆盖帧 B 淡化→两帧同屏八条腿）；层内帧 A/B 保持互斥淡化
+    expect(sceneStyle).toContain('.pet-move-mouth { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth--closed { right: auto; width: 273px; animation: pet-fetch-mouth-closed 11s step-end forwards; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-mouth--open { bottom: 14px; animation: pet-fetch-mouth-open 11s step-end forwards; }')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     // 横穿全场、屏幕外掉头：中间（面朝左）→整只跑出左屏（±480≈舞台 272 全出画）→屏幕外停步掉头→
