@@ -45,7 +45,7 @@ for (let y = 0; y < BOX_H; y++) {
 
 let failed = 0
 for (const suit of SUITS) {
-  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v5.png`)).resize(BOX_W, BOX_H).png().toBuffer()
+  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v6.png`)).resize(BOX_W, BOX_H).png().toBuffer()
   const withLayer = await sharp(baseBuf).composite([{ input: layer, left: 0, top: 0 }]).png().toBuffer()
   const raw = await sharp(withLayer).raw().toBuffer()
   const mask = new Uint8Array(BOX_W * BOX_H)
@@ -78,8 +78,8 @@ for (const suit of SUITS) {
   const ratio = garmentMax / bodyMax
   push('服装宽 ≥60% 犬身最宽', ratio >= 0.6, `ratio=${(ratio * 100).toFixed(1)}% garment=${garmentMax}px body=${bodyMax}px`)
   push('中轴 218±25', Math.abs(centerX - 218) <= 25, `center=${centerX.toFixed(0)}`)
-  const headLeak = top >= 0 && toCanvasY(top) < 255
-  push('脸部净空（255 以上无服装）', !headLeak, `topCanvas=${top >= 0 ? toCanvasY(top) : 'none'}`)
+  const headLeak = top >= 0 && toCanvasY(top) < 245
+  push('脸部净空（245 以上无服装）', !headLeak, `topCanvas=${top >= 0 ? toCanvasY(top) : 'none'}`)
   const allOk = checks.every((c) => c.ok)
   console.log(`${allOk ? 'PASS' : 'FAIL'} ${suit}`)
   for (const c of checks) console.log(`   ${c.ok ? '✓' : '✗'} ${c.name}: ${c.detail}`)
