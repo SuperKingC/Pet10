@@ -45,7 +45,7 @@ for (let y = 0; y < BOX_H; y++) {
 
 let failed = 0
 for (const suit of SUITS) {
-  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v11.png`)).resize(BOX_W, BOX_H).png().toBuffer()
+  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v12.png`)).resize(BOX_W, BOX_H).png().toBuffer()
   const withLayer = await sharp(baseBuf).composite([{ input: layer, left: 0, top: 0 }]).png().toBuffer()
   const raw = await sharp(withLayer).raw().toBuffer()
   const mask = new Uint8Array(BOX_W * BOX_H)
