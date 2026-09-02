@@ -219,9 +219,14 @@
 .wardrobe-pager { height: 516rpx; }
 .wardrobe-page {
   height: 100%;
-  padding: 26rpx 4rpx 26rpx;
+  /* 顶部 6rpx：卡片上移；底部 20rpx 缓冲 */
+  padding: 6rpx 4rpx 20rpx;
   box-sizing: border-box;
 }
+/* 自绘翻页指示点：独立于卡片行，下移留白不互挡 */
+.wardrobe-pager__dots { display: flex; justify-content: center; gap: 12rpx; padding: 2rpx 0 6rpx; }
+.wardrobe-pager__dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: rgba(122, 85, 49, .22); }
+.wardrobe-pager__dot--on { background: #e88f3c; box-shadow: 0 0 6rpx rgba(232, 143, 60, .5); }
 .wardrobe-grid {
   padding: 6rpx 4rpx 0;
 }

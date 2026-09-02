@@ -311,9 +311,6 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
             style={{ height: activeKind === 'body' ? '516rpx' : '306rpx' }}
             current={activeIndex}
             onChange={onPageChange}
-            indicatorDots
-            indicatorColor="rgba(122, 85, 49, .22)"
-            indicatorActiveColor="#e88f3c"
           >
             {pages.map((page, pageIndex) => (
               <SwiperItem key={`${page.kind}-${pageIndex}`}>
@@ -325,6 +322,17 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
               </SwiperItem>
             ))}
           </Swiper>
+        )}
+        {/* 自绘翻页指示点：与卡片分离下移，不互挡 */}
+        {view !== null && pages.length > 1 && (
+          <View className="wardrobe-pager__dots">
+            {pages.map((_, pageIndex) => (
+              <View
+                key={pageIndex}
+                className={`wardrobe-pager__dot${pageIndex === activeIndex ? ' wardrobe-pager__dot--on' : ''}`}
+              />
+            ))}
+          </View>
         )}
       </View>
 
