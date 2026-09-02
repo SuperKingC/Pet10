@@ -226,8 +226,6 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
                     )}
                   </View>
                 </View>
-                {/* 落地的玩偶留在 travel 层不随颠步：抛出弹地后停留再淡出 */}
-                <Image className="pet-move-doll pet-move-doll--drop" src={moveAssets.doll} mode="aspectFit" />
               </View>
             </View>
           )}

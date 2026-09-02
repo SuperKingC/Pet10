@@ -81,7 +81,6 @@ describe('miniapp pet scene assets', () => {
     expect(componentSource).toContain("require('../assets/items/item-ball-fetch-v1.png')")
     expect(componentSource).toContain('pet-move-stage')
     expect(componentSource).toContain('pet-move-doll--carry')
-    expect(componentSource).toContain('pet-move-doll--drop')
   })
 
   it('turn choreography pauses before flipping and the fetch return fades in instead of popping', () => {
@@ -125,19 +124,18 @@ describe('miniapp pet scene assets', () => {
     expect(fetchBlock).not.toContain('opacity')
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-travel { animation: pet-fetch-travel 11s ease-in-out forwards; }')
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 11s ease-in-out forwards; }')
-    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--carry { animation: pet-fetch-doll-carry 11s ease-in-out forwards; }')
-    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--drop { animation: pet-fetch-doll-drop 11s ease-in-out forwards; }')
+    // 叼球浮动：球随跑动上下颠（0.42s 独立 bob 与步频同拍，叠在整体颠步之外）；双动画逗号并列
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--carry { animation: pet-doll-carry-bob .42s ease-in-out infinite, pet-fetch-doll-carry 11s step-end forwards; }')
+    expect(sceneStyle).not.toContain('pet-move-doll--drop')
 
-    // 玩具球拆两层：叼着的压帧上层跟随颠步（球在前缩小让嘴可见），落地的留 travel 层不随颠步（球弹不压扁）
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 8px; top: 57px; }')
-    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 8px; bottom: 0; }')
-
+    // 玩具球只保留叼着的一只（挂 bobber 压帧上层），抛出即消失、无落地停留段（放下球直接坐好）
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 8px; top: 57px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }')
+    const carryBob = sceneStyle.match(/@keyframes pet-doll-carry-bob \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(carryBob).toContain('50% { transform: translateY(3px); }')
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(dollCarry).toContain('30%, 86% { opacity: 1; }')
+    expect(dollCarry).toContain('30%, 87% { opacity: 1; }')
     expect(dollCarry).toContain('88%, 100% { opacity: 0; }')
-    const dollDrop = sceneStyle.match(/@keyframes pet-fetch-doll-drop \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(dollDrop).toContain('88% { opacity: 1; transform: translateY(-70px); }')
-    expect(dollDrop).toContain('94% { opacity: 1; transform: translateY(-26px); }')
+    expect(sceneStyle).not.toContain('pet-fetch-doll-drop')
 
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
     expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
