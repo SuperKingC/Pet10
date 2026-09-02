@@ -17,7 +17,7 @@ const SUITS = ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas']
 
 // 黑键控阈值：max(r,g,b) 低于此值视为狗身；其上 40 内为羽化过渡带
 const BLACK_MAX = 70
-const BLACK_FADE = 40
+const BLACK_FADE = 90
 // 泛洪白底阈值（近白视为背景；胸前抽绳等被衣服包围的白色不受影响）
 const WHITE_MIN = 242
 
@@ -85,7 +85,7 @@ for (const suit of SUITS) {
       const v = Math.max(sm.data[so], sm.data[so + 1], sm.data[so + 2])
       let alpha
       if (v < BLACK_MAX) alpha = 0 // 黑狗身
-      else if (v < BLACK_MAX + BLACK_FADE) alpha = Math.round(((v - BLACK_MAX) / BLACK_FADE) * 255) // 黑边羽化
+      else if (v < BLACK_MAX + BLACK_FADE) { const t = (v - BLACK_MAX) / BLACK_FADE; alpha = Math.round((t * t * (3 - 2 * t)) * 255) } // 黑边羽化（smoothstep 平滑过渡）
       else alpha = sm.data[so + 3]
       if (alpha === 0) continue
       // 上颌区残留清理：生成的狗张嘴时粉舌头/口腔/嘴部深描边会留在叠层上，与底图嘴部叠出重影——
@@ -192,7 +192,7 @@ for (const suit of SUITS) {
   }
   // 黑→白过渡带的抗锯齿灰环清除：对 alpha 做 3 轮最小值侵蚀——
   // 紧邻透明区的灰环逐轮变透明，衣服自身边缘仅收 3px 且更柔和
-  for (let iter = 0; iter < 2; iter++) {
+  for (let iter = 0; iter < 1; iter++) {
     const src = Buffer.from(canvas)
     for (let y = 0; y < BASE_H; y++) {
       for (let x = 0; x < BASE_W; x++) {
@@ -232,11 +232,23 @@ for (const suit of SUITS) {
       }
     }
   }
-  // 舌头硬净空：舌体盒（画布 x200-253, y356-396，含外扩余量抗重采样渗色）内清空全部叠层像素——
-  // 无论生成图衣领怎么画，舌头永远完整露出（底图舌头直接可见）
-  for (let y = 356; y <= 396; y++) {
-    for (let x = 200; x <= 253; x++) {
-      canvas[(y * BASE_W + x) * 4 + 3] = 0
+  // 舌头硬净空：椭圆舌区（中心 226,376，半径 30×26，外扩 5px 余量）内按 smoothstep 软清空——
+  // 圆形边界融入衣领不留方角缺口；无论生成图衣领怎么画，舌头永远完整露出
+  {
+    const cx = 226, cy = 376, rx = 35, ry = 31
+    for (let y = cy - ry - 5; y <= cy + ry + 5; y++) {
+      if (y < 0 || y >= BASE_H) continue
+      for (let x = cx - rx - 5; x <= cx + rx + 5; x++) {
+        if (x < 0 || x >= BASE_W) continue
+        const d = Math.sqrt(((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2)
+        if (d >= 1.15) continue
+        const o = (y * BASE_W + x) * 4 + 3
+        if (d <= 1) canvas[o] = 0
+        else {
+          const t = (d - 1) / 0.15
+          canvas[o] = Math.round(canvas[o] * (t * t * (3 - 2 * t)))
+        }
+      }
     }
   }
   const png = await sharp(canvas, { raw: { width: BASE_W, height: BASE_H, channels: 4 } })
