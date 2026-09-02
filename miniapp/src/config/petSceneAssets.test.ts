@@ -70,7 +70,12 @@ describe('miniapp pet scene assets', () => {
     expect(componentSource).toContain('FETCH_FRAME_A_FILE')
     expect(componentSource).toContain('FETCH_FRAME_B_FILE')
     expect(componentSource).toContain("act === 'fetch' ? moveAssets.fetchA : moveAssets.wanderA")
-    expect(componentSource).toContain("{act === 'fetch' && <Image className=\"pet-move-doll pet-move-doll--carry\"")
+    // 球压在帧上层（球在前缩小让嘴可见）：carry Image 在帧 Image 之后渲染
+    const bobber = componentSource.slice(
+      componentSource.indexOf('pet-move-bobber'),
+      componentSource.indexOf('pet-move-bobber') + 900,
+    )
+    expect(bobber.indexOf('pet-move-doll--carry')).toBeGreaterThan(bobber.indexOf('pet-move-frame'))
     expect(componentSource).toContain("require('../assets/items/item-ball-fetch-v1.png')")
     expect(componentSource).toContain('pet-move-stage')
     expect(componentSource).toContain('pet-move-doll--carry')
@@ -115,9 +120,9 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--carry { animation: pet-fetch-doll-carry 11s ease-in-out forwards; }')
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--drop { animation: pet-fetch-doll-drop 11s ease-in-out forwards; }')
 
-    // 玩具球拆两层：叼着的挂 bobber 跟随颠步，落地的留 travel 层不随颠步（球弹不压扁）
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 10px; top: 54px; }')
-    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 10px; bottom: 0; }')
+    // 玩具球拆两层：叼着的压帧上层跟随颠步（球在前缩小让嘴可见），落地的留 travel 层不随颠步（球弹不压扁）
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 26px; top: 60px; }')
+    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 26px; bottom: 0; }')
 
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(dollCarry).toContain('30%, 86% { opacity: 1; }')

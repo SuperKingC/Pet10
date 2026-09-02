@@ -201,10 +201,10 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
               <View className="pet-move-travel">
                 <View className="pet-move-hop">
                   <View className="pet-move-bobber">
-                    {/* 叼球时球垫在帧后面：嵌进大张开的嘴缝被上下颚夹住；闲逛闭嘴帧不渲染球 */}
-                    {act === 'fetch' && <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />}
                     <Image className="pet-move-frame" src={act === 'fetch' ? moveAssets.fetchA : moveAssets.wanderA} mode="aspectFit" />
                     <Image className="pet-move-frame pet-move-frame--b" src={act === 'fetch' ? moveAssets.fetchB : moveAssets.wanderB} mode="aspectFit" />
+                    {/* 叼球时球压在帧上层（球在前但缩小让嘴可见：鼻尖露球顶、下颚舌头露球下）；闲逛闭嘴帧不渲染球 */}
+                    {act === 'fetch' && <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />}
                   </View>
                 </View>
                 {/* 落地的玩偶留在 travel 层不随颠步：抛出弹地后停留再淡出 */}
