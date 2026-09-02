@@ -24,7 +24,7 @@ const roomBackground = require('../assets/room-background-v11.jpg')
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
 const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
 const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
-const DOLL_FILE = 'xiaoduoli-doll-v2.png'
+const DOLL_FILE = 'xiaoduoli-doll-v3.png'
 // 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
 const CARD_ENTRY_FILE = 'pet-card-entry-v2.png'
 // ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
@@ -192,10 +192,12 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
                   <View className="pet-move-bobber">
                     <Image className="pet-move-frame" src={moveAssets.frameA} mode="aspectFit" />
                     <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.frameB} mode="aspectFit" />
+                    {/* 叼着的玩偶挂进 bobber：跟随颠步/轻摇一起动，才像咬在嘴里 */}
+                    <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
                   </View>
                 </View>
-                {/* 娃娃挂在 travel 层（跟随朝向翻面），回落弹跳后停留再淡出 */}
-                <Image className="pet-move-doll" src={moveAssets.doll} mode="aspectFit" />
+                {/* 落地的玩偶留在 travel 层不随颠步：抛出弹地后停留再淡出 */}
+                <Image className="pet-move-doll pet-move-doll--drop" src={moveAssets.doll} mode="aspectFit" />
               </View>
             </View>
           )}
