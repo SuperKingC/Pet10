@@ -1,4 +1,4 @@
-import { Button, Text, View } from '@tarojs/components'
+import { Text, View } from '@tarojs/components'
 import { MiniappModal } from '../../components/MiniappModal'
 import type { RoomMemory } from '../../services/roomApi'
 import './MiniappMemoryPanel.scss'
@@ -18,7 +18,6 @@ export function MiniappMemoryPanel({ memories, busy, onClose, onRemove }: Miniap
             <Text className="miniapp-memory-panel__eyebrow">共同记忆</Text>
             <Text className="miniapp-memory-panel__title">小多利记住的事</Text>
           </View>
-          <Button className="miniapp-memory-panel__close" onClick={onClose}>×</Button>
         </View>
         <Text className="miniapp-memory-panel__intro">这里保存被提炼后的共同事件，不会把所有聊天逐字当作长期记忆。</Text>
         <View className="miniapp-memory-panel__list">

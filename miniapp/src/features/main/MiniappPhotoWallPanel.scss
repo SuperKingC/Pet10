@@ -104,7 +104,7 @@
 
 /* 软木墙两列拍立得 */
 .photo-wall-grid { flex: 1; min-height: 0; display: flex; gap: 20rpx; overflow-y: auto; padding: 8rpx 4rpx 24rpx; }
-.photo-wall-grid__column { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 24rpx; }
+.photo-wall-grid__column { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 34rpx; }
 /* 右列整体下移，错位瀑布更像手贴的软木墙 */
 .photo-wall-grid__column:nth-child(2) { margin-top: 30rpx; }
 .photo-wall-grid__skeleton {

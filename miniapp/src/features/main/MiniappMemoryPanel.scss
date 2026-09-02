@@ -19,16 +19,6 @@
   font-weight: var(--font-weight-bold);
 }
 
-.miniapp-memory-panel__close {
-  min-width: 34px;
-  padding: 2px 8px;
-  color: #9a7e70;
-  background: transparent;
-  border: 0;
-  font-size: var(--font-size-aux);
-}
-
-.miniapp-memory-panel__close::after,
 .miniapp-memory-panel__remove::after {
   border: 0;
 }
@@ -57,7 +47,8 @@
 
 .miniapp-memory-panel__mark {
   color: #d9845d;
-  font-size: 16px;
+  font-size: 32rpx;
+  font-weight: var(--font-weight-bold);
 }
 
 .miniapp-memory-panel__text {
