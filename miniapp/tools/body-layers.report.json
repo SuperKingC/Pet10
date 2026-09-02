@@ -1,95 +1,49 @@
 {
-  "generatedAt": "2026-09-02T03:08:27.746Z",
+  "generatedAt": "2026-09-02T03:50:59.986Z",
   "canvas": [
     436,
     700
   ],
-  "bodyCenterX": 218,
+  "placement": {
+    "left": "0.00%",
+    "top": "0.00%",
+    "width": "100.00%"
+  },
   "layers": [
     {
       "key": "hoodie",
-      "file": "public/wardrobe/hoodie-layer-v3.png",
-      "src": "design-assets/wardrobe/gen-hoodie-wear-v1.png",
-      "bbox": {
-        "x": 18,
-        "y": 388,
-        "w": 400,
-        "h": 250
-      },
-      "bytes": 67465,
-      "style": {
-        "left": "4.13%",
-        "top": "55.43%",
-        "width": "91.74%"
-      }
+      "file": "public/wardrobe/hoodie-layer-v4.png",
+      "src": "design-assets/wardrobe/gen-hoodie-chroma-v1.png",
+      "bytes": 81352,
+      "scale": 0.295
     },
     {
       "key": "overalls",
-      "file": "public/wardrobe/overalls-layer-v3.png",
-      "src": "design-assets/wardrobe/gen-overalls-wear-v1.png",
-      "bbox": {
-        "x": 48,
-        "y": 400,
-        "w": 340,
-        "h": 272
-      },
-      "bytes": 56588,
-      "style": {
-        "left": "11.01%",
-        "top": "57.14%",
-        "width": "77.98%"
-      }
+      "file": "public/wardrobe/overalls-layer-v4.png",
+      "src": "design-assets/wardrobe/gen-overalls-chroma-v1.png",
+      "bytes": 47281,
+      "scale": 0.297
     },
     {
       "key": "dress",
-      "file": "public/wardrobe/dress-layer-v3.png",
-      "src": "design-assets/wardrobe/gen-dress-wear-v1.png",
-      "bbox": {
-        "x": 18,
-        "y": 390,
-        "w": 400,
-        "h": 272
-      },
-      "bytes": 65754,
-      "style": {
-        "left": "4.13%",
-        "top": "55.71%",
-        "width": "91.74%"
-      }
+      "file": "public/wardrobe/dress-layer-v4.png",
+      "src": "design-assets/wardrobe/gen-dress-chroma-v1.png",
+      "bytes": 61617,
+      "scale": 0.295
     },
     {
       "key": "raincoat",
-      "file": "public/wardrobe/raincoat-layer-v3.png",
-      "src": "design-assets/wardrobe/gen-raincoat-wear-v1.png",
-      "bbox": {
-        "x": 14,
-        "y": 390,
-        "w": 408,
-        "h": 282
-      },
-      "bytes": 70466,
-      "style": {
-        "left": "3.21%",
-        "top": "55.71%",
-        "width": "93.58%"
-      }
+      "file": "public/wardrobe/raincoat-layer-v4.png",
+      "src": "design-assets/wardrobe/gen-raincoat-chroma-v1.png",
+      "bytes": 58187,
+      "scale": 0.325
     },
     {
       "key": "pajamas",
-      "file": "public/wardrobe/pajamas-layer-v3.png",
-      "src": "design-assets/wardrobe/gen-pajamas-wear-v1.png",
-      "bbox": {
-        "x": 21,
-        "y": 392,
-        "w": 395,
-        "h": 260
-      },
-      "bytes": 66706,
-      "style": {
-        "left": "4.82%",
-        "top": "56.00%",
-        "width": "90.60%"
-      }
+      "file": "public/wardrobe/pajamas-layer-v4.png",
+      "src": "design-assets/wardrobe/gen-pajamas-chroma-v1.png",
+      "bytes": 71926,
+      "scale": 0.303
     }
   ]
 }

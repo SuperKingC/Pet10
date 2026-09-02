@@ -74,13 +74,13 @@ export interface OutfitPieces {
 
 export const EMPTY_OUTFIT: OutfitPieces = { body: 'default', hat: null, scarf: null, bag: null }
 
-/** 主体服装切件的叠加定位（436×700 原装画布百分比），由 miniapp/tools/cut-worn-garments.mjs 标定生成，改素材必须重跑 */
+/** 主体服装叠层定位：chroma 管线（黑剪影狗穿衣→抠黑→与原装立绘仿射对齐）输出的全画布 436×700 叠层，位置恒定，由 miniapp/tools/cut-chroma-garments.mjs 生成 */
 export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hoodie: { left: '4.13%', top: '55.43%', width: '91.74%' },
-  overalls: { left: '11.01%', top: '57.14%', width: '77.98%' },
-  dress: { left: '4.13%', top: '55.71%', width: '91.74%' },
-  raincoat: { left: '3.21%', top: '55.71%', width: '93.58%' },
-  pajamas: { left: '4.82%', top: '56.00%', width: '90.60%' }
+  hoodie: { left: '0.00%', top: '0.00%', width: '100.00%' },
+  overalls: { left: '0.00%', top: '0.00%', width: '100.00%' },
+  dress: { left: '0.00%', top: '0.00%', width: '100.00%' },
+  raincoat: { left: '0.00%', top: '0.00%', width: '100.00%' },
+  pajamas: { left: '0.00%', top: '0.00%', width: '100.00%' }
 }
 
 /** 某主体服装切件在原装立绘上的叠加定位；原装无切件返回 undefined */
@@ -148,7 +148,7 @@ export function suitAssetFiles(key: string): SuitAssetFiles {
     const display = key === 'scarf' ? 'outfit-scarf-cut-v2.png' : icon
     return { icon, display }
   }
-  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-v3.png` }
+  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-v4.png` }
 }
 
 /** 获得途径徽章：从条件文案派生，未解锁的套装显示途径角标 */
