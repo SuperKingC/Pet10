@@ -59,8 +59,8 @@ describe('wardrobe model', () => {
   })
 
   it('body suits use icon + full render + cut layer files', () => {
-    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png', layer: 'hoodie-layer-v9.png' })
-    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png', layer: 'raincoat-layer-v9.png' })
+    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png', layer: 'hoodie-layer-v4.png' })
+    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png', layer: 'raincoat-layer-v4.png' })
   })
 
   it('derives path badges from condition text of locked suits', () => {
