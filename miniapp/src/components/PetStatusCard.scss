@@ -122,12 +122,12 @@
   95% { transform: translateY(-12px); }
   97%, 100% { transform: translateY(0); }
 }
-/* 红色横躺绒毛玩偶（88×50，AI 水彩出件：gen-ai-image + cut-red-doll.mjs 扣底）：拆两层——
-   叼着的一只挂进 bobber 且垫在帧后面（后端被吻部遮住，嘴缝间透出，只露前半），贴住嘴线跟随颠步/轻摇；
-   落地的另一只留在 travel 层不随颠步；抛出瞬间叼着的淡出、落地的从抛物线顶接手，弹地压扁回弹后停留淡出 */
-.pet-move-doll { position: absolute; width: 88px; height: 50px; opacity: 0; }
-.pet-move-doll--carry { left: -45px; top: 48px; }
-.pet-move-doll--drop { left: -34px; bottom: 0; }
+/* 叼球道具（56×57，照顾栏玩趣同款蓝色皮球随包出件 item-ball-fetch-v1）：拆两层——
+   叼着的球挂进 bobber 且垫在帧后面（球心贴住嘴线，前半露出吻部前方），跟随颠步/轻摇；
+   落地的另一只留在 travel 层不随颠步：抛出后皮球两次弹跳（球弹不压扁）再停留淡出 */
+.pet-move-doll { position: absolute; width: 56px; height: 57px; opacity: 0; }
+.pet-move-doll--carry { left: 14px; top: 63px; }
+.pet-move-doll--drop { left: 14px; bottom: 0; }
 .pet-move-stage--fetch .pet-move-doll--carry { animation: pet-fetch-doll-carry 11s ease-in-out forwards; }
 @keyframes pet-fetch-doll-carry {
   0%, 26% { opacity: 0; }
@@ -136,13 +136,13 @@
 }
 .pet-move-stage--fetch .pet-move-doll--drop { animation: pet-fetch-doll-drop 11s ease-in-out forwards; }
 @keyframes pet-fetch-doll-drop {
-  0%, 87% { opacity: 0; transform: translateY(0) rotate(0deg); }
-  88% { opacity: 1; transform: translateY(-70px) rotate(-14deg); }
-  91% { opacity: 1; transform: translateY(0) rotate(9deg); }
-  93% { transform: translateY(0) rotate(0deg) scaleY(.9); }
-  95% { transform: translateY(0) rotate(0deg) scaleY(1); }
+  0%, 87% { opacity: 0; transform: translateY(0); }
+  88% { opacity: 1; transform: translateY(-70px); }
+  91% { opacity: 1; transform: translateY(0); }
+  94% { opacity: 1; transform: translateY(-26px); }
+  96% { opacity: 1; transform: translateY(0); }
   97% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(0) rotate(0deg) scaleY(1); }
+  100% { opacity: 0; transform: translateY(0); }
 }
 .pet-level { position: absolute; top: 24px; left: 24px; z-index: 3; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-aux); font-weight: var(--font-weight-bold); }
 .pet-memory-button { position: absolute; top: 24px; right: 24px; z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.8); color: #a56f4a; font-size: var(--font-size-body); }
