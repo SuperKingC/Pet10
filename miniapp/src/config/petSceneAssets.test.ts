@@ -88,5 +88,8 @@ describe('miniapp pet scene assets', () => {
 
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
     expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
+    // image 组件不吃四边推导尺寸（背景/娃娃/名牌图均显式宽高才正常）：步态帧必须显式撑满舞台，
+    // 否则按微信 image 默认 300×225 渲染（巨大且向舞台右下溢出，四边定位修不掉）
+    expect(sceneStyle).toContain('.pet-move-frame { width: 100%; height: 100%; }')
   })
 })
