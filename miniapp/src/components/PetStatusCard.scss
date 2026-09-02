@@ -85,19 +85,17 @@
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-5px) rotate(-1.2deg); }
 }
-/* 闲逛：中心（面朝左出发）→左缘→停步掉头→右缘→停步掉头→跑回中心收尾接站姿。
-   素材原生朝左，去程无需翻面；行程拉满横穿场景（±200≈鼻尖贴左/右缘，2026-09-02 用户反馈
-   「不要在原地跑」）；掉头沿用「停步 0.28s + 翻面 0.35s」的纸片式转身，回程稍快像急着回家 */
+/* 闲逛：中心（面朝左出发）→左缘→快速变向→右缘→快速变向→跑回中间到位即收接站姿。
+   素材原生朝左，去程无需翻面；行程横穿场景（±200≈鼻尖贴左/右缘）。用户明确「不希望有原地跑」：
+   到缘不停步，0.21s 内连续变向（随跑动转向不驻足），回中间到位即收——全程 100% 时间都在位移 */
 .pet-move-stage--wander .pet-move-travel { animation: pet-wander-travel 7s ease-in-out forwards; }
 @keyframes pet-wander-travel {
   0% { transform: translateX(0) scaleX(1); }
   27% { transform: translateX(-200px) scaleX(1); }
-  31% { transform: translateX(-200px) scaleX(1); }
-  36% { transform: translateX(-200px) scaleX(-1); }
-  64% { transform: translateX(200px) scaleX(-1); }
-  68% { transform: translateX(200px) scaleX(-1); }
-  73% { transform: translateX(200px) scaleX(1); }
-  94%, 100% { transform: translateX(0) scaleX(1); }
+  30% { transform: translateX(-200px) scaleX(-1); }
+  62% { transform: translateX(200px) scaleX(-1); }
+  65% { transform: translateX(200px) scaleX(1); }
+  100% { transform: translateX(0) scaleX(1); }
 }
 /* 叼娃分镜：走向左缘→加速冲出画面边走边淡出→场外换向→叼着娃娃边走入边淡入（0.36s，替代瞬现）→
    走回中心→娃娃抛落弹地→开心蹦两下→娃娃淡出。行程随舞台等比放大（-270≈鼻尖探出场景左缘） */
