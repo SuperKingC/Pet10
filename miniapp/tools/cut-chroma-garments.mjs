@@ -65,7 +65,7 @@ for (const suit of SUITS) {
   // 等比缩放：以「衣领顶」为对齐基准（黑顶受帽子/耳朵高度影响每图漂移 1-6%，导致衣领高低不一）
   // 衣领顶=饱和彩色像素连续 20 行 >12% 宽的起始行；对齐到底模下巴下缘固定解剖点 COLLAR_Y
   const GROW = 1.04 // 包裹放大：比黑身轮廓大一圈（用户校准 1.04 合身）
-  const COLLAR_Y = 408
+  const COLLAR_Y = 394 // 用户反馈整体偏下，上移 14px（≈2% 狗高）：衣领贴到下巴正下方
   function clothTopOf(d, w, h) {
     for (let y = 0; y < h; y++) {
       let run = 0
