@@ -13,7 +13,7 @@ const srcDir = resolve(root, 'design-assets/nest')
 const outDir = resolve(root, 'miniapp/src/assets/decor')
 
 const SOURCES = [
-  { file: 'photo-wall-lights-source-v2.jpg', mode: 'glow', cluster: 'x' },
+  { file: 'photo-wall-lights-source-v3.jpg', mode: 'glow', cluster: 'x' },
   { file: 'photo-wall-pins-source-v2.jpg', mode: 'solid', cluster: 'x' },
   { file: 'photo-wall-tapes-source-v1.jpg', mode: 'cut', cluster: 'y' }
 ]
@@ -245,7 +245,7 @@ function detectBulbs(data, W, H) {
     const o = m * 4
     const minC = Math.min(data[o], data[o + 1], data[o + 2])
     const maxC = Math.max(data[o], data[o + 1], data[o + 2])
-    if (maxC - minC > 22 && minC < 215) mask[m] = 1
+    if (minC < 240) mask[m] = 1
   }
   const seen = new Uint8Array(W * H)
   const bulbs = []
@@ -304,7 +304,7 @@ function eraseBulbsKeepCable(raw, data, W, H, bulbs) {
         const o = (y * W + x) * 4
         const minC = Math.min(data[o], data[o + 1], data[o + 2])
         const maxC = Math.max(data[o], data[o + 1], data[o + 2])
-        if (!(maxC - minC < 30 && minC < 90)) { outBuf[o] = 0; outBuf[o + 1] = 0; outBuf[o + 2] = 0; outBuf[o + 3] = 0 }
+        if (minC >= 120) { outBuf[o] = 0; outBuf[o + 1] = 0; outBuf[o + 2] = 0; outBuf[o + 3] = 0 }
       }
     }
   }
@@ -331,31 +331,46 @@ for (const source of SOURCES) {
     const bulbs = detectBulbs(data, W, H)
     console.log(`检测到灯泡 ${bulbs.length} 颗`)
     if (bulbs.length < 6 || bulbs.length > 22) throw new Error(`灯泡检测数量异常: ${bulbs.length}`)
+    // 每颗灯泡的方形裁切矩形（含光晕）
+    const rects = bulbs.map((bulb) => {
+      const pad = Math.round(Math.max(bulb.w, bulb.h) * 0.5)
+      const side = Math.max(bulb.w, bulb.h) + pad * 2
+      const cx = (bulb.minX + bulb.maxX) / 2, cy = (bulb.minY + bulb.maxY) / 2
+      // 中心点钳位保证窗口恒为完整正方形（边缘灯泡也不被截断拉伸——拉伸会让精灵内电线与底图错位）
+      const hx = Math.round(side / 2), hy = hx
+      const cx2 = Math.min(W - 1 - hx, Math.max(hx, Math.round(cx)))
+      const cy2 = Math.min(H - 1 - hy, Math.max(hy, Math.round(cy)))
+      const x0 = cx2 - hx, y0 = cy2 - hy
+      const x1 = cx2 + hx - 1, y1 = cy2 + hy - 1
+      return { x0, y0, x1, y1 }
+    })
     const baseRaw = eraseBulbsKeepCable(raw, data, W, H, bulbs)
     const cableBoxes = components(baseRaw, W, H).filter((b) => b.area >= 400)
-    const stringBox = bboxOf(cableBoxes, W, H, 4)
+    const cableBox = bboxOf(cableBoxes, W, H, 4)
+    // 联合盒 = 电线 ∪ 全部灯泡矩形（灯泡垂出电线盒时清单几何仍在 0-100% 内）
+    const unionBox = {
+      minX: Math.min(cableBox.minX, ...rects.map((r) => r.x0)),
+      minY: Math.min(cableBox.minY, ...rects.map((r) => r.y0)),
+      maxX: Math.max(cableBox.maxX, ...rects.map((r) => r.x1)),
+      maxY: Math.max(cableBox.maxY, ...rects.map((r) => r.y1))
+    }
+    unionBox.w = unionBox.maxX - unionBox.minX + 1
+    unionBox.h = unionBox.maxY - unionBox.minY + 1
     const croppedBase = await sharp(baseRaw, { raw: { width: W, height: H, channels: 4 } })
-      .extract({ left: stringBox.minX, top: stringBox.minY, width: stringBox.w, height: stringBox.h })
+      .extract({ left: unionBox.minX, top: unionBox.minY, width: unionBox.w, height: unionBox.h })
       .png().toBuffer()
     const resizedBase = await sharp(croppedBase).resize({ width: 640, kernel: 'lanczos3' }).png().toBuffer()
     const baseMeta = await sharp(resizedBase).raw().toBuffer({ resolveWithObject: true })
     const baseOut = await png8(baseMeta.data, baseMeta.info.width, baseMeta.info.height, 1)
-    await writeFile(resolve(outDir, 'photo-wall-lights-v2.png'), baseOut)
-    report.push({ name: 'photo-wall-lights-v2.png (电线底图)', width: baseMeta.info.width, height: baseMeta.info.height, bytes: baseOut.byteLength })
+    await writeFile(resolve(outDir, 'photo-wall-lights-v3.png'), baseOut)
+    report.push({ name: 'photo-wall-lights-v3.png (电线底图)', width: baseMeta.info.width, height: baseMeta.info.height, bytes: baseOut.byteLength })
 
-    const CELL = 64
+    const CELL = 80
     const cells = []
-    const rects = []
-    for (const bulb of bulbs) {
+    for (const rect of rects) {
       // 方形裁切（含光晕）；resize 撑满格子 + 位置框用同一矩形 → 叠加时与底图电线逐像素对齐
-      const pad = Math.round(Math.max(bulb.w, bulb.h) * 0.35)
-      const side = Math.max(bulb.w, bulb.h) + pad * 2
-      const cx = (bulb.minX + bulb.maxX) / 2, cy = (bulb.minY + bulb.maxY) / 2
-      const x0 = Math.max(0, Math.round(cx - side / 2)), y0 = Math.max(0, Math.round(cy - side / 2))
-      const x1 = Math.min(W - 1, x0 + side - 1), y1 = Math.min(H - 1, y0 + side - 1)
-      rects.push({ x0, y0, x1, y1 })
       const crop = await sharp(raw, { raw: { width: W, height: H, channels: 4 } })
-        .extract({ left: x0, top: y0, width: x1 - x0 + 1, height: y1 - y0 + 1 })
+        .extract({ left: rect.x0, top: rect.y0, width: rect.x1 - rect.x0 + 1, height: rect.y1 - rect.y0 + 1 })
         .resize(CELL, CELL, { kernel: 'lanczos3' })
         .png().toBuffer()
       cells.push(await sharp(crop).raw().toBuffer({ resolveWithObject: true }))
@@ -373,26 +388,24 @@ for (const source of SOURCES) {
     }).composite(composites).png().toBuffer()
     const sheetRaw = await sharp(sheetPng).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     const sheetOut = await png8(sheetRaw.data, sheetRaw.info.width, sheetRaw.info.height, 1)
-    await writeFile(resolve(outDir, 'photo-wall-bulbs-v2.png'), sheetOut)
-    report.push({ name: `photo-wall-bulbs-v2.png (${cells.length} 灯泡)`, width: sheetRaw.info.width, height: sheetRaw.info.height, bytes: sheetOut.byteLength })
+    await writeFile(resolve(outDir, 'photo-wall-bulbs-v3.png'), sheetOut)
+    report.push({ name: `photo-wall-bulbs-v3.png (${cells.length} 灯泡)`, width: sheetRaw.info.width, height: sheetRaw.info.height, bytes: sheetOut.byteLength })
 
-    // 位置清单：相对电线底图（640 宽盒）的百分比几何 + 确定性随机闪烁参数
-    const scale = 640 / stringBox.w
-    const h640 = Math.round(stringBox.h * scale)
+    // 位置清单：相对联合盒（640 宽）的百分比几何 + 确定性随机闪烁参数
+    const scale = 640 / unionBox.w
+    const h640 = Math.round(unionBox.h * scale)
     const round = (n) => Math.round(n * 100) / 100
-    const items = bulbs.map((bulb, i) => {
-      const rect = rects[i]
-      return {
-        cell: i,
-        left: round(((rect.x0 - stringBox.minX) * scale) / 640 * 100),
-        top: round(((rect.y0 - stringBox.minY) * scale) / h640 * 100),
-        width: round(((rect.x1 - rect.x0 + 1) * scale) / 640 * 100),
-        height: round(((rect.y1 - rect.y0 + 1) * scale) / h640 * 100),
-        delay: round(((i * 13) % 17) * 0.23),
-        duration: round(2.1 + ((i * 7) % 9) * 0.19),
-      }
-    })
-    const ts = `// 由 miniapp/tools/make-photo-wall-decor.mjs 自动生成：灯泡精灵在灯串盒（等比 640 宽）内的百分比几何与随机闪烁参数。\n// 手改无效，重跑工具会覆盖。\nexport interface PhotoWallBulb {\n  cell: number\n  left: number\n  top: number\n  width: number\n  height: number\n  delay: number\n  duration: number\n}\n\nexport const PHOTO_WALL_BULBS: PhotoWallBulb[] = ${JSON.stringify(items, null, 2)}\n`
+    const items = rects.map((rect, i) => ({
+      cell: i,
+      left: round(((rect.x0 - unionBox.minX) * scale) / 640 * 100),
+      top: round(((rect.y0 - unionBox.minY) * scale) / h640 * 100),
+      width: round(((rect.x1 - rect.x0 + 1) * scale) / 640 * 100),
+      height: round(((rect.y1 - rect.y0 + 1) * scale) / h640 * 100),
+      delay: round(((i * 13) % 17) * 0.23),
+      duration: round(2.4 + ((i * 7) % 9) * 0.22),
+    }))
+    console.log(`联合盒 ${unionBox.w}x${unionBox.h} → 容器高约 ${Math.round(686 * unionBox.h / unionBox.w)}rpx`)
+    const ts = `// 由 miniapp/tools/make-photo-wall-decor.mjs 自动生成：灯泡精灵在灯串联合盒（电线∪灯泡，等比 640 宽）内的百分比几何与随机闪烁参数。\n// 手改无效，重跑工具会覆盖。\nexport interface PhotoWallBulb {\n  cell: number\n  left: number\n  top: number\n  width: number\n  height: number\n  delay: number\n  duration: number\n}\n\nexport const PHOTO_WALL_BULBS: PhotoWallBulb[] = ${JSON.stringify(items, null, 2)}\n`
     await writeFile(resolve(root, 'miniapp/src/features/main/photoWallLightsBulbs.ts'), ts)
     report.push({ name: 'photoWallLightsBulbs.ts', bytes: Buffer.byteLength(ts) })
   } else if (source.mode === 'solid') {

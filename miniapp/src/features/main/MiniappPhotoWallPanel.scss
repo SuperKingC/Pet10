@@ -41,31 +41,29 @@
   font-size: var(--font-size-aux);
   font-weight: var(--font-weight-semibold);
 }
-/* 软木墙上沿的华丽彩灯：底图只有电线+空灯座（640×156 联合盒），糖果色玻璃灯泡是
+/* 软木墙上沿的治愈风彩灯：底图只有电线+空灯座（640×166 联合盒），马卡龙色玻璃灯泡是
    独立精灵（make-photo-wall-decor.mjs 拆件 + photoWallLightsBulbs.ts 位置清单），
-   各自随机相位「充盈-回缩」发光脉冲——暗时露出空灯座。
-   高度定死 167rpx（686 盒宽 ≈ 底图 640×156 等比）：widthFix 未加载前按默认尺寸渲染会闪跳。 */
+   各自随机相位温柔呼吸微光——只调透明度不缩放不熄灭（0.55 起步），治愈不诡异。
+   高度定死 166rpx（686 盒宽 ≈ 底图 640×166 等比）：widthFix 未加载前按默认尺寸渲染会闪跳。 */
 .photo-wall-lights { position: relative; flex-shrink: 0; margin: 2rpx -6rpx 4rpx; line-height: 0; }
-.photo-wall-lights__string { width: 100%; height: 167rpx; }
+.photo-wall-lights__string { width: 100%; height: 166rpx; }
 .photo-wall-bulb {
   position: absolute;
-  background-image: url('../../assets/decor/photo-wall-bulbs-v2.png');
+  background-image: url('../../assets/decor/photo-wall-bulbs-v3.png');
   background-repeat: no-repeat;
-  transform-origin: top center;
-  animation: photo-wall-bulb-twinkle 2.4s ease-in-out infinite;
+  animation: photo-wall-bulb-twinkle 3.2s ease-in-out infinite;
   pointer-events: none;
 }
-/* 两种节奏交错 + 逐颗不同 delay/duration（内联注入）→ 观感各自随机；亮格轻微放大像充能 */
+/* 两种温柔节奏交错 + 逐颗不同 delay/duration（内联注入）→ 观感各自随机 */
 .photo-wall-bulb--alt { animation-name: photo-wall-bulb-flicker; }
 @keyframes photo-wall-bulb-twinkle {
-  0%, 100% { opacity: .48; transform: scale(.86); }
-  50% { opacity: 1; transform: scale(1.14); }
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
 }
 @keyframes photo-wall-bulb-flicker {
-  0%, 100% { opacity: 1; transform: scale(1.12); }
-  34% { opacity: .42; transform: scale(.88); }
-  52% { opacity: .95; transform: scale(1.08); }
-  68% { opacity: .48; transform: scale(.92); }
+  0%, 100% { opacity: 1; }
+  45% { opacity: .56; }
+  70% { opacity: .86; }
 }
 .photo-wall-panel__upload--press { transform: scale(.94); filter: brightness(.96); }
 

@@ -9,8 +9,8 @@ const stylesPath = path.resolve(__dirname, 'MiniappPhotoWallPanel.scss')
 const decorDir = path.resolve(__dirname, '../../assets/decor')
 
 const DECOR_FILES = [
-  'photo-wall-lights-v2.png',
-  'photo-wall-bulbs-v2.png',
+  'photo-wall-lights-v3.png',
+  'photo-wall-bulbs-v3.png',
   'photo-wall-pin-red-v2.png',
   'photo-wall-pin-yellow-v2.png',
   'photo-wall-pin-blue-v2.png',
@@ -22,7 +22,7 @@ const DECOR_FILES = [
 describe('photo wall decor presentation', () => {
   it('renders the realistic light string instead of CSS bulb blocks', () => {
     const component = fs.readFileSync(componentPath, 'utf8')
-    expect(component).toContain('photo-wall-lights-v2.png')
+    expect(component).toContain('photo-wall-lights-v3.png')
     expect(component).toContain('photo-wall-lights__string')
     expect(component).not.toContain('photo-wall-lights__bulb')
   })
@@ -43,8 +43,8 @@ describe('photo wall decor presentation', () => {
   it('fixes the string height so the panel does not flash before the image loads', () => {
     const component = fs.readFileSync(componentPath, 'utf8')
     const styles = fs.readFileSync(stylesPath, 'utf8')
-    // widthFix 未加载前按默认尺寸渲染会闪跳；定高 686×167 ≈ 电线底图 640×156 等比
-    expect(styles).toMatch(/\.photo-wall-lights__string \{[^}]*height: 167rpx;/)
+    // widthFix 未加载前按默认尺寸渲染会闪跳；定高 686×166 ≈ 电线底图 640×166 等比
+    expect(styles).toMatch(/\.photo-wall-lights__string \{[^}]*height: 166rpx;/)
     expect(component).not.toContain('photo-wall-lights__string" src={lightsString} mode="widthFix"')
   })
 
@@ -58,9 +58,9 @@ describe('photo wall decor presentation', () => {
     expect(component).toContain('backgroundSize')
     expect(component).toContain('backgroundPositionX')
     expect(component).toContain('animationDelay')
-    expect(manifest.match(/"cell":/g)?.length).toBeGreaterThanOrEqual(11)
+    expect(manifest.match(/"cell":/g)?.length).toBeGreaterThanOrEqual(10)
     // 精灵图集经 SCSS 内联 base64；两种闪烁节奏交错；reduced-motion 全亮静止
-    expect(styles).toMatch(/\.photo-wall-bulb \{[^}]*background-image: url\('\.\.\/\.\.\/assets\/decor\/photo-wall-bulbs-v2\.png'\)/)
+    expect(styles).toMatch(/\.photo-wall-bulb \{[^}]*background-image: url\('\.\.\/\.\.\/assets\/decor\/photo-wall-bulbs-v3\.png'\)/)
     expect(styles).toMatch(/@keyframes photo-wall-bulb-twinkle/)
     expect(styles).toMatch(/@keyframes photo-wall-bulb-flicker/)
     expect(styles).not.toContain('photo-wall-sweep')

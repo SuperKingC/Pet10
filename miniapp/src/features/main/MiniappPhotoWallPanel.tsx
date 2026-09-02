@@ -17,7 +17,7 @@ import { PHOTO_WALL_BULBS } from './photoWallLightsBulbs'
 import './MiniappPhotoWallPanel.scss'
 
 const emptyIllustration = require('../../assets/decor/photo-wall-empty-v1.png')
-const lightsString = require('../../assets/decor/photo-wall-lights-v2.png')
+const lightsString = require('../../assets/decor/photo-wall-lights-v3.png')
 const pinDecor = [
   require('../../assets/decor/photo-wall-pin-red-v2.png'),
   require('../../assets/decor/photo-wall-pin-yellow-v2.png'),
