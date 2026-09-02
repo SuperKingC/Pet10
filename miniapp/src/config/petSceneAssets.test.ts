@@ -49,7 +49,7 @@ describe('miniapp pet scene assets', () => {
   })
 
   it('walk frames ship via COS and the fetch ball rides bundled assets', () => {
-    const files = ['xiaoduoli-walk-a-v1.png', 'xiaoduoli-walk-b-v1.png']
+    const files = ['xiaoduoli-walk-a-v2.png', 'xiaoduoli-walk-b-v2.png']
     for (const fileName of files) {
       const assetPath = resolve(miniappRoot(), `../public/wardrobe/${fileName}`)
       expect(existsSync(assetPath), fileName).toBe(true)
@@ -80,9 +80,9 @@ describe('miniapp pet scene assets', () => {
 
     const stageBlock = sceneStyle.match(/\.pet-move-stage \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(stageBlock).toContain('bottom: 0;')
-    expect(stageBlock).toContain('width: 272px;')
+    expect(stageBlock).toContain('width: 300px;')
     expect(stageBlock).toContain('height: 175px;')
-    expect(stageBlock).toContain('margin-left: -136px;')
+    expect(stageBlock).toContain('margin-left: -150px;')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     // 横穿全场、屏幕外掉头：中间（面朝左）→整只跑出左屏（±480≈舞台 272 全出画）→屏幕外停步掉头→
@@ -110,8 +110,8 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--drop { animation: pet-fetch-doll-drop 11s ease-in-out forwards; }')
 
     // 玩具球拆两层：叼着的挂 bobber 跟随颠步，落地的留 travel 层不随颠步（球弹不压扁）
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 10px; top: 58px; }')
-    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 10px; bottom: 0; }')
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 22px; top: 58px; }')
+    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 22px; bottom: 0; }')
 
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(dollCarry).toContain('30%, 86% { opacity: 1; }')
