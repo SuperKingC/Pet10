@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-02T09:19:42.212Z",
+  "generatedAt": "2026-09-02T09:42:41.808Z",
   "canvas": [
     436,
     700
@@ -14,35 +14,35 @@
       "key": "hoodie",
       "file": "public/wardrobe/hoodie-layer-v10.png",
       "src": "design-assets/wardrobe/gen-hoodie-chroma-v1.png",
-      "bytes": 90091,
-      "scale": 0.332
+      "bytes": 80552,
+      "scale": 0.34
     },
     {
       "key": "overalls",
       "file": "public/wardrobe/overalls-layer-v10.png",
       "src": "design-assets/wardrobe/gen-overalls-chroma-v1.png",
-      "bytes": 65103,
-      "scale": 0.305
+      "bytes": 57039,
+      "scale": 0.298
     },
     {
       "key": "dress",
       "file": "public/wardrobe/dress-layer-v10.png",
       "src": "design-assets/wardrobe/gen-dress-chroma-v1.png",
-      "bytes": 91663,
-      "scale": 0.328
+      "bytes": 69092,
+      "scale": 0.31
     },
     {
       "key": "raincoat",
       "file": "public/wardrobe/raincoat-layer-v10.png",
       "src": "design-assets/wardrobe/gen-raincoat-chroma-v1.png",
-      "bytes": 80963,
-      "scale": 0.31
+      "bytes": 59421,
+      "scale": 0.299
     },
     {
       "key": "pajamas",
       "file": "public/wardrobe/pajamas-layer-v10.png",
       "src": "design-assets/wardrobe/gen-pajamas-chroma-v1.png",
-      "bytes": 96715,
+      "bytes": 84811,
       "scale": 0.317
     }
   ]

@@ -17,7 +17,7 @@ const SUITS = ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas']
 
 // 黑键控阈值：max(r,g,b) 低于此值视为狗身；其上 40 内为羽化过渡带
 const BLACK_MAX = 70
-const BLACK_FADE = 90
+const BLACK_FADE = 60
 // 泛洪白底阈值（近白视为背景；胸前抽绳等被衣服包围的白色不受影响）
 const WHITE_MIN = 242
 
@@ -235,7 +235,7 @@ for (const suit of SUITS) {
   // 舌头硬净空：椭圆舌区（中心 226,376，半径 30×26，外扩 5px 余量）内按 smoothstep 软清空——
   // 圆形边界融入衣领不留方角缺口；无论生成图衣领怎么画，舌头永远完整露出
   {
-    const cx = 226, cy = 376, rx = 35, ry = 31
+    const cx = 226, cy = 376, rx = 24, ry = 20
     for (let y = cy - ry - 5; y <= cy + ry + 5; y++) {
       if (y < 0 || y >= BASE_H) continue
       for (let x = cx - rx - 5; x <= cx + rx + 5; x++) {

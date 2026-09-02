@@ -80,8 +80,8 @@ for (const suit of SUITS) {
   push('中轴 218±25', Math.abs(centerX - 218) <= 25, `center=${centerX.toFixed(0)}`)
   // 舌头净空：舌区（嘴下中央）若有服装像素=衣领压舌
   let tongueBlocked = false
-  for (let y = Math.round((362 / CANVAS_H) * BOX_H); y <= Math.round((392 / CANVAS_H) * BOX_H); y++) {
-    for (let x = Math.round((205 / CANVAS_W) * BOX_W); x <= Math.round((248 / CANVAS_W) * BOX_W); x++) {
+  for (let y = Math.round((364 / CANVAS_H) * BOX_H); y <= Math.round((390 / CANVAS_H) * BOX_H); y++) {
+    for (let x = Math.round((210 / CANVAS_W) * BOX_W); x <= Math.round((243 / CANVAS_W) * BOX_W); x++) {
       if (mask[y * BOX_W + x]) tongueBlocked = true
     }
   }
