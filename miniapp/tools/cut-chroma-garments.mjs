@@ -62,16 +62,41 @@ for (const suit of SUITS) {
   }
   const genRaw = await rawOf(src)
   const dogBbox = bboxOf(genRaw.data, genRaw.w, genRaw.h, isBlack)
-  // 等比缩放：黑剪影高 → 原装犬身高；水平按 bbox 中心对齐、垂直按底边对齐
-  const GROW = 1.04 // 包裹放大：v4(无放大) 用户说小一圈、v6(1.08) 用户说大了——取 1.04「比刚刚(v4)的大一点」
-  const scale = ((baseBbox.maxY - baseBbox.minY + 1) / (dogBbox.maxY - dogBbox.minY + 1)) * GROW
+  // 等比缩放：以「衣领顶」为对齐基准（黑顶受帽子/耳朵高度影响每图漂移 1-6%，导致衣领高低不一）
+  // 衣领顶=饱和彩色像素连续 20 行 >12% 宽的起始行；对齐到底模下巴下缘固定解剖点 COLLAR_Y
+  const GROW = 1.04 // 包裹放大：比黑身轮廓大一圈（用户校准 1.04 合身）
+  const COLLAR_Y = 408
+  function clothTopOf(d, w, h) {
+    for (let y = 0; y < h; y++) {
+      let run = 0
+      for (let yy = y; yy < Math.min(y + 20, h); yy++) {
+        let n = 0
+        for (let x = 0; x < w; x++) {
+          const o = (yy * w + x) * 4
+          if (d[o + 3] < 100) continue
+          const mx = Math.max(d[o], d[o + 1], d[o + 2]), mn = Math.min(d[o], d[o + 1], d[o + 2])
+          if (mx >= 70 && mn <= 200 && mx - mn > 18) n++
+        }
+        if (n > w * 0.12) run++
+        else run = 0
+        if (run >= 20) return yy - 19
+      }
+    }
+    return -1
+  }
+  const genClothTop = clothTopOf(genRaw.data, genRaw.w, genRaw.h)
+  if (genClothTop < 0) throw new Error(suit + ': 未找到衣领线')
+  const genBlack = bboxOf(genRaw.data, genRaw.w, genRaw.h, isBlack)
+  // 缩放：黑身高度比 × GROW；衣领顶对齐 COLLAR_Y；水平按黑身中心对齐
+  const scale = ((baseBbox.maxY - baseBbox.minY + 1) / (genBlack.maxY - genBlack.minY + 1)) * GROW
   const scaledW = Math.max(1, Math.round(genRaw.w * scale))
   const scaled = await sharp(src).resize(scaledW).png().toBuffer()
   const sm = await rawOf(scaled)
   const sDog = bboxOf(sm.data, sm.w, sm.h, isBlack)
+  const sClothTop = clothTopOf(sm.data, sm.w, sm.h)
   const offX = Math.round((baseBbox.minX + baseBbox.maxX) / 2 - (sDog.minX + sDog.maxX) / 2)
-  const offY = Math.round(baseBbox.maxY - sDog.maxY)
-  console.log(suit + ': scale=' + scale.toFixed(3) + ' off=(' + offX + ',' + offY + ')')
+  const offY = Math.round(COLLAR_Y - sClothTop)
+  console.log(suit + ': scale=' + scale.toFixed(3) + ' off=(' + offX + ',' + offY + ') clothTopScaled=' + sClothTop)
   // 键控：生成图逐像素 → 贴到 436×700 画布（对齐后坐标），黑→软透明
   const canvas = Buffer.alloc(BASE_W * BASE_H * 4)
   for (let y = 0; y < sm.h; y++) {
@@ -135,6 +160,17 @@ for (const suit of SUITS) {
     }
     for (let i = 0; i < W * H; i++) {
       if (bg[i]) canvas[i * 4 + 3] = 0
+    }
+  }
+  // 第二舌头清除（画布坐标窗）：生成图在领口下方中央偶尔再画一块舌头，缩放对齐后稳定落在
+  // 画布 y 408..486 / x 176..284 窗内；窗内粉红（r>195, r-g>40, r-b>40）置透明。
+  // 围巾粉带在 y>=500，不受影响；真舌头在 y<400 椭圆保护区内，不受影响。
+  for (let y = 408; y <= 486; y++) {
+    for (let x = 176; x <= 284; x++) {
+      const o = (y * BASE_W + x) * 4
+      if (canvas[o + 3] > 60 && canvas[o] > 195 && canvas[o] - canvas[o + 1] > 40 && canvas[o] - canvas[o + 2] > 40) {
+        canvas[o + 3] = 0
+      }
     }
   }
   // 连通成分去噪：保留 ≥0.5% 画布像素的成分（衣服本体/大部件），黑边碎屑清除
@@ -217,6 +253,8 @@ for (const suit of SUITS) {
         // 舌区保持敞开：软扩边不得爬进领口 V 开口里的舌头周围
         const gy = y / BASE_H * 700, gx = x / BASE_W * 436
         if (gy > 355 && gy < 400 && gx > 180 && gx < 260) continue
+        // 胸口窗豁免：第二舌头清除后不得被扩边长回来
+        if (gy > 405 && gy < 490 && gx > 174 && gx < 286) continue
         let bestA = 0
         let br = 0, bg2 = 0, bb = 0
         for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
