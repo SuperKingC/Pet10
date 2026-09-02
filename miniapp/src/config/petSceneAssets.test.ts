@@ -49,7 +49,7 @@ describe('miniapp pet scene assets', () => {
   })
 
   it('walk frames and doll ship via COS static assets for the wander/fetch acts', () => {
-    const files = ['xiaoduoli-walk-a-v1.png', 'xiaoduoli-walk-b-v1.png', 'xiaoduoli-doll-v3.png']
+    const files = ['xiaoduoli-walk-a-v1.png', 'xiaoduoli-walk-b-v1.png', 'xiaoduoli-doll-v4.png']
     for (const fileName of files) {
       const assetPath = resolve(miniappRoot(), `../public/wardrobe/${fileName}`)
       expect(existsSync(assetPath), fileName).toBe(true)
@@ -106,14 +106,14 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--drop { animation: pet-fetch-doll-drop 11s ease-in-out forwards; }')
 
     // 玩偶拆两层：叼着的挂 bobber 跟随颠步，落地的留 travel 层不随颠步
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 12px; bottom: 12px; }')
-    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 12px; bottom: 0; }')
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: -45px; top: 48px; }')
+    expect(sceneStyle).toContain('.pet-move-doll--drop { left: -34px; bottom: 0; }')
 
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(dollCarry).toContain('30%, 86% { opacity: 1; }')
     expect(dollCarry).toContain('88%, 100% { opacity: 0; }')
     const dollDrop = sceneStyle.match(/@keyframes pet-fetch-doll-drop \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(dollDrop).toContain('88% { opacity: 1; transform: translateY(-30px) rotate(-14deg); }')
+    expect(dollDrop).toContain('88% { opacity: 1; transform: translateY(-70px) rotate(-14deg); }')
     expect(dollDrop).toContain('91% { opacity: 1; transform: translateY(0) rotate(9deg); }')
 
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
