@@ -13,11 +13,10 @@ import {
   splitPhotoColumns,
   type PhotoWallItem
 } from '../../domain/photoWallModel'
-import { PHOTO_WALL_BULBS } from './photoWallLightsBulbs'
 import './MiniappPhotoWallPanel.scss'
 
 const emptyIllustration = require('../../assets/decor/photo-wall-empty-v1.png')
-const lightsString = require('../../assets/decor/photo-wall-lights-v3.png')
+const lightsString = require('../../assets/decor/photo-wall-lights-v4.png')
 const pinDecor = [
   require('../../assets/decor/photo-wall-pin-red-v2.png'),
   require('../../assets/decor/photo-wall-pin-yellow-v2.png'),
@@ -196,24 +195,6 @@ export function MiniappPhotoWallPanel({ roomId, onClose }: MiniappPhotoWallPanel
       </View>
       <View className="photo-wall-lights">
         <Image className="photo-wall-lights__string" src={lightsString} />
-        {/* 每颗灯泡独立随机闪烁：底图只有电线+空灯座，灯泡是叠加精灵（位置由工具生成的清单给出）；
-            背景图在 SCSS 内联 base64，格数无关的切片定位/尺寸按清单长度内联计算 */}
-        {PHOTO_WALL_BULBS.map((bulb) => (
-          <View
-            key={bulb.cell}
-            className={`photo-wall-bulb photo-wall-bulb--cell-${bulb.cell}${bulb.cell % 2 ? ' photo-wall-bulb--alt' : ''}`}
-            style={{
-              left: `${bulb.left}%`,
-              top: `${bulb.top}%`,
-              width: `${bulb.width}%`,
-              height: `${bulb.height}%`,
-              backgroundSize: `${PHOTO_WALL_BULBS.length * 100}% 100%`,
-              backgroundPositionX: `${(bulb.cell / (PHOTO_WALL_BULBS.length - 1)) * 100}%`,
-              animationDelay: `${bulb.delay}s`,
-              animationDuration: `${bulb.duration}s`,
-            }}
-          />
-        ))}
       </View>
 
       {composePath && (

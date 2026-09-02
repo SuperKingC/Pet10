@@ -1,6 +1,6 @@
 // 照片墙装饰出件：从 design-assets/nest 的白底源图生成透明底装饰素材。
 // 三种去底策略（共用边界洪水填充 + 封闭白保护）：
-//   glow  —— 灯串：全域「白底反解」软 alpha，光晕渐变到 0，玻璃泡保留半透感
+//   glow  —— 灯串：全域「白底反解」软 alpha，光晕渐变到 0，玻璃泡保留半透感；整串单图出件（不拆件）
 //   solid —— 图钉：深色实体保持不透明（min<190），仅高光/阴影/抗锯齿边走软 alpha
 //   cut   —— 胶带：洪水填充区外全部不透明（奶油色胶带体不能被反解掉），填充区软边
 // 出件：miniapp/src/assets/decor/*.png（PNG8 lanczos3 缩放），并把源图归档为 1600 宽 JPEG。
@@ -13,7 +13,7 @@ const srcDir = resolve(root, 'design-assets/nest')
 const outDir = resolve(root, 'miniapp/src/assets/decor')
 
 const SOURCES = [
-  { file: 'photo-wall-lights-source-v3.jpg', mode: 'glow', cluster: 'x' },
+  { file: 'photo-wall-lights-source-v4.jpg', mode: 'glow', cluster: 'x' },
   { file: 'photo-wall-pins-source-v2.jpg', mode: 'solid', cluster: 'x' },
   { file: 'photo-wall-tapes-source-v1.jpg', mode: 'cut', cluster: 'y' }
 ]
@@ -72,29 +72,78 @@ function dilate(bg, W, H, n) {
   return cur
 }
 
+// 到背景的近似欧氏距离（chamfer 3/4 两遍扫描，单位 ×3）。核心强化用。
+function glowDistance(bg, W, H) {
+  const INF = 1 << 29
+  const dist = new Int32Array(W * H)
+  for (let m = 0; m < W * H; m++) dist[m] = bg[m] ? 0 : INF
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const m = y * W + x
+      let d = dist[m]
+      if (x > 0) d = Math.min(d, dist[m - 1] + 3)
+      if (y > 0) {
+        d = Math.min(d, dist[m - W] + 3)
+        if (x > 0) d = Math.min(d, dist[m - W - 1] + 4)
+        if (x < W - 1) d = Math.min(d, dist[m - W + 1] + 4)
+      }
+      dist[m] = d
+    }
+  }
+  for (let y = H - 1; y >= 0; y--) {
+    for (let x = W - 1; x >= 0; x--) {
+      const m = y * W + x
+      let d = dist[m]
+      if (x < W - 1) d = Math.min(d, dist[m + 1] + 3)
+      if (y < H - 1) {
+        d = Math.min(d, dist[m + W] + 3)
+        if (x < W - 1) d = Math.min(d, dist[m + W + 1] + 4)
+        if (x > 0) d = Math.min(d, dist[m + W - 1] + 4)
+      }
+      dist[m] = d
+    }
+  }
+  return dist
+}
+
 function applyMode(data, W, H, mode, bg) {
   const out = Buffer.from(data)
   const edge1 = dilate(bg, W, H, 1)
+  if (mode === 'glow') {
+    // glow：故事书插画灯串（整串出件）。
+    // 「白底反解」对浅色泡身会反解出高饱和色（v3 幽灵泡 / 深色描边圈的根因），只用于背景侧光晕；
+    // 前景（泡身/电线）一律保留源图观测色，alpha 按距离场平滑爬升：
+    // 泡心远离子背景 → 不透明；泡缘/光晕靠近背景 → 半透并自然衰减到 0。
+    const dist = glowDistance(bg, W, H)
+    const CORE = Math.max(8, Math.round(W * 0.018))
+    const smooth = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t) }
+    for (let m = 0; m < W * H; m++) {
+      const o = m * 4
+      if (bg[m]) {
+        const [nr, ng, nb, na] = unmixOverWhite(data, o)
+        out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na
+        continue
+      }
+      out[o] = data[o]; out[o + 1] = data[o + 1]; out[o + 2] = data[o + 2]
+      const a = smooth((dist[m] / 3) / CORE) * 255
+      // 深色墨线（电线/灯座描边）细、距离场小会显虚：给 alpha 下限保持实体
+      out[o + 3] = Math.min(255, Math.round(Math.max(a, data[o + 2] < 175 ? 235 : 0)))
+    }
+    return out
+  }
   for (let m = 0; m < W * H; m++) {
     const o = m * 4
     const r = data[o], g = data[o + 1], b = data[o + 2]
     const minC = Math.min(r, g, b), maxC = Math.max(r, g, b)
-    if (mode !== 'glow') {
-      // cut/solid：贴边软化 + 封闭近白保护 + 浅灰阴影（距离无关）转半透明 + 其余实体
-      if (bg[m]) { const [nr, ng, nb, na] = unmixOverWhite(data, o); out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na; continue }
-      // 封闭近白（图钉高光、胶带白条纹）：保持不透明
-      if (!edge1[m] && isNearWhite(r, g, b)) { out[o + 3] = 255; continue }
-      // 低饱和浅灰 = 投影，按深浅反解成半透明
-      if (maxC - minC < 14 && minC > 205) { const [nr, ng, nb, na] = unmixOverWhite(data, o); out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na; continue }
-      // 贴边 1px 的高亮浅色 = 抗锯齿白边，反解软化
-      if (edge1[m] && minC >= 200) { const [nr, ng, nb, na] = unmixOverWhite(data, o); out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na; continue }
-      out[o + 3] = 255
-      continue
-    }
-    // glow：封闭近白（玻璃泡高光）保持不透明，其余全域白底反解（光晕渐变到 0）
+    // cut/solid：贴边软化 + 封闭近白保护 + 浅灰阴影（距离无关）转半透明 + 其余实体
+    if (bg[m]) { const [nr, ng, nb, na] = unmixOverWhite(data, o); out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na; continue }
+    // 封闭近白（图钉高光、胶带白条纹）：保持不透明
     if (!edge1[m] && isNearWhite(r, g, b)) { out[o + 3] = 255; continue }
-    const [nr, ng, nb, na] = unmixOverWhite(data, o)
-    out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na
+    // 低饱和浅灰 = 投影，按深浅反解成半透明
+    if (maxC - minC < 14 && minC > 205) { const [nr, ng, nb, na] = unmixOverWhite(data, o); out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na; continue }
+    // 贴边 1px 的高亮浅色 = 抗锯齿白边，反解软化
+    if (edge1[m] && minC >= 200) { const [nr, ng, nb, na] = unmixOverWhite(data, o); out[o] = nr; out[o + 1] = ng; out[o + 2] = nb; out[o + 3] = na; continue }
+    out[o + 3] = 255
   }
   return out
 }
@@ -154,7 +203,7 @@ async function processSource({ file, mode, cluster }) {
   const groups = mode === 'glow'
     ? [boxes]
     : clusterBoxes(boxes, cluster === 'x' ? 'cx' : 'cy', 3)
-  return { file, W, H, data, raw: out, groups }
+  return { file, W, H, raw: out, groups }
 }
 
 function png8(raw, width, height, dither = 1) {
@@ -186,130 +235,8 @@ async function cropAndSave(group, W, H, raw, name, resize, dither) {
 const PIN_NAMES = ['photo-wall-pin-red-v2.png', 'photo-wall-pin-yellow-v2.png', 'photo-wall-pin-blue-v2.png']
 const TAPE_NAMES = ['photo-wall-tape-dots-v1.png', 'photo-wall-tape-stripes-v1.png', 'photo-wall-tape-green-v1.png']
 
-// —— 灯泡拆分：把灯串拆成「电线底图」+「每颗灯泡精灵」+「位置清单」，供端上做逐灯随机闪烁 ——
-// 灯泡 = 饱和彩色紧凑连通域（黑电线低饱和被排除、纸白背景被排除）。
-// 华丽版灯泡排得密会连成大连通域 → 对宽组件做列投影（每列像素数）按波谷切回单颗。
-function compBBox(mask, W, x0, x1, y0, y1) {
-  let minX = W, minY = y1 + 1, maxX = -1, maxY = y0 - 1, area = 0
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) {
-      if (!mask[y * W + x]) continue
-      area += 1
-      if (x < minX) minX = x; if (x > maxX) maxX = x
-      if (y < minY) minY = y; if (y > maxY) maxY = y
-    }
-  }
-  return { minX, minY, maxX, maxY, w: maxX - minX + 1, h: maxY - minY + 1, area }
-}
-
-function splitWideComponent(mask, W, comp) {
-  // 灯泡间距 ≈ 组件高度（胖圆泡直径）；按间距估段数，等分窗口后再按像素质心重定位，
-  // 避免等分切口切穿灯泡；重叠过多的窗口去重
-  const pitch = Math.max(40, Math.round(W * 0.095))
-  const n = Math.max(1, Math.round(comp.w / pitch))
-  const step = comp.w / n
-  const boxes = []
-  for (let i = 0; i < n; i++) {
-    const x0 = comp.minX + Math.round(i * step)
-    const x1 = Math.min(comp.maxX, comp.minX + Math.round((i + 1) * step) - 1)
-    const slice = compBBox(mask, W, x0, x1, comp.minY, comp.maxY)
-    if (slice.area < 3000) continue
-    let sx = 0
-    for (let y = slice.minY; y <= slice.maxY; y++) {
-      for (let x = slice.minX; x <= slice.maxX; x++) {
-        if (mask[y * W + x]) sx += x
-      }
-    }
-    const cx = Math.round(sx / slice.area)
-    const half = Math.min(Math.round(slice.h * 0.58), Math.round(W * 0.07))
-    const bx0 = Math.max(comp.minX, cx - half), bx1 = Math.min(comp.maxX, cx + half)
-    const by0 = Math.max(comp.minY, slice.minY - 2), by1 = Math.min(comp.maxY, slice.maxY + 2)
-        boxes.push(compBBox(mask, W, bx0, bx1, by0, by1))
-  }
-  boxes.sort((a, b) => a.minX - b.minX)
-  const kept = []
-  for (const box of boxes) {
-    const prev = kept[kept.length - 1]
-    if (prev) {
-      const overlap = Math.min(prev.maxX, box.maxX) - Math.max(prev.minX, box.minX)
-      if (overlap > pitch * 0.45) continue
-    }
-    kept.push(box)
-  }
-  return kept
-}
-
-function detectBulbs(data, W, H) {
-  const mask = new Uint8Array(W * H)
-  for (let m = 0; m < W * H; m++) {
-    const o = m * 4
-    const minC = Math.min(data[o], data[o + 1], data[o + 2])
-    const maxC = Math.max(data[o], data[o + 1], data[o + 2])
-    if (minC < 240) mask[m] = 1
-  }
-  const seen = new Uint8Array(W * H)
-  const bulbs = []
-  const visit = (comp, depth) => {
-    const aspect = comp.w / comp.h
-    // 宽组件 = 多颗灯泡连体 → 按间距切分；深度保护防不收敛递归
-    if ((comp.w > W * 0.07 || aspect > 1.5) && depth < 3) {
-      const parts = splitWideComponent(mask, W, comp)
-      if (process.env.DBG) console.error(`SPLIT d${depth} ${comp.w}x${comp.h} -> ${parts.length} parts`)
-      for (const part of parts) visit(part, depth + 1)
-      return
-    }
-    if (comp.area < 3000) return
-    if (comp.w < W * 0.018 || comp.w > W * 0.2) return
-    if (aspect < 0.35 || aspect > 1.7) return
-    if (process.env.DBG) console.error(`ACCEPT d${depth} ${comp.w}x${comp.h} area=${comp.area}`)
-    bulbs.push(comp)
-  }
-  const comps = []
-  for (let start = 0; start < W * H; start++) {
-    if (!mask[start] || seen[start]) continue
-    let minX = W, minY = H, maxX = -1, maxY = -1, area = 0
-    const q = [start]
-    seen[start] = 1
-    while (q.length) {
-      const m = q.pop()
-      area += 1
-      const x = m % W, y = Math.floor(m / W)
-      if (x < minX) minX = x; if (x > maxX) maxX = x
-      if (y < minY) minY = y; if (y > maxY) maxY = y
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const nx = x + dx, ny = y + dy
-        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue
-        const nm = ny * W + nx
-        if (mask[nm] && !seen[nm]) { seen[nm] = 1; q.push(nm) }
-      }
-    }
-    comps.push({ minX, minY, maxX, maxY, w: maxX - minX + 1, h: maxY - minY + 1, area })
-  }
-  comps.sort((a, b) => b.area - a.area)
-  if (process.env.DBG) console.error(`top comps: ${comps.slice(0, 4).map((c) => `${c.w}x${c.h}a${c.area}`).join(', ')}`)
-  for (const comp of comps) visit(comp, 0)
-  bulbs.sort((p, q) => p.minX - q.minX)
-  return bulbs
-}
-
-// 电线底图：灯泡区域只保留黑色电线（低饱和深色），其余置透明（灯座随灯泡精灵走）
-function eraseBulbsKeepCable(raw, data, W, H, bulbs) {
-  const outBuf = Buffer.from(raw)
-  for (const bulb of bulbs) {
-    const pad = Math.round(Math.max(bulb.w, bulb.h) * 0.7)
-    const x0 = Math.max(0, bulb.minX - pad), x1 = Math.min(W - 1, bulb.maxX + pad)
-    const y0 = Math.max(0, bulb.minY - pad), y1 = Math.min(H - 1, bulb.maxY + pad)
-    for (let y = y0; y <= y1; y++) {
-      for (let x = x0; x <= x1; x++) {
-        const o = (y * W + x) * 4
-        const minC = Math.min(data[o], data[o + 1], data[o + 2])
-        const maxC = Math.max(data[o], data[o + 1], data[o + 2])
-        if (minC >= 120) { outBuf[o] = 0; outBuf[o + 1] = 0; outBuf[o + 2] = 0; outBuf[o + 3] = 0 }
-      }
-    }
-  }
-  return outBuf
-}
+// —— 灯串整串出件：不再拆灯泡。以下注释保留出件约定 ——
+// 前景联合盒 = 全部前景连通域（光晕渐变到 0，天然覆盖电线∪灯泡∪光晕）。
 
 function bboxOf(boxes, W, H, pad) {
   let minX = W, minY = H, maxX = -1, maxY = -1
@@ -325,89 +252,19 @@ function bboxOf(boxes, W, H, pad) {
 const report = []
 
 for (const source of SOURCES) {
-  const { file, W, H, data, raw, groups } = await processSource(source)
+  const { file, W, H, raw, groups } = await processSource(source)
   if (source.mode === 'glow') {
-    // 灯串拆分：电线底图 + 每颗灯泡精灵 + 位置清单（端上做逐灯随机闪烁）
-    const bulbs = detectBulbs(data, W, H)
-    console.log(`检测到灯泡 ${bulbs.length} 颗`)
-    if (bulbs.length < 6 || bulbs.length > 22) throw new Error(`灯泡检测数量异常: ${bulbs.length}`)
-    // 每颗灯泡的方形裁切矩形（含光晕）
-    const rects = bulbs.map((bulb) => {
-      const pad = Math.round(Math.max(bulb.w, bulb.h) * 0.5)
-      const side = Math.max(bulb.w, bulb.h) + pad * 2
-      const cx = (bulb.minX + bulb.maxX) / 2, cy = (bulb.minY + bulb.maxY) / 2
-      // 中心点钳位保证窗口恒为完整正方形（边缘灯泡也不被截断拉伸——拉伸会让精灵内电线与底图错位）
-      const hx = Math.round(side / 2), hy = hx
-      const cx2 = Math.min(W - 1 - hx, Math.max(hx, Math.round(cx)))
-      const cy2 = Math.min(H - 1 - hy, Math.max(hy, Math.round(cy)))
-      const x0 = cx2 - hx, y0 = cy2 - hy
-      const x1 = cx2 + hx - 1, y1 = cy2 + hy - 1
-      return { x0, y0, x1, y1 }
-    })
-    const baseRaw = eraseBulbsKeepCable(raw, data, W, H, bulbs)
-    const cableBoxes = components(baseRaw, W, H).filter((b) => b.area >= 400)
-    const cableBox = bboxOf(cableBoxes, W, H, 4)
-    // 联合盒 = 电线 ∪ 全部灯泡矩形（灯泡垂出电线盒时清单几何仍在 0-100% 内）
-    const unionBox = {
-      minX: Math.min(cableBox.minX, ...rects.map((r) => r.x0)),
-      minY: Math.min(cableBox.minY, ...rects.map((r) => r.y0)),
-      maxX: Math.max(cableBox.maxX, ...rects.map((r) => r.x1)),
-      maxY: Math.max(cableBox.maxY, ...rects.map((r) => r.y1))
-    }
-    unionBox.w = unionBox.maxX - unionBox.minX + 1
-    unionBox.h = unionBox.maxY - unionBox.minY + 1
-    const croppedBase = await sharp(baseRaw, { raw: { width: W, height: H, channels: 4 } })
-      .extract({ left: unionBox.minX, top: unionBox.minY, width: unionBox.w, height: unionBox.h })
+    // 灯串整串单图出件：前景联合盒裁切 → 640 宽 PNG8。端上只放一张图 + 整串暖光呼吸，不再拆件。
+    const box = bboxOf(groups.flat(), W, H, 6)
+    const cropped = await sharp(raw, { raw: { width: W, height: H, channels: 4 } })
+      .extract({ left: box.minX, top: box.minY, width: box.w, height: box.h })
       .png().toBuffer()
-    const resizedBase = await sharp(croppedBase).resize({ width: 640, kernel: 'lanczos3' }).png().toBuffer()
-    const baseMeta = await sharp(resizedBase).raw().toBuffer({ resolveWithObject: true })
-    const baseOut = await png8(baseMeta.data, baseMeta.info.width, baseMeta.info.height, 1)
-    await writeFile(resolve(outDir, 'photo-wall-lights-v3.png'), baseOut)
-    report.push({ name: 'photo-wall-lights-v3.png (电线底图)', width: baseMeta.info.width, height: baseMeta.info.height, bytes: baseOut.byteLength })
-
-    const CELL = 80
-    const cells = []
-    for (const rect of rects) {
-      // 方形裁切（含光晕）；resize 撑满格子 + 位置框用同一矩形 → 叠加时与底图电线逐像素对齐
-      const crop = await sharp(raw, { raw: { width: W, height: H, channels: 4 } })
-        .extract({ left: rect.x0, top: rect.y0, width: rect.x1 - rect.x0 + 1, height: rect.y1 - rect.y0 + 1 })
-        .resize(CELL, CELL, { kernel: 'lanczos3' })
-        .png().toBuffer()
-      cells.push(await sharp(crop).raw().toBuffer({ resolveWithObject: true }))
-    }
-    const composites = []
-    for (const [i, cell] of cells.entries()) {
-      composites.push({
-        input: await sharp(cell.data, { raw: { width: cell.info.width, height: cell.info.height, channels: 4 } }).png().toBuffer(),
-        left: i * CELL,
-        top: 0,
-      })
-    }
-    const sheetPng = await sharp({
-      create: { width: CELL * cells.length, height: CELL, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
-    }).composite(composites).png().toBuffer()
-    const sheetRaw = await sharp(sheetPng).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-    const sheetOut = await png8(sheetRaw.data, sheetRaw.info.width, sheetRaw.info.height, 1)
-    await writeFile(resolve(outDir, 'photo-wall-bulbs-v3.png'), sheetOut)
-    report.push({ name: `photo-wall-bulbs-v3.png (${cells.length} 灯泡)`, width: sheetRaw.info.width, height: sheetRaw.info.height, bytes: sheetOut.byteLength })
-
-    // 位置清单：相对联合盒（640 宽）的百分比几何 + 确定性随机闪烁参数
-    const scale = 640 / unionBox.w
-    const h640 = Math.round(unionBox.h * scale)
-    const round = (n) => Math.round(n * 100) / 100
-    const items = rects.map((rect, i) => ({
-      cell: i,
-      left: round(((rect.x0 - unionBox.minX) * scale) / 640 * 100),
-      top: round(((rect.y0 - unionBox.minY) * scale) / h640 * 100),
-      width: round(((rect.x1 - rect.x0 + 1) * scale) / 640 * 100),
-      height: round(((rect.y1 - rect.y0 + 1) * scale) / h640 * 100),
-      delay: round(((i * 13) % 17) * 0.23),
-      duration: round(2.4 + ((i * 7) % 9) * 0.22),
-    }))
-    console.log(`联合盒 ${unionBox.w}x${unionBox.h} → 容器高约 ${Math.round(686 * unionBox.h / unionBox.w)}rpx`)
-    const ts = `// 由 miniapp/tools/make-photo-wall-decor.mjs 自动生成：灯泡精灵在灯串联合盒（电线∪灯泡，等比 640 宽）内的百分比几何与随机闪烁参数。\n// 手改无效，重跑工具会覆盖。\nexport interface PhotoWallBulb {\n  cell: number\n  left: number\n  top: number\n  width: number\n  height: number\n  delay: number\n  duration: number\n}\n\nexport const PHOTO_WALL_BULBS: PhotoWallBulb[] = ${JSON.stringify(items, null, 2)}\n`
-    await writeFile(resolve(root, 'miniapp/src/features/main/photoWallLightsBulbs.ts'), ts)
-    report.push({ name: 'photoWallLightsBulbs.ts', bytes: Buffer.byteLength(ts) })
+    const resized = await sharp(cropped).resize({ width: 640, kernel: 'lanczos3' }).png().toBuffer()
+    const meta = await sharp(resized).raw().toBuffer({ resolveWithObject: true })
+    const out = await png8(meta.data, meta.info.width, meta.info.height, 1)
+    await writeFile(resolve(outDir, 'photo-wall-lights-v4.png'), out)
+    report.push({ name: 'photo-wall-lights-v4.png (整串)', width: meta.info.width, height: meta.info.height, bytes: out.byteLength })
+    console.log(`容器高约 ${Math.round(686 * box.h / box.w)}rpx（686 盒宽等比）`)
   } else if (source.mode === 'solid') {
     for (const [i, group] of groups.entries()) {
       report.push(await cropAndSave(group, W, H, raw, PIN_NAMES[i] ?? `pin-extra-${i}.png`, { height: 68, kernel: 'lanczos3' }, 0))

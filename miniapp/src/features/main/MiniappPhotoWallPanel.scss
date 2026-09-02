@@ -1,5 +1,5 @@
 /* 照片墙面板：真软木纹墙面（make-panel-decor.mjs 生成的无缝拼贴，Taro 内联为 base64）
-   + 顶部实拍质感彩灯串（make-photo-wall-decor.mjs 去底出件，含光晕）
+   + 顶部整串彩灯成图（make-photo-wall-decor.mjs 去底出件，整串轻呼吸暖光）
    + 拍立得网格（实拍图钉/和纸胶带贴图三色交替、错峰落入）+ 自绘大图覆盖层。全屏固定层由外层 overlay 控制定高。 */
 .photo-wall-panel {
   height: 100%;
@@ -41,29 +41,27 @@
   font-size: var(--font-size-aux);
   font-weight: var(--font-weight-semibold);
 }
-/* 软木墙上沿的治愈风彩灯：底图只有电线+空灯座（640×166 联合盒），马卡龙色玻璃灯泡是
-   独立精灵（make-photo-wall-decor.mjs 拆件 + photoWallLightsBulbs.ts 位置清单），
-   各自随机相位温柔呼吸微光——只调透明度不缩放不熄灭（0.55 起步），治愈不诡异。
-   高度定死 166rpx（686 盒宽 ≈ 底图 640×166 等比）：widthFix 未加载前按默认尺寸渲染会闪跳。 */
-.photo-wall-lights { position: relative; flex-shrink: 0; height: 166rpx; margin: 2rpx -6rpx 4rpx; line-height: 0; }
-.photo-wall-lights__string { width: 100%; height: 166rpx; }
-.photo-wall-bulb {
+/* 软木墙上沿的治愈风彩灯：整串一张成图（电线+灯座+发光灯泡一体，make-photo-wall-decor.mjs
+   去底出件）。灯效收敛为一层覆盖整串的暖色柔光呼吸（mix-blend 软化 + 轻微透明度起伏），
+   不再逐灯拆件闪烁。高度定死（686 盒宽等比，见工具输出的容器高）：
+   widthFix 未加载前按默认尺寸渲染会闪跳。 */
+.photo-wall-lights { position: relative; flex-shrink: 0; height: 88rpx; margin: 2rpx -6rpx 4rpx; line-height: 0; }
+.photo-wall-lights__string { width: 100%; height: 88rpx; }
+.photo-wall-lights__glow {
   position: absolute;
-  background-image: url('../../assets/decor/photo-wall-bulbs-v3.png');
-  background-repeat: no-repeat;
-  animation: photo-wall-bulb-twinkle 3.2s ease-in-out infinite;
+  /* 显式四边（WXSS inset 简写不可靠） */
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 62%, rgba(255, 205, 130, .34), rgba(255, 205, 130, 0) 68%);
+  mix-blend-mode: screen;
+  animation: photo-wall-lights-glow 4.6s ease-in-out infinite;
   pointer-events: none;
 }
-/* 两种温柔节奏交错 + 逐颗不同 delay/duration（内联注入）→ 观感各自随机 */
-.photo-wall-bulb--alt { animation-name: photo-wall-bulb-flicker; }
-@keyframes photo-wall-bulb-twinkle {
-  0%, 100% { opacity: .55; }
+@keyframes photo-wall-lights-glow {
+  0%, 100% { opacity: .45; }
   50% { opacity: 1; }
-}
-@keyframes photo-wall-bulb-flicker {
-  0%, 100% { opacity: 1; }
-  45% { opacity: .56; }
-  70% { opacity: .86; }
 }
 .photo-wall-panel__upload--press { transform: scale(.94); filter: brightness(.96); }
 
@@ -310,5 +308,5 @@
   .photo-wall-compose { animation: none; }
   .photo-wall-preview { animation: none; }
   .photo-wall-preview__body { animation: none; }
-  .photo-wall-bulb { animation: none; opacity: 1; }
+  .photo-wall-lights__glow { animation: none; opacity: .6; }
 }
