@@ -384,6 +384,10 @@ describe('miniapp ui presentation rules', () => {
     expect(panel).toContain('wardrobe-tab')
     expect(panel).toContain('setActiveKind')
     expect(panel).not.toContain('renderSection(')
+    // 配饰单件制：三类互斥（选新件自动摘下其它），分页高度随页型自适应
+    expect(panel).toContain('hat: null, scarf: null, bag: null')
+    expect(panel).toContain('选一件配饰，再点摘下')
+    expect(panel).toContain("activeKind === 'body' ? '516rpx' : '306rpx'")
     // 主体服装=原装立绘+切件层叠加（不再整套替换整图）；配饰恒定定位
     expect(portrait).toContain("resolveSuitDisplay('default')")
     expect(portrait).toContain('resolveBodyLayerStyle')

@@ -38,7 +38,7 @@ interface MiniappWardrobePanelProps {
   onChanged?(): void
 }
 
-// 衣柜面板：「华丽舞台」试衣间场景 + 按类别穿戴（主体服装单选 + 帽/巾/包各一件可叠穿）。
+// 衣柜面板：「华丽舞台」试衣间场景 + 按类别穿戴（主体服装单选 + 配饰单件制：帽/巾/包互斥）。
 // 默契换装每天一次，双方主体一致即达成。解锁判定全部来自服务端，面板只展示与提交；
 // GM 本地测试模式（gmTest）例外：目录/解锁来自本地模拟，保存写本地持久化。
 export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChanged }: MiniappWardrobePanelProps) {
@@ -164,7 +164,9 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
       setPieces((current) => ({ ...current, body: key as SuitKey }))
       return
     }
-    setPieces((current) => ({ ...current, [category]: current[category] === key ? null : key }))
+    // 配饰单件制：三类配饰互斥，选新件自动摘下其它（主体服装与配饰各只能选一件）
+    const wearing = pieces[category as Exclude<SuitCategory, 'body'>] === key
+    setPieces((current) => ({ ...current, hat: null, scarf: null, bag: null, [category]: wearing ? null : (key as SuitKey) }))
   }
 
   const renderItem = (item: WardrobeView['items'][number], index: number) => {
@@ -294,7 +296,7 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
             >
               <Text>🎀 配饰</Text>
             </View>
-            <Text className="wardrobe-tabs__hint">{activeKind === 'body' ? '选一件主体服装' : '可叠穿，再点摘下'}</Text>
+            <Text className="wardrobe-tabs__hint">{activeKind === 'body' ? '选一件主体服装' : '选一件配饰，再点摘下'}</Text>
           </View>
         )}
         {view === null && (
@@ -305,6 +307,7 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
         {view !== null && (
           <Swiper
             className="wardrobe-pager"
+            style={{ height: activeKind === 'body' ? '516rpx' : '306rpx' }}
             current={activeIndex}
             onChange={onPageChange}
             indicatorDots

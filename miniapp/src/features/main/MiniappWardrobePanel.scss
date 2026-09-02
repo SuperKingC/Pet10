@@ -194,8 +194,8 @@
 }
 .wardrobe-rack__pole::before { left: -10rpx; }
 .wardrobe-rack__pole::after { right: -10rpx; }
-/* 目录标签页（服饰/配饰）：挂杆下的小木牌药丸，与 Swiper 联动（滑动也会带动选中） */
-.wardrobe-tabs { display: flex; align-items: center; gap: 14rpx; padding: 2rpx 8rpx 14rpx; }
+/* 目录标签页（服饰/配饰）：整体下移与默契卡拉开呼吸距，挂杆下的小木牌药丸与 Swiper 联动 */
+.wardrobe-tabs { margin-top: 30rpx; display: flex; align-items: center; gap: 14rpx; padding: 2rpx 8rpx 14rpx; }
 .wardrobe-tab {
   padding: 10rpx 28rpx;
   border-radius: 999rpx;
