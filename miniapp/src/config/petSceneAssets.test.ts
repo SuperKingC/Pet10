@@ -80,17 +80,16 @@ describe('miniapp pet scene assets', () => {
     expect(stageBlock).toContain('margin-left: -136px;')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
-    // 横穿全场全程无驻足：中间（面朝左，素材原生朝向）→左缘→0.21s 连续变向→右缘→变向→回中间到位即收
+    // 横穿全场、屏幕外掉头：中间（面朝左）→整只跑出左屏（±480≈舞台 272 全出画）→屏幕外停步掉头→
+    // 冲刺横穿→整只跑出右屏→屏幕外掉头→跑回中间到位即收接站姿
     expect(wanderBlock).toContain('0% { transform: translateX(0) scaleX(1); }')
-    expect(wanderBlock).toContain('27% { transform: translateX(-200px) scaleX(1); }')
-    expect(wanderBlock).toContain('30% { transform: translateX(-200px) scaleX(-1); }')
-    expect(wanderBlock).toContain('62% { transform: translateX(200px) scaleX(-1); }')
-    expect(wanderBlock).toContain('65% { transform: translateX(200px) scaleX(1); }')
+    expect(wanderBlock).toContain('22% { transform: translateX(-480px) scaleX(1); }')
+    expect(wanderBlock).toContain('26% { transform: translateX(-480px) scaleX(1); }')
+    expect(wanderBlock).toContain('32% { transform: translateX(-480px) scaleX(-1); }')
+    expect(wanderBlock).toContain('60% { transform: translateX(480px) scaleX(-1); }')
+    expect(wanderBlock).toContain('64% { transform: translateX(480px) scaleX(-1); }')
+    expect(wanderBlock).toContain('70% { transform: translateX(480px) scaleX(1); }')
     expect(wanderBlock).toContain('100% { transform: translateX(0) scaleX(1); }')
-    // 无驻足：到缘不停步、回中不停步——旧版的 31/36/64/68/73 停靠点与 94% 收尾驻足必须不存在
-    expect(wanderBlock).not.toContain('31%')
-    expect(wanderBlock).not.toContain('68%')
-    expect(wanderBlock).not.toContain('94%')
 
     const fetchBlock = sceneStyle.match(/@keyframes pet-fetch-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(fetchBlock).toContain('26% { transform: translateX(-270px) scaleX(-1); opacity: 0; }')
