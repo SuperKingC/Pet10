@@ -29,9 +29,11 @@ interface MiniappMeViewProps {
   context: LaunchContext | null
   onLogout(): void
   onDataChanged?(): void
+  /** GM 模拟解锁小多利：切到小窝 tab 播放盒子跳出动画（不写真实解锁态） */
+  onSimulateUnlock?(): void
 }
 
-export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeViewProps) {
+export function MiniappMeView({ context, onLogout, onDataChanged, onSimulateUnlock }: MiniappMeViewProps) {
   const profilePresentation = getProfilePresentation(context?.user || null)
   const displayName = profilePresentation.displayName
   const uid = context?.user.uid || ''
@@ -210,6 +212,14 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
     onDataChanged?.()
   }
 
+  // GM 模拟解锁：关掉 GM 弹窗，由首页切到小窝播放盒子跳出动画
+  const simulateUnlock = () => {
+    if (gmBusy) return
+    setGmOpen(false)
+    Taro.showToast({ title: '已切换到小窝播放解锁动画', icon: 'none', duration: 1200 })
+    onSimulateUnlock?.()
+  }
+
   const confirmDeactivate = async () => {
     if (deactivateBusy) return
     setDeactivateBusy(true)
@@ -373,6 +383,14 @@ export function MiniappMeView({ context, onLogout, onDataChanged }: MiniappMeVie
               onClick={toggleGmTestMode}
             >
               {gmTestMode ? '关闭本地测试模式' : '开启本地测试模式'}
+            </Button>
+          </View>
+          <View className="miniapp-gm__divider" />
+          <Text className="miniapp-gm__section">解锁动画调试</Text>
+          <Text className="miniapp-gm__intro">切到小窝播放小多利从盒子里跳出来的解锁动画（不写入真实解锁状态，可反复触发）。</Text>
+          <View className="miniapp-gm__actions">
+            <Button className="miniapp-gm__submit" disabled={gmBusy} onClick={simulateUnlock}>
+              模拟解锁小多利
             </Button>
           </View>
         </MiniappModal>

@@ -92,6 +92,19 @@ describe('miniapp view model', () => {
     expect(getNestSceneMode(roomContext, pet, 'room-1', locked)).toBe('locked')
   })
 
+  it('forces the locked letter scene when simulating the unlock (GM)', () => {
+    const roomContext = { rooms: [{ id: 'room-1', pet: { id: 'pet-1' } }] } as unknown as LaunchContext
+    const pet = {} as PetState
+    const unlocked = { initialized: true, unlockedRoomIds: ['room-1'] }
+
+    // 真实已解锁的房间在模拟态同样回到锁定信纸场景，才能重播解锁动画
+    expect(getNestSceneMode(roomContext, pet, 'room-1', unlocked, true)).toBe('locked')
+    // 空状态（还没有小多利）也能借信纸场景演示解锁
+    expect(getNestSceneMode({ rooms: [] } as unknown as LaunchContext, null, '', null, true)).toBe('locked')
+    // 不开模拟时不影响既有判定
+    expect(getNestSceneMode(roomContext, pet, 'room-1', unlocked, false)).toBe('active')
+  })
+
   it('replaces the invite button with the unlock button after a friend accepts', () => {
     const invite = getInvitationButtonState(true, false)
     // 小多利一人一只：已在养（active）时不再展示邀请好友入口

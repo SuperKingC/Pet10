@@ -42,6 +42,8 @@ interface MiniappNestViewProps {
   footer?: ReactNode
   /** GM 本地测试模式：照顾动作/衣柜走本地模拟，不依赖服务端 */
   gmTest?: boolean
+  /** GM 模拟解锁：强制锁定信纸场景播放盒子跳出动画；跳完不写真实解锁存储 */
+  simulateUnlock?: boolean
 }
 
 export function MiniappNestView({
@@ -56,6 +58,7 @@ export function MiniappNestView({
   onInvitePress,
   footer,
   gmTest = false,
+  simulateUnlock = false,
 }: MiniappNestViewProps) {
   const [contributions, setContributions] = useState<MiniappContribution[]>([])
   const [taskPanelOpen, setTaskPanelOpen] = useState(false)
@@ -105,13 +108,18 @@ export function MiniappNestView({
   }, [context])
 
   const finishJump = useCallback(() => {
+    // GM 模拟解锁：只播动画验收表现，不写真实解锁存储，可反复触发
+    if (simulateUnlock) {
+      onJumpFinished()
+      return
+    }
     setUnlock((current) => {
       const next = unlockRoom(current ?? { initialized: true, unlockedRoomIds: [] }, roomId)
       writeUnlockState(next)
       return next
     })
     onJumpFinished()
-  }, [onJumpFinished, roomId])
+  }, [onJumpFinished, roomId, simulateUnlock])
 
   useEffect(() => {
     if (!roomId) {
@@ -156,7 +164,7 @@ export function MiniappNestView({
   const names = Object.fromEntries(
     (context?.rooms ?? []).flatMap((room) => [[room.partner.id, room.partner.displayName] as const]),
   )
-  const sceneMode = getNestSceneMode(context, pet, roomId, unlock)
+  const sceneMode = getNestSceneMode(context, pet, roomId, unlock, simulateUnlock)
 
   useEffect(() => {
     onSceneModeChange(sceneMode)

@@ -72,8 +72,11 @@ export function getNestSceneMode(
   pet: PetState | null,
   roomId = '',
   unlock: XiaoduoliUnlockState | null = null,
+  simulateUnlock = false,
 ): NestSceneMode {
   if (!context) return 'loading'
+  // GM 模拟解锁：无视真实解锁态强制锁定信纸场景（盒子待解锁），供播放跳出动画反复验收
+  if (simulateUnlock) return 'locked'
   // 小多利只能和一位好友共养：没有任何带小多利的房间时，仍展示邀请信件引导邀请其他好友
   if (!context.rooms.some((room) => room.pet)) return 'empty'
   if (!pet) return 'loading'

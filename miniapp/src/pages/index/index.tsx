@@ -80,6 +80,9 @@ export default function Index() {
   const [journalRefreshKey, setJournalRefreshKey] = useState(0)
   const [nestSceneMode, setNestSceneMode] = useState<NestSceneMode>('loading')
   const [boxPhase, setBoxPhase] = useState<'idle' | 'jumping'>('idle')
+  // GM 模拟解锁：强制小窝进入锁定信纸场景（boxPhase 由触发时一并置 jumping），
+  // 动画结束后复位；不写真实解锁存储，可反复触发
+  const [simulateUnlock, setSimulateUnlock] = useState(false)
   // 消息页当前打开的全屏聊天页房间 ID（'' 表示停在会话列表），用于隐藏底部 tab 栏
   const [chatRoomId, setChatRoomId] = useState('')
   // 页面根层级全屏覆盖层：添加好友/小多利圈/选择合养好友/确认合养（必须盖过 tab 栏 z20，
@@ -335,6 +338,8 @@ export default function Index() {
 
   const handleJumpFinished = useCallback(() => {
     setBoxPhase('idle')
+    // 模拟解锁收尾：回真实场景（已解锁则回活跃小窝，未解锁回原状）
+    setSimulateUnlock(false)
   }, [])
 
   if (!hasAuthenticatedSession(accessToken)) {
@@ -419,6 +424,12 @@ export default function Index() {
           setGmTest(readGmTestMode())
           void loadContext(roomId)
         }}
+        onSimulateUnlock={() => {
+          // GM 模拟解锁：切到小窝，强制锁定信纸场景并直接起跳
+          setSimulateUnlock(true)
+          setActiveTab('nest')
+          setBoxPhase('jumping')
+        }}
       />
     }
     return <MiniappNestView
@@ -428,6 +439,7 @@ export default function Index() {
       boxPhase={boxPhase}
       footer={nestFooter}
       gmTest={gmTest}
+      simulateUnlock={simulateUnlock}
       onAction={handleAction}
       onOpenMemories={() => void openMemories()}
       onSceneModeChange={setNestSceneMode}
