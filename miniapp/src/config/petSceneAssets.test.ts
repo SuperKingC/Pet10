@@ -74,33 +74,43 @@ describe('miniapp pet scene assets', () => {
     const sceneStyle = readFileSync(resolve(miniappRoot(), 'src/components/PetStatusCard.scss'), 'utf8')
 
     const stageBlock = sceneStyle.match(/\.pet-move-stage \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(stageBlock).toContain('bottom: 50px;')
-    expect(stageBlock).toContain('width: 224px;')
-    expect(stageBlock).toContain('height: 144px;')
-    expect(stageBlock).toContain('margin-left: -112px;')
+    expect(stageBlock).toContain('bottom: 0;')
+    expect(stageBlock).toContain('width: 272px;')
+    expect(stageBlock).toContain('height: 175px;')
+    expect(stageBlock).toContain('margin-left: -136px;')
 
     const wanderBlock = sceneStyle.match(/@keyframes pet-wander-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(wanderBlock).toContain('0% { transform: translateX(0) scaleX(-1); }')
-    expect(wanderBlock).toContain('34% { transform: translateX(54px) scaleX(-1); }')
-    expect(wanderBlock).toContain('39% { transform: translateX(54px) scaleX(-1); }')
-    expect(wanderBlock).toContain('45% { transform: translateX(54px) scaleX(1); }')
+    expect(wanderBlock).toContain('34% { transform: translateX(64px) scaleX(-1); }')
+    expect(wanderBlock).toContain('39% { transform: translateX(64px) scaleX(-1); }')
+    expect(wanderBlock).toContain('45% { transform: translateX(64px) scaleX(1); }')
     expect(wanderBlock).toContain('88%, 100% { transform: translateX(0) scaleX(1); }')
 
     const fetchBlock = sceneStyle.match(/@keyframes pet-fetch-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(fetchBlock).toContain('26% { transform: translateX(-216px) scaleX(-1); opacity: 0; }')
-    expect(fetchBlock).toContain('30% { transform: translateX(-196px) scaleX(-1); opacity: 1; }')
+    expect(fetchBlock).toContain('26% { transform: translateX(-270px) scaleX(-1); opacity: 0; }')
+    expect(fetchBlock).toContain('30% { transform: translateX(-245px) scaleX(-1); opacity: 1; }')
 
     const dollRule = sceneStyle.match(/\.pet-move-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(dollRule).toContain('width: 86px;')
-    expect(dollRule).toContain('height: 120px;')
+    expect(dollRule).toContain('width: 108px;')
+    expect(dollRule).toContain('height: 150px;')
 
     const dollBlock = sceneStyle.match(/@keyframes pet-fetch-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(dollBlock).toContain('30% { transform: translateY(9px); opacity: 1; }')
+    expect(dollBlock).toContain('30% { transform: translateY(11px); opacity: 1; }')
 
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
     expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
     // image 组件不吃四边推导尺寸（背景/娃娃/名牌图均显式宽高才正常）：步态帧必须显式撑满舞台，
     // 否则按微信 image 默认 300×225 渲染（巨大且向舞台右下溢出，四边定位修不掉）
-    expect(sceneStyle).toContain('.pet-move-frame { width: 100%; height: 100%; }')
+    expect(sceneStyle).toContain('.pet-move-frame { width: 100%; height: 100%; will-change: opacity; animation: pet-move-frame-a .42s linear infinite; }')
+    // 两帧互斥交替：A 常亮+B 叠加会透出「前面四条腿」重影（两帧腿部姿态不同），硬切又像两张图来回跳；
+    // 改为 A/B 各自半周期隐身 + 8% 线性淡变（运动模糊式过渡），reduced-motion 双帧一并静止
+    expect(sceneStyle).toContain('.pet-move-frame--b { opacity: 0; animation: pet-move-frame-b .42s linear infinite; }')
+    const frameABlock = sceneStyle.match(/@keyframes pet-move-frame-a \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(frameABlock).toContain('0%, 42% { opacity: 0; }')
+    expect(frameABlock).toContain('50%, 92% { opacity: 1; }')
+    const frameBBlock = sceneStyle.match(/@keyframes pet-move-frame-b \{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(frameBBlock).toContain('0%, 42% { opacity: 1; }')
+    expect(frameBBlock).toContain('50%, 92% { opacity: 0; }')
+    expect(sceneStyle).toContain('.pet-move-frame, .pet-move-bobber { animation: none; }')
   })
 })
