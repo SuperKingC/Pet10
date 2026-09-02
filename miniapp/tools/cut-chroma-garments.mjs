@@ -2,7 +2,7 @@
 // ① 检测黑剪影 bbox 与原装立绘犬身 bbox 做等比仿射对齐（底边+水平居中）
 // ② 键控抠除黑色狗身（软 alpha 羽化黑边）
 // ③ 边界泛洪去除残留白底（胸前白抽绳等内部白色件保留）
-// ④ 输出 436×700 全画布服装叠层 public/wardrobe/{suit}-layer-v10.png
+// ④ 输出 436×700 全画布服装叠层 public/wardrobe/{suit}-layer-v11.png
 //    ——全画布定位 {left:0,top:0,width:100%}，位置由生成图天然决定，不再人工标定
 // 运行：node miniapp/tools/cut-chroma-garments.mjs
 import { writeFile } from 'node:fs/promises'
@@ -292,11 +292,11 @@ for (const suit of SUITS) {
   const png = await sharp(canvas, { raw: { width: BASE_W, height: BASE_H, channels: 4 } })
     .png({ palette: true, colors: 256, compressionLevel: 9 })
     .toBuffer()
-  const out = path.join(root, `public/wardrobe/${suit}-layer-v10.png`)
+  const out = path.join(root, `public/wardrobe/${suit}-layer-v11.png`)
   await writeFile(out, png)
   layers[suit] = true
-  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v10.png`, src: `design-assets/wardrobe/gen-${suit}-chroma-v1.png`, bytes: png.byteLength, scale: Number(scale.toFixed(3)) })
-  console.log(`${suit}-layer-v10.png ${(png.byteLength / 1024).toFixed(1)}KB`)
+  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v11.png`, src: `design-assets/wardrobe/gen-${suit}-chroma-v1.png`, bytes: png.byteLength, scale: Number(scale.toFixed(3)) })
+  console.log(`${suit}-layer-v11.png ${(png.byteLength / 1024).toFixed(1)}KB`)
 }
 
 console.log('\n// 全画布服装叠层：定位恒为 {left:0%, top:0%, width:100%}（位置由 chroma 生成图决定）')
@@ -320,7 +320,7 @@ let x = 0
 for (const suit of SUITS) {
   if (!layers[suit]) continue
   const comps = [{ input: baseBuf, left: 0, top: 0 }]
-  comps.push({ input: await sharp(path.join(root, `public/wardrobe/${suit}-layer-v10.png`)).resize(Math.round(BASE_W * SCALE), Math.round(BASE_H * SCALE)).png().toBuffer(), left: 0, top: 0 })
+  comps.push({ input: await sharp(path.join(root, `public/wardrobe/${suit}-layer-v11.png`)).resize(Math.round(BASE_W * SCALE), Math.round(BASE_H * SCALE)).png().toBuffer(), left: 0, top: 0 })
   for (const [acc, [, l, t, w]] of Object.entries(ACCESSORIES)) {
     comps.push({
       input: await sharp(accBufs[acc]).resize({ width: Math.round((w / 100) * BASE_W * SCALE) }).png().toBuffer(),
