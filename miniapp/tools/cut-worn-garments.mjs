@@ -1,6 +1,6 @@
 // 「穿着视角」服装件去底 + 原装立绘定位标定。
 // 输入：design-assets/wardrobe/gen-{suit}-wear-v1.png（gen-worn-garments.mjs 生成的纯白底服装图）
-// 输出：public/wardrobe/{suit}-layer-v1.png（紧裁 PNG8，COS 按需下载，不占包体）
+// 输出：public/wardrobe/{suit}-layer-v2.png（紧裁 PNG8，COS 按需下载，不占包体）
 //      + BODY_LAYER_STYLE 字面量（贴进 wardrobeModel.ts，436×700 原装画布百分比）
 //      + tmp-body-layer-preview.png 蒙特奇（上行=仅服装件；下行=服装件+三配饰）供目检。
 // 标定：每件给目标显示宽 + 领口顶 y（700 空间），水平以犬身中轴 x=218 居中；
@@ -155,9 +155,9 @@ for (const suit of suits) {
     .toBuffer()
   const style = { left: pct(minX / BASE_W), top: pct(minY / BASE_H), width: pct(bw / BASE_W) }
   placed[suit] = { buf: outBuf, bbox: { x: minX, y: minY, w: bw, h: bh } }
-  await writeFile(path.join(root, `public/wardrobe/${suit}-layer-v1.png`), outBuf)
-  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v1.png`, src: `design-assets/wardrobe/gen-${suit}-wear-v1.png`, bbox: { x: minX, y: minY, w: bw, h: bh }, bytes: outBuf.byteLength, style })
-  console.log(`${suit}-layer-v1.png ${bw}x${bh} @(${minX},${minY}) ${(outBuf.byteLength / 1024).toFixed(1)}KB`, style)
+  await writeFile(path.join(root, `public/wardrobe/${suit}-layer-v2.png`), outBuf)
+  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v2.png`, src: `design-assets/wardrobe/gen-${suit}-wear-v1.png`, bbox: { x: minX, y: minY, w: bw, h: bh }, bytes: outBuf.byteLength, style })
+  console.log(`${suit}-layer-v2.png ${bw}x${bh} @(${minX},${minY}) ${(outBuf.byteLength / 1024).toFixed(1)}KB`, style)
 }
 
 console.log('\n// 主体服装切件叠加定位（436×700 原装画布百分比），由 miniapp/tools/cut-worn-garments.mjs 标定生成')

@@ -148,7 +148,7 @@ export function suitAssetFiles(key: string): SuitAssetFiles {
     const display = key === 'scarf' ? 'outfit-scarf-cut-v2.png' : icon
     return { icon, display }
   }
-  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-v1.png` }
+  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-v2.png` }
 }
 
 /** 获得途径徽章：从条件文案派生，未解锁的套装显示途径角标 */

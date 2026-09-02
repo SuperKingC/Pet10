@@ -29,7 +29,7 @@ async function renderBase() {
 async function renderWithLayer(baseBuf, suit) {
   const st = SUITS[suit]
   const lw = Math.round((st.width / CANVAS_W) * BOX_W)
-  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v1.png`)).resize({ width: lw }).png().toBuffer()
+  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v2.png`)).resize({ width: lw }).png().toBuffer()
   const lm = await sharp(layer).metadata()
   return sharp(baseBuf)
     .composite([{ input: layer, left: Math.round((BOX_W - lm.width) / 2), top: Math.round((st.top / CANVAS_H) * BOX_H) }])
