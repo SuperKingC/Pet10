@@ -2,7 +2,7 @@
 // ① 检测黑剪影 bbox 与原装立绘犬身 bbox 做等比仿射对齐（底边+水平居中）
 // ② 键控抠除黑色狗身（软 alpha 羽化黑边）
 // ③ 边界泛洪去除残留白底（胸前白抽绳等内部白色件保留）
-// ④ 输出 436×700 全画布服装叠层 public/wardrobe/{suit}-layer-v7.png
+// ④ 输出 436×700 全画布服装叠层 public/wardrobe/{suit}-layer-v6.png
 //    ——全画布定位 {left:0,top:0,width:100%}，位置由生成图天然决定，不再人工标定
 // 运行：node miniapp/tools/cut-chroma-garments.mjs
 import { writeFile } from 'node:fs/promises'
@@ -63,21 +63,15 @@ for (const suit of SUITS) {
   const genRaw = await rawOf(src)
   const dogBbox = bboxOf(genRaw.data, genRaw.w, genRaw.h, isBlack)
   // 等比缩放：黑剪影高 → 原装犬身高；水平按 bbox 中心对齐、垂直按底边对齐
-  const GROW_W = 1.08 // 横向包裹：盖住肩胛/跨部外侧露毛
-  const GROW_H = 0.97 // 纵向回落：领口离开舌头、泡泡袖落到肩上（用户反馈更合身、不挡舌头）
-  const baseDogW = baseBbox.maxX - baseBbox.minX + 1
-  const dogW = dogBbox.maxX - dogBbox.minX + 1
-  const scaleW = (baseDogW / dogW) * GROW_W
-  const scaleH = ((baseBbox.maxY - baseBbox.minY + 1) / (dogBbox.maxY - dogBbox.minY + 1)) * GROW_H
-  const scaledW = Math.max(1, Math.round(genRaw.w * scaleW))
-  const scaledH = Math.max(1, Math.round(genRaw.h * scaleH))
-  const scaled = await sharp(src).resize(scaledW, scaledH).png().toBuffer()
+  const GROW = 1.08 // 包裹放大：服装层绕底边中心再放大，盖住肩胛/跨部外侧露毛（v6 用户认可的合身度）
+  const scale = ((baseBbox.maxY - baseBbox.minY + 1) / (dogBbox.maxY - dogBbox.minY + 1)) * GROW
+  const scaledW = Math.max(1, Math.round(genRaw.w * scale))
+  const scaled = await sharp(src).resize(scaledW).png().toBuffer()
   const sm = await rawOf(scaled)
   const sDog = bboxOf(sm.data, sm.w, sm.h, isBlack)
   const offX = Math.round((baseBbox.minX + baseBbox.maxX) / 2 - (sDog.minX + sDog.maxX) / 2)
   const offY = Math.round(baseBbox.maxY - sDog.maxY)
-  console.log(suit + ': scaleW=' + scaleW.toFixed(3) + ' scaleH=' + scaleH.toFixed(3) + ' off=(' + offX + ',' + offY + ')')
-
+  console.log(suit + ': scale=' + scale.toFixed(3) + ' off=(' + offX + ',' + offY + ')')
   // 键控：生成图逐像素 → 贴到 436×700 画布（对齐后坐标），黑→软透明
   const canvas = Buffer.alloc(BASE_W * BASE_H * 4)
   for (let y = 0; y < sm.h; y++) {
@@ -248,11 +242,11 @@ for (const suit of SUITS) {
   const png = await sharp(canvas, { raw: { width: BASE_W, height: BASE_H, channels: 4 } })
     .png({ palette: true, colors: 256, compressionLevel: 9 })
     .toBuffer()
-  const out = path.join(root, `public/wardrobe/${suit}-layer-v7.png`)
+  const out = path.join(root, `public/wardrobe/${suit}-layer-v6.png`)
   await writeFile(out, png)
   layers[suit] = true
-  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v7.png`, src: `design-assets/wardrobe/gen-${suit}-chroma-v1.png`, bytes: png.byteLength, scaleW: Number(scaleW.toFixed(3)), scaleH: Number(scaleH.toFixed(3)) })
-  console.log(`${suit}-layer-v7.png ${(png.byteLength / 1024).toFixed(1)}KB`)
+  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v6.png`, src: `design-assets/wardrobe/gen-${suit}-chroma-v1.png`, bytes: png.byteLength, scale: Number(scale.toFixed(3)) })
+  console.log(`${suit}-layer-v6.png ${(png.byteLength / 1024).toFixed(1)}KB`)
 }
 
 console.log('\n// 全画布服装叠层：定位恒为 {left:0%, top:0%, width:100%}（位置由 chroma 生成图决定）')
@@ -276,7 +270,7 @@ let x = 0
 for (const suit of SUITS) {
   if (!layers[suit]) continue
   const comps = [{ input: baseBuf, left: 0, top: 0 }]
-  comps.push({ input: await sharp(path.join(root, `public/wardrobe/${suit}-layer-v7.png`)).resize(Math.round(BASE_W * SCALE), Math.round(BASE_H * SCALE)).png().toBuffer(), left: 0, top: 0 })
+  comps.push({ input: await sharp(path.join(root, `public/wardrobe/${suit}-layer-v6.png`)).resize(Math.round(BASE_W * SCALE), Math.round(BASE_H * SCALE)).png().toBuffer(), left: 0, top: 0 })
   for (const [acc, [, l, t, w]] of Object.entries(ACCESSORIES)) {
     comps.push({
       input: await sharp(accBufs[acc]).resize({ width: Math.round((w / 100) * BASE_W * SCALE) }).png().toBuffer(),

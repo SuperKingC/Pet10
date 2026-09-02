@@ -144,12 +144,13 @@ describe('wardrobe model', () => {
     ]
     const pages = wardrobePages(catalog)
     expect(pages.map((page) => page.kind)).toEqual(['body', 'accessory'])
-    expect(pages[0].items.map((i) => i.key)).toEqual(['default', 'hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'])
+    // 原装小多利不进目录：不选任何主体服装即裸狗（togglePiece 再点一次脱下回 default）
+    expect(pages[0].items.map((i) => i.key)).toEqual(['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'])
     expect(pages[0].label).toContain('主体服装')
     expect(pages[1].items.map((i) => i.key)).toEqual(['scarf', 'bag', 'hat'])
     expect(pages[1].label).toContain('配饰')
     // 同类超出 6 件切块翻页（13 件主体 → 6+6+1 三页）
-    const many: WardrobeItem[] = Array.from({ length: 13 }, (_, i) => item({ key: 'default', name: `狗${i}` }))
+    const many: WardrobeItem[] = Array.from({ length: 13 }, (_, i) => item({ key: 'hoodie', name: `狗${i}` }))
     const paged = wardrobePages(many)
     expect(paged.length).toBe(3)
     expect(paged.map((page) => page.items.length)).toEqual([6, 6, 1])

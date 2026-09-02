@@ -178,9 +178,9 @@ export interface WardrobePage {
   items: WardrobeItem[]
 }
 
-/** 目录 → 分页：先按类别归组（主体服装在前），组内按每页 6 件切块 */
+/** 目录 → 分页：先按类别归组（主体服装在前），组内按每页 6 件切块；「原装小多利」不进目录——不选即裸狗 */
 export function wardrobePages(items: WardrobeItem[]): WardrobePage[] {
-  const body = items.filter((item) => suitCategory(item.key) === 'body')
+  const body = items.filter((item) => suitCategory(item.key) === 'body' && item.key !== 'default')
   const accessory = items.filter((item) => suitCategory(item.key) !== 'body')
   const chunk = (list: WardrobeItem[], kind: WardrobePage['kind'], label: string): WardrobePage[] => {
     const pages: WardrobePage[] = []

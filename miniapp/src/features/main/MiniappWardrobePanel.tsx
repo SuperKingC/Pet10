@@ -161,7 +161,8 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
       return
     }
     if (category === 'body') {
-      setPieces((current) => ({ ...current, body: key as SuitKey }))
+      // 再点已穿的主体服装=脱下（回到裸狗）；目录已无「原装小多利」卡
+      setPieces((current) => ({ ...current, body: current.body === key ? 'default' : (key as SuitKey) }))
       return
     }
     // 配饰单件制：三类配饰互斥，选新件自动摘下其它（主体服装与配饰各只能选一件）
@@ -296,7 +297,7 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
             >
               <Text>🎀 配饰</Text>
             </View>
-            <Text className="wardrobe-tabs__hint">{activeKind === 'body' ? '选一件主体服装' : '选一件配饰，再点摘下'}</Text>
+            <Text className="wardrobe-tabs__hint">{activeKind === 'body' ? '选一件穿上，再点脱下' : '选一件配饰，再点摘下'}</Text>
           </View>
         )}
         {view === null && (
