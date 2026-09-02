@@ -121,8 +121,8 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--drop { animation: pet-fetch-doll-drop 11s ease-in-out forwards; }')
 
     // 玩具球拆两层：叼着的压帧上层跟随颠步（球在前缩小让嘴可见），落地的留 travel 层不随颠步（球弹不压扁）
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 26px; top: 60px; }')
-    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 26px; bottom: 0; }')
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 14px; top: 57px; }')
+    expect(sceneStyle).toContain('.pet-move-doll--drop { left: 14px; bottom: 0; }')
 
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(dollCarry).toContain('30%, 86% { opacity: 1; }')

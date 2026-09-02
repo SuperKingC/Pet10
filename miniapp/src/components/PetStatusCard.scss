@@ -128,8 +128,8 @@
    叼着的球挂进 bobber 且压在帧上层（叼在张开的嘴前、鼻尖微露），跟随颠步/轻摇；
    落地的另一只留在 travel 层不随颠步：抛出后皮球两次弹跳（球弹不压扁）再停留淡出 */
 .pet-move-doll { position: absolute; width: 44px; height: 45px; opacity: 0; }
-.pet-move-doll--carry { left: 26px; top: 60px; }
-.pet-move-doll--drop { left: 26px; bottom: 0; }
+.pet-move-doll--carry { left: 14px; top: 57px; }
+.pet-move-doll--drop { left: 14px; bottom: 0; }
 .pet-move-stage--fetch .pet-move-doll--carry { animation: pet-fetch-doll-carry 11s ease-in-out forwards; }
 @keyframes pet-fetch-doll-carry {
   0%, 26% { opacity: 0; }
