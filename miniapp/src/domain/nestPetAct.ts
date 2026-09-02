@@ -7,8 +7,8 @@ export type NestPetActState = { act: NestPetAct; wakeAt: number }
 
 /** 睡觉动作后的入睡时长：够看完一轮交叉淡入 + 呼吸 + Zzz，醒来不突兀 */
 export const NEST_PET_SLEEP_MS = 20000
-/** 叼娃娃分镜总时长（与 pet-fetch 系列动画秒数保持一致） */
-export const NEST_PET_FETCH_MS = 9000
+/** 叼娃娃分镜总时长（与 pet-fetch 系列动画秒数保持一致；11s = 出画往返横穿 + 回中庆祝） */
+export const NEST_PET_FETCH_MS = 11000
 /** 闲逛单次时长：出发去右侧、转身、走回中心一趟（与 pet-wander 动画秒数保持一致） */
 export const NEST_PET_WANDER_MS = 7000
 /** 闲逛调度间隔：站立时随机等待后出发一趟 */

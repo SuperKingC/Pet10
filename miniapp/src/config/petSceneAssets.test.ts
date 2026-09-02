@@ -92,8 +92,16 @@ describe('miniapp pet scene assets', () => {
     expect(wanderBlock).toContain('100% { transform: translateX(0) scaleX(1); }')
 
     const fetchBlock = sceneStyle.match(/@keyframes pet-fetch-travel \{[\s\S]*?\n\}/)?.[0] ?? ''
-    expect(fetchBlock).toContain('26% { transform: translateX(-270px) scaleX(-1); opacity: 0; }')
-    expect(fetchBlock).toContain('30% { transform: translateX(-245px) scaleX(-1); opacity: 1; }')
+    // 叼娃与闲逛同款出画掉头：无屏幕内淡出（自然裁切）、无屏幕内驻足，11s = NEST_PET_FETCH_MS
+    expect(fetchBlock).toContain('22% { transform: translateX(-480px) scaleX(1); }')
+    expect(fetchBlock).toContain('32% { transform: translateX(-480px) scaleX(-1); }')
+    expect(fetchBlock).toContain('60% { transform: translateX(480px) scaleX(-1); }')
+    expect(fetchBlock).toContain('70% { transform: translateX(480px) scaleX(1); }')
+    expect(fetchBlock).toContain('88%, 100% { transform: translateX(0) scaleX(1); }')
+    expect(fetchBlock).not.toContain('opacity')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-travel { animation: pet-fetch-travel 11s ease-in-out forwards; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-hop { animation: pet-fetch-hop 11s ease-in-out forwards; }')
+    expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll { animation: pet-fetch-doll 11s ease-in-out forwards; }')
 
     const dollRule = sceneStyle.match(/\.pet-move-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(dollRule).toContain('width: 108px;')
@@ -101,6 +109,8 @@ describe('miniapp pet scene assets', () => {
 
     const dollBlock = sceneStyle.match(/@keyframes pet-fetch-doll \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(dollBlock).toContain('30% { transform: translateY(11px); opacity: 1; }')
+    expect(dollBlock).toContain('91% { transform: translateY(-28px) rotate(-12deg); }')
+    expect(dollBlock).toContain('100% { transform: translateY(0) rotate(0deg) scaleY(1); opacity: 0; }')
 
     expect(sceneStyle).toMatch(/\.pet-move-bobber \{ animation: pet-move-bob \.42s ease-in-out infinite; transform-origin: 50% 100%; \}/)
     expect(sceneStyle).toContain('.pet-move-travel, .pet-move-hop, .pet-move-bobber { will-change: transform; }')
