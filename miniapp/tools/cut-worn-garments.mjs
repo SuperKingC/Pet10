@@ -1,6 +1,6 @@
 // 「穿着视角」服装件去底 + 原装立绘定位标定。
 // 输入：design-assets/wardrobe/gen-{suit}-wear-v1.png（gen-worn-garments.mjs 生成的纯白底服装图）
-// 输出：public/wardrobe/{suit}-layer-v2.png（紧裁 PNG8，COS 按需下载，不占包体）
+// 输出：public/wardrobe/{suit}-layer-v3.png（紧裁 PNG8，COS 按需下载，不占包体）
 //      + BODY_LAYER_STYLE 字面量（贴进 wardrobeModel.ts，436×700 原装画布百分比）
 //      + tmp-body-layer-preview.png 蒙特奇（上行=仅服装件；下行=服装件+三配饰）供目检。
 // 标定：每件给目标显示宽 + 领口顶 y（700 空间），水平以犬身中轴 x=218 居中；
@@ -20,11 +20,11 @@ const BODY_CX = 218
 // 领口卡在颊毛下缘（≈430）之下、下摆停在爪垫上方；体宽（胸部最宽处）约 342px，
 // 目标宽取体宽 88-96%（袖子摊到接近身体轮廓），水平以犬身中轴 x=218 居中，拉伸 ≤20%。
 const TARGETS = {
-  hoodie: { top: 440, bottom: 670, width: 320 },
-  overalls: { top: 445, bottom: 672, width: 300 },
-  dress: { top: 435, bottom: 678, width: 325 },
-  raincoat: { top: 440, bottom: 672, width: 330 },
-  pajamas: { top: 442, bottom: 674, width: 318 }
+  hoodie: { top: 388, bottom: 638, width: 400 },
+  overalls: { top: 400, bottom: 672, width: 340 },
+  dress: { top: 390, bottom: 662, width: 400 },
+  raincoat: { top: 390, bottom: 672, width: 408 },
+  pajamas: { top: 392, bottom: 652, width: 395 }
 }
 
 // 配饰在原装立绘上的几何（与 wardrobeModel.OUTFIT_LAYER_STYLE 同源，px on 436×700）。
@@ -131,6 +131,7 @@ for (const suit of suits) {
   }
   const { data, info } = await sharp(srcPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const cut = cutWhiteBg(data, info.width, info.height, 0.25)
+  console.log('  [raw cut] ' + cut.width + 'x' + cut.height + ' aspect=' + (cut.width / cut.height).toFixed(2))
   const target = TARGETS[suit]
   const scaledH = target.bottom - target.top
   const scaledW = target.width
@@ -155,9 +156,9 @@ for (const suit of suits) {
     .toBuffer()
   const style = { left: pct(minX / BASE_W), top: pct(minY / BASE_H), width: pct(bw / BASE_W) }
   placed[suit] = { buf: outBuf, bbox: { x: minX, y: minY, w: bw, h: bh } }
-  await writeFile(path.join(root, `public/wardrobe/${suit}-layer-v2.png`), outBuf)
-  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v2.png`, src: `design-assets/wardrobe/gen-${suit}-wear-v1.png`, bbox: { x: minX, y: minY, w: bw, h: bh }, bytes: outBuf.byteLength, style })
-  console.log(`${suit}-layer-v2.png ${bw}x${bh} @(${minX},${minY}) ${(outBuf.byteLength / 1024).toFixed(1)}KB`, style)
+  await writeFile(path.join(root, `public/wardrobe/${suit}-layer-v3.png`), outBuf)
+  report.push({ key: suit, file: `public/wardrobe/${suit}-layer-v3.png`, src: `design-assets/wardrobe/gen-${suit}-wear-v1.png`, bbox: { x: minX, y: minY, w: bw, h: bh }, bytes: outBuf.byteLength, style })
+  console.log(`${suit}-layer-v3.png ${bw}x${bh} @(${minX},${minY}) ${(outBuf.byteLength / 1024).toFixed(1)}KB`, style)
 }
 
 console.log('\n// 主体服装切件叠加定位（436×700 原装画布百分比），由 miniapp/tools/cut-worn-garments.mjs 标定生成')

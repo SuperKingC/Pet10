@@ -14,12 +14,12 @@ const CANVAS_H = 700
 const BG = { r: 245, g: 234, b: 216 }
 
 // 与 cut-worn-garments.mjs 的 TARGETS 同源（画布空间）
-const SUITS = {
-  hoodie: { top: 440, bottom: 670, width: 320 },
-  overalls: { top: 445, bottom: 672, width: 300 },
-  dress: { top: 435, bottom: 678, width: 325 },
-  raincoat: { top: 440, bottom: 672, width: 330 },
-  pajamas: { top: 442, bottom: 674, width: 318 }
+const TARGETS = {
+  hoodie: { top: 388, bottom: 638, width: 400 },
+  overalls: { top: 400, bottom: 672, width: 340 },
+  dress: { top: 390, bottom: 662, width: 400 },
+  raincoat: { top: 390, bottom: 672, width: 408 },
+  pajamas: { top: 392, bottom: 652, width: 395 }
 }
 
 async function renderBase() {
@@ -27,9 +27,9 @@ async function renderBase() {
 }
 
 async function renderWithLayer(baseBuf, suit) {
-  const st = SUITS[suit]
+  const st = TARGETS[suit]
   const lw = Math.round((st.width / CANVAS_W) * BOX_W)
-  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v2.png`)).resize({ width: lw }).png().toBuffer()
+  const layer = await sharp(path.join(root, `public/wardrobe/${suit}-layer-v3.png`)).resize({ width: lw }).png().toBuffer()
   const lm = await sharp(layer).metadata()
   return sharp(baseBuf)
     .composite([{ input: layer, left: Math.round((BOX_W - lm.width) / 2), top: Math.round((st.top / CANVAS_H) * BOX_H) }])
@@ -58,7 +58,7 @@ for (let i = 0; i < BOX_W * BOX_H; i++) {
 }
 
 let failed = 0
-for (const suit of Object.keys(SUITS)) {
+for (const suit of Object.keys(TARGETS)) {
   const withLayer = await renderWithLayer(baseBuf, suit)
   const raw = await sharp(withLayer).raw().toBuffer()
   const mask = new Uint8Array(BOX_W * BOX_H)
@@ -82,19 +82,19 @@ for (const suit of Object.keys(SUITS)) {
     const span = rowSpan(mask, y)
     if (span && span.width > garmentMax) garmentMax = span.width
   }
-  const chestRow = Math.round(((SUITS[suit].top + 25) / CANVAS_H) * BOX_H)
+  const chestRow = Math.round(((TARGETS[suit].top + 25) / CANVAS_H) * BOX_H)
   const garmentRow = rowSpan(mask, chestRow)
   const bodyRow = rowSpan(bodyMask, chestRow)
   const centerX = garmentRow ? (garmentRow.min + garmentRow.max) / 2 : -1
   const checks = []
   const push = (name, ok, detail) => { checks.push({ name, ok, detail }); if (!ok) failed++ }
-  push('领口区间 415-465', top >= 0 && toCanvasY(top) >= 415 && toCanvasY(top) <= 465, `top=${top >= 0 ? toCanvasY(top) : 'none'}`)
-  push('下摆区间 645-695', bottom >= 0 && toCanvasY(bottom) >= 645 && toCanvasY(bottom) <= 695, `bottom=${bottom >= 0 ? toCanvasY(bottom) : 'none'}`)
+  push('领口区间 378-405', top >= 0 && toCanvasY(top) >= 378 && toCanvasY(top) <= 405, `top=${top >= 0 ? toCanvasY(top) : 'none'}`)
+  push('下摆区间 630-685', bottom >= 0 && toCanvasY(bottom) >= 630 && toCanvasY(bottom) <= 685, `bottom=${bottom >= 0 ? toCanvasY(bottom) : 'none'}`)
   const ratio = bodyRow ? garmentMax / bodyRow.width : 0
   push('服装宽 ≥85% 上胸围体宽', ratio >= 0.85, `ratio=${(ratio * 100).toFixed(1)}% garment=${garmentMax}px body=${bodyRow?.width ?? 0}px`)
   push('中轴 218±14', Math.abs(centerX / BOX_W * CANVAS_W - 218) <= 14, `center=${(centerX / BOX_W * CANVAS_W).toFixed(0)}`)
-  const headLeak = top >= 0 && toCanvasY(top) < 415
-  push('头部净空（415 以上无服装）', !headLeak, `topCanvas=${top >= 0 ? toCanvasY(top) : 'none'}`)
+  const headLeak = top >= 0 && toCanvasY(top) < 375
+  push('头部净空（375 以上无服装）', !headLeak, `topCanvas=${top >= 0 ? toCanvasY(top) : 'none'}`)
   const allOk = checks.every((c) => c.ok)
   console.log(`${allOk ? 'PASS' : 'FAIL'} ${suit}`)
   for (const c of checks) console.log(`   ${c.ok ? '✓' : '✗'} ${c.name}: ${c.detail}`)

@@ -59,8 +59,8 @@ describe('wardrobe model', () => {
   })
 
   it('body suits use icon + full render + cut layer files', () => {
-    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png', layer: 'hoodie-layer-v2.png' })
-    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png', layer: 'raincoat-layer-v2.png' })
+    expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png', layer: 'hoodie-layer-v3.png' })
+    expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png', layer: 'raincoat-layer-v3.png' })
   })
 
   it('derives path badges from condition text of locked suits', () => {
@@ -98,13 +98,13 @@ describe('wardrobe model', () => {
     for (const key of ['hat', 'scarf', 'bag'] as const) {
       expect(resolveOverlayStyle(key)).toBe(OUTFIT_LAYER_STYLE[key])
     }
-    // 每套主体服装都有切件定位：领口都在颊毛下缘（≈61%）之下不挡头，宽度贴体宽（60-80% 画布宽）
+    // 每套主体服装都有切件定位：领口在嘴下（55-58%），宽度贴身体最宽处（75-95% 画布宽）
     for (const body of ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'] as const) {
       const style = resolveBodyLayerStyle(body)
       expect(style).toBeDefined()
-      expect(Number.parseFloat(style!.top)).toBeGreaterThan(60)
-      expect(Number.parseFloat(style!.width)).toBeGreaterThan(60)
-      expect(Number.parseFloat(style!.width)).toBeLessThan(80)
+      expect(Number.parseFloat(style!.top)).toBeGreaterThan(55)
+      expect(Number.parseFloat(style!.width)).toBeGreaterThan(75)
+      expect(Number.parseFloat(style!.width)).toBeLessThan(95)
     }
     expect(resolveBodyLayerStyle('default')).toBeUndefined()
   })
