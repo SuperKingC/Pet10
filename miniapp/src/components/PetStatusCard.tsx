@@ -201,10 +201,24 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
               <View className="pet-move-travel">
                 <View className="pet-move-hop">
                   <View className="pet-move-bobber">
-                    <Image className="pet-move-frame" src={act === 'fetch' ? moveAssets.fetchA : moveAssets.wanderA} mode="aspectFit" />
-                    <Image className="pet-move-frame pet-move-frame--b" src={act === 'fetch' ? moveAssets.fetchB : moveAssets.wanderB} mode="aspectFit" />
-                    {/* 叼球时球压在帧上层（球在前但缩小让嘴可见：鼻尖露球顶、下颚舌头露球下）；闲逛闭嘴帧不渲染球 */}
-                    {act === 'fetch' && <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />}
+                    {/* mouth 双层按分镜进度切帧（CSS step-end）：闲逛恒闭嘴；叼球 0~30% 闭嘴去程、
+                        30~88% 大嘴 v2 叼球、88% 后闭嘴收口放球——放下球时嘴同时回到默认 */}
+                    {act === 'wander' && (
+                      <>
+                        <Image className="pet-move-frame" src={moveAssets.wanderA} mode="aspectFit" />
+                        <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.wanderB} mode="aspectFit" />
+                      </>
+                    )}
+                    {act === 'fetch' && (
+                      <>
+                        <Image className="pet-move-mouth-closed" src={moveAssets.wanderA} mode="aspectFit" />
+                        <Image className="pet-move-mouth-closed pet-move-frame--b" src={moveAssets.wanderB} mode="aspectFit" />
+                        <Image className="pet-move-mouth-open" src={moveAssets.fetchA} mode="aspectFit" />
+                        <Image className="pet-move-mouth-open pet-move-frame--b" src={moveAssets.fetchB} mode="aspectFit" />
+                        {/* 球压在帧上层（缩小让嘴可见：鼻尖露球顶、下颚舌头露球下），随 mouth 层同窗口出现 */}
+                        <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
+                      </>
+                    )}
                   </View>
                 </View>
                 {/* 落地的玩偶留在 travel 层不随颠步：抛出弹地后停留再淡出 */}
