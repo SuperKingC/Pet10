@@ -53,15 +53,17 @@
 .pet-move-stage {
   position: absolute;
   left: 50%;
-  /* bottom 0：脚线落在容器地面（场景 y=462），与站姿犬同一地面体系，不再悬空 */
+  /* bottom 0：脚线落在容器地面（场景 y=462），与站姿犬同一地面体系，不再悬空；
+     宽度由 act 修饰块决定（闲逛 272 闭嘴帧 / 叼球 300 大嘴帧），狗显示高一致 */
   bottom: 0;
-  width: 300px;
   height: 175px;
-  margin-left: -150px;
   opacity: 0;
   transition: opacity .3s ease;
 }
 .pet-move-stage--wander, .pet-move-stage--fetch { opacity: 1; }
+/* 闲逛用闭嘴 v1 帧（468x300 画布）舞台 272 宽；叼球用大嘴 v2 帧（514x300）舞台 300 宽——狗显示高一致 */
+.pet-move-stage--wander { width: 272px; margin-left: -136px; }
+.pet-move-stage--fetch { width: 300px; margin-left: -150px; }
 .pet-move-travel, .pet-move-hop, .pet-move-bobber, .pet-move-frame { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 /* image 组件不吃「绝对定位四边推导尺寸」——四边定位只解决了位置，步态帧仍按微信 image 默认 300×225
    渲染（巨大且从舞台右下溢出，65122bc 后用户两轮截图完全一致即为铁证）；场景里所有正常的图都有显式宽高
@@ -126,8 +128,8 @@
    叼着的球挂进 bobber 且压在帧上层（叼在张开的嘴前、鼻尖微露），跟随颠步/轻摇；
    落地的另一只留在 travel 层不随颠步：抛出后皮球两次弹跳（球弹不压扁）再停留淡出 */
 .pet-move-doll { position: absolute; width: 56px; height: 57px; opacity: 0; }
-.pet-move-doll--carry { left: 22px; top: 58px; }
-.pet-move-doll--drop { left: 22px; bottom: 0; }
+.pet-move-doll--carry { left: 10px; top: 54px; }
+.pet-move-doll--drop { left: 10px; bottom: 0; }
 .pet-move-stage--fetch .pet-move-doll--carry { animation: pet-fetch-doll-carry 11s ease-in-out forwards; }
 @keyframes pet-fetch-doll-carry {
   0%, 26% { opacity: 0; }

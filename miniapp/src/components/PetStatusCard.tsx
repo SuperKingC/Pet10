@@ -24,8 +24,11 @@ const roomBackground = require('../assets/room-background-v11.jpg')
 const ballAsset = require('../assets/items/item-ball-fetch-v1.png')
 // 睡姿/行进幕底图走 COS 按需下载（水彩大图不占包体），未就绪时保持站姿不切换
 const SLEEP_POSE_FILE = 'xiaoduoli-sleep-v1.png'
-const WALK_FRAME_A_FILE = 'xiaoduoli-walk-a-v2.png'
-const WALK_FRAME_B_FILE = 'xiaoduoli-walk-b-v2.png'
+// 闲逛用闭嘴跑步态（v1），叼球才用大张嘴步态（v2，嘴缝夹球）——两套画布不同由 CSS 按 act 切舞台宽
+const WANDER_FRAME_A_FILE = 'xiaoduoli-walk-a-v1.png'
+const WANDER_FRAME_B_FILE = 'xiaoduoli-walk-b-v1.png'
+const FETCH_FRAME_A_FILE = 'xiaoduoli-walk-a-v2.png'
+const FETCH_FRAME_B_FILE = 'xiaoduoli-walk-b-v2.png'
 // 名片入口小卡走 COS 按需下载（同路径图会被工具缓存，换图必须升文件名），未就绪时同款 CSS 卡面兜底
 const CARD_ENTRY_FILE = 'pet-card-entry-v2.png'
 // ensureFile 的下载链路（downloadFile+saveFile）在部分环境会失败（系统代理拦截 localhost、IDE 域名校验私有设置覆盖等），
@@ -60,7 +63,9 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
   const outfitWidth = outfitPieces ? suitDisplayWidth('default', 240) : null
   const [danmaku, setDanmaku] = useState<DanmakuItem[]>([])
   const [sleepSrc, setSleepSrc] = useState<string | null>(null)
-  const [moveAssets, setMoveAssets] = useState<{ frameA: string; frameB: string; doll: string } | null>(null)
+  const [moveAssets, setMoveAssets] = useState<{
+    wanderA: string; wanderB: string; fetchA: string; fetchB: string; doll: string
+  } | null>(null)
   const [cardEntrySrc, setCardEntrySrc] = useState<string | null>(null)
   const [cardEntryLoaded, setCardEntryLoaded] = useState(false)
   const sleeping = act === 'sleep'
@@ -87,20 +92,26 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
   useEffect(() => {
     let cancelled = false
     void Promise.all([
-      suitAssets.ensureFile(WALK_FRAME_A_FILE),
-      suitAssets.ensureFile(WALK_FRAME_B_FILE),
+      suitAssets.ensureFile(WANDER_FRAME_A_FILE),
+      suitAssets.ensureFile(WANDER_FRAME_B_FILE),
+      suitAssets.ensureFile(FETCH_FRAME_A_FILE),
+      suitAssets.ensureFile(FETCH_FRAME_B_FILE),
     ])
-      .then(([frameA, frameB]) => {
+      .then(([wa, wb, fa, fb]) => {
         if (cancelled) return
         setMoveAssets({
-          frameA: frameA ?? actAssetUrl(WALK_FRAME_A_FILE),
-          frameB: frameB ?? actAssetUrl(WALK_FRAME_B_FILE),
+          wanderA: wa ?? actAssetUrl(WANDER_FRAME_A_FILE),
+          wanderB: wb ?? actAssetUrl(WANDER_FRAME_B_FILE),
+          fetchA: fa ?? actAssetUrl(FETCH_FRAME_A_FILE),
+          fetchB: fb ?? actAssetUrl(FETCH_FRAME_B_FILE),
           doll: ballAsset,
         })
       })
       .catch(() => { if (!cancelled) setMoveAssets({
-        frameA: actAssetUrl(WALK_FRAME_A_FILE),
-        frameB: actAssetUrl(WALK_FRAME_B_FILE),
+        wanderA: actAssetUrl(WANDER_FRAME_A_FILE),
+        wanderB: actAssetUrl(WANDER_FRAME_B_FILE),
+        fetchA: actAssetUrl(FETCH_FRAME_A_FILE),
+        fetchB: actAssetUrl(FETCH_FRAME_B_FILE),
         doll: ballAsset,
       }) })
     return () => { cancelled = true }
@@ -190,10 +201,10 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
               <View className="pet-move-travel">
                 <View className="pet-move-hop">
                   <View className="pet-move-bobber">
-                    {/* 叼着的球垫在帧后面：嵌进大张开的嘴缝里被上下颚夹住，跟随颠步/轻摇一起动 */}
-                    <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />
-                    <Image className="pet-move-frame" src={moveAssets.frameA} mode="aspectFit" />
-                    <Image className="pet-move-frame pet-move-frame--b" src={moveAssets.frameB} mode="aspectFit" />
+                    {/* 叼球时球垫在帧后面：嵌进大张开的嘴缝被上下颚夹住；闲逛闭嘴帧不渲染球 */}
+                    {act === 'fetch' && <Image className="pet-move-doll pet-move-doll--carry" src={moveAssets.doll} mode="aspectFit" />}
+                    <Image className="pet-move-frame" src={act === 'fetch' ? moveAssets.fetchA : moveAssets.wanderA} mode="aspectFit" />
+                    <Image className="pet-move-frame pet-move-frame--b" src={act === 'fetch' ? moveAssets.fetchB : moveAssets.wanderB} mode="aspectFit" />
                   </View>
                 </View>
                 {/* 落地的玩偶留在 travel 层不随颠步：抛出弹地后停留再淡出 */}
