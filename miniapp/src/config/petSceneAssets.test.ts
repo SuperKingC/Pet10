@@ -130,8 +130,9 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-move-stage--fetch .pet-move-doll--carry { animation: pet-doll-carry-bob .42s ease-in-out infinite, pet-fetch-doll-carry 11s step-end forwards; }')
     expect(sceneStyle).not.toContain('pet-move-doll--drop')
 
-    // 玩具球只保留叼着的一只（挂 bobber 压帧上层），抛出即消失、无落地停留段（放下球直接坐好）
-    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 8px; top: 71px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }')
+    // 玩具球只保留叼着的一只（挂张嘴层内压帧上层），抛出即消失、无落地停留段（放下球直接坐好）
+    // 球心锚定源图口腔 (78,141)：层盒 300×161 aspectFit 0.5367+水平留边 12 → left 32/top 53（含 44×45 半宽高补偿）
+    expect(sceneStyle).toContain('.pet-move-doll--carry { left: 32px; top: 53px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }')
     const carryBob = sceneStyle.match(/@keyframes pet-doll-carry-bob \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(carryBob).toContain('50% { transform: translateY(3px); }')
     const dollCarry = sceneStyle.match(/@keyframes pet-fetch-doll-carry \{[\s\S]*?\n\}/)?.[0] ?? ''

@@ -162,11 +162,15 @@
   92%, 100% { transform: translateY(0); }
 }
 /* 叼球道具（44×45，照顾栏玩趣同款蓝色皮球随包出件 item-ball-fetch-v1）：
-   叼着的球挂进 bobber 且压在帧上层（叼在张开的嘴前、鼻尖微露），除随颠步/轻摇整体动之外
+   叼着的球挂进张嘴层内压在帧上层（叼在张开的嘴前），除随颠步/轻摇整体动之外
    再叠 0.42s 独立浮动（咬着球随跑动上下颠，与步频同拍）；球 88% 抛出后直接消失（不再落地停留），
    狗落地即闭嘴坐好，没有原地段 */
 .pet-move-doll { position: absolute; width: 44px; height: 45px; opacity: 0; }
-.pet-move-doll--carry { left: 8px; top: 71px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }
+/* 球心锚定源图口腔 (78,141)（A 帧口腔 x55-93/y123-180 实测，B 帧口型略前也衔接）。
+   mouth-open 层盒 300×161（stage 175 减 bottom 14），aspectFit 按 161/300=0.5367 缩放且水平居中
+   留边 12px——旧值 left8/top71 球心换算回源图是 (33,174)，落在下颚外（球悬嘴前下方），
+   且历代没算这 12px 留边。换算：left=12+78×0.5367−22≈32，top=141×0.5367−22.5≈53 */
+.pet-move-doll--carry { left: 32px; top: 53px; animation: pet-doll-carry-bob .42s ease-in-out infinite; }
 @keyframes pet-doll-carry-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(3px); }
