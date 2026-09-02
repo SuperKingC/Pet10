@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { Button, Input, Image, Picker, Text, View } from '@tarojs/components'
 import type { LaunchContext } from '../../services/launchContextApi'
 import { socialApi, type MiniappNotification } from '../../services/socialApi'
+import { nestTaskApi } from '../../services/nestTaskApi'
 import { accountApi } from '../../services/accountApi'
 import { clearAccessToken } from '../../services/apiClient'
 import { gmApi } from '../../services/gmApi'
@@ -37,6 +38,8 @@ export function MiniappMeView({ context, onLogout, onDataChanged, onSimulateUnlo
   const profilePresentation = getProfilePresentation(context?.user || null)
   const displayName = profilePresentation.displayName
   const uid = context?.user.uid || ''
+  // 资料任务上报要房间维度：优先服务端标记的激活房间，回落第一个房间（无房间的新用户跳过上报）
+  const roomId = context?.activeRoomId || context?.rooms[0]?.id || ''
   const [nameDraft, setNameDraft] = useState(displayName)
   const [birthday, setBirthday] = useState('')
   const [mbti, setMbti] = useState('')
@@ -88,12 +91,19 @@ export function MiniappMeView({ context, onLogout, onDataChanged, onSimulateUnlo
     setBusy(true)
     try {
       await socialApi.updateProfile({ displayName: trimmed })
+      reportProfileTask()
       setNameEditing(false)
     } catch {
       void showInfo('昵称保存失败')
     } finally {
       setBusy(false)
     }
+  }
+
+  /** 资料保存成功后上报每日任务（设置姓名和头像）；重复上报服务端幂等，静默失败不影响 UI */
+  const reportProfileTask = () => {
+    if (!roomId) return
+    void nestTaskApi.reportActivity(roomId, 'profile').catch(() => undefined)
   }
 
   const markNotificationsRead = async () => {
@@ -120,6 +130,7 @@ export function MiniappMeView({ context, onLogout, onDataChanged, onSimulateUnlo
     setBusy(true)
     try {
       await socialApi.updateProfile({ avatarConfig: JSON.stringify(avatarConfig) })
+      reportProfileTask()
       setAvatarEditing(false)
     } catch {
       void showInfo('头像保存失败')

@@ -154,6 +154,12 @@ export type NestTaskMetric =
   | 'clean'              // 清洁（洗澡）次数
   | 'sleep'              // 睡觉次数
   | 'outfit_match'       // 默契换装次数（衣柜期接入，暂为占位）
+  | 'gobang_pet'         // 和小多利下一盘五子棋（客户端完局上报）
+  | 'gobang_friend'      // 和好友下一盘五子棋（客户端完局上报）
+  | 'tarot'              // 测一次塔罗（客户端解读完成上报）
+  | 'profile'            // 设置姓名和头像（保存成功上报）
+  | 'diary'              // 写一次日记（新建保存上报）
+  | 'anniversary'        // 设置一次纪念日（新建保存上报）
 
 export type NestTaskScope = 'daily' | 'achievement'
 

@@ -31,6 +31,14 @@ export function createNestTaskRoutes(service: ReturnType<typeof createNestTaskSe
       response.json(await service.checkin(routeParam(request.params.roomId), request.userId!))
     } catch (error) { next(error) }
   })
+  // 行为上报：五子棋完局（小多利/好友）、塔罗解读、写日记、设纪念日、设置姓名和头像
+  router.post('/rooms/:roomId/activities', async (request: AuthenticatedRequest, response, next) => {
+    try {
+      const { metric } = z.object({ metric: z.enum(['gobang_pet', 'gobang_friend', 'tarot', 'profile', 'diary', 'anniversary']) }).parse(request.body)
+      await service.recordActivity(routeParam(request.params.roomId), request.userId!, metric)
+      response.status(201).json({ ok: true })
+    } catch (error) { next(error) }
+  })
 
   return router
 }

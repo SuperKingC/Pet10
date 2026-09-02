@@ -319,6 +319,7 @@ export function MiniappJournalView({ roomId, refreshKey }: MiniappJournalViewPro
             day={editor.day}
             edit={editor.entry}
             photo={editor.photo}
+            roomId={roomId}
             onClose={closeEditor}
             onSaved={finishEditor}
           />

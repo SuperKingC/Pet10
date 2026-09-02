@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createNestTaskService } from './nestTaskService.js'
-import { NEST_TASK_DEFS } from '../domain/nestTaskCatalog.js'
+import { NEST_TASK_DEFS, REPORTED_DAILY_METRICS } from '../domain/nestTaskCatalog.js'
 import { ACTION_COST, STARTER_POUCH } from '../domain/itemCatalog.js'
 
 async function createPairRoom(options?: { withPet?: boolean }) {
@@ -39,6 +39,21 @@ describe('preset task catalog', () => {
     const checkin = NEST_TASK_DEFS.find((def) => def.key === 'daily_checkin')
     expect(checkin?.scope).toBe('daily')
     expect(checkin?.metric).toBe('checkin')
+  })
+
+  it('daily activity tasks cover gobang/tarot/profile/diary/anniversary and pay bone for gobang/tarot', () => {
+    const daily = NEST_TASK_DEFS.filter((def) => def.scope === 'daily')
+    const metrics = new Set(daily.map((def) => def.metric))
+    for (const metric of ['gobang_pet', 'gobang_friend', 'tarot', 'profile', 'diary', 'anniversary'] as const) {
+      expect(metrics.has(metric)).toBe(true)
+    }
+    // 骨头此前只有见面礼 1 根的来源：下棋/塔罗的每日奖励补上骨头产出
+    const bonePayers = daily.filter((def) => def.rewardItems.some((item) => item.itemId === 'bone'))
+    expect(new Set(bonePayers.map((def) => def.metric))).toEqual(new Set(['gobang_pet', 'gobang_friend', 'tarot']))
+  })
+
+  it('reported daily metrics set matches the client-reportable enum', () => {
+    expect([...REPORTED_DAILY_METRICS].sort()).toEqual(['anniversary', 'diary', 'gobang_friend', 'gobang_pet', 'profile', 'tarot'])
   })
 })
 
@@ -153,5 +168,39 @@ describe('nest task service (preset tasks)', () => {
     await expect(service.list(room.id, outsider.id)).rejects.toThrow('room_forbidden')
     await expect(service.claim(room.id, outsider.id, 'daily_checkin')).rejects.toThrow('room_forbidden')
     await expect(service.checkin(room.id, user.id)).resolves.toBeTruthy()
+  })
+
+  it('recordActivity completes the matching daily task today and rejects unknown metrics', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
+    // 枚举外 metric 拒绝
+    await expect(service.recordActivity(room.id, user.id, 'feed')).rejects.toThrow('invalid_activity')
+    // 塔罗上报 → 当日 daily_tarot 完成，可领骨头×1
+    await service.recordActivity(room.id, user.id, 'tarot')
+    const tasks = await service.list(room.id, user.id)
+    const tarot = tasks.find((task) => task.key === 'daily_tarot')
+    expect(tarot?.complete).toBe(true)
+    const before = (await service.inventory(room.id, user.id)).items.find((item) => item.itemId === 'bone')?.count ?? 0
+    const claim = await service.claim(room.id, user.id, 'daily_tarot')
+    expect(claim.grantedItems).toEqual([{ itemId: 'bone', count: 1 }])
+    const after = (await service.inventory(room.id, user.id)).items.find((item) => item.itemId === 'bone')?.count ?? 0
+    expect(after).toBe(before + 1)
+  })
+
+  it('reported activities do not backfill today from historical events (unlike care actions)', async () => {
+    const { repositories, user, room } = await createPairRoom()
+    const service = createNestTaskService(repositories)
+    const pet = await repositories.pets.findByRoomId(room.id)
+    if (!pet) throw new Error('pet missing')
+    // 历史事件（无当天进度行）：行为上报类不补记今天，照顾类补记
+    await repositories.petEvents.record(pet.id, user.id, 'tarot')
+    await repositories.petEvents.record(pet.id, user.id, 'feed')
+    const tasks = await service.list(room.id, user.id)
+    expect(tasks.find((task) => task.key === 'daily_tarot')?.complete).toBe(false)
+    expect(tasks.find((task) => task.key === 'daily_feed')?.complete).toBe(true)
+    // 上报后当天完成
+    await service.recordActivity(room.id, user.id, 'tarot')
+    const after = await service.list(room.id, user.id)
+    expect(after.find((task) => task.key === 'daily_tarot')?.complete).toBe(true)
   })
 })

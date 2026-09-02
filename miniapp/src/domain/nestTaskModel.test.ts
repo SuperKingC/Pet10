@@ -5,8 +5,10 @@ import {
   getActionAvailability,
   getTaskButton,
   groupTasks,
+  INVENTORY_ITEM_ORDER,
   insufficientMessage,
   itemCount,
+  orderedItems,
   rewardSummary,
   type MiniappNestTask,
 } from './nestTaskModel'
@@ -79,5 +81,21 @@ describe('nest task model (preset tasks)', () => {
     ])
     expect(daily.map((item) => item.key)).toEqual(['daily_checkin'])
     expect(achievement.map((item) => item.key)).toEqual(['ach_feed_10'])
+  })
+
+  it('orders inventory chips bone → milk → ball → soap regardless of server order', () => {
+    expect(INVENTORY_ITEM_ORDER).toEqual(['bone', 'dog_food', 'ball', 'soap'])
+    // 服务端按 itemId 字母序返回（ball, bone, dog_food, soap）；展示层重排
+    const serverOrder = {
+      items: [
+        { itemId: 'ball' as const, name: '皮球', count: 1 },
+        { itemId: 'bone' as const, name: '骨头', count: 2 },
+        { itemId: 'dog_food' as const, name: '牛奶', count: 3 },
+        { itemId: 'soap' as const, name: '香皂', count: 4 }
+      ]
+    }
+    expect(orderedItems(serverOrder).map((item) => item.itemId)).toEqual(['bone', 'dog_food', 'ball', 'soap'])
+    expect(orderedItems(serverOrder).map((item) => item.count)).toEqual([2, 3, 1, 4])
+    expect(orderedItems(null)).toEqual([])
   })
 })

@@ -7,6 +7,9 @@ import { localDayKey } from '../../features/main/journalModel'
 import type { MiniappDiary } from '../../services/diaryApi'
 import './journal-editor.scss'
 
+// 独立编辑页没有 props 传 roomId：日记上报每日任务要房间维度，从本地存储补
+const activeRoomKey = 'pet10_active_room_id'
+
 export default function JournalEditorPage() {
   const today = new Date()
   const todayKey = localDayKey(today.getFullYear(), today.getMonth(), today.getDate())
@@ -14,6 +17,7 @@ export default function JournalEditorPage() {
   const [edit, setEdit] = useState<MiniappDiary>()
   const [photo, setPhoto] = useState<string>()
   const [ready, setReady] = useState(false)
+  const [roomId] = useState(() => Taro.getStorageSync<string>(activeRoomKey) || '')
 
   Taro.useLoad((options) => {
     const paramDay = options?.day && /^\d{4}-\d{2}-\d{2}$/.test(options.day) ? options.day : todayKey
@@ -39,6 +43,7 @@ export default function JournalEditorPage() {
       day={day}
       edit={edit}
       photo={photo}
+      roomId={roomId}
       onClose={leave}
       onSaved={leave}
     />

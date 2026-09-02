@@ -8,7 +8,8 @@ import {
   itemCount,
   ITEM_NAMES,
   type ItemId,
-  type MiniappInventory
+  type MiniappInventory,
+  orderedItems
 } from '../domain/nestTaskModel'
 import { MOCK_INVENTORY } from '../domain/gmTestMode'
 import { nestTaskApi } from '../services/nestTaskApi'
@@ -88,9 +89,10 @@ export function PetActionBar({ roomId, gmTest = false, onAction }: Props) {
     {feedPickerOpen && <View className="pet-actions-backdrop" onClick={() => setFeedPickerOpen(false)} />}
     <View className="pet-actions-head">
       <Text className="pet-actions-title">照顾小多利</Text>
-      {inventory && inventory.items.length > 0 && (
+      {/* 芯片栏固定顺序：骨头/牛奶/皮球/香皂（orderedItems），不受服务端字母序影响 */}
+      {inventory && orderedItems(inventory).length > 0 && (
         <View className="pet-actions-items">
-          {inventory.items.map((item) => (
+          {orderedItems(inventory).map((item) => (
             <View
               key={item.itemId}
               className={`pet-actions-item${item.count === 0 ? ' pet-actions-item--empty' : ''}`}

@@ -40,8 +40,21 @@ export const ITEM_NAMES: Record<ItemId, string> = {
   bone: '骨头'
 }
 
+/** 任务面板道具口袋的固定展示顺序：骨头/牛奶/皮球/香皂（库存芯片栏同序） */
+export const INVENTORY_ITEM_ORDER: readonly ItemId[] = ['bone', 'dog_food', 'ball', 'soap']
+
 export function itemCount(inventory: MiniappInventory | null, itemId: ItemId): number {
   return inventory?.items.find((item) => item.itemId === itemId)?.count ?? 0
+}
+
+/** 按固定顺序（骨头/牛奶/皮球/香皂）排列库存里的已知道具；未知道具按服务端顺序兜底在尾部 */
+export function orderedItems(inventory: MiniappInventory | null): Array<{ itemId: ItemId; name: string; count: number }> {
+  if (!inventory) return []
+  const known = INVENTORY_ITEM_ORDER
+    .map((itemId) => inventory.items.find((item) => item.itemId === itemId))
+    .filter((item): item is { itemId: ItemId; name: string; count: number } => Boolean(item))
+  const extra = inventory.items.filter((item) => !known.some((knownItem) => knownItem.itemId === item.itemId))
+  return [...known, ...extra]
 }
 
 export type ActionAvailability = 'ready' | 'missing_item' | 'free'

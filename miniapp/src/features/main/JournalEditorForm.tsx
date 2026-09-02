@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Image, Input, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { diaryApi, type MiniappDiary } from '../../services/diaryApi'
+import { nestTaskApi } from '../../services/nestTaskApi'
 import { compressImageToDataUrl } from '../../services/imageCompression'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import {
@@ -51,11 +52,13 @@ interface JournalEditorFormProps {
   day: string
   edit?: MiniappDiary
   photo?: string
+  /** 行为上报用：日记是小窝（房间）维度的每日任务，独立编辑页可从本地存储补 */
+  roomId?: string
   onClose(): void
   onSaved(): void
 }
 
-export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: JournalEditorFormProps) {
+export function JournalEditorForm({ day, edit, photo, roomId = '', onClose, onSaved }: JournalEditorFormProps) {
   const parsedMood = parseJournalMoodTitle(edit?.title ?? '')
   const [title, setTitle] = useState(edit?.title ?? '')
   const [body, setBody] = useState(edit?.body ?? '')
@@ -154,7 +157,11 @@ export function JournalEditorForm({ day, edit, photo, onClose, onSaved }: Journa
         photos: photosData,
       }
       if (editId) await diaryApi.update(editId, input)
-      else await diaryApi.create({ ...input, day })
+      else {
+        await diaryApi.create({ ...input, day })
+        // 新建日记上报每日任务（编辑不算「写一次日记」）；静默失败不影响保存
+        if (roomId) void nestTaskApi.reportActivity(roomId, 'diary').catch(() => undefined)
+      }
       Taro.showToast({ title: '已保存', icon: 'success' })
       setTimeout(() => onSaved(), 400)
     } catch (error) {

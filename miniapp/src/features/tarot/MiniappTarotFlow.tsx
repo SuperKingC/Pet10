@@ -2,6 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Button, Image, Text, View } from '@tarojs/components'
 import { roomApi } from '../../services/roomApi'
+import { nestTaskApi } from '../../services/nestTaskApi'
 import { MiniappTarotQuestionStage } from './MiniappTarotQuestionStage'
 import { MiniappTarotSpreadStage } from './MiniappTarotSpreadStage'
 import { MiniappTarotShuffleStage } from './MiniappTarotShuffleStage'
@@ -78,6 +79,8 @@ export function MiniappTarotFlow({ roomId, onClose, onShareTitleChange }: Miniap
     if (state.stage !== 'reveal' || !state.flipped.every(Boolean)) return
     const reading = buildTarotReading(state.question, state.spread, state.drawn)
     saveTarotReading(reading)
+    // 解读完成上报每日任务（测一次塔罗）；静默失败不影响解读流程
+    if (roomId) void nestTaskApi.reportActivity(roomId, 'tarot').catch(() => undefined)
     dispatch({ type: 'finish-reading', reading })
   }
 

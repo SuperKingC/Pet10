@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { socialApi, type AnniversaryInput, type MiniappAnniversary } from '../../services/socialApi'
+import { nestTaskApi } from '../../services/nestTaskApi'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
 import { AnniversaryForm } from './AnniversaryForm'
 import { AnniversaryListView } from './AnniversaryListView'
@@ -54,6 +55,8 @@ export function JournalAnniversaryPanel({ roomId: pairRoomId, variant = 'overlay
       } else {
         const created = await socialApi.createAnniversary(roomId, input)
         setAnniversaries((current) => [...(current ?? []), created])
+        // 新建纪念日上报每日任务（编辑不算「设置一次纪念日」）；静默失败不影响保存
+        void nestTaskApi.reportActivity(roomId, 'anniversary').catch(() => undefined)
       }
       setForm(null)
     } catch (error) {

@@ -1,7 +1,8 @@
 import { Button, Image, Text, View } from '@tarojs/components'
 import { MiniappBackButton } from '../../components/MiniappBackButton'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { gobangApi, type GobangGameState, type GobangInvitation } from '../../services/gobangApi'
+import { nestTaskApi } from '../../services/nestTaskApi'
 import { applyAiMove, applySoloMove, createSoloGame, SOLO_BOARD_SIZE, type SoloGame } from '../../domain/gobangSolo'
 import { startSingleFlightPolling } from '../../services/singleFlightPolling'
 import './MiniappGobangPanel.scss'
@@ -88,6 +89,8 @@ export function MiniappGobangPanel({ roomId, myUserId, myAvatarUrl, friendId, fr
   const [invitations, setInvitations] = useState<GobangInvitation[]>([])
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
+  // 已上报过完局的 game id：完局状态只上报一次（超时/认输/五连都会把状态置 finished）
+  const reportedGameIds = useRef<Set<string>>(new Set())
 
   const refresh = async (isCurrent: () => boolean = () => true) => {
     try {
@@ -95,10 +98,18 @@ export function MiniappGobangPanel({ roomId, myUserId, myAvatarUrl, friendId, fr
       if (!isCurrent()) return
       setGame(state.game)
       setInvitations(state.invitations.filter((invitation) => invitation.roomId === roomId))
+      reportFriendFinish(state.game)
     } catch {
       if (!isCurrent()) return
       setNotice('棋局同步失败，正在重试')
     }
+  }
+
+  /** 和好友的完局（五连/认输/超时，输赢平都算一盘）上报每日任务；每局只报一次，静默失败 */
+  const reportFriendFinish = (state: GobangGameState | null) => {
+    if (!state || state.status !== 'finished' || !roomId || reportedGameIds.current.has(state.id)) return
+    reportedGameIds.current.add(state.id)
+    void nestTaskApi.reportActivity(roomId, 'gobang_friend').catch(() => undefined)
   }
 
   useEffect(() => {
@@ -140,7 +151,9 @@ export function MiniappGobangPanel({ roomId, myUserId, myAvatarUrl, friendId, fr
     if (!game || !myTurn || stones.has(`${x},${y}`) || busy) return
     setBusy(true)
     try {
-      await gobangApi.move(game.id, x, y)
+      const result = await gobangApi.move(game.id, x, y)
+      // 落子即分胜负时立刻上报完局（不等下一次轮询）
+      if (result.finished) reportFriendFinish({ ...game, status: 'finished', winnerUserId: result.winnerUserId })
       await refresh()
     } catch (error) {
       setNotice(error instanceof Error ? error.message : '落子失败')
@@ -153,7 +166,12 @@ export function MiniappGobangPanel({ roomId, myUserId, myAvatarUrl, friendId, fr
     if (!soloGame || soloGame.status !== 'playing' || soloGame.turn !== 'player') return
     const afterPlayer = applySoloMove(soloGame, x, y)
     if (afterPlayer === soloGame) return
-    setSoloGame(afterPlayer.status === 'playing' ? applyAiMove(afterPlayer) : afterPlayer)
+    const settled = afterPlayer.status === 'playing' ? applyAiMove(afterPlayer) : afterPlayer
+    setSoloGame(settled)
+    // 完局上报每日任务（输赢平都算一盘）；静默失败不影响对局
+    if (settled.status === 'finished' && roomId) {
+      void nestTaskApi.reportActivity(roomId, 'gobang_pet').catch(() => undefined)
+    }
   }
 
   const subtitle = mode === 'solo'

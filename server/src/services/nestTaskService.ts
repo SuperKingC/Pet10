@@ -1,6 +1,6 @@
 import type { NestTaskDef, NestTaskProgress, Pet, PetEventStat } from '../domain/models.js'
 import { ACTION_COST, FEED_ITEM_IDS, ITEM_CATALOG, STARTER_POUCH, isItemId } from '../domain/itemCatalog.js'
-import { NEST_TASK_DEFS, findTaskDef, taskDefOrder } from '../domain/nestTaskCatalog.js'
+import { NEST_TASK_DEFS, REPORTED_DAILY_METRICS, findTaskDef, taskDefOrder } from '../domain/nestTaskCatalog.js'
 import type { RepositoryBundle } from '../repositories/contracts.js'
 
 export interface NestTaskView {
@@ -52,6 +52,11 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
     return stats.filter((stat) => stat.action === action).reduce((sum, stat) => sum + stat.count, 0)
   }
 
+  /** 每日任务无进度行时能否用历史事件补记当天进度：照顾类可以，行为上报类不行 */
+  function canBackfill(metric: string) {
+    return metric !== 'checkin' && !REPORTED_DAILY_METRICS.has(metric)
+  }
+
   return {
     /** 任务列表：每日任务（进度按当天事件实时计算）+ 成就任务（进度=累计事件计数） */
     async list(roomId: string, userId: string): Promise<NestTaskView[]> {
@@ -69,10 +74,11 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
       return NEST_TASK_DEFS.map((def) => {
         const row = rowByKey.get(def.key)
         if (def.scope === 'daily') {
-          // 每日进度行为准（动作/签到钩子写入当天周期）；无行时回退事件总量>0（历史行为当天补记）
+          // 每日进度行为准（动作/签到/行为上报写入当天周期）；照顾类无行时回退事件总量>0（历史行为当天补记），
+          // 行为上报类（五子棋/塔罗/日记等）只认当天上报，不做历史补记
           const progress = row?.periodKey === today
             ? row.progress
-            : (def.metric !== 'checkin' && statTotal(stats, def.metric) > 0 ? 1 : 0)
+            : (canBackfill(def.metric) && statTotal(stats, def.metric) > 0 ? 1 : 0)
           const claimedToday = Boolean(row?.claimed && row.periodKey === today)
           return {
             key: def.key, scope: def.scope, title: def.title, icon: def.icon,
@@ -111,10 +117,10 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
       let complete = false
       let alreadyClaimed = false
       if (def.scope === 'daily') {
-        // 与 list() 同口径：每日进度行为准，无行回退事件总量>0
+        // 与 list() 同口径：每日进度行为准，照顾类无行回退事件总量>0，行为上报类不回退
         const progress = row?.periodKey === today
           ? row.progress
-          : (def.metric !== 'checkin' && statTotal(stats, def.metric) > 0 ? 1 : 0)
+          : (canBackfill(def.metric) && statTotal(stats, def.metric) > 0 ? 1 : 0)
         complete = progress >= def.target
         alreadyClaimed = Boolean(row?.claimed && row.periodKey === today)
       } else {
@@ -169,6 +175,22 @@ export function createNestTaskService(repositories: RepositoryBundle, options?: 
     async recordActionProgress(roomId: string, action: string): Promise<void> {
       const def = NEST_TASK_DEFS.find((entry) => entry.scope === 'daily' && entry.metric === action)
       if (!def) return
+      await repositories.nestTaskProgress.setDailyProgress(roomId, def.key, todayKey(now()), 1)
+    },
+
+    /**
+     * 行为上报：五子棋完局/塔罗解读/写日记/设纪念日/设置资料等客户端行为，
+     * 写当日每日任务进度并累计 pet_events（成就计数与贡献榜数据源）。
+     * 与照顾动作无关的纯客户端行为统一走这里，不再各自发明埋点。
+     */
+    async recordActivity(roomId: string, userId: string, metric: string): Promise<void> {
+      if (!REPORTED_DAILY_METRICS.has(metric)) throw new Error('invalid_activity')
+      const def = NEST_TASK_DEFS.find((entry) => entry.scope === 'daily' && entry.metric === metric)
+      if (!def) throw new Error('invalid_activity')
+      await assertMember(roomId, userId)
+      const pet = await repositories.pets.findByRoomId(roomId)
+      if (!pet) throw new Error('pet_not_found')
+      await repositories.petEvents.record(pet.id, userId, metric)
       await repositories.nestTaskProgress.setDailyProgress(roomId, def.key, todayKey(now()), 1)
     },
 
