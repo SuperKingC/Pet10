@@ -224,8 +224,8 @@ export function PetStatusCard({ pet, onOpenMemories, suitKey, outfitPieces, act 
     spawnDanmaku(ACTION_BURST, ACTION_BURST_STAGGER_MS)
   }, [pet, spawnDanmaku])
 
-  // 周期弹幕：按情绪档位定频率（plan.active 死判断已修——此前周期弹幕从未触发，只有动作连发在飘）；
-  // 睡觉时不飘弹幕只留 Zzz；首条 2s 内出现让用户立刻看到
+  // 周期弹幕：按情绪档位定频率（plan.active 死判断已修——此前周期弹幕从未触发过，只有动作连发在飘）；
+  // 睡觉时不飘弹幕只留 Zzz；趴下/行进行为幕不妨碍弹幕（弹幕在场景上半部，与狗错开）；首条 2s 内出现
   useEffect(() => {
     if (sleeping) return
     const first = setTimeout(() => spawnDanmaku(1), 2000)

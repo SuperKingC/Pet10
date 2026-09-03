@@ -587,12 +587,12 @@
     {
       "path": "design-assets/nest/pet-card-entry-source-v2.jpg",
       "category": "source-only",
-      "purpose": "AI-generated hand-drawn cartoon blank name card (3:2 on pure white bg, no character: cream card with peach-to-butter wash, wobbly brown outline, dashed inner frame, peach heart / butter star / sage paw doodles), source of pet-card-entry-v2.png"
+      "purpose": "AI-generated hand-drawn cartoon blank name card (3:2 on pure white bg, no character: cream card with peach-to-butter wash, wobbly brown outline, dashed inner frame, peach heart / butter star / sage paw doodles), source of pet-card-entry-v2.png and v3.png"
     },
     {
-      "path": "public/wardrobe/pet-card-entry-v2.png",
+      "path": "public/wardrobe/pet-card-entry-v3.png",
       "category": "runtime-feature",
-      "purpose": "Nest scene name tag ornament for PetStatusCard (flood-fill alpha cutout, 460x316 PNG8 + TinyPNG, display 176x121rpx with centered pet name text), served from COS via ensureFile with direct-URL fallback, CSS card fallback, not bundled"
+      "purpose": "Nest scene name tag ornament for PetStatusCard (flood-fill alpha cutout, 360x248 = 3x of the 120rpx display, lanczos + light sharpen for crisp dashed strokes, PNG8 + TinyPNG, display 120x82rpx with centered pet name text), served from COS via ensureFile with direct-URL fallback, CSS card fallback, not bundled"
     },
     {
       "path": "design-assets/nest/xiaoduoli-sleep-source-v1.png",
@@ -615,6 +615,16 @@
       "purpose": "AI-generated side-view walking pose of Xiaoduoli, passing contact phase with legs gathered and tail low (3:2, white bg), style-matched via reference image, source of xiaoduoli-walk-b-v1.png"
     },
     {
+      "path": "design-assets/nest/xiaoduoli-walk-stride-source-v2.png",
+      "category": "source-only",
+      "purpose": "AI-generated side-view running pose of Xiaoduoli with a wide-open mouth for biting the fetch ball, suspension phase with front legs extended and tail raised (3:2, white bg), style-matched via v1 source reference, source of xiaoduoli-walk-a-v2.png"
+    },
+    {
+      "path": "design-assets/nest/xiaoduoli-walk-pass-source-v2.png",
+      "category": "source-only",
+      "purpose": "AI-generated side-view running pose of Xiaoduoli with a wide-open mouth for biting the fetch ball, passing contact phase with legs gathered (3:2, white bg), style-matched via v1 source reference, source of xiaoduoli-walk-b-v2.png"
+    },
+    {
       "path": "design-assets/nest/xiaoduoli-doll-source-v1.png",
       "category": "source-only",
       "purpose": "AI-generated plush puppy doll with red neckerchief in the same watercolor style (1:1, white bg), fetch prop for the nest fetch act, source of xiaoduoli-doll-v1.png"
@@ -622,17 +632,22 @@
     {
       "path": "public/wardrobe/xiaoduoli-walk-a-v1.png",
       "category": "runtime-feature",
-      "purpose": "Xiaoduoli walk cycle frame A (suspension, tail up) for the nest wander/fetch acts, cut to alpha and bottom-aligned on a 468x300 shared canvas with frame B (234x150 display @2x), served from COS via ensureFile, not bundled"
+      "purpose": "Xiaoduoli walk cycle frame A (suspension, tail up, closed mouth) for the nest wander act, cut to alpha and bottom-aligned on a 468x300 shared canvas with frame B (248x148 display @2x), served from COS via ensureFile, not bundled"
     },
     {
       "path": "public/wardrobe/xiaoduoli-walk-b-v1.png",
       "category": "runtime-feature",
-      "purpose": "Xiaoduoli walk cycle frame B (passing contact, tail low) for the nest wander/fetch acts, bottom-aligned on the shared 468x300 canvas with frame A, alternating via CSS step-end for a trot with tail wag, served from COS, not bundled"
+      "purpose": "Xiaoduoli walk cycle frame B (passing contact, closed mouth, tail low) for the nest wander act, bottom-aligned on the shared 468x300 canvas with frame A, alternating via CSS crossfade for a trot, served from COS, not bundled"
     },
     {
-      "path": "public/wardrobe/xiaoduoli-doll-v1.png",
+      "path": "public/wardrobe/xiaoduoli-walk-a-v2.png",
       "category": "runtime-feature",
-      "purpose": "Plush doll prop for the nest fetch act (92x128 PNG8 = 46x64 display @2x), carried at the mouth during the return walk then dropped with a bounce, served from COS via ensureFile, not bundled"
+      "purpose": "Xiaoduoli run cycle frame A (suspension, tail up, mouth wide open to bite the fetch ball) for the nest fetch act, cut to alpha and bottom-aligned on a 514x300 shared canvas with frame B (300x175 display @2x), served from COS via ensureFile, not bundled"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-walk-b-v2.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli run cycle frame B (passing contact, mouth wide open, legs gathered) for the nest fetch act, bottom-aligned on the shared 514x300 canvas with frame A, alternating via CSS crossfade for a gallop, served from COS, not bundled"
     },
     {
       "path": "design-assets/wardrobe/gen-wardrobe-interior-v1.png",
@@ -760,14 +775,9 @@
       "purpose": "Seamless wood grain tile (192x128) for the task board frame and wardrobe rack pole, generated by miniapp/tools/make-panel-decor.mjs and inlined as base64 by the Taro build"
     },
     {
-      "path": "miniapp/src/assets/decor/photo-wall-lights-v3.png",
+      "path": "miniapp/src/assets/decor/photo-wall-lights-v4.png",
       "category": "runtime-feature",
-      "purpose": "Photo wall light-string cable with empty sockets only (640x156 union box, bulbs hang below the cable), AI-generated then white-unmatted by miniapp/tools/make-photo-wall-decor.mjs, TinyPNG-compressed PNG8"
-    },
-    {
-      "path": "miniapp/src/assets/decor/photo-wall-bulbs-v3.png",
-      "category": "runtime-feature",
-      "purpose": "Photo wall per-bulb sprite sheet (11 cells of 64x64: vivid candy-color glossy bulbs with glow, densely hung), overlaid at generated percent positions (photoWallLightsBulbs.ts) for independent random twinkle, sibling of photo-wall-lights-v2"
+      "purpose": "Photo wall garland as one full-string image (640x82: warm-brown cable + sockets + 18 lit macaron bulbs in two symmetric swags, storybook style), AI-generated then unmatted by miniapp/tools/make-photo-wall-decor.mjs (foreground keeps source colors with distance-field alpha ramp, halo unmixed to zero), overlaid by a single CSS warm-glow breathing layer, TinyPNG-compressed PNG8"
     },
     {
       "path": "miniapp/src/assets/decor/photo-wall-pin-red-v2.png",
@@ -850,6 +860,16 @@
       "purpose": "AI-generated festive multicolor candy garland on white (archived at 1600px JPEG), source of photo-wall-lights-v2 + photo-wall-bulbs-v2"
     },
     {
+      "path": "design-assets/nest/photo-wall-lights-source-v3.jpg",
+      "category": "source-only",
+      "purpose": "AI-generated macaron pastel bulb garland on white (archived at 1600px JPEG), source of the retired v3 cable + per-bulb sprite sheet"
+    },
+    {
+      "path": "design-assets/nest/photo-wall-lights-source-v4.jpg",
+      "category": "source-only",
+      "purpose": "AI-generated storybook macaron garland on white: two symmetric swags, 18 lit plump bulbs with sockets and warm halo (archived at 1600px JPEG), source of photo-wall-lights-v4"
+    },
+    {
       "path": "design-assets/nest/photo-wall-pins-source-v1.jpg",
       "category": "source-only",
       "purpose": "AI-generated push pin trio, side view with needles (archived at 1600px JPEG), source of the retired v1 pin slices"
@@ -915,7 +935,7 @@
       "purpose": "Hand-drawn golden padlock badge (128x128 PNG8) overlaying grayscale locked garments in the wardrobe grid"
     },
     {
-      "path": "public/wardrobe/hoodie-layer-v1.png",
+      "path": "public/wardrobe/hoodie-layer-v5.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled"
     },
@@ -925,7 +945,7 @@
       "purpose": "AI-generated worn-view standalone garment source (连帽衫), no dog / hood down, white background, reference public/wardrobe/hoodie-v1.png"
     },
     {
-      "path": "public/wardrobe/overalls-layer-v1.png",
+      "path": "public/wardrobe/overalls-layer-v5.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled"
     },
@@ -935,7 +955,7 @@
       "purpose": "AI-generated worn-view standalone garment source (背带裤), no dog / hood down, white background, reference public/wardrobe/overalls-v1.png"
     },
     {
-      "path": "public/wardrobe/dress-layer-v1.png",
+      "path": "public/wardrobe/dress-layer-v5.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled"
     },
@@ -945,7 +965,7 @@
       "purpose": "AI-generated worn-view standalone garment source (小裙子), no dog / hood down, white background, reference public/wardrobe/dress-v1.png"
     },
     {
-      "path": "public/wardrobe/raincoat-layer-v1.png",
+      "path": "public/wardrobe/raincoat-layer-v5.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled"
     },
@@ -955,7 +975,7 @@
       "purpose": "AI-generated worn-view standalone garment source (雨衣), no dog / hood down, white background, reference public/wardrobe/raincoat-v1.png"
     },
     {
-      "path": "public/wardrobe/pajamas-layer-v1.png",
+      "path": "public/wardrobe/pajamas-layer-v5.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled"
     },
@@ -963,6 +983,276 @@
       "path": "design-assets/wardrobe/gen-pajamas-wear-v1.png",
       "category": "source-only",
       "purpose": "AI-generated worn-view standalone garment source (睡衣), no dog / hood down, white background, reference public/wardrobe/pajamas-v1.png"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-hoodie-chroma-v1.png",
+      "category": "source-only",
+      "purpose": "AI chroma-key garment source (连帽衫), same puppy pose as the default portrait with the body filled solid black wearing the garment, white background, reference miniapp/src/assets/xiaoduoli.png"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-overalls-chroma-v1.png",
+      "category": "source-only",
+      "purpose": "AI chroma-key garment source (背带裤), same puppy pose as the default portrait with the body filled solid black wearing the garment, white background, reference miniapp/src/assets/xiaoduoli.png"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-dress-chroma-v1.png",
+      "category": "source-only",
+      "purpose": "AI chroma-key garment source (小裙子), same puppy pose as the default portrait with the body filled solid black wearing the garment, white background, reference miniapp/src/assets/xiaoduoli.png"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-raincoat-chroma-v1.png",
+      "category": "source-only",
+      "purpose": "AI chroma-key garment source (雨衣), same puppy pose as the default portrait with the body filled solid black wearing the garment, white background, reference miniapp/src/assets/xiaoduoli.png"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-pajamas-chroma-v1.png",
+      "category": "source-only",
+      "purpose": "AI chroma-key garment source (睡衣), same puppy pose as the default portrait with the body filled solid black wearing the garment, white background, reference miniapp/src/assets/xiaoduoli.png"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [compatibility alias kept for already-running builds; superseded by v5]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [compatibility alias kept for already-running builds; superseded by v5]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [compatibility alias kept for already-running builds; superseded by v5]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [compatibility alias kept for already-running builds; superseded by v5]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v4.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [compatibility alias kept for already-running builds; superseded by v5]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v6.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v6.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v6.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v6.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v6.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v7.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v7.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v7.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v7.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v7.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v8.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear] [current: single GROW 1.08 (v6 geometry restored per user feedback)]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v8.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear] [current: single GROW 1.08 (v6 geometry restored per user feedback)]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v8.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear] [current: single GROW 1.08 (v6 geometry restored per user feedback)]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v8.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear] [current: single GROW 1.08 (v6 geometry restored per user feedback)]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v8.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: anisotropic grow W1.08/H0.97, tongue hard-clear] [current: single GROW 1.08 (v6 geometry restored per user feedback)]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v9.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.12 wrap]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v9.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.12 wrap]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v9.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.12 wrap]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v9.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.12 wrap]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v9.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.12 wrap]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v10.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v10.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v10.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v10.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v10.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v11.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v11.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v11.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v11.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v11.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v12.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v12.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v12.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v12.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v12.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total]"
+    },
+    {
+      "path": "public/wardrobe/hoodie-layer-v13.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Hoodie), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total] [current: COLLAR_Y 350, raised per user feedback]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v13.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total] [current: COLLAR_Y 350, raised per user feedback]"
+    },
+    {
+      "path": "public/wardrobe/dress-layer-v13.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Dress), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total] [current: COLLAR_Y 350, raised per user feedback]"
+    },
+    {
+      "path": "public/wardrobe/raincoat-layer-v13.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Raincoat), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total] [current: COLLAR_Y 350, raised per user feedback]"
+    },
+    {
+      "path": "public/wardrobe/pajamas-layer-v13.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Pajamas), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total] [current: COLLAR_Y 350, raised per user feedback]"
+    },
+    {
+      "path": "design-assets/nest/xiaoduoli-lying-source-v1.png",
+      "category": "source-only",
+      "purpose": "AI-generated lying-down resting pose of Xiaoduoli with eyes closed (3:2, chin on ground between front paws, white bg), style-matched to the standing portrait via reference image, source of xiaoduoli-lying-v1.png"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-lying-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli lying-down resting pose (eyes closed single frame) for the nest lie act, cut to alpha bbox 583x260 PNG8 (291.5x130 display = 54% of standing height), served from COS via ensureFile, keeps standing portrait until loaded, not bundled"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-sit-eyes-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli standing-portrait eye-group strip (240x98 shared strip of the 436x700 canvas, dual eye rects copied with feathered edges) for the sit idle blink, squash-scaled 200ms around the eye centerline to a closed line, served from COS, not bundled"
+    },
+    {
+      "path": "public/wardrobe/xiaoduoli-sit-underlay-v1.png",
+      "category": "runtime-feature",
+      "purpose": "Xiaoduoli standing-portrait under-eye fur strip (240x98, per-column vertical fur gradient ellipses fully hidden inside the eye-group opaque core, boundary pixel-identical to artwork), permanently covers the original eyes and is revealed as eyelids when the eye group squashes, served from COS, not bundled"
     }
   ]
 }
