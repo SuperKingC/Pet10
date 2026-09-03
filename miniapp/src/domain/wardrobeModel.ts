@@ -49,11 +49,12 @@ export function isBundledSuit(key: string): boolean {
  */
 export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string; height: string }>> = {
   hat: { left: '25.00%', top: '3.14%', width: '50.00%', height: '21.83%' },
-  scarf: { left: '17.00%', top: '56.00%', width: '66.00%', height: '23.91%' },
+  scarf: { left: '17.00%', top: '50.00%', width: '66.00%', height: '23.91%' },
   bag: { left: '19.00%', top: '70.50%', width: '33.00%', height: '9.35%' }
 }
 // ↑ height = width% × (素材高/素材宽) × 436/700 逐件换算（hat 184×129、scarf 前襟 208×121、bag 156×71），
-//   aspectFit 层盒与图同比例 ⇒ 无留边无裁切；改定位元数据时两处同步重算
+//   aspectFit 层盒与图同比例 ⇒ 无留边无裁切；改定位元数据时两处同步重算。
+//   scarf top 56→50：2026-09-03 用户校准「围巾高一点」——三角巾顶边从胸口提到下颌下方围住脖颈（不盖嘴）。
 
 export function isOverlaySuit(key: string): boolean {
   return key in OUTFIT_LAYER_STYLE
@@ -77,14 +78,16 @@ export interface OutfitPieces {
 
 export const EMPTY_OUTFIT: OutfitPieces = { body: 'default', hat: null, scarf: null, bag: null }
 
-/** 主体服装叠层定位：chroma 管线（黑剪影狗穿衣→抠黑→与原装立绘仿射对齐）输出的全画布 436×700 叠层，位置恒定（height 同步铺满画布），由 miniapp/tools/cut-chroma-garments.mjs 生成 */
+/** 主体服装叠层定位：chroma 管线（黑剪影狗穿衣→抠黑→与原装立绘仿射对齐）输出的全画布 436×700 叠层，画布对齐后恒铺满（个别件带用户校准的垂直微调），由 miniapp/tools/cut-chroma-garments.mjs 生成 */
 export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string; height: string }>> = {
-  hoodie: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
+  hoodie: { left: '0.00%', top: '-5.00%', width: '100.00%', height: '100.00%' },
   overalls: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
   dress: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
   raincoat: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
   pajamas: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' }
 }
+// ↑ hoodie top -5%：2026-09-03 用户校准「连帽衫高一点」——领口从胸中提到下巴下方（生成图天然偏下，
+//   层盒上移等价于整件上移，aspectFit 盒尺寸不变只平移；底部 5% 是层图透明区，上移后仍不出立绘脚底）
 
 /** 某主体服装切件在原装立绘上的叠加定位；原装无切件返回 undefined */
 export function resolveBodyLayerStyle(body: SuitKey): { left: string; top: string; width: string; height: string } | undefined {

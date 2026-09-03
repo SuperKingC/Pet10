@@ -51,9 +51,10 @@ describe('wardrobe model', () => {
       // 叠层禁用 widthFix 后显式给高：height 与 width 同源（按素材宽高比换算）且为正
       expect(Number.parseFloat(style!.height)).toBeGreaterThan(0)
     }
-    // 帽檐停在眼眶上方（top ≈ 3%），围巾卡在下巴之下（top ≈ 58%）不盖嘴
+    // 帽檐停在眼眶上方（top ≈ 3%）；围巾顶边围在下颌下方（top = 50%，2026-09-03 用户校准从 56 上提，不盖嘴）
     expect(Number.parseFloat(OUTFIT_LAYER_STYLE.hat!.top)).toBeLessThan(5)
-    expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeGreaterThan(55)
+    expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeGreaterThan(48)
+    expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeLessThan(52)
     // height 与 width 同比例：盒比例=素材比例（hat 184×129、scarf 前襟 208×121、bag 156×71）
     const W = 436, H = 700
     const srcRatio: Record<'hat' | 'scarf' | 'bag', number> = { hat: 129 / 184, scarf: 121 / 208, bag: 71 / 156 }
@@ -108,9 +109,10 @@ describe('wardrobe model', () => {
     for (const key of ['hat', 'scarf', 'bag'] as const) {
       expect(resolveOverlayStyle(key)).toBe(OUTFIT_LAYER_STYLE[key])
     }
-    // 全画布叠层：位置恒为 {0,0,100%,100%}——衣服位置由 chroma 生成图天然决定，不再人工标定
+    // 全画布叠层：位置恒铺满画布，连帽衫带用户校准的 -5% 上移（领口贴下巴）
     for (const body of ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'] as const) {
-      expect(resolveBodyLayerStyle(body)).toEqual({ left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' })
+      const expectedTop = body === 'hoodie' ? '-5.00%' : '0.00%'
+      expect(resolveBodyLayerStyle(body)).toEqual({ left: '0.00%', top: expectedTop, width: '100.00%', height: '100.00%' })
     }
     expect(resolveBodyLayerStyle('default')).toBeUndefined()
   })
