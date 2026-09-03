@@ -1263,6 +1263,66 @@
       "path": "public/wardrobe/xiaoduoli-sit-underlay-v1.png",
       "category": "runtime-feature",
       "purpose": "Xiaoduoli standing-portrait under-eye fur strip (240x98, per-column vertical fur gradient ellipses fully hidden inside the eye-group opaque core, boundary pixel-identical to artwork), permanently covers the original eyes and is revealed as eyelids when the eye group squashes, served from COS, not bundled"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-pad-2x3.png",
+      "category": "source-only",
+      "purpose": "Wardrobe dress experiment padded reference: xiaoduoli 436x700 portrait centered on flat green 560x840 (exact 2:3) for --ref generation"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen (2026-09-03 dress-on-dog experiment): gpt-5.4-image-2 img2img from ref-pad, candidate 1: model redrew dog (blush, fluffier), babydoll dress with midriff gap"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen (2026-09-03 dress-on-dog experiment): gpt-5.4-image-2 img2img from ref-pad, candidate 2: model redrew dog (larger ears), one-piece pink dress"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1_v3.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen (2026-09-03 dress-on-dog experiment): gpt-5.4-image-2 img2img from ref-pad, candidate 3 (primary): closest to base portrait style, one-piece pink dress"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1_v3.layer.png",
+      "category": "source-only",
+      "purpose": "Dress layer extracted from candidate 3 (pink/white component segmentation on green-key foreground, no inpainting), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1_v3.A-direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 3 layer overlaid on base portrait at {0,0,100%,100%} with zero adjustment: dress too small, flanks and belly fur exposed"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1_v3.C-affine.png",
+      "category": "source-only",
+      "purpose": "Candidate 3 layer after one global similarity transform (1.18x + centroid): improved but still narrow skirt and chest gap"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1_v3.mask-overlay.png",
+      "category": "source-only",
+      "purpose": "Segmentation debug overlay for candidate 3 (red = extracted dress mask)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1.layer.png",
+      "category": "source-only",
+      "purpose": "Dress layer extracted from candidate 1, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1.A-direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 layer zero-adjustment overlay: near-plausible by composition luck, shoulders and hips still expose fur"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-refit-v1.C-affine.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 layer after global similarity transform (1.40x) reference"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/montage.png",
+      "category": "source-only",
+      "purpose": "Four-panel comparison: shipped v13 chroma layer vs candidate 3 direct/affine vs candidate 1 direct"
     }
   ]
 }
