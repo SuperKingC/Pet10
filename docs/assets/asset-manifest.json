@@ -1388,6 +1388,41 @@
       "path": "design-assets/wardrobe/kit/montage-v3.png",
       "category": "source-only",
       "purpose": "Final comparison: shipped v13 layer vs three v13-template-fitted new dress layers"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/lock-e.png",
+      "category": "source-only",
+      "purpose": "Lock-the-dog prompt experiment winner (description-first anchor + preserve instruction), IoU 0.839 vs base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/lock-e_v2.png",
+      "category": "source-only",
+      "purpose": "Lock-the-dog experiment second sample, IoU 0.842"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/lock-e.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Dress layer cut directly from lock-e (green key + pink/white segmentation, outline dilation, NO warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/lock-e.direct.png",
+      "category": "source-only",
+      "purpose": "lock-e layer overlaid on base portrait at {0,0} with zero adjustment: neckline slightly high (bow under mouth), flanks covered"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/lock-e_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Dress layer cut directly from lock-e_v2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/lock-e_v2.direct.png",
+      "category": "source-only",
+      "purpose": "lock-e_v2 layer zero-adjustment overlay: natural neckline, front legs in front of skirt"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/montage-lock.png",
+      "category": "source-only",
+      "purpose": "Comparison: shipped v13 vs two zero-adjustment direct overlays vs previous template-warp result"
     }
   ]
 }
