@@ -51,27 +51,30 @@ describe('wardrobe model', () => {
       // 叠层禁用 widthFix 后显式给高：height 与 width 同源（按素材宽高比换算）且为正
       expect(Number.parseFloat(style!.height)).toBeGreaterThan(0)
     }
-    // 帽檐停在眼眶上方（top ≈ 3%）；围巾顶边围在下颌下方（top = 50%，2026-09-03 用户校准从 56 上提，不盖嘴）
+    // 帽檐停在眼眶上方（top ≈ 0.5%）；围巾顶边围在下颌下方（top = 50%，2026-09-03 用户校准从 56 上提，不盖嘴）
     expect(Number.parseFloat(OUTFIT_LAYER_STYLE.hat!.top)).toBeLessThan(5)
+    expect(Number.parseFloat(OUTFIT_LAYER_STYLE.hat!.width)).toBeGreaterThan(50)
     expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeGreaterThan(48)
     expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeLessThan(52)
-    // height 与 width 同比例：盒比例=素材比例（hat 184×129、scarf 前襟 208×121、bag 156×71）
+    // height 与 width 同比例：盒比例=素材比例（hat 184×129、scarf 前襟 208×121、bag v4 320×302）
     const W = 436, H = 700
-    const srcRatio: Record<'hat' | 'scarf' | 'bag', number> = { hat: 129 / 184, scarf: 121 / 208, bag: 71 / 156 }
+    const srcRatio: Record<'hat' | 'scarf' | 'bag', number> = { hat: 129 / 184, scarf: 121 / 208, bag: 302 / 320 }
     for (const key of ['hat', 'scarf', 'bag'] as const) {
       const style = OUTFIT_LAYER_STYLE[key]
       const boxH = (W * Number.parseFloat(style!.width) / 100) * srcRatio[key]
       expect(Number.parseFloat(style!.height)).toBeCloseTo(boxH / H * 100, 1)
     }
-    // 网格图标=完整服饰；围巾叠加层用折线切出的前襟
+    // 网格图标=完整服饰；围巾叠加层用折线切出的前襟；包 v4=斜挎带重生成（v3 无背带太小，2026-09-03）
     expect(suitAssetFiles('hat')).toEqual({ icon: 'outfit-hat-v3.png', display: 'outfit-hat-v3.png' })
     expect(suitAssetFiles('scarf')).toEqual({ icon: 'outfit-scarf-v2.png', display: 'outfit-scarf-cut-v2.png' })
-    expect(suitAssetFiles('bag')).toEqual({ icon: 'outfit-bag-v3.png', display: 'outfit-bag-v3.png' })
+    expect(suitAssetFiles('bag')).toEqual({ icon: 'outfit-bag-v4.png', display: 'outfit-bag-v4.png' })
   })
 
   it('body suits use icon + full render + cut layer files', () => {
     expect(suitAssetFiles('hoodie')).toEqual({ icon: 'hoodie-icon-v2.png', display: 'hoodie-v1.png', layer: 'hoodie-layer-v13.png' })
     expect(suitAssetFiles('raincoat')).toEqual({ icon: 'raincoat-icon-v2.png', display: 'raincoat-v1.png', layer: 'raincoat-layer-v13.png' })
+    // overalls 层 v14：裁掉爪间下垂裤脚（2026-09-03 用户反馈），其余层保持 v13
+    expect(suitAssetFiles('overalls')).toEqual({ icon: 'overalls-icon-v2.png', display: 'overalls-v1.png', layer: 'overalls-layer-v14.png' })
   })
 
   it('derives path badges from condition text of locked suits', () => {
@@ -109,9 +112,9 @@ describe('wardrobe model', () => {
     for (const key of ['hat', 'scarf', 'bag'] as const) {
       expect(resolveOverlayStyle(key)).toBe(OUTFIT_LAYER_STYLE[key])
     }
-    // 全画布叠层：位置恒铺满画布，连帽衫带用户校准的 -5% 上移（领口贴下巴）
+    // 全画布叠层：位置恒铺满画布，领口类三件带用户校准的 -5% 上移（领口贴下巴）
     for (const body of ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'] as const) {
-      const expectedTop = body === 'hoodie' ? '-5.00%' : '0.00%'
+      const expectedTop = ['hoodie', 'dress', 'raincoat'].includes(body) ? '-5.00%' : '0.00%'
       expect(resolveBodyLayerStyle(body)).toEqual({ left: '0.00%', top: expectedTop, width: '100.00%', height: '100.00%' })
     }
     expect(resolveBodyLayerStyle('default')).toBeUndefined()

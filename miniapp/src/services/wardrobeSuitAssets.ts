@@ -6,12 +6,12 @@ import {
 } from './wardrobeAssetLoader'
 import { resolveAssetBaseUrl } from './assetBaseUrl'
 
-// 随包文件：原装立绘 + 三件叠穿服装件（网格图标 v2 + 围巾折线切前襟叠加层 v2）
+// 随包文件：原装立绘 + 三件叠穿服装件（网格图标 v2 + 围巾折线切前襟叠加层 v2 + 斜挎包 v4）
 const defaultPortrait = require('../assets/xiaoduoli.png')
 const hatGarment = require('../assets/wardrobe/outfit-hat-v3.png')
 const scarfIcon = require('../assets/wardrobe/outfit-scarf-v2.png')
 const scarfCut = require('../assets/wardrobe/outfit-scarf-cut-v2.png')
-const bagGarment = require('../assets/wardrobe/outfit-bag-v3.png')
+const bagGarment = require('../assets/wardrobe/outfit-bag-v4.png')
 
 const deps: SuitAssetDeps = {
   bundledImages: {
@@ -19,7 +19,7 @@ const deps: SuitAssetDeps = {
     'outfit-hat-v3.png': hatGarment,
     'outfit-scarf-v2.png': scarfIcon,
     'outfit-scarf-cut-v2.png': scarfCut,
-    'outfit-bag-v3.png': bagGarment
+    'outfit-bag-v4.png': bagGarment
   },
   readIndex: () => Taro.getStorageSync(WARDROBE_ASSET_STORAGE_KEY),
   writeIndex: (index) => Taro.setStorageSync(WARDROBE_ASSET_STORAGE_KEY, index),

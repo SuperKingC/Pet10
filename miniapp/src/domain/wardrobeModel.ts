@@ -48,13 +48,15 @@ export function isBundledSuit(key: string): boolean {
  * height 与 width 同源换算（layer 定位与图层同比例）：叠层禁用 widthFix 后必须显式给高。
  */
 export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string; height: string }>> = {
-  hat: { left: '25.00%', top: '3.14%', width: '50.00%', height: '21.83%' },
+  hat: { left: '22.00%', top: '0.50%', width: '56.00%', height: '24.45%' },
   scarf: { left: '17.00%', top: '50.00%', width: '66.00%', height: '23.91%' },
-  bag: { left: '19.00%', top: '70.50%', width: '33.00%', height: '9.35%' }
+  bag: { left: '24.00%', top: '48.00%', width: '46.00%', height: '27.04%' }
 }
-// ↑ height = width% × (素材高/素材宽) × 436/700 逐件换算（hat 184×129、scarf 前襟 208×121、bag 156×71），
+// ↑ height = width% × (素材高/素材宽) × 436/700 逐件换算（hat 184×129、scarf 前襟 208×121、bag v4 320×302），
 //   aspectFit 层盒与图同比例 ⇒ 无留边无裁切；改定位元数据时两处同步重算。
 //   scarf top 56→50：2026-09-03 用户校准「围巾高一点」——三角巾顶边从胸口提到下颌下方围住脖颈（不盖嘴）。
+//   hat 50→56%@top 0.5：2026-09-03 用户校准「帽子更高更大」——帽身大一圈、帽顶高坐头顶不压耳根。
+//   bag v4 整件重生成（v3 无背带且太小）：斜挎构图（带起左肩、包垂右腹），AI 出图白底泛洪去件。
 
 export function isOverlaySuit(key: string): boolean {
   return key in OUTFIT_LAYER_STYLE
@@ -82,12 +84,12 @@ export const EMPTY_OUTFIT: OutfitPieces = { body: 'default', hat: null, scarf: n
 export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string; height: string }>> = {
   hoodie: { left: '0.00%', top: '-5.00%', width: '100.00%', height: '100.00%' },
   overalls: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
-  dress: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
-  raincoat: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
+  dress: { left: '0.00%', top: '-5.00%', width: '100.00%', height: '100.00%' },
+  raincoat: { left: '0.00%', top: '-5.00%', width: '100.00%', height: '100.00%' },
   pajamas: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' }
 }
-// ↑ hoodie top -5%：2026-09-03 用户校准「连帽衫高一点」——领口从胸中提到下巴下方（生成图天然偏下，
-//   层盒上移等价于整件上移，aspectFit 盒尺寸不变只平移；底部 5% 是层图透明区，上移后仍不出立绘脚底）
+// ↑ 三件领口类服装（hoodie/dress/raincoat）top -5%：2026-09-03 用户校准「高一点」——领口从胸中提到
+//   下巴下方（sharp 合成候选对比图定档，-7% 开始顶下巴故取 -5）；overalls 保持 0（裤脚下垂走 v14 素材裁切）。
 
 /** 某主体服装切件在原装立绘上的叠加定位；原装无切件返回 undefined */
 export function resolveBodyLayerStyle(body: SuitKey): { left: string; top: string; width: string; height: string } | undefined {
@@ -150,11 +152,13 @@ export interface SuitAssetFiles {
 export function suitAssetFiles(key: string): SuitAssetFiles {
   if (isOverlaySuit(key)) {
     // 网格展示完整服饰；围巾的叠加层是折线切出的前襟（完整版叠图会盖住脸），帽/包整件即可叠
-    const icon = key === 'scarf' ? 'outfit-scarf-v2.png' : `outfit-${key}-v3.png`
+    const icon = key === 'scarf' ? 'outfit-scarf-v2.png' : key === 'bag' ? 'outfit-bag-v4.png' : `outfit-${key}-v3.png`
     const display = key === 'scarf' ? 'outfit-scarf-cut-v2.png' : icon
     return { icon, display }
   }
-  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-v13.png` }
+  // 层文件按内容变更升版（v14 = overalls 裁掉爪间下垂裤脚，2026-09-03）
+  const layerVersion = key === 'overalls' ? 'v14' : 'v13'
+  return { icon: `${key}-icon-v2.png`, display: `${key}-v1.png`, layer: `${key}-layer-${layerVersion}.png` }
 }
 
 /** 获得途径徽章：从条件文案派生，未解锁的套装显示途径角标 */

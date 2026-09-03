@@ -710,14 +710,19 @@
       "purpose": "Bundled wardrobe hat overlay/grid icon (v3), 160-color PNG8"
     },
     {
-      "path": "miniapp/src/assets/wardrobe/outfit-bag-v3.png",
+      "path": "miniapp/src/assets/wardrobe/outfit-bag-v4.png",
       "category": "runtime-feature",
-      "purpose": "Bundled wardrobe bag overlay/grid icon (v3), 160-color PNG8"
+      "purpose": "Bundled wardrobe crossbody bag overlay/grid icon (v4), AI-generated diagonal single-strap design white-bg flood-fill cut, replaces strapless v3 (2026-09-03 user feedback), 160-color PNG8"
     },
     {
       "path": "design-assets/wardrobe/gen-hoodie-v1.png",
       "category": "source-only",
       "purpose": "AI-generated standalone hoodie source illustration (2048², white bg)"
+    },
+    {
+      "path": "design-assets/wardrobe/gen-bag-crossbody-v2.png",
+      "category": "source-only",
+      "purpose": "AI-generated crossbody bag source illustration (2048 square, white bg, diagonal single strap), cut to outfit-bag-v4"
     },
     {
       "path": "design-assets/wardrobe/gen-overalls-v1.png",
@@ -1218,6 +1223,11 @@
       "path": "public/wardrobe/overalls-layer-v13.png",
       "category": "runtime-feature",
       "purpose": "Wardrobe body-garment cut layer (Overalls), AI-generated worn-view standalone art cut from white background and calibrated onto the 436x700 default portrait canvas via miniapp/tools/cut-worn-garments.mjs, layered over the bundled default portrait so the head is never covered, served from COS via ensureSuitAssets, not bundled [current: grown 8% around bottom-center for full wrap] [current: GROW 1.04 + soft keying 90px smoothstep fade + elliptical tongue guard] [current: COLLAR_Y 394 raised] [current: COLLAR_Y 370, visibly raised 38px total] [current: COLLAR_Y 350, raised per user feedback]"
+    },
+    {
+      "path": "public/wardrobe/overalls-layer-v14.png",
+      "category": "runtime-feature",
+      "purpose": "Wardrobe body-garment cut layer (Overalls) v14, alpha masked to the base-paw silhouette below y=662 so pant legs no longer dangle into the paw gap (2026-09-03 user feedback), served from COS via ensureSuitAssets, not bundled"
     },
     {
       "path": "public/wardrobe/dress-layer-v13.png",
