@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-01T05:11:42.410Z",
+  "generatedAt": "2026-09-01T10:31:57.965Z",
   "frameCanvas": {
     "width": 468,
     "height": 300,
@@ -23,10 +23,10 @@
     }
   ],
   "doll": {
-    "file": "xiaoduoli-doll-v1.png",
-    "bytes": 9673,
-    "width": 92,
-    "height": 128,
-    "displaySize": 64
+    "file": "xiaoduoli-doll-v2.png",
+    "bytes": 15344,
+    "width": 121,
+    "height": 168,
+    "displaySize": 84
   }
 }

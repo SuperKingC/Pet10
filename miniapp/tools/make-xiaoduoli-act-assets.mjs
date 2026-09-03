@@ -10,7 +10,7 @@ const srcDir = path.resolve(import.meta.dirname, '../../design-assets/nest')
 const outDir = path.resolve(import.meta.dirname, '../../public/wardrobe')
 // 走路帧显示高 150px（2x=300），娃娃显示 64px（2x=128）
 const FRAME_HEIGHT_PX = 300
-const DOLL_SIZE_PX = 128
+const DOLL_SIZE_PX = 168
 
 function cutWhiteBg(data, W, H) {
   const at = (x, y) => {
@@ -128,14 +128,14 @@ const dollPng = await sharp(dollCut.data, { raw: { width: dollCut.width, height:
   .resize(DOLL_SIZE_PX, DOLL_SIZE_PX, { fit: 'inside', kernel: 'lanczos3' })
   .png({ palette: true, colors: 256, dither: 1, compressionLevel: 9 })
   .toBuffer()
-await writeFile(path.join(outDir, 'xiaoduoli-doll-v1.png'), dollPng)
+await writeFile(path.join(outDir, 'xiaoduoli-doll-v2.png'), dollPng)
 const dollMeta = await sharp(dollPng).metadata()
 
 const report = {
   generatedAt: new Date().toISOString(),
   frameCanvas: { width: canvasW, height: FRAME_HEIGHT_PX, displayWidth: canvasW / 2, displayHeight: FRAME_HEIGHT_PX / 2 },
   frames,
-  doll: { file: 'xiaoduoli-doll-v1.png', bytes: dollPng.byteLength, width: dollMeta.width, height: dollMeta.height, displaySize: DOLL_SIZE_PX / 2 },
+  doll: { file: 'xiaoduoli-doll-v2.png', bytes: dollPng.byteLength, width: dollMeta.width, height: dollMeta.height, displaySize: DOLL_SIZE_PX / 2 },
 }
 await writeFile(path.resolve(import.meta.dirname, 'xiaoduoli-act.report.json'), `${JSON.stringify(report, null, 2)}\n`)
 console.log(JSON.stringify(report))
