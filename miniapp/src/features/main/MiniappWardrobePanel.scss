@@ -218,8 +218,9 @@
 .wardrobe-pager { height: 516rpx; }
 .wardrobe-page {
   height: 100%;
-  /* 顶部 6rpx：卡片上移；底部 20rpx 缓冲 */
-  padding: 6rpx 4rpx 20rpx;
+  /* 顶部 20rpx：绶带/角标/徽章上出卡 12~14rpx + 选中卡再上浮 4rpx，留足悬浮余量不被 Swiper 上缘裁切
+     （2026-09-03 二次反馈「穿着中」被裁）；底部 12rpx 缓冲，两行锁定卡 502 ≤ 516 仍完整 */
+  padding: 20rpx 4rpx 12rpx;
   box-sizing: border-box;
 }
 /* 自绘翻页指示点：独立于卡片行，下移留白不互挡 */

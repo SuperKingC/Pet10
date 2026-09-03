@@ -377,6 +377,7 @@ describe('miniapp ui presentation rules', () => {
     const panel = fs.readFileSync(path.resolve(__dirname, 'MiniappWardrobePanel.tsx'), 'utf8')
     const portrait = fs.readFileSync(path.resolve(__dirname, 'MiniappOutfitPortrait.tsx'), 'utf8')
     const model = fs.readFileSync(path.resolve(__dirname, '../../domain/wardrobeModel.ts'), 'utf8')
+    const panelStyles = fs.readFileSync(path.resolve(__dirname, 'MiniappWardrobePanel.scss'), 'utf8')
     // 标签页（服饰/配饰）+ Swiper 联动：每页一类最多 6 件完整显示，同类超出左右滑
     expect(panel).toContain('wardrobePages(view.items)')
     expect(panel).toContain('<Swiper')
@@ -384,6 +385,9 @@ describe('miniapp ui presentation rules', () => {
     expect(panel).toContain('wardrobe-tab')
     expect(panel).toContain('setActiveKind')
     expect(panel).not.toContain('renderSection(')
+    // 卡片悬浮元素（绶带/角标/徽章上出卡 12~14rpx + 选中上浮 4rpx）需要 ≥20rpx 顶部内边距，
+    // 否则被 Swiper 上缘裁切（2026-09-03 二次反馈「穿着中」被裁）
+    expect(panelStyles).toMatch(/\.wardrobe-page \{[^}]*padding: 20rpx 4rpx 12rpx;/)
     // 配饰单件制：三类互斥（选新件自动摘下其它），Swiper 恒定高度（点点位置不随页型跳动）
     expect(panel).toContain('hat: null, scarf: null, bag: null')
     expect(panel).not.toContain('选一件配饰')
