@@ -18,4 +18,7 @@ miniapp/project.private.config.json
 miniapp/.swc/
 output/
 tmp/
+_tmp_*
+tmp-*
+preview-dist/
 design-assets/
