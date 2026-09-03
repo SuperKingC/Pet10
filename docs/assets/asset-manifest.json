@@ -1423,6 +1423,356 @@
       "path": "design-assets/wardrobe/kit/montage-lock.png",
       "category": "source-only",
       "purpose": "Comparison: shipped v13 vs two zero-adjustment direct overlays vs previous template-warp result"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/outfit-reference-sheet.png",
+      "category": "source-only",
+      "purpose": "User-provided outfit design reference sheet (924x215, 8 garments on shiba puppy), cropped per-garment cells used as second ref"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-scarf.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, scarf candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-scarf_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, scarf candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-scarf.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted scarf layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-scarf.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 scarf layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-scarf_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted scarf layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-scarf_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 scarf layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hoodie candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hoodie candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hoodie layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 hoodie layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hoodie layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 hoodie layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-overalls.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, overalls candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-overalls_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, overalls candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-overalls.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted overalls layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-overalls.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 overalls layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-overalls_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted overalls layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-overalls_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 overalls layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-dress.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, dress candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-dress_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, dress candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-dress.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted dress layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-dress.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 dress layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-dress_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted dress layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-dress_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 dress layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-raincoat.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, raincoat candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-raincoat_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, raincoat candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-raincoat.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted raincoat layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-raincoat.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 raincoat layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-raincoat_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted raincoat layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-raincoat_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 raincoat layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-pajamas.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, pajamas candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-pajamas_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, pajamas candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-pajamas.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted pajamas layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-pajamas.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 pajamas layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-pajamas_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted pajamas layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-pajamas_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 pajamas layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-bag.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, bag candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-bag_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, bag candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-bag.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted bag layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-bag.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 bag layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-bag_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted bag layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-bag_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 bag layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hat candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hat candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hat layer cut from candidate 1 (garment-color segmentation on green-key foreground, no warp/patch), full 436x700 canvas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 1 hat layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hat layer cut from candidate 2, same method"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Candidate 2 hat layer zero-adjustment overlay on base portrait"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie3.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hoodie retry candidate 1 (first round drew drawstrings only)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie3_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hoodie retry candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie3.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hoodie layer from retry candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie3.direct.png",
+      "category": "source-only",
+      "purpose": "Retry candidate 1 hoodie layer zero-adjustment overlay"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie3_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hoodie layer from retry candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hoodie3_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Retry candidate 2 hoodie layer zero-adjustment overlay"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat3.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hat retry candidate 1 (ears requested outside brim)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat3_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen outfit round (user reference sheet as design source): gpt-5.4-image-2, description-first dog lock + garment-cell ref, hat retry candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat3.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hat layer from retry candidate 1 (brim-line guard drops ears below)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat3.direct.png",
+      "category": "source-only",
+      "purpose": "Retry candidate 1 hat layer zero-adjustment overlay"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat3_v2.direct-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted hat layer from retry candidate 2 (brim-line guard)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/sheet-hat3_v2.direct.png",
+      "category": "source-only",
+      "purpose": "Retry candidate 2 hat layer zero-adjustment overlay"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/montage-sheet.png",
+      "category": "source-only",
+      "purpose": "Review montage: 8 garments x [current shipped asset render, new candidate A, new candidate B]"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-scarf.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for scarf"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-hoodie.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for hoodie"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-overalls.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for overalls"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-dress.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for dress"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-raincoat.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for raincoat"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-pajamas.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for pajamas"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-bag.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for bag"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/ref-cell-hat.png",
+      "category": "source-only",
+      "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for hat"
     }
   ]
 }
