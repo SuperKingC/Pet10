@@ -25,9 +25,13 @@
 /* 站姿眨眼：眼组/眼窝底毛条带（240×98 画布，COS）按图盒百分比定位（149×240 图盒，
    条带 x98 y146 w240 h98 → 缩放系数 149/436≈0.3417：显示 82.0×33.5、偏移 left 33.5 top 49.9）；
    底毛常驻盖住原眼（静止时逐像素同底图），眼组绕双眼中心线（条带内 y≈50.3%）压扁 200ms；
-   A/B 同款两条动画类交替换挡重播，避免重挂 image 重新加载 */
+   A/B 同款两条动画类交替换挡重播，避免重挂 image 重新加载。
+   定位只写一次：group 是全尺寸透明包装（撑满 pet-sit-blink），内部 eyes 铺满 group——
+   若三层同给 left/top，嵌套的 eyes 会在 group 内再偏移一次，眼睛掉到嘴边（2026-09-02 用户截图实锤） */
 .pet-sit-blink { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; }
-.pet-sit-blink__underlay, .pet-sit-blink__group, .pet-sit-blink__eyes { position: absolute; width: 82px; height: 33.5px; left: 33.5px; top: 49.9px; }
+.pet-sit-blink__underlay, .pet-sit-blink__group { position: absolute; left: 33.5px; top: 49.9px; width: 82px; height: 33.5px; }
+/* image 组件不吃四边推导尺寸（微信按默认 300×225 渲染，65122bc 教训）：eyes 显式 100%×100% 铺满 group */
+.pet-sit-blink__eyes { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 .pet-sit-blink__group { transform-origin: 50% 50.3%; }
 .pet-sit-blink__group--a { animation: pet-sit-eye-squash-a 200ms ease-in-out both; }
 .pet-sit-blink__group--b { animation: pet-sit-eye-squash-b 200ms ease-in-out both; }
@@ -272,7 +276,9 @@
 .status-item { min-width: 0; }
 
 /* 弹幕：b 站式横向匀速漂过（右缘外 → 左缘外），暖棕字 + 奶白光晕保证浅色墙面上可读，
-   出画后由定时器移除；fill-mode backwards 让连发错峰（animation-delay 期间）保持起点在右缘外不露馅 */
+   出画后由定时器移除；fill-mode both 一头一尾都锁在出画位置——延迟期藏在右缘外（连发错峰不露馅），
+   结束后停在左缘外等移除（backwards 会让动画结束瞬间弹回 left:0 可见区，肉眼可见地抖一下）；
+   will-change 提合成层，防连发插入节点的主线程布局卡住漂移动画（同行进幕防掉帧手法） */
 .pet-danmaku {
   position: absolute;
   left: 0;
@@ -283,7 +289,8 @@
   white-space: nowrap;
   pointer-events: none;
   text-shadow: 0 0 8rpx rgba(255, 250, 240, .95), 0 0 3rpx rgba(255, 250, 240, .9), 0 2rpx 3rpx rgba(255, 250, 240, .8);
-  animation: pet-danmaku-drift linear backwards;
+  animation: pet-danmaku-drift linear both;
+  will-change: transform;
 }
 @keyframes pet-danmaku-drift {
   /* 起点：右缘外（场景宽 658 + 余量）；终点：完全漂出左缘 */

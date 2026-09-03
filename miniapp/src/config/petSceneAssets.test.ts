@@ -193,6 +193,11 @@ describe('miniapp pet scene assets', () => {
     expect(sceneStyle).toContain('.pet-sit-blink__group--a { animation: pet-sit-eye-squash-a 200ms ease-in-out both; }')
     const squashBlock = sceneStyle.match(/@keyframes pet-sit-eye-squash-a \{[\s\S]*?\n\}/)?.[0] ?? ''
     expect(squashBlock).toContain('25%, 65% { transform: scaleY(.08); }')
+    // 嵌套定位只写一次：group/underlay 共享条带定位，eyes 铺满 group（100%×100%）——
+    // 三层同给 left/top 时 eyes 在 group 内再偏移一次，眼睛掉到嘴边（2026-09-02 用户截图实锤）
+    const stripPos = sceneStyle.match(/\.pet-sit-blink__underlay, \.pet-sit-blink__group \{[^}]*\}/)?.[0] ?? ''
+    expect(stripPos).toContain('left: 33.5px; top: 49.9px; width: 82px; height: 33.5px;')
+    expect(sceneStyle).toContain('.pet-sit-blink__eyes { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }')
 
     // 趴下：lie 幕素材就绪门控 + 底边轴轻呼吸 + domain 调度（与闲逛并行的独立间隔）
     expect(componentSource).toContain('pet-avatar-lying')
