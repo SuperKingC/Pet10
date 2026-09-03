@@ -384,14 +384,23 @@ describe('miniapp ui presentation rules', () => {
     expect(panel).toContain('wardrobe-tab')
     expect(panel).toContain('setActiveKind')
     expect(panel).not.toContain('renderSection(')
-    // 配饰单件制：三类互斥（选新件自动摘下其它），分页高度随页型自适应
+    // 配饰单件制：三类互斥（选新件自动摘下其它），Swiper 恒定高度（点点位置不随页型跳动）
     expect(panel).toContain('hat: null, scarf: null, bag: null')
-    expect(panel).toContain('选一件配饰，再点摘下')
-    expect(panel).toContain("activeKind === 'body' ? '516rpx' : '306rpx'")
+    expect(panel).not.toContain('选一件配饰')
+    expect(panel).not.toContain('选一件穿上')
+    expect(panel).not.toContain("activeKind === 'body' ? '516rpx' : '306rpx'")
+    expect(panel).toContain("style={{ height: '516rpx' }}")
     // 主体服装=原装立绘+切件层叠加（不再整套替换整图）；配饰恒定定位
     expect(portrait).toContain("resolveSuitDisplay('default')")
     expect(portrait).toContain('resolveBodyLayerStyle')
     expect(portrait).toContain('resolveOverlayStyle(key as SuitKey)')
+    // flow 叠层不用 widthFix（act 切幕等兄弟节点 setData 会重测量导致衣服拉伸闪动），
+    // 改 aspectFit+显式高，换装时 layerLoaded 按 src 累积（不整体清空→点配饰衣服不掉）；
+    // 仅照片墙 suitKey 兼容分支保留 widthFix（静态卡无 setData 风暴，免改照片墙观感）
+    expect(portrait).toContain('mode="aspectFit"')
+    expect(portrait.match(/mode="widthFix"/g)?.length).toBe(1)
+    expect(portrait).not.toContain('setLayerLoaded({})')
+    expect(portrait).not.toContain('piecesKey')
     expect(model).not.toContain('BODY_OVERLAY_STYLE')
   })
 

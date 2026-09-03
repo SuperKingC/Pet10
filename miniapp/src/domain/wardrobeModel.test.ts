@@ -48,10 +48,20 @@ describe('wardrobe model', () => {
       expect(style).toBeDefined()
       expect(Number.parseFloat(style!.width)).toBeLessThan(100)
       expect(Number.parseFloat(style!.top)).toBeLessThan(100)
+      // 叠层禁用 widthFix 后显式给高：height 与 width 同源（按素材宽高比换算）且为正
+      expect(Number.parseFloat(style!.height)).toBeGreaterThan(0)
     }
     // 帽檐停在眼眶上方（top ≈ 3%），围巾卡在下巴之下（top ≈ 58%）不盖嘴
     expect(Number.parseFloat(OUTFIT_LAYER_STYLE.hat!.top)).toBeLessThan(5)
     expect(Number.parseFloat(OUTFIT_LAYER_STYLE.scarf!.top)).toBeGreaterThan(55)
+    // height 与 width 同比例：盒比例=素材比例（hat 184×129、scarf 前襟 208×121、bag 156×71）
+    const W = 436, H = 700
+    const srcRatio: Record<'hat' | 'scarf' | 'bag', number> = { hat: 129 / 184, scarf: 121 / 208, bag: 71 / 156 }
+    for (const key of ['hat', 'scarf', 'bag'] as const) {
+      const style = OUTFIT_LAYER_STYLE[key]
+      const boxH = (W * Number.parseFloat(style!.width) / 100) * srcRatio[key]
+      expect(Number.parseFloat(style!.height)).toBeCloseTo(boxH / H * 100, 1)
+    }
     // 网格图标=完整服饰；围巾叠加层用折线切出的前襟
     expect(suitAssetFiles('hat')).toEqual({ icon: 'outfit-hat-v3.png', display: 'outfit-hat-v3.png' })
     expect(suitAssetFiles('scarf')).toEqual({ icon: 'outfit-scarf-v2.png', display: 'outfit-scarf-cut-v2.png' })
@@ -98,9 +108,9 @@ describe('wardrobe model', () => {
     for (const key of ['hat', 'scarf', 'bag'] as const) {
       expect(resolveOverlayStyle(key)).toBe(OUTFIT_LAYER_STYLE[key])
     }
-    // 全画布叠层：位置恒为 {0,0,100%}——衣服位置由 chroma 生成图天然决定，不再人工标定
+    // 全画布叠层：位置恒为 {0,0,100%,100%}——衣服位置由 chroma 生成图天然决定，不再人工标定
     for (const body of ['hoodie', 'overalls', 'dress', 'raincoat', 'pajamas'] as const) {
-      expect(resolveBodyLayerStyle(body)).toEqual({ left: '0.00%', top: '0.00%', width: '100.00%' })
+      expect(resolveBodyLayerStyle(body)).toEqual({ left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' })
     }
     expect(resolveBodyLayerStyle('default')).toBeUndefined()
   })

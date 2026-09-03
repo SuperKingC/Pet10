@@ -297,7 +297,6 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
             >
               <Text>🎀 配饰</Text>
             </View>
-            <Text className="wardrobe-tabs__hint">{activeKind === 'body' ? '选一件穿上，再点脱下' : '选一件配饰，再点摘下'}</Text>
           </View>
         )}
         {view === null && (
@@ -306,9 +305,10 @@ export function MiniappWardrobePanel({ roomId, gmTest = false, onClose, onChange
           </View>
         )}
         {view !== null && (
+          // 分页高度恒定：点点/底部按钮位置不随页型（两行服饰 vs 一行配饰）上下跳
           <Swiper
             className="wardrobe-pager"
-            style={{ height: activeKind === 'body' ? '516rpx' : '306rpx' }}
+            style={{ height: '516rpx' }}
             current={activeIndex}
             onChange={onPageChange}
           >

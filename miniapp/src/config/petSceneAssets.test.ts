@@ -28,6 +28,10 @@ describe('miniapp pet scene assets', () => {
     expect(portraitSource).toContain('flowHeight')
     expect(statusCardSource).toContain('flowHeight={240}')
     expect(wardrobeSource).toContain('flowHeight={330}')
+    // 叠层同样禁用 widthFix：行为幕切换（兄弟 setData）时微信会重测量 widthFix 图，
+    // 小窝点睡觉瞬间衣服拉伸后闪没的根因——flow 主体/配饰叠层均显式宽高（元数据含 height）+ aspectFit
+    expect(portraitSource).toMatch(/src=\{bodyLayerSrc\}\s*\n\s*mode="aspectFit"/)
+    expect(portraitSource).toMatch(/src=\{layer\.src\}\s*\n\s*mode="aspectFit"/)
   })
 
   it('sleep pose ships bundled (download chain removed) and the nest scene wires the sleep act', () => {

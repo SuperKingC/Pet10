@@ -45,12 +45,15 @@ export function isBundledSuit(key: string): boolean {
  * 三件「叠穿件」的定位元数据：紧裁服装图按百分比绝对定位叠到原装小多利立绘（436×700）上。
  * 主体服装改为「原装立绘 + 服装切件」后，所有穿戴都画在同一张原装画布上，
  * 配饰恒定用这一套定位，不再随主体服装换算。
+ * height 与 width 同源换算（layer 定位与图层同比例）：叠层禁用 widthFix 后必须显式给高。
  */
-export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hat: { left: '25.00%', top: '3.14%', width: '50.00%' },
-  scarf: { left: '17.00%', top: '56.00%', width: '66.00%' },
-  bag: { left: '19.00%', top: '70.50%', width: '33.00%' }
+export const OUTFIT_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string; height: string }>> = {
+  hat: { left: '25.00%', top: '3.14%', width: '50.00%', height: '21.83%' },
+  scarf: { left: '17.00%', top: '56.00%', width: '66.00%', height: '23.91%' },
+  bag: { left: '19.00%', top: '70.50%', width: '33.00%', height: '9.35%' }
 }
+// ↑ height = width% × (素材高/素材宽) × 436/700 逐件换算（hat 184×129、scarf 前襟 208×121、bag 156×71），
+//   aspectFit 层盒与图同比例 ⇒ 无留边无裁切；改定位元数据时两处同步重算
 
 export function isOverlaySuit(key: string): boolean {
   return key in OUTFIT_LAYER_STYLE
@@ -74,22 +77,22 @@ export interface OutfitPieces {
 
 export const EMPTY_OUTFIT: OutfitPieces = { body: 'default', hat: null, scarf: null, bag: null }
 
-/** 主体服装叠层定位：chroma 管线（黑剪影狗穿衣→抠黑→与原装立绘仿射对齐）输出的全画布 436×700 叠层，位置恒定，由 miniapp/tools/cut-chroma-garments.mjs 生成 */
-export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string }>> = {
-  hoodie: { left: '0.00%', top: '0.00%', width: '100.00%' },
-  overalls: { left: '0.00%', top: '0.00%', width: '100.00%' },
-  dress: { left: '0.00%', top: '0.00%', width: '100.00%' },
-  raincoat: { left: '0.00%', top: '0.00%', width: '100.00%' },
-  pajamas: { left: '0.00%', top: '0.00%', width: '100.00%' }
+/** 主体服装叠层定位：chroma 管线（黑剪影狗穿衣→抠黑→与原装立绘仿射对齐）输出的全画布 436×700 叠层，位置恒定（height 同步铺满画布），由 miniapp/tools/cut-chroma-garments.mjs 生成 */
+export const BODY_LAYER_STYLE: Partial<Record<SuitKey, { left: string; top: string; width: string; height: string }>> = {
+  hoodie: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
+  overalls: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
+  dress: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
+  raincoat: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' },
+  pajamas: { left: '0.00%', top: '0.00%', width: '100.00%', height: '100.00%' }
 }
 
 /** 某主体服装切件在原装立绘上的叠加定位；原装无切件返回 undefined */
-export function resolveBodyLayerStyle(body: SuitKey): { left: string; top: string; width: string } | undefined {
+export function resolveBodyLayerStyle(body: SuitKey): { left: string; top: string; width: string; height: string } | undefined {
   return BODY_LAYER_STYLE[body]
 }
 
 /** 配饰叠加定位：所有穿戴都叠在同一张原装画布上，恒定用同一套标定 */
-export function resolveOverlayStyle(accessory: SuitKey): { left: string; top: string; width: string } | undefined {
+export function resolveOverlayStyle(accessory: SuitKey): { left: string; top: string; width: string; height: string } | undefined {
   return OUTFIT_LAYER_STYLE[accessory]
 }
 

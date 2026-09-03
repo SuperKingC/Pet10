@@ -194,8 +194,8 @@
 }
 .wardrobe-rack__pole::before { left: -10rpx; }
 .wardrobe-rack__pole::after { right: -10rpx; }
-/* 目录标签页（服饰/配饰）：整体再下移与默契卡拉开呼吸距，挂杆下的小木牌药丸与 Swiper 联动 */
-.wardrobe-tabs { margin-top: 44rpx; display: flex; align-items: center; gap: 14rpx; padding: 2rpx 8rpx 14rpx; }
+/* 目录标签页（服饰/配饰）：紧贴挂杆下方（2026-09-03 反馈上移），与 Swiper 联动 */
+.wardrobe-tabs { margin-top: 8rpx; display: flex; align-items: center; gap: 14rpx; padding: 2rpx 8rpx 12rpx; }
 .wardrobe-tab {
   padding: 10rpx 28rpx;
   border-radius: 999rpx;
@@ -213,7 +213,6 @@
   box-shadow: 0 6rpx 14rpx rgba(232, 143, 60, .3);
 }
 .wardrobe-tab--press { transform: scale(.95); filter: brightness(.96); }
-.wardrobe-tabs__hint { margin-left: auto; color: #b39c88; font-size: 20rpx; }
 .wardrobe-grid__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14rpx; align-content: start; }
 /* 目录分页：两行卡片完整显示（锁定卡条件文案压成单行），同类超出 6 件切块翻页 */
 .wardrobe-pager { height: 516rpx; }
@@ -253,16 +252,16 @@
   transform-origin: 50% 0;
   animation: wardrobe-hang-in .5s cubic-bezier(.3, 1.35, .6, 1) both;
 }
-/* 图标下的柔光圆座：服装像陈列在展台上 */
+/* 图标下的柔光圆座：服装像陈列在展台上（座径随图标盒缩小同步，中心对齐图标盒中心） */
 .wardrobe-card::after {
   content: '';
   position: absolute;
   z-index: -1;
-  top: 18rpx;
+  top: 16rpx;
   left: 50%;
-  width: 140rpx;
-  height: 140rpx;
-  margin-left: -70rpx;
+  width: 124rpx;
+  height: 124rpx;
+  margin-left: -62rpx;
   border-radius: 50%;
   background: radial-gradient(circle, #fdefd7 0%, #fae4c2 56%, rgba(250, 228, 194, 0) 74%);
 }
@@ -332,7 +331,9 @@
   box-shadow: 0 4rpx 10rpx rgba(232, 143, 60, .4);
   border: 3rpx solid #fffdf8;
 }
-.wardrobe-card__suit { width: 100%; height: 156rpx; }
+/* 服装图标：统一 132rpx 高的展示盒（aspectFit 居中），素材比例差不再顶满整卡
+   （2026-09-03 反馈「整体缩小一点并统一」——高图不再撑满、矮宽图不再横铺） */
+.wardrobe-card__suit { width: 100%; height: 132rpx; }
 .wardrobe-card__suit--pending {
   display: flex;
   align-items: center;
@@ -342,7 +343,7 @@
 }
 .wardrobe-card__pending-text { color: #b39c88; font-size: 22rpx; }
 /* 锁定态：真实样子置灰 + 手绘金锁徽章浮层 */
-.wardrobe-card__suit--locked { position: relative; width: 100%; height: 156rpx; }
+.wardrobe-card__suit--locked { position: relative; width: 100%; height: 132rpx; }
 .wardrobe-card__suit-img { width: 100%; height: 100%; filter: grayscale(1); opacity: .38; }
 .wardrobe-card__lock-badge {
   position: absolute;
