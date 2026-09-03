@@ -1323,6 +1323,71 @@
       "path": "design-assets/wardrobe/kit/montage.png",
       "category": "source-only",
       "purpose": "Four-panel comparison: shipped v13 chroma layer vs candidate 3 direct/affine vs candidate 1 direct"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen round 2 (wide one-piece pink dress): gpt-5.4-image-2 img2img, candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v2_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen round 2 (wide one-piece pink dress): gpt-5.4-image-2 img2img, candidate 2 (arms visible over skirt)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v2_v3.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen round 2 (wide one-piece pink dress): gpt-5.4-image-2 img2img, candidate 3"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen round 3 (paws hidden behind skirt): gpt-5.4-image-2 img2img, candidate 1"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3_v2.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen round 3 (paws hidden behind skirt): gpt-5.4-image-2 img2img, candidate 2"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3_v3.png",
+      "category": "source-only",
+      "purpose": "miniapp-kit art gen round 3 (paws hidden behind skirt): gpt-5.4-image-2 img2img, candidate 3"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3.fit-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted dress layer from round-3 candidate 1: v13-template per-row warp (collar 366 to hem 653, row spans inherited from accepted v13 layer), no size calibration needed"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3.fit.png",
+      "category": "source-only",
+      "purpose": "Round-3 candidate 1 fitted layer composited on base portrait (95.1% torso coverage)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3_v2.fit-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted dress layer from round-3 candidate 2, same v13-template warp"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3_v2.fit.png",
+      "category": "source-only",
+      "purpose": "Round-3 candidate 2 fitted layer composited on base portrait (96.0% torso coverage)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3_v3.fit-layer.png",
+      "category": "source-only",
+      "purpose": "Fitted dress layer from round-3 candidate 3, same v13-template warp"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/dress-fit-v3_v3.fit.png",
+      "category": "source-only",
+      "purpose": "Round-3 candidate 3 fitted layer composited on base portrait (95.1% torso coverage)"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/montage-v3.png",
+      "category": "source-only",
+      "purpose": "Final comparison: shipped v13 layer vs three v13-template-fitted new dress layers"
     }
   ]
 }
