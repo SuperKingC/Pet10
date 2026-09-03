@@ -1,0 +1,45 @@
+{
+  "$comment": "复制本文件为 art.config.json 后按需微调(art.config.json 已 gitignore 不提交)。密钥只存环境变量名,绝不存 key 值;key 从 ZCode 配置导出到 AI_IMAGE_API_KEY 后运行。模型按 .agents/rules/ai-image-generation.md 固定 gpt-5.4-image-2,不配 fallback。",
+
+  "style": "扁平卡通插画风格, 造型圆润可爱, 色彩明快, 轮廓描边, 构图居中",
+
+  "prompt": {
+    "$comment": "背景默认白底平涂;要抠图的资产在单条提示词里自己写主体色板外的纯色背景(写了'背景'则默认背景不追加)。衣柜叠层试验类提示词建议 boosters 留空(构图类增强词会干扰'保持原样')",
+    "background": "纯白色平涂背景, 无渐变无阴影",
+    "boosters": ["高清细节"],
+    "bans": ["画面中出现任何文字、字母、数字", "水印", "logo"],
+    "optimizeModel": ""
+  },
+
+  "typography": {
+    "uiFont": "全界面统一使用同一种圆润无衬线中文字体, 字号层级清晰"
+  },
+
+  "api": {
+    "baseUrl": "https://apirouter.zhiqiteai.cn/ApiRouterServ/v1",
+    "keyEnv": "AI_IMAGE_API_KEY",
+    "models": [
+      "openai/gpt-5.4-image-2"
+    ],
+    "concurrency": 3
+  },
+
+  "imageConfig": {
+    "$comment": "仅对 openai 系生图模型生效;aspect_ratio: 1:1|2:3|3:2",
+    "aspect_ratio": "2:3",
+    "image_size": "2K"
+  },
+
+  "compress": {
+    "$comment": "只走 TinyPNG 单次压缩;源图/像素级试验(如衣柜 diff 抠件)运行时不导出 TINYPNG_API_KEY 即自动跳过压缩保原始像素",
+    "tinypngKeyEnv": "TINYPNG_API_KEY",
+    "maxKB": 180
+  },
+
+  "output": {
+    "$comment": "inPackage 默认输出到 design-assets(源图区,已 gitignore);进包资产仍须按 miniapp-image 规则另行走 TinyPNG+manifest+check:assets",
+    "inPackage": "design-assets/kit-generated",
+    "cos": "assets/pet10/",
+    "maxTotalMB": 12
+  }
+}

@@ -8,6 +8,7 @@ dist/
 !.env.production.example
 server/.env
 .env.production
+art.config.json
 .superpowers/
 .qoder/
 .DS_Store
