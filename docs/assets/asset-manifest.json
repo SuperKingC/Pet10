@@ -1778,6 +1778,16 @@
       "path": "design-assets/wardrobe/kit/ref-cell-hat.png",
       "category": "source-only",
       "purpose": "Garment cell cropped (3x upscale) from outfit-reference-sheet.png, used as second gen ref for hat"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/probe-models/openai_gpt-5.5.png",
+      "category": "source-only",
+      "purpose": "Cross-model probe: gpt-5.5 image output (multimodal chat), IoU 0.808, watercolor-leaning style even with flat-cartoon anchor"
+    },
+    {
+      "path": "design-assets/wardrobe/kit/probe-models/openai_gpt-5.6-terra.png",
+      "category": "source-only",
+      "purpose": "Cross-model probe: gpt-5.6-terra image output, IoU 0.822, watercolor style (intermittent image support)"
     }
   ]
 }
