@@ -91,7 +91,7 @@ export function buildShareText(reading: TarotReading): string {
   const cards = reading.drawn
     .map((item) => `${item.card.symbol} ${item.card.name}（${item.reversed ? '逆位' : '正位'} · ${item.position}）`)
     .join('  ')
-  return `🔮 我刚完成塔罗占卜：${cards}。${reading.closing}`
+  return `🔮 我刚抽了一组塔罗牌：${cards}。${reading.closing}`
 }
 
 // short WeChat share-card title used when inviting a friend via the result page

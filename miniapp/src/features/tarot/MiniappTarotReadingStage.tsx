@@ -72,6 +72,7 @@ export function MiniappTarotReadingStage({
         <Text className="miniapp-tarot__reading-heading">避免误读</Text>
         {reading.misreadings.map((item) => <Text key={item}>· {item}</Text>)}
       </View>
+      <Text className="miniapp-tarot__reading-disclaimer">牌面解读仅供娱乐与自我觉察参考，不构成任何现实建议或预测。</Text>
       <View className="miniapp-tarot__reading-actions">
         {canShare ? (
           <Button disabled={sharing || shared} onClick={onShare}>
@@ -80,7 +81,7 @@ export function MiniappTarotReadingStage({
         ) : (
           <Button openType="share">分享塔罗结果 · 邀请好友</Button>
         )}
-        <Button onClick={onRestart}>再占一次</Button>
+        <Button onClick={onRestart}>再抽一次</Button>
         <Button onClick={onClose}>退出</Button>
       </View>
     </View>

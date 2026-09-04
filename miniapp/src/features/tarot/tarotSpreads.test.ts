@@ -6,7 +6,7 @@ describe('miniapp tarot spreads', () => {
     expect(TAROT_SPREADS).toEqual([
       {
         key: 'single',
-        label: '单牌速占卜',
+        label: '单牌速览',
         description: '一张牌，快速获得今日指引',
         count: 1,
         readingMode: '聚焦回答',

@@ -130,12 +130,12 @@ export function MiniappTarotFlow({ roomId, onClose, onShareTitleChange }: Miniap
       ) : (
         <>
           <View className="miniapp-tarot__header">
-            <Button aria-label="退出塔罗占卜" onClick={onClose}>×</Button>
+            <Button aria-label="退出塔罗" onClick={onClose}>×</Button>
             <View className="miniapp-tarot__header-title">
               <Text>塔罗密室</Text>
               <Text>{state.stage === 'question' ? '聆听内心的提问' : findTarotSpread(state.spread).label}</Text>
             </View>
-            <Button aria-label="查看占卜历史" onClick={() => setHistoryOpen(true)}>⌛</Button>
+            <Button aria-label="查看塔罗历史" onClick={() => setHistoryOpen(true)}>⌛</Button>
           </View>
           <View className="miniapp-tarot__progress" aria-hidden>
             {stageOrder.map((stage, index) => (

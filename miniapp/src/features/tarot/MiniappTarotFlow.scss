@@ -1450,6 +1450,14 @@
   text-align: center;
 }
 
+.miniapp-tarot__reading-disclaimer {
+  padding: 0 26rpx 22rpx;
+  color: rgba(240, 223, 176, .55);
+  font-size: var(--font-size-aux);
+  line-height: 1.6;
+  text-align: center;
+}
+
 .miniapp-tarot__reading-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
