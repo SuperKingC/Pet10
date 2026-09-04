@@ -1,5 +1,5 @@
 export const UNLOCK_BUTTON_LABEL = '玩家已接受邀请解锁小多利~'
-export const UNLOCK_JUMP_DURATION_MS = 1200
+export const UNLOCK_JUMP_DURATION_MS = 1600
 
 export type XiaoduoliUnlockState = {
   initialized: boolean
@@ -21,7 +21,19 @@ export type UnlockStar = {
   duration: number
 }
 
+export type UnlockScrap = {
+  left: number
+  delay: number
+  duration: number
+  rotate: number
+  drift: number
+  size: number
+  color: string
+}
+
 const ribbonColors = ['#f3d5a8', '#f08a6c', '#efbe68', '#7ec8b8', '#fff7e8']
+// 纸屑取破纸箱的牛皮纸色系，比彩带更贴「撞破纸箱」的叙事
+const scrapColors = ['#c98d5a', '#b9744a', '#d9a878', '#8f5a34']
 
 export function nextUnlockState(input: {
   stored: XiaoduoliUnlockState | null
@@ -69,6 +81,16 @@ export function createUnlockEffects(seed: string) {
       top: 12 + random() * 28,
       delay: 0.08 + random() * 0.2,
       duration: 0.7 + random() * 0.4,
+    })),
+    // 纸屑从箱口迸出向下飘落（left 收在箱体范围内）
+    scraps: Array.from({ length: 10 }, () => ({
+      left: 30 + random() * 40,
+      delay: random() * 0.22,
+      duration: 0.7 + random() * 0.5,
+      rotate: Math.round(-240 + random() * 480),
+      drift: Math.round(-26 + random() * 52),
+      size: 4 + Math.round(random() * 5),
+      color: scrapColors[Math.floor(random() * scrapColors.length)],
     })),
   }
 }

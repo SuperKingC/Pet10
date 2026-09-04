@@ -21,6 +21,8 @@
   width: 100%;
   height: 100%;
   z-index: 0;
+  /* 背景过渡：进场缓缓显影 + 极轻推近，营造镜头安定感；只在首挂载播一次 */
+  animation: xiaoduoli-box-intro 900ms ease-out both;
 }
 
 .xiaoduoli-box__shadow {
@@ -184,20 +186,55 @@
   animation-fill-mode: both;
 }
 
+/* 牛皮纸色碎屑：从箱口迸出、旋转下坠飘散（箱体左右 30%~70% 范围） */
+.xiaoduoli-box__scrap {
+  position: absolute;
+  top: 34%;
+  z-index: 4;
+  border-radius: 1px;
+  animation-name: xiaoduoli-scrap;
+  animation-timing-function: cubic-bezier(0.3, 0.5, 0.6, 1);
+  animation-fill-mode: both;
+}
+
+/* 落地扬尘：两只土黄 puff 从狗落地两侧同时鼓出散开 */
+.xiaoduoli-box__dust {
+  position: absolute;
+  bottom: 10%;
+  z-index: 3;
+  width: 46px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(184, 141, 92, 0.4), rgba(184, 141, 92, 0));
+  opacity: 0;
+  animation: xiaoduoli-dust 520ms ease-out both;
+  animation-delay: 640ms;
+}
+
+.xiaoduoli-box__dust--left {
+  right: 52%;
+  transform-origin: 100% 50%;
+}
+
+.xiaoduoli-box__dust--right {
+  left: 52%;
+  transform-origin: 0% 50%;
+}
+
 .xiaoduoli-box--jumping .xiaoduoli-box__puppy-wrap {
-  animation: xiaoduoli-jump 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+  animation: xiaoduoli-jump 1.6s cubic-bezier(0.3, 0.6, 0.3, 1) both;
 }
 
 .xiaoduoli-box--jumping .xiaoduoli-box__box-wrap {
-  animation: xiaoduoli-box-recoil 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+  animation: xiaoduoli-box-recoil 1.6s cubic-bezier(0.3, 0.6, 0.3, 1) both;
 }
 
 .xiaoduoli-box--jumping .xiaoduoli-box__shadow {
-  animation: xiaoduoli-shadow 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+  animation: xiaoduoli-shadow 1.6s cubic-bezier(0.3, 0.6, 0.3, 1) both;
 }
 
 .xiaoduoli-box--jumping .xiaoduoli-box__standing-wrap {
-  animation: xiaoduoli-appear 1.2s cubic-bezier(0.22, 0.84, 0.32, 1) both;
+  animation: xiaoduoli-appear 1.6s cubic-bezier(0.3, 0.6, 0.3, 1) both;
 }
 
 @keyframes xiaoduoli-breathe {
@@ -344,6 +381,8 @@
   }
 }
 
+/* 跳出编排（1.6s）：0~14% 预备下蹲蓄力 → 14~34% 蹬箱腾空 → 34~58% 滞空抛物线 →
+   58~72% 落地压扁缓冲 → 72~100% 回弹站稳交棒站姿 */
 @keyframes xiaoduoli-jump {
   0% {
     transform: translateY(0) scale(1, 1);
@@ -352,35 +391,55 @@
   14% {
     transform: translateY(10%) scale(1.08, 0.84);
   }
-  38% {
-    transform: translateY(-46%) scale(0.9, 1.14);
+  34% {
+    transform: translateY(-52%) scale(0.9, 1.14);
   }
-  52% {
-    transform: translateY(-50%) scale(1, 1);
+  46% {
+    transform: translateY(-56%) scale(0.97, 1.04);
   }
-  78% {
-    transform: translateY(-12%) scale(1.06, 0.92);
-    opacity: 0.55;
+  58% {
+    transform: translateY(-34%) scale(1, 1);
+  }
+  72% {
+    transform: translateY(2%) scale(1.08, 0.88);
+    opacity: 1;
+  }
+  84% {
+    transform: translateY(-5%) scale(0.98, 1.03);
   }
   100% {
-    transform: translateY(-6%) scale(1, 1);
+    transform: translateY(0) scale(1, 1);
     opacity: 0;
   }
 }
 
+/* 箱子被蹬踩的反作用：下压→回弹；狗落地后箱子向左倾倒瘫软（0~58% 与 jump 同步推进，
+   58% 后倾倒收尾，cue「跳出来撞破了箱子」） */
 @keyframes xiaoduoli-box-recoil {
   0%,
   100% {
     transform: rotate(0deg) translateY(0);
   }
   14% {
-    transform: rotate(-2deg) translateY(6px);
+    transform: rotate(-2deg) translateY(7px) scale(1.02, 0.94);
   }
-  38% {
-    transform: rotate(1.6deg) translateY(-4px);
+  34% {
+    transform: rotate(2.4deg) translateY(-5px) scale(0.98, 1.04);
   }
-  78% {
-    transform: rotate(-0.6deg) translateY(2px);
+  58% {
+    transform: rotate(3.2deg) translateY(-2px);
+  }
+  72% {
+    transform: rotate(-6deg) translateY(3px);
+  }
+  86% {
+    transform: rotate(-13deg) translateY(6px) scale(1.02, 0.94);
+  }
+  94% {
+    transform: rotate(-10.5deg) translateY(5px) scale(1.01, 0.96);
+  }
+  100% {
+    transform: rotate(-12deg) translateY(6px) scale(1.02, 0.94);
   }
 }
 
@@ -429,6 +488,49 @@
   }
 }
 
+/* 背景入场过渡：透明度淡入 + 1.045→1 轻推近（镜头安定感），仅首挂载播一次 */
+@keyframes xiaoduoli-box-intro {
+  0% {
+    opacity: 0;
+    transform: scale(1.045);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 纸屑：从箱口迸出后旋转下坠，水平按 --scrap-drift 随机偏撒 */
+@keyframes xiaoduoli-scrap {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    transform: translate3d(calc(var(--scrap-drift, 0px) * 0.2), -14px, 0) rotate(calc(var(--scrap-rotate, 180deg) * 0.2));
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--scrap-drift, 0px), 120px, 0) rotate(var(--scrap-rotate, 180deg));
+    opacity: 0;
+  }
+}
+
+/* 落地扬尘：从狗落地点向两侧鼓出、放大、渐隐 */
+@keyframes xiaoduoli-dust {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  35% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25) translateY(-4px);
+  }
+}
+
 @keyframes xiaoduoli-star {
   0% {
     transform: scale(0.2) rotate(-12deg);
@@ -447,7 +549,8 @@
 @media (prefers-reduced-motion: reduce) {
   .xiaoduoli-box__breathe,
   .xiaoduoli-box__bob,
-  .xiaoduoli-box__shadow {
+  .xiaoduoli-box__shadow,
+  .xiaoduoli-box__street {
     animation: none !important;
   }
 
@@ -464,6 +567,8 @@
   .xiaoduoli-box--jumping .xiaoduoli-box__shadow,
   .xiaoduoli-box--jumping .xiaoduoli-box__standing-wrap,
   .xiaoduoli-box__ribbon,
+  .xiaoduoli-box__scrap,
+  .xiaoduoli-box__dust,
   .xiaoduoli-box__star {
     animation-duration: 0.01ms !important;
   }

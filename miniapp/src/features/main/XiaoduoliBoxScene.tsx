@@ -6,7 +6,8 @@ import { useXiaoduoliIdleBehavior } from './useXiaoduoliIdleBehavior'
 import './XiaoduoliBoxScene.scss'
 
 const streetImage = require('../../assets/nest/xiaoduoli-street-v13.png')
-const boxImage = require('../../assets/nest/xiaoduoli-box.png')
+// -v2：破纸箱换装（同路径图片会被工具缓存，换图必须升文件名）
+const boxImage = require('../../assets/nest/xiaoduoli-box-v2.png')
 const bodyImage = require('../../assets/nest/xiaoduoli-body.png')
 const eyesImage = require('../../assets/nest/xiaoduoli-eyes.png')
 const pupilsImage = require('../../assets/nest/xiaoduoli-pupils.png')
@@ -125,6 +126,28 @@ export function XiaoduoliBoxScene({ phase = 'idle', effectSeed = 'invite', onJum
             ✦
           </Text>
         ))}
+        {phase === 'jumping' && effects.scraps.map((scrap, index) => (
+          <View
+            key={`scrap-${index}`}
+            className="xiaoduoli-box__scrap"
+            style={{
+              left: `${scrap.left}%`,
+              width: `${scrap.size}px`,
+              height: `${Math.max(3, scrap.size - 2)}px`,
+              backgroundColor: scrap.color,
+              animationDelay: `${scrap.delay}s`,
+              animationDuration: `${scrap.duration}s`,
+              ['--scrap-rotate' as string]: `${scrap.rotate}deg`,
+              ['--scrap-drift' as string]: `${scrap.drift}px`,
+            }}
+          />
+        ))}
+        {phase === 'jumping' && (
+          <>
+            <View className="xiaoduoli-box__dust xiaoduoli-box__dust--left" />
+            <View className="xiaoduoli-box__dust xiaoduoli-box__dust--right" />
+          </>
+        )}
       </View>
     </View>
   )

@@ -120,9 +120,9 @@
       "purpose": "Journal editor mood picker excited puppy with blush and heart-star confetti, gray ring erased geometrically, cheek-width head normalization across the four stickers, 200px dithered palette PNG"
     },
     {
-      "path": "miniapp/src/assets/nest/xiaoduoli-box.png",
+      "path": "miniapp/src/assets/nest/xiaoduoli-box-v2.png",
       "category": "runtime-feature",
-      "purpose": "Nest invite Xiaoduoli cardboard box layer"
+      "purpose": "Nest invite Xiaoduoli worn cardboard box layer (open flap, torn rim, tape stains), flood-fill white-keyed from the 2K source, 560px dithered palette PNG, TinyPNG pass"
     },
     {
       "path": "miniapp/src/assets/nest/xiaoduoli-body.png",
@@ -153,6 +153,11 @@
       "path": "design-assets/nest/xiaoduoli-in-box-source.jpg",
       "category": "source-only",
       "purpose": "Source illustration of Xiaoduoli in a box"
+    },
+    {
+      "path": "design-assets/nest/xiaoduoli-box-worn-source.jpg",
+      "category": "source-only",
+      "purpose": "2K white-background source of the worn cardboard box (open flap, torn rim, tape stains) generated against the original box framing, archived at 2048px JPEG; cut to nest/xiaoduoli-box-v2.png"
     },
     {
       "path": "design-assets/nest/xiaoduoli-peek-source.png",

@@ -88,7 +88,7 @@ describe('xiaoduoli unlock', () => {
     expect(isRoomUnlocked(null, 'room-a')).toBe(false)
   })
 
-  it('builds a deterministic burst of ribbons and stars', () => {
+  it('builds a deterministic burst of ribbons, stars and cardboard scraps', () => {
     const first = createUnlockEffects('room-1')
     const second = createUnlockEffects('room-1')
     const other = createUnlockEffects('room-2')
@@ -97,6 +97,7 @@ describe('xiaoduoli unlock', () => {
     expect(first).not.toEqual(other)
     expect(first.ribbons).toHaveLength(24)
     expect(first.stars).toHaveLength(8)
+    expect(first.scraps).toHaveLength(10)
     expect(first.ribbons[0]).toEqual(expect.objectContaining({
       left: expect.any(Number),
       delay: expect.any(Number),
@@ -104,10 +105,19 @@ describe('xiaoduoli unlock', () => {
       rotate: expect.any(Number),
       color: expect.any(String),
     }))
+    expect(first.scraps[0]).toEqual(expect.objectContaining({
+      left: expect.any(Number),
+      delay: expect.any(Number),
+      duration: expect.any(Number),
+      rotate: expect.any(Number),
+      drift: expect.any(Number),
+      size: expect.any(Number),
+      color: expect.any(String),
+    }))
   })
 
   it('exposes the unlock button copy and jump duration', () => {
     expect(UNLOCK_BUTTON_LABEL).toBe('玩家已接受邀请解锁小多利~')
-    expect(UNLOCK_JUMP_DURATION_MS).toBe(1200)
+    expect(UNLOCK_JUMP_DURATION_MS).toBe(1600)
   })
 })
