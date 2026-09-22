@@ -17,6 +17,10 @@ describe('image model catalog', () => {
     expect(resolveEnabledImageModels([])).toEqual([])
   })
 
+  it('marks the recommended image model in its label', () => {
+    expect(findImageModel('openai/gpt-5.4-image-2')?.label).toBe('GPT-5.4 Image（推荐）')
+  })
+
   it('narrowing helper distinguishes image models from video models', () => {
     const video = findImageModel('kwaivgi/kling-v3.0-std')
     const image = findImageModel('openai/gpt-5.4-image-2')
