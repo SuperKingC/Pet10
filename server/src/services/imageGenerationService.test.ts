@@ -121,10 +121,14 @@ describe('image generation service', () => {
     ])
   })
 
-  it('rejects more than two reference images and unsupported data URLs', async () => {
-    const service = createImageGenerationService(config, vi.fn() as typeof fetch)
+  it('rejects more than five reference images and unsupported data URLs', async () => {
+    const fetcher: typeof fetch = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+    }), { status: 200 }))
+    const service = createImageGenerationService(config, fetcher)
     const png = 'data:image/png;base64,aA=='
-    await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.5', prompt: 'test', referenceImages: [png, png, png] })).rejects.toThrow('invalid_reference_images')
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.5', prompt: 'test', referenceImages: [png, png, png] })).resolves.toBeDefined()
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.5', prompt: 'test', referenceImages: [png, png, png, png, png, png] })).rejects.toThrow('invalid_reference_images')
     await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.6', prompt: 'test', referenceImages: ['data:image/svg+xml;base64,PHN2Zz4='] })).rejects.toThrow('invalid_reference_image')
   })
 

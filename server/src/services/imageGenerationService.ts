@@ -26,7 +26,7 @@ const REFERENCE_IMAGE = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/
 const MAX_REFERENCE_BYTES = 2 * 1024 * 1024
 
 function validateReferenceImages(images: string[]) {
-  if (images.length > 2) throw new Error('invalid_reference_images')
+  if (images.length > 5) throw new Error('invalid_reference_images')
   for (const image of images) {
     const match = REFERENCE_IMAGE.exec(image)
     if (!match) throw new Error('invalid_reference_image')

@@ -22,5 +22,8 @@ describe('image playground route', () => {
     expect(response.text).toContain('/api/images/models')
     expect(response.text).not.toContain('localStorage')
     expect(response.text).not.toContain('Bearer sk-')
+    // 内联脚本必须可解析（曾因模板字符串吃掉正则反斜杠导致整段脚本失效）
+    const script = response.text.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
+    expect(() => new Function(script)).not.toThrow()
   })
 })

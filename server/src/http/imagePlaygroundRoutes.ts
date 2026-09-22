@@ -44,7 +44,12 @@ const PAGE = `<!doctype html>
   .task-result { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .task-result img, .task-result video { width: 100%; border-radius: 8px; }
   .task-error { color: #991b1b; font-size: 13px; margin-top: 8px; }
-  .thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; margin-right: 6px; }
+  .thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-top: 6px; padding-bottom: 4px; }
+  .thumb { position: relative; flex: 0 0 auto; }
+  .thumb img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; display: block; }
+  .thumb button { position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: #991b1b; color: #fff; font-size: 12px; line-height: 20px; padding: 0; margin: 0; cursor: pointer; }
+  .drop-hint { display: none; position: fixed; inset: 0; background: rgba(217, 119, 6, .12); border: 3px dashed #d97706; z-index: 9; pointer-events: none; }
+  body.dragging .drop-hint { display: block; }
 </style>
 </head>
 <body>
@@ -117,11 +122,12 @@ const PAGE = `<!doctype html>
   <div id="image-gemini-hint" style="display:none">
     <p class="hint">当前 Gemini 生图模型不支持比例/尺寸参数，按模型默认出图；出图数量仍有效。</p>
   </div>
-  <div id="refs-wrap">
-    <label for="refs">参考图（图片模型最多 2 张；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
-    <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
-    <div class="thumbs" id="thumbs"></div>
-  </div>
+<div id="refs-wrap">
+  <label for="refs">参考图（图片模型最多 5 张，可拖拽进页面或直接粘贴截图；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
+  <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
+  <div class="thumbs" id="thumbs"></div>
+</div>
+<div class="drop-hint" id="drop-hint"></div>
   <button id="go">提交任务</button>
   <div class="submit-status" id="submit-status"></div>
   <div class="quota" id="quota"></div>
@@ -141,7 +147,7 @@ var ERRORS = {
   invalid_count: '出图数量仅支持 1~4',
   invalid_resolution: '不支持的视频分辨率（仅 720p/1080p）',
   invalid_duration: '不支持的视频时长（仅 5/10 秒）',
-  invalid_reference_images: '参考图最多 2 张',
+  invalid_reference_images: '参考图最多 5 张',
   invalid_reference_image: '参考图格式不支持，只接受 jpg/png/webp',
   invalid_reference_image_size: '参考图超过 2MB',
   task_not_found: '任务不存在或已过期（结果只保留 30 分钟）',
@@ -270,22 +276,76 @@ function enterWorkspace() {
 gateGo.addEventListener('click', enterWorkspace)
 gateInvite.addEventListener('keydown', function (event) { if (event.key === 'Enter') enterWorkspace() })
 
-refsInput.addEventListener('change', function (event) {
-  refs = []
+var MAX_REFS = 5
+
+function renderThumbs() {
   thumbsEl.textContent = ''
-  var files = Array.prototype.slice.call(event.target.files).slice(0, 2)
+  refs.forEach(function (src, index) {
+    var wrap = document.createElement('span')
+    wrap.className = 'thumb'
+    var img = document.createElement('img')
+    img.src = src
+    img.alt = '参考图' + (index + 1)
+    var remove = document.createElement('button')
+    remove.type = 'button'
+    remove.textContent = '×'
+    remove.title = '移除这张参考图'
+    remove.addEventListener('click', function () {
+      refs.splice(index, 1)
+      renderThumbs()
+    })
+    wrap.appendChild(img)
+    wrap.appendChild(remove)
+    thumbsEl.appendChild(wrap)
+  })
+}
+
+function addRefFiles(fileList) {
+  var files = Array.prototype.slice.call(fileList).filter(function (file) {
+    return /^image\\/(jpeg|png|webp)$/.test(file.type)
+  })
+  if (files.length === 0) return
   files.forEach(function (file) {
     if (file.size > 2 * 1024 * 1024) { showSubmit('error', '参考图 ' + file.name + ' 超过 2MB'); return }
     var reader = new FileReader()
     reader.onload = function () {
+      if (refs.length >= MAX_REFS) { showSubmit('error', '参考图最多 ' + MAX_REFS + ' 张'); return }
       refs.push(String(reader.result))
-      var img = document.createElement('img')
-      img.src = String(reader.result)
-      img.alt = file.name
-      thumbsEl.appendChild(img)
+      renderThumbs()
+      showSubmit('info', '已添加参考图 ' + refs.length + '/' + MAX_REFS)
     }
     reader.readAsDataURL(file)
   })
+}
+
+refsInput.addEventListener('change', function (event) {
+  addRefFiles(event.target.files)
+  refsInput.value = ''
+})
+
+document.addEventListener('dragover', function (event) {
+  event.preventDefault()
+  document.body.classList.add('dragging')
+})
+document.addEventListener('dragleave', function (event) {
+  if (event.relatedTarget === null) document.body.classList.remove('dragging')
+})
+document.addEventListener('drop', function (event) {
+  event.preventDefault()
+  document.body.classList.remove('dragging')
+  addRefFiles(event.dataTransfer.files)
+})
+document.addEventListener('paste', function (event) {
+  var items = event.clipboardData && event.clipboardData.items
+  if (!items) return
+  var files = []
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].kind === 'file' && items[i].type.indexOf('image/') === 0) {
+      var file = items[i].getAsFile()
+      if (file) files.push(file)
+    }
+  }
+  if (files.length > 0) addRefFiles(files)
 })
 
 optimizeBtn.addEventListener('click', function () {
