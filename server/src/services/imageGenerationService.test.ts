@@ -158,8 +158,78 @@ describe('image generation service', () => {
       }), { status: 200 })
     })
     const service = createImageGenerationService(config, fetcher)
-    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.8.3', prompt: '一只猫', model: 'openai/sora-2' })).rejects.toThrow('invalid_model')
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.8.3', prompt: '一只猫', model: 'kwaivgi/kling-v3.0-std' })).rejects.toThrow('invalid_model')
     await service.generate({ inviteCode: 'friends-only', ip: '10.9.8.4', prompt: '一只猫' })
+  })
+
+  it('omits image_config for non-openai image models', async () => {
+    let requestBody: Record<string, unknown> | undefined
+    const fetcher: typeof fetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      requestBody = JSON.parse(String(init?.body))
+      return new Response(JSON.stringify({
+        choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+      }), { status: 200 })
+    })
+    const service = createImageGenerationService({ ...config, enabledModels: ['google/gemini-3.1-flash-image-preview'] }, fetcher)
+    await service.generate({ inviteCode: 'friends-only', ip: '10.9.8.5', prompt: '一只猫' })
+    expect(requestBody?.model).toBe('google/gemini-3.1-flash-image-preview')
+    expect(requestBody?.image_config).toBeUndefined()
+  })
+
+  it('runs the relay video flow: create with resolution and first frame, poll, download via content proxy', async () => {
+    const calls: Array<{ url: string; body?: Record<string, unknown> }> = []
+    const fetcher: typeof fetch = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input)
+      calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      if (url.endsWith('/videos')) return new Response(JSON.stringify({ id: 'job-1' }), { status: 200 })
+      if (url.endsWith('/videos/job-1')) return new Response(JSON.stringify({ status: 'completed', unsigned_urls: ['https://upstream.example.com/clip.mp4'] }), { status: 200 })
+      if (url.endsWith('/videos/job-1/content')) return new Response(new Uint8Array([0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d]), { status: 200, headers: { 'content-type': 'video/mp4' } })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    const service = createImageGenerationService({ ...config, videoPollIntervalMs: 1 }, fetcher)
+    const result = await service.generateVideo({
+      prompt: '小狗在草地上奔跑',
+      model: 'kwaivgi/kling-v3.0-std',
+      resolution: '720p',
+      referenceImages: ['data:image/png;base64,aGVsbG8=']
+    })
+    expect(result.data[0]).toEqual({ b64_json: 'ZnR5cGlzb20=', mime: 'video/mp4' })
+    expect(calls[0]).toMatchObject({
+      url: 'https://example.com/v1/videos',
+      body: {
+        model: 'kwaivgi/kling-v3.0-std',
+        prompt: '小狗在草地上奔跑',
+        resolution: '720p',
+        frame_images: [{ type: 'image_url', image_url: { url: 'data:image/png;base64,aGVsbG8=' }, frame_type: 'first_frame' }]
+      }
+    })
+    expect(calls[1]?.url).toBe('https://example.com/v1/videos/job-1')
+    expect(calls[2]?.url).toBe('https://example.com/v1/videos/job-1/content')
+  })
+
+  it('falls back to the unsigned direct url when the content proxy fails', async () => {
+    const fetcher: typeof fetch = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input)
+      if (url.endsWith('/videos')) return new Response(JSON.stringify({ id: 'job-2' }), { status: 200 })
+      if (url.endsWith('/videos/job-2')) return new Response(JSON.stringify({ status: 'completed', unsigned_urls: ['https://cdn.example.com/clip.mp4'] }), { status: 200 })
+      if (url.endsWith('/videos/job-2/content')) return new Response('proxy down', { status: 502 })
+      if (url === 'https://cdn.example.com/clip.mp4') return new Response(new Uint8Array([0x01, 0x02, 0x03]), { status: 200 })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    const service = createImageGenerationService({ ...config, videoPollIntervalMs: 1 }, fetcher)
+    const result = await service.generateVideo({ prompt: '测试', model: 'kwaivgi/kling-v3.0-std' })
+    expect(result.data[0]).toMatchObject({ mime: 'video/mp4' })
+  })
+
+  it('surfaces upstream video rejection without leaking internals', async () => {
+    const fetcher: typeof fetch = vi.fn(async () => new Response(JSON.stringify({
+      error: { message: 'sensitive account details', code: 400 }
+    }), { status: 200 }))
+    const service = createImageGenerationService({ ...config, videoPollIntervalMs: 1 }, fetcher)
+    const error = await service.generateVideo({ prompt: '测试', model: 'kwaivgi/kling-v3.0-std' }).catch(caught => caught)
+    expect(error).toBeInstanceOf(ImageGenerationError)
+    expect(error.message).toBe('upstream_rejected')
+    expect(JSON.stringify(error)).not.toContain('sensitive account details')
   })
 
   it('rejects every attempt while no invite code is configured', async () => {

@@ -65,7 +65,7 @@ export function createImageRoutes(config: Pick<ServerConfig, 'image'>, fetcher: 
         prompt: typeof body.prompt === 'string' ? body.prompt : '',
         model: typeof body.model === 'string' ? body.model : undefined,
         size: typeof body.size === 'string' ? body.size : undefined,
-        seconds: body.seconds === undefined ? undefined : Number(body.seconds),
+        resolution: typeof body.resolution === 'string' ? body.resolution : undefined,
         referenceImages: Array.isArray(body.referenceImages) && body.referenceImages.every(image => typeof image === 'string') ? body.referenceImages : body.referenceImages === undefined ? undefined : ['']
       })
       response.status(202).json(snapshot)

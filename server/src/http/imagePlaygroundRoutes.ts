@@ -54,22 +54,21 @@ const PAGE = `<!doctype html>
   </select>
 </div>
 <div id="seconds-wrap" style="display:none">
-  <label for="seconds">视频时长</label>
+  <label for="seconds">视频分辨率</label>
   <select id="seconds">
-    <option value="4">4 秒</option>
-    <option value="8">8 秒</option>
-    <option value="12">12 秒</option>
+    <option value="720p">720p</option>
+    <option value="1080p">1080p</option>
   </select>
 </div>
 <div id="refs-wrap">
-  <label for="refs">参考图（可选，最多 2 张，单张 ≤ 2MB，jpg/png/webp）</label>
+  <label for="refs">参考图（图片模型最多 2 张；视频模型取第 1 张作首帧图生视频；单张 ≤ 2MB，jpg/png/webp）</label>
   <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
   <div class="thumbs" id="thumbs"></div>
 </div>
 <button id="go">提交任务</button>
 <div class="submit-status" id="submit-status"></div>
 <div id="tasks"></div>
-<p class="hint">限额：每分钟 1 次提交、每天 5 次（邀请码错误等失败尝试同样计入）。图片约 1~3 分钟，视频视上游而定。</p>
+<p class="hint">限额：每分钟 1 次提交、每天 5 次（邀请码错误等失败尝试同样计入）。图片约 1~3 分钟，视频约 5 分钟。</p>
 <script>
 var REMEMBER_KEY = 'image-playground-invite'
 var ERRORS = {
@@ -78,7 +77,7 @@ var ERRORS = {
   invalid_prompt: '提示词为空或超过 4000 字符',
   invalid_model: '模型未启用',
   invalid_size: '不支持的尺寸',
-  invalid_seconds: '不支持的视频时长（仅 4/8/12 秒）',
+  invalid_resolution: '不支持的视频分辨率（仅 720p/1080p）',
   invalid_reference_images: '参考图最多 2 张',
   invalid_reference_image: '参考图格式不支持，只接受 jpg/png/webp',
   invalid_reference_image_size: '参考图超过 2MB',
@@ -218,8 +217,10 @@ goBtn.addEventListener('click', function () {
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
   var body = { prompt: prompt, model: modelSelect.value }
-  if (isVideo) body.seconds = Number(document.getElementById('seconds').value)
-  else {
+  if (isVideo) {
+    body.resolution = document.getElementById('seconds').value
+    if (refs.length > 0) body.referenceImages = [refs[0]]
+  } else {
     body.size = document.getElementById('size').value
     if (refs.length > 0) body.referenceImages = refs
   }

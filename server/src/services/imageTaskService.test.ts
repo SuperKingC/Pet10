@@ -14,13 +14,13 @@ function fakeGeneration(overrides: Partial<ImageGenerationCore> = {}): ImageGene
     resolveModel: (modelId?: string) => {
       const requested = modelId ?? 'openai/gpt-5.4-image-2'
       if (requested === 'openai/gpt-5.4-image-2') return { id: requested, kind: 'image', label: 'image' }
-      if (requested === 'openai/sora-2') return { id: requested, kind: 'video', label: 'video', supportsSeconds: true }
+      if (requested === 'kwaivgi/kling-v3.0-std') return { id: requested, kind: 'video', label: 'video' }
       throw new Error('invalid_model')
     },
     listModels: () => [],
     generate: async () => ({ data: [{ b64_json: 'aGVsbG8=' }] }),
     generateImageData: async () => ({ data: [{ b64_json: 'aGVsbG8=' }] }),
-    generateVideo: async () => ({ data: [{ url: 'https://cdn.example.com/clip.mp4', mime: 'video/mp4' }] }),
+    generateVideo: async () => ({ data: [{ b64_json: 'aGVsbG8=', mime: 'video/mp4' }] }),
     ...overrides
   } as ImageGenerationCore
 }
@@ -58,19 +58,19 @@ describe('image task service', () => {
           maxObserved = Math.max(maxObserved, runningCount)
           await gate
           runningCount--
-          return { data: [{ url: 'https://cdn.example.com/clip.mp4', mime: 'video/mp4' }] }
+          return { data: [{ b64_json: 'aGVsbG8=', mime: 'video/mp4' }] }
         }
       }
     })
-    const first = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.2', prompt: '小狗奔跑', model: 'openai/sora-2', seconds: 8 })
-    const second = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.3', prompt: '小猫跳跃', model: 'openai/sora-2', seconds: 4 })
+    const first = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.2', prompt: '小狗奔跑', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
+    const second = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.3', prompt: '小猫跳跃', model: 'kwaivgi/kling-v3.0-std', resolution: '1080p' })
     expect(first).toMatchObject({ kind: 'video', status: 'running' })
     expect(second).toMatchObject({ kind: 'video', status: 'running' })
     await flush()
     expect(maxObserved).toBe(2)
     release()
     await flush()
-    expect(tasks.get(first.id, 'friends-only')).toMatchObject({ status: 'succeeded', data: [{ url: 'https://cdn.example.com/clip.mp4' }] })
+    expect(tasks.get(first.id, 'friends-only')).toMatchObject({ status: 'succeeded', data: [{ b64_json: 'aGVsbG8=' }] })
     expect(tasks.get(second.id, 'friends-only')?.status).toBe('succeeded')
   })
 
@@ -99,10 +99,22 @@ describe('image task service', () => {
     expect(tasks.get(snapshot.id, 'friends-only')).toMatchObject({ status: 'failed', error: 'upstream_unavailable' })
   })
 
-  it('rejects seconds on image models and unsupported durations', () => {
-    const tasks = createService()
-    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', seconds: 8 })).toThrow('invalid_seconds')
-    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', model: 'openai/sora-2', seconds: 6 })).toThrow('invalid_seconds')
+  it('rejects resolution on image models and unsupported resolutions, and forwards first-frame references', async () => {
+    let videoInput: { resolution?: string; referenceImages?: string[] } | undefined
+    const tasks = createService({
+      generation: {
+        generateVideo: async (input) => {
+          videoInput = input
+          return { data: [{ b64_json: 'aGVsbG8=', mime: 'video/mp4' }] }
+        }
+      }
+    })
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', resolution: '720p' })).toThrow('invalid_resolution')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', model: 'kwaivgi/kling-v3.0-std', resolution: '4k' })).toThrow('invalid_resolution')
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '小狗跑', model: 'kwaivgi/kling-v3.0-std', resolution: '720p', referenceImages: ['data:image/png;base64,aGVsbG8='] })
+    await flush()
+    expect(snapshot.status).toBe('running')
+    expect(videoInput).toMatchObject({ resolution: '720p', referenceImages: ['data:image/png;base64,aGVsbG8='] })
   })
 
   it('evicts the oldest finished task beyond the capacity cap', async () => {

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { ImageGenerationCore } from './imageGenerationService.js'
+import { validateReferenceImages, VIDEO_RESOLUTIONS, type ImageGenerationCore } from './imageGenerationService.js'
 import type { ImageRateLimiter } from './imageRateLimiter.js'
 import type { ImageModelKind } from './imageModels.js'
 import { isImageModel } from './imageModels.js'
@@ -19,8 +19,6 @@ interface InternalTask {
   snapshot: ImageTaskSnapshot
   expiry?: NodeJS.Timeout
 }
-
-const VIDEO_SECONDS = new Set([4, 8, 12])
 
 /**
  * 异步生图/生视频任务：提交一次消耗一个限流额度，任务在后台并行运行，
@@ -48,14 +46,16 @@ export function createImageTaskService({ generation, limiter, maxPromptLength, m
 
   return {
     /** 提交任务：鉴权→限流→校验→后台运行（提交即返回，不等待生成） */
-    submit(input: { inviteCode: string; ip: string; prompt: string; model?: string; size?: string; seconds?: number; referenceImages?: string[] }): ImageTaskSnapshot {
+    submit(input: { inviteCode: string; ip: string; prompt: string; model?: string; size?: string; resolution?: string; referenceImages?: string[] }): ImageTaskSnapshot {
       if (!generation.hasInviteConfig()) throw new Error('unauthorized')
       // 邀请码错误也必须消耗限流额度，否则失败尝试不占预算，邀请码可被在线爆破
       if (!limiter.allow(input.ip)) throw new Error('rate_limit')
       generation.authorize(input.inviteCode)
       if (!input.prompt.trim() || input.prompt.length > maxPromptLength) throw new Error('invalid_prompt')
       const model = generation.resolveModel(input.model)
-      if (input.seconds !== undefined && (!Number.isInteger(input.seconds) || isImageModel(model) || !VIDEO_SECONDS.has(input.seconds))) throw new Error('invalid_seconds')
+      if (input.resolution !== undefined && (isImageModel(model) || !VIDEO_RESOLUTIONS.has(input.resolution))) throw new Error('invalid_resolution')
+      const referenceImages = input.referenceImages ?? []
+      validateReferenceImages(referenceImages)
       evictIfFull()
       const id = randomUUID()
       const task: InternalTask = {
@@ -67,8 +67,8 @@ export function createImageTaskService({ generation, limiter, maxPromptLength, m
       void (async () => {
         try {
           const result = model.kind === 'video'
-            ? await generation.generateVideo({ prompt: input.prompt, model: model.id, size: input.size, seconds: input.seconds })
-            : await generation.generateImageData({ prompt: input.prompt, model: model.id, size: input.size, referenceImages: input.referenceImages })
+            ? await generation.generateVideo({ prompt: input.prompt, model: model.id, resolution: input.resolution, referenceImages })
+            : await generation.generateImageData({ prompt: input.prompt, model: model.id, size: input.size, referenceImages })
           task.snapshot = { ...task.snapshot, status: 'succeeded', durationMs: Date.now() - startedAt, data: result.data }
         } catch (error) {
           task.snapshot = { ...task.snapshot, status: 'failed', durationMs: Date.now() - startedAt, error: error instanceof Error ? error.message : 'internal' }

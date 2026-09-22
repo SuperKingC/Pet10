@@ -15,10 +15,10 @@ export class ImageGenerationError extends Error {
 const DEFAULT_IMAGE_MODEL = 'openai/gpt-5.4-image-2'
 const SIZES = new Set(['1024x1024', '1024x1536', '1536x1024'])
 const ASPECT_RATIOS: Record<string, string> = { '1024x1024': '1:1', '1024x1536': '2:3', '1536x1024': '3:2' }
-const VIDEO_SIZES = new Set(['720x1280', '1280x720', '1024x1024'])
-const VIDEO_SECONDS = new Set([4, 8, 12])
-const VIDEO_POLL_INTERVAL_MS = 5000
-const VIDEO_MAX_POLLS = 180
+export const VIDEO_RESOLUTIONS = new Set(['720p', '1080p'])
+const VIDEO_TIMEOUT_MS = 15 * 60 * 1000
+// openai 系生图模型才吃 image_config（aspect_ratio/image_size）；Gemini 系不支持该字段
+const supportsImageConfig = (model: string) => /^openai\//.test(model) && /image/.test(model)
 const REFERENCE_IMAGE = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/
 const MAX_REFERENCE_BYTES = 2 * 1024 * 1024
 
@@ -32,6 +32,8 @@ function validateReferenceImages(images: string[]) {
     if (decodedBytes > MAX_REFERENCE_BYTES) throw new Error('invalid_reference_image_size')
   }
 }
+
+export { validateReferenceImages }
 
 function validatePrompt(prompt: string, maxPromptLength: number) {
   if (!prompt.trim() || prompt.length > maxPromptLength) throw new Error('invalid_prompt')
@@ -79,14 +81,15 @@ export interface ImageModelChoice {
 }
 
 export function createImageGenerationService(
-  config: { inviteCode: string; upstreamBaseUrl: string; upstreamApiKey?: string; rateLimitPerMinute: number; dailyLimit: number; maxPromptLength: number; enabledModels?: string[] },
+  config: { inviteCode: string; upstreamBaseUrl: string; upstreamApiKey?: string; rateLimitPerMinute: number; dailyLimit: number; maxPromptLength: number; enabledModels?: string[]; videoPollIntervalMs?: number },
   fetcher: typeof fetch = fetch,
   limiter: ImageRateLimiter = createImageRateLimiter({ perMinute: config.rateLimitPerMinute, perDay: config.dailyLimit })
 ) {
   const enabledModels = resolveEnabledImageModels(config.enabledModels ?? [DEFAULT_IMAGE_MODEL])
+  const videoPollIntervalMs = config.videoPollIntervalMs ?? 5000
 
   function resolveModel(modelId?: string): ImageModelDef {
-    const requested = modelId ?? DEFAULT_IMAGE_MODEL
+    const requested = modelId ?? enabledModels[0]?.id
     const def = enabledModels.find((model) => model.id === requested)
     if (!def) throw new Error('invalid_model')
     return def
@@ -114,9 +117,11 @@ export function createImageGenerationService(
     const size = input.size ?? '1024x1024'
     const referenceImages = input.referenceImages ?? []
     const content = referenceImages.length === 0 ? input.prompt : [{ type: 'text', text: input.prompt }, ...referenceImages.map(url => ({ type: 'image_url', image_url: { url } }))]
+    const upstreamBody: Record<string, unknown> = { model: input.model, messages: [{ role: 'user', content }], modalities: ['image'] }
+    if (supportsImageConfig(input.model)) upstreamBody.image_config = { aspect_ratio: ASPECT_RATIOS[size], image_size: '2K' }
     let response: Response
     try {
-      response = await fetcher(`${config.upstreamBaseUrl}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }, body: JSON.stringify({ model: input.model, messages: [{ role: 'user', content }], modalities: ['image'], image_config: { aspect_ratio: ASPECT_RATIOS[size], image_size: '2K' } }) })
+      response = await fetcher(`${config.upstreamBaseUrl}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }, body: JSON.stringify(upstreamBody) })
     } catch {
       throw new ImageGenerationError('upstream_unavailable')
     }
@@ -138,57 +143,64 @@ export function createImageGenerationService(
     }
   }
 
-  /** 视频上游调用（OpenAI /videos 形状：创建→轮询→取片；不含鉴权/限流，任务复用） */
-  async function generateVideo(input: { prompt: string; model: string; size?: string; seconds?: number }) {
+  /** 视频上游调用（中转 /videos 形状：创建→轮询→取片；首帧图可选走图生视频；不含鉴权/限流，任务复用） */
+  async function generateVideo(input: { prompt: string; model: string; resolution?: string; referenceImages?: string[] }) {
     if (!config.upstreamApiKey) throw new Error('upstream_unavailable')
-    if (input.size && !VIDEO_SIZES.has(input.size)) throw new Error('invalid_size')
-    if (input.seconds !== undefined && !VIDEO_SECONDS.has(input.seconds)) throw new Error('invalid_seconds')
+    if (input.resolution && !VIDEO_RESOLUTIONS.has(input.resolution)) throw new Error('invalid_resolution')
     const auth = { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }
-    let created: { id?: string; status?: string; url?: string } & Record<string, unknown>
+    const createBody: Record<string, unknown> = { model: input.model, prompt: input.prompt, ...(input.resolution === undefined ? {} : { resolution: input.resolution }) }
+    const firstFrame = (input.referenceImages ?? [])[0]
+    if (firstFrame) createBody.frame_images = [{ type: 'image_url', image_url: { url: firstFrame }, frame_type: 'first_frame' }]
+    let jobId: string | undefined
     try {
-      const response = await fetcher(`${config.upstreamBaseUrl}/videos`, {
-        method: 'POST',
-        headers: auth,
-        body: JSON.stringify({ model: input.model, prompt: input.prompt, ...(input.seconds === undefined ? {} : { seconds: String(input.seconds) }), ...(input.size === undefined ? {} : { size: input.size }) })
-      })
-      created = await response.json() as typeof created
-      if (created?.error) throw new ImageGenerationError('upstream_rejected', response.status)
-      if (!response.ok || !created?.id) throw new ImageGenerationError('upstream_invalid_response', response.status)
+      const response = await fetcher(`${config.upstreamBaseUrl}/videos`, { method: 'POST', headers: auth, body: JSON.stringify(createBody) })
+      const payload = await response.json() as { id?: string; jobId?: string; job_id?: string; task_id?: string; error?: unknown }
+      if (payload?.error) throw new ImageGenerationError('upstream_rejected', response.status)
+      jobId = payload?.id ?? payload?.jobId ?? payload?.job_id ?? payload?.task_id
+      if (!response.ok || !jobId) throw new ImageGenerationError('upstream_invalid_response', response.status)
     } catch (error) {
       if (error instanceof ImageGenerationError) throw error
       throw new ImageGenerationError('upstream_unavailable')
     }
-    for (let poll = 0; poll < VIDEO_MAX_POLLS; poll++) {
-      await sleep(VIDEO_POLL_INTERVAL_MS)
-      let payload: { id?: string; status?: string; url?: string } & Record<string, unknown>
+    const maxPolls = Math.ceil(VIDEO_TIMEOUT_MS / videoPollIntervalMs)
+    for (let poll = 0; poll < maxPolls; poll++) {
+      await sleep(videoPollIntervalMs)
+      let payload: { status?: string; state?: string; unsigned_urls?: string[]; url?: string; data?: { status?: string } } & Record<string, unknown>
       try {
-        const response = await fetcher(`${config.upstreamBaseUrl}/videos/${created.id}`, { headers: { authorization: `Bearer ${config.upstreamApiKey}` } })
+        const response = await fetcher(`${config.upstreamBaseUrl}/videos/${jobId}`, { headers: { authorization: `Bearer ${config.upstreamApiKey}` } })
         payload = await response.json() as typeof payload
         if (payload?.error) throw new ImageGenerationError('upstream_rejected', response.status)
       } catch (error) {
         if (error instanceof ImageGenerationError) throw error
         continue
       }
-      if (payload.status === 'completed') {
-        if (typeof payload.url === 'string' && payload.url.startsWith('https://')) return { data: [{ url: payload.url, mime: 'video/mp4' }] }
-        return await downloadVideo(created.id!)
+      const status = payload.status ?? payload.state ?? payload.data?.status
+      if (status === 'completed') {
+        const directUrl = (payload.unsigned_urls ?? [])[0] ?? payload.url
+        return await downloadVideo(jobId, typeof directUrl === 'string' ? directUrl : undefined)
       }
-      if (payload.status === 'failed' || payload.status === 'cancelled') throw new ImageGenerationError('upstream_rejected')
+      if (status === 'failed' || status === 'cancelled') throw new ImageGenerationError('upstream_rejected')
     }
     throw new ImageGenerationError('upstream_unavailable')
   }
 
-  async function downloadVideo(id: string) {
-    let bytes: ArrayBuffer
+  async function downloadVideo(jobId: string, directUrl?: string) {
+    // 中转 /content 代理用本站 key 即可取片；unsigned_urls 直链指向上游（openrouter）需要上游侧鉴权，直接拉是空体
     try {
-      const response = await fetcher(`${config.upstreamBaseUrl}/videos/${id}/content`, { headers: { authorization: `Bearer ${config.upstreamApiKey}` } })
-      if (!response.ok) throw new ImageGenerationError('upstream_invalid_response', response.status)
-      bytes = await response.arrayBuffer()
-    } catch (error) {
-      if (error instanceof ImageGenerationError) throw error
-      throw new ImageGenerationError('upstream_unavailable')
+      const response = await fetcher(`${config.upstreamBaseUrl}/videos/${jobId}/content`, { headers: { authorization: `Bearer ${config.upstreamApiKey}` }, signal: AbortSignal.timeout(300000) })
+      if (response.ok) {
+        const bytes = await response.arrayBuffer()
+        if (bytes.byteLength > 0) return { data: [{ b64_json: Buffer.from(bytes).toString('base64'), mime: 'video/mp4' }] }
+      }
+    } catch {
+      // 代理不可用时兜底直链
     }
-    return { data: [{ b64_json: Buffer.from(bytes).toString('base64'), mime: 'video/mp4' }] }
+    if (directUrl) {
+      const response = await fetcher(directUrl, { signal: AbortSignal.timeout(300000) })
+      if (!response.ok) throw new ImageGenerationError('upstream_invalid_response', response.status)
+      return { data: [{ b64_json: Buffer.from(await response.arrayBuffer()).toString('base64'), mime: 'video/mp4' }] }
+    }
+    throw new ImageGenerationError('upstream_invalid_response')
   }
 
   function authorize(inviteCode: string) {
@@ -204,7 +216,7 @@ export function createImageGenerationService(
     authorize,
     resolveModel,
     listModels(): ImageModelChoice[] {
-      return enabledModels.map(({ id, kind, label, supportsSeconds }) => ({ id, kind, label, supportsSeconds }))
+      return enabledModels.map(({ id, kind, label }) => ({ id, kind, label }))
     },
     /** 任务运行器用：无鉴权/限流的图片上游调用 */
     generateImageData,
