@@ -10,7 +10,8 @@ const config = {
     upstreamApiKey: 'upstream-secret',
     rateLimitPerMinute: 3,
     dailyLimit: 30,
-    maxPromptLength: 4000
+    maxPromptLength: 4000,
+    enabledModels: ['openai/gpt-5.4-image-2', 'openai/gpt-5.5']
   }
 }
 
@@ -76,5 +77,55 @@ describe('image generation routes', () => {
     expect(logger.mock.calls[0]?.[0]).not.toContain('日志中不应出现的提示词')
     expect(logger.mock.calls[0]?.[0]).not.toContain('upstream-secret')
     logger.mockRestore()
+  })
+
+  it('lists enabled models without any secrets', async () => {
+    const response = await request(createApp(vi.fn() as typeof fetch)).get('/api/images/models')
+
+    expect(response.status).toBe(200)
+    expect(response.body.models).toEqual([
+      { id: 'openai/gpt-5.4-image-2', kind: 'image', label: expect.any(String) },
+      { id: 'openai/gpt-5.5', kind: 'image', label: expect.any(String) }
+    ])
+    expect(JSON.stringify(response.body)).not.toContain('upstream-secret')
+  })
+
+  it('accepts a task submission and exposes its result through polling', async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+    }), { status: 200 }))
+    const app = createApp(fetcher)
+
+    const submitted = await request(app)
+      .post('/api/images/tasks')
+      .set('authorization', 'Bearer friends-only')
+      .send({ prompt: '一只猫', model: 'openai/gpt-5.5', size: '1024x1024' })
+
+    expect(submitted.status).toBe(202)
+    expect(submitted.body).toMatchObject({ model: 'openai/gpt-5.5', kind: 'image', status: 'running' })
+
+    const polled = await request(app)
+      .get(`/api/images/tasks/${submitted.body.id}`)
+      .set('authorization', 'Bearer friends-only')
+
+    expect(polled.status).toBe(200)
+    expect(polled.body).toMatchObject({ status: 'succeeded', data: [{ url: 'https://cdn.example.com/result.png' }] })
+  })
+
+  it('guards task endpoints with the invite code and 404 for unknown ids', async () => {
+    const app = createApp(vi.fn() as typeof fetch)
+
+    const denied = await request(app)
+      .post('/api/images/tasks')
+      .set('authorization', 'Bearer wrong-code')
+      .send({ prompt: '一只猫' })
+    expect(denied.status).toBe(401)
+    expect(denied.body.error).toBe('invalid_invite_code')
+
+    const missing = await request(app)
+      .get('/api/images/tasks/no-such-id')
+      .set('authorization', 'Bearer friends-only')
+    expect(missing.status).toBe(404)
+    expect(missing.body.error).toBe('task_not_found')
   })
 })

@@ -135,6 +135,33 @@ describe('image generation service', () => {
     await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('rate_limit')
   })
 
+  it('routes enabled models into the upstream request and rejects disabled ones', async () => {
+    let requestedModel = ''
+    const fetcher: typeof fetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      requestedModel = JSON.parse(String(init?.body)).model
+      return new Response(JSON.stringify({
+        choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+      }), { status: 200 })
+    })
+    const service = createImageGenerationService({ ...config, enabledModels: ['openai/gpt-5.4-image-2', 'openai/gpt-5.5'] }, fetcher)
+    await service.generate({ inviteCode: 'friends-only', ip: '10.9.8.1', prompt: '一只猫', model: 'openai/gpt-5.5' })
+    expect(requestedModel).toBe('openai/gpt-5.5')
+    expect(service.listModels().map((model) => model.id)).toEqual(['openai/gpt-5.4-image-2', 'openai/gpt-5.5'])
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.8.2', prompt: '一只猫', model: 'openai/sora-2' })).rejects.toThrow('invalid_model')
+  })
+
+  it('rejects video models on the synchronous endpoint and falls back to the default model', async () => {
+    const fetcher: typeof fetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      expect(JSON.parse(String(init?.body)).model).toBe('openai/gpt-5.4-image-2')
+      return new Response(JSON.stringify({
+        choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+      }), { status: 200 })
+    })
+    const service = createImageGenerationService(config, fetcher)
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.8.3', prompt: '一只猫', model: 'openai/sora-2' })).rejects.toThrow('invalid_model')
+    await service.generate({ inviteCode: 'friends-only', ip: '10.9.8.4', prompt: '一只猫' })
+  })
+
   it('rejects every attempt while no invite code is configured', async () => {
     const fetcher = vi.fn(async () => new Response('{}', { status: 200 }))
     const service = createImageGenerationService({ ...config, inviteCode: '', rateLimitPerMinute: 3 }, fetcher as typeof fetch)

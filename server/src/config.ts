@@ -37,9 +37,10 @@ const environmentSchema = z.object({
   IMAGE_INVITE_CODE: z.string().default('change-me'),
   IMAGE_UPSTREAM_BASE_URL: z.string().url().default('https://apirouter.zhiqiteai.cn/ApiRouterServ/v1'),
   IMAGE_UPSTREAM_API_KEY: z.string().optional(),
-  IMAGE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(3),
-  IMAGE_DAILY_LIMIT: z.coerce.number().int().positive().default(30),
-  IMAGE_MAX_PROMPT_LENGTH: z.coerce.number().int().positive().default(4000)
+  IMAGE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(1),
+  IMAGE_DAILY_LIMIT: z.coerce.number().int().positive().default(5),
+  IMAGE_MAX_PROMPT_LENGTH: z.coerce.number().int().positive().default(4000),
+  IMAGE_ENABLED_MODELS: z.string().default('openai/gpt-5.4-image-2,openai/gpt-5.5')
 })
 
 export interface ServerConfig {
@@ -97,6 +98,7 @@ export interface ServerConfig {
     rateLimitPerMinute: number
     dailyLimit: number
     maxPromptLength: number
+    enabledModels: string[]
   }
 }
 
@@ -167,7 +169,8 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       upstreamApiKey: parsed.IMAGE_UPSTREAM_API_KEY,
       rateLimitPerMinute: parsed.IMAGE_RATE_LIMIT_PER_MINUTE,
       dailyLimit: parsed.IMAGE_DAILY_LIMIT,
-      maxPromptLength: parsed.IMAGE_MAX_PROMPT_LENGTH
+      maxPromptLength: parsed.IMAGE_MAX_PROMPT_LENGTH,
+      enabledModels: [...new Set(parsed.IMAGE_ENABLED_MODELS.split(',').map(id => id.trim()).filter(Boolean))]
     }
   }
 }

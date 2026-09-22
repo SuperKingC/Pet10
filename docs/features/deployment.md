@@ -13,10 +13,11 @@
 
 ## 生图接口与浏览器测试页
 
-- 对外接口：`POST /api/images/generations`（`server/src/http/imageRoutes.ts`），用 `Authorization: Bearer <生图邀请码>` 鉴权。邀请码保存在服务器环境变量 `IMAGE_INVITE_CODE`，上游固定 `openai/gpt-5.4-image-2` 中转（`server/src/services/imageGenerationService.ts`），成功响应为 OpenAI images 兼容的 `data` 数组（base64 或 url）加 `durationMs`。
-- 限额：每分钟 3 次、每天 30 次，按请求 IP 计。**邀请码错误的尝试同样消耗限额**（校验顺序：先消耗限额、再比对邀请码），防止对邀请码做在线爆破；未配置邀请码时一律拒绝。
-- 浏览器测试页：`https://api.pet10kk.com/image-playground`（`server/src/http/imagePlaygroundRoutes.ts`，页面内联在 TS 里随 `server:build` 一起产出）。可填写邀请码、提示词、尺寸和最多 2 张参考图后直接生成，带等待计时和中文错误提示。页面本身不含任何密钥，邀请码只保存在使用者浏览器的 localStorage；页面带 `noindex`。
-- 邀请码安全约定：保持足够长（建议 16 位以上随机字母数字），更换时更新服务器环境变量 `IMAGE_INVITE_CODE` 后重启 api 容器（属于 `all` 类发布的运维操作），不写进代码、仓库或日志。
+- 对外接口（`server/src/http/imageRoutes.ts`）：`POST /api/images/generations` 同步生图（阻塞直到出图，仅图片模型）；`POST /api/images/tasks` 提交异步任务（图片或视频，提交即返回 202）；`GET /api/images/tasks/:id` 轮询任务状态与结果；`GET /api/images/models` 返回启用模型目录（公开只读，无密钥）。全部用 `Authorization: Bearer <生图邀请码>` 鉴权，成功响应为 OpenAI images 兼容的 `data` 数组加 `durationMs`。
+- 模型目录（`server/src/services/imageModels.ts`）：内置图片模型 `openai/gpt-5.4-image-2`（现役主力）与 `openai/gpt-5.5`、视频模型 `openai/sora-2`，由环境变量 `IMAGE_ENABLED_MODELS`（逗号分隔）控制启用集，默认只启用两个图片模型。视频走上游 OpenAI `/videos` 形状（创建→轮询→取片）；当前中转尚无任何视频模型，提交视频任务会以 `upstream_rejected` 失败，待上游开通后即可用。
+- 限额：**每分钟 1 次提交、每天 5 次**，按请求 IP 计，同步接口与任务接口共享同一额度池。**邀请码错误的尝试同样消耗限额**（校验顺序：先消耗限额、再比对邀请码），防止对邀请码做在线爆破；未配置邀请码时一律拒绝。
+- 浏览器测试页：`https://api.pet10kk.com/image-playground`（`server/src/http/imagePlaygroundRoutes.ts`，页面内联在 TS 里随 `server:build` 一起产出）。从模型下拉选择图/视频模型（表单字段按类型联动），提交后任务卡片带计时、多任务并行轮询，图片/视频结果内联渲染。页面本身不含任何密钥，邀请码只保存在使用者浏览器的 localStorage；页面带 `noindex`。任务结果只存内存，保留 30 分钟、上限 30 个任务，重启即清。
+- 邀请码安全约定：保持足够长（16 位以上随机字母数字），更换时更新服务器 `/opt/pet10/.env.production` 的 `IMAGE_INVITE_CODE` 后 `docker compose --env-file .env.production -f docker-compose.prod.yml up -d --no-deps api` 重建容器（属于 `all` 类发布的运维操作），不写进代码、仓库或日志。
 
 ## 推荐发布流程
 

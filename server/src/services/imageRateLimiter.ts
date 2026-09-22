@@ -1,5 +1,7 @@
 type Bucket = { minute: number; day: string; minuteCount: number; dayCount: number }
 
+export type ImageRateLimiter = ReturnType<typeof createImageRateLimiter>
+
 export function createImageRateLimiter(config: { perMinute: number; perDay: number; now?: () => number }) {
   const buckets = new Map<string, Bucket>()
   const now = config.now ?? Date.now
