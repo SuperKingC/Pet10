@@ -100,7 +100,7 @@ describe('image task service', () => {
   })
 
   it('rejects resolution on image models and unsupported resolutions, and forwards first-frame references', async () => {
-    let videoInput: { resolution?: string; referenceImages?: string[] } | undefined
+    let videoInput: { resolution?: string; duration?: number; audio?: boolean; referenceImages?: string[] } | undefined
     const tasks = createService({
       generation: {
         generateVideo: async (input) => {
@@ -111,10 +111,39 @@ describe('image task service', () => {
     })
     expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', resolution: '720p' })).toThrow('invalid_resolution')
     expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', model: 'kwaivgi/kling-v3.0-std', resolution: '4k' })).toThrow('invalid_resolution')
-    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '小狗跑', model: 'kwaivgi/kling-v3.0-std', resolution: '720p', referenceImages: ['data:image/png;base64,aGVsbG8='] })
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '小狗跑', model: 'kwaivgi/kling-v3.0-std', resolution: '720p', duration: 10, audio: true, referenceImages: ['data:image/png;base64,aGVsbG8='] })
     await flush()
     expect(snapshot.status).toBe('running')
-    expect(videoInput).toMatchObject({ resolution: '720p', referenceImages: ['data:image/png;base64,aGVsbG8='] })
+    expect(videoInput).toMatchObject({ resolution: '720p', duration: 10, audio: true, referenceImages: ['data:image/png;base64,aGVsbG8='] })
+  })
+
+  it('validates aspect ratio, image size, count and duration per model kind', () => {
+    const tasks = createService()
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.1', prompt: '测试', aspectRatio: '16:9' })).toThrow('invalid_aspect_ratio')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.1', prompt: '测试', imageSize: '4K' })).toThrow('invalid_image_size')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.1', prompt: '测试', count: 5 })).toThrow('invalid_count')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.1', prompt: '测试', model: 'kwaivgi/kling-v3.0-std', count: 2 })).toThrow('invalid_count')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.1', prompt: '测试', model: 'kwaivgi/kling-v3.0-std', duration: 7 })).toThrow('invalid_duration')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.1', prompt: '测试', duration: 10 })).toThrow('invalid_duration')
+  })
+
+  it('fans out the requested image count in one submit and merges partial results', async () => {
+    let imageCalls = 0
+    const tasks = createService({
+      generation: {
+        generateImageData: async () => {
+          imageCalls++
+          if (imageCalls === 2) throw new Error('upstream_rejected')
+          return { data: [{ b64_json: 'aGVsbG8=' + imageCalls }] }
+        }
+      }
+    })
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.2', prompt: '三张猫', count: 3, aspectRatio: '2:3', imageSize: '1K' })
+    await flush()
+    const done = tasks.get(snapshot.id, 'friends-only')
+    expect(done?.status).toBe('succeeded')
+    expect(done?.data).toEqual([{ b64_json: 'aGVsbG8=1' }, { b64_json: 'aGVsbG8=3' }])
+    expect(imageCalls).toBe(3)
   })
 
   it('evicts the oldest finished task beyond the capacity cap', async () => {

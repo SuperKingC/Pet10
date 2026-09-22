@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import type { ServerConfig } from '../config.js'
 import { createImageGenerationService, ImageGenerationError } from '../services/imageGenerationService.js'
+import { createImagePromptOptimizer } from '../services/imagePromptOptimizer.js'
 import { createImageRateLimiter } from '../services/imageRateLimiter.js'
 import { createImageTaskService } from '../services/imageTaskService.js'
 
@@ -38,10 +39,46 @@ export function createImageRoutes(config: Pick<ServerConfig, 'image'>, fetcher: 
   const limiter = createImageRateLimiter({ perMinute: config.image.rateLimitPerMinute, perDay: config.image.dailyLimit })
   const service = createImageGenerationService(config.image, fetcher, limiter)
   const tasks = createImageTaskService({ generation: service, limiter, maxPromptLength: config.image.maxPromptLength })
+  // 提示词优化是廉价文本调用，独立于生图额度的宽松限额；同样先耗额度再验码
+  const optimizeLimiter = createImageRateLimiter({ perMinute: 6, perDay: 30 })
+  const optimizer = createImagePromptOptimizer(config.image, fetcher)
 
   // 模型目录：只含启用模型的 id/kind/label，无任何密钥，公开可读
   router.get('/models', (_request, response) => {
     response.json({ models: service.listModels() })
+  })
+
+  // 剩余额度（图/视频共用额度池）：鉴权但不消耗额度
+  router.get('/quota', (request, response) => {
+    try {
+      service.authorize(bearerCode(request.header('authorization')))
+      const remaining = limiter.peek(request.ip || request.socket.remoteAddress || 'unknown')
+      response.json({
+        perMinuteLimit: config.image.rateLimitPerMinute,
+        perDayLimit: config.image.dailyLimit,
+        ...remaining
+      })
+    } catch (error) {
+      respondImageError(error, response, 0)
+    }
+  })
+
+  // 提示词优化：鉴权+独立宽松限额，按图/视频两套规则改写
+  router.post('/optimize', async (request, response) => {
+    const startedAt = performance.now()
+    const body = request.body as Record<string, unknown>
+    try {
+      if (!config.image.inviteCode) throw new Error('unauthorized')
+      const ip = request.ip || request.socket.remoteAddress || 'unknown'
+      if (!optimizeLimiter.allow(ip)) throw new Error('rate_limit')
+      service.authorize(bearerCode(request.header('authorization')))
+      const prompt = typeof body.prompt === 'string' ? body.prompt : ''
+      const kind = body.kind === 'video' ? 'video' : 'image'
+      const optimized = await optimizer({ prompt, kind, hasFirstFrame: body.hasFirstFrame === true })
+      response.json({ prompt: optimized, durationMs: Math.round(performance.now() - startedAt) })
+    } catch (error) {
+      respondImageError(error, response, Math.round(performance.now() - startedAt))
+    }
   })
 
   router.post('/generations', async (request, response) => {
@@ -64,8 +101,12 @@ export function createImageRoutes(config: Pick<ServerConfig, 'image'>, fetcher: 
         ip: request.ip || request.socket.remoteAddress || 'unknown',
         prompt: typeof body.prompt === 'string' ? body.prompt : '',
         model: typeof body.model === 'string' ? body.model : undefined,
-        size: typeof body.size === 'string' ? body.size : undefined,
+        aspectRatio: typeof body.aspectRatio === 'string' ? body.aspectRatio : undefined,
+        imageSize: typeof body.imageSize === 'string' ? body.imageSize : undefined,
+        count: body.count === undefined ? undefined : Number(body.count),
         resolution: typeof body.resolution === 'string' ? body.resolution : undefined,
+        duration: body.duration === undefined ? undefined : Number(body.duration),
+        audio: body.audio === undefined ? undefined : body.audio === true,
         referenceImages: Array.isArray(body.referenceImages) && body.referenceImages.every(image => typeof image === 'string') ? body.referenceImages : body.referenceImages === undefined ? undefined : ['']
       })
       response.status(202).json(snapshot)

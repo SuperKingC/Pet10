@@ -11,7 +11,8 @@ const config = {
     rateLimitPerMinute: 3,
     dailyLimit: 30,
     maxPromptLength: 4000,
-    enabledModels: ['openai/gpt-5.4-image-2', 'openai/gpt-5.5']
+    enabledModels: ['openai/gpt-5.4-image-2', 'openai/gpt-5.5'],
+    promptModel: 'text-model'
   }
 }
 
@@ -127,5 +128,50 @@ describe('image generation routes', () => {
       .set('authorization', 'Bearer friends-only')
     expect(missing.status).toBe(404)
     expect(missing.body.error).toBe('task_not_found')
+  })
+
+  it('reports remaining quota without consuming it', async () => {
+    const app = createApp(vi.fn() as typeof fetch)
+
+    const before = await request(app).get('/api/images/quota').set('authorization', 'Bearer friends-only')
+    expect(before.status).toBe(200)
+    expect(before.body).toEqual({ perMinuteLimit: 3, perDayLimit: 30, minuteRemaining: 3, dayRemaining: 30 })
+
+    const unauthorized = await request(app).get('/api/images/quota').set('authorization', 'Bearer wrong-code')
+    expect(unauthorized.status).toBe(401)
+
+    const after = await request(app).get('/api/images/quota').set('authorization', 'Bearer friends-only')
+    expect(after.body).toEqual({ perMinuteLimit: 3, perDayLimit: 30, minuteRemaining: 3, dayRemaining: 30 })
+  })
+
+  it('optimizes prompts behind a separate rate limit', async () => {
+    const fetcher: typeof fetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body))
+      if (body.model === 'text-model') {
+        return new Response(JSON.stringify({ choices: [{ message: { content: '优化后的完整提示词' } }] }), { status: 200 })
+      }
+      throw new Error('unexpected model ' + body.model)
+    })
+    const app = createApp(fetcher)
+
+    const optimized = await request(app)
+      .post('/api/images/optimize')
+      .set('authorization', 'Bearer friends-only')
+      .send({ prompt: '一只猫', kind: 'image' })
+    expect(optimized.status).toBe(200)
+    expect(optimized.body.prompt).toBe('优化后的完整提示词')
+
+    const denied = await request(app)
+      .post('/api/images/optimize')
+      .set('authorization', 'Bearer wrong-code')
+      .send({ prompt: '一只猫' })
+    expect(denied.status).toBe(401)
+
+    const invalidPrompt = await request(app)
+      .post('/api/images/optimize')
+      .set('authorization', 'Bearer friends-only')
+      .send({ prompt: '   ' })
+    expect(invalidPrompt.status).toBe(400)
+    expect(invalidPrompt.body.error).toBe('invalid_prompt')
   })
 })

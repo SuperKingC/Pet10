@@ -19,6 +19,19 @@ export function createImageRateLimiter(config: { perMinute: number; perDay: numb
       bucket.dayCount += 1
       buckets.set(ip, bucket)
       return true
+    },
+    /** 查询剩余额度（不消耗额度，供额度展示接口使用） */
+    peek(ip: string) {
+      const timestamp = now()
+      const minute = Math.floor(timestamp / 60000)
+      const day = new Date(timestamp).toISOString().slice(0, 10)
+      const existing = buckets.get(ip)
+      const minuteUsed = existing && existing.minute === minute ? existing.minuteCount : 0
+      const dayUsed = existing && existing.day === day ? existing.dayCount : 0
+      return {
+        minuteRemaining: Math.max(0, config.perMinute - minuteUsed),
+        dayRemaining: Math.max(0, config.perDay - dayUsed)
+      }
     }
   }
 }

@@ -40,7 +40,8 @@ const environmentSchema = z.object({
   IMAGE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(1),
   IMAGE_DAILY_LIMIT: z.coerce.number().int().positive().default(5),
   IMAGE_MAX_PROMPT_LENGTH: z.coerce.number().int().positive().default(4000),
-  IMAGE_ENABLED_MODELS: z.string().default('openai/gpt-5.4-image-2,openai/gpt-5.5')
+  IMAGE_ENABLED_MODELS: z.string().default('openai/gpt-5.4-image-2,openai/gpt-5.5'),
+  IMAGE_PROMPT_MODEL: z.string().default('openai/gpt-5.4-mini')
 })
 
 export interface ServerConfig {
@@ -99,6 +100,7 @@ export interface ServerConfig {
     dailyLimit: number
     maxPromptLength: number
     enabledModels: string[]
+    promptModel: string
   }
 }
 
@@ -170,7 +172,8 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       rateLimitPerMinute: parsed.IMAGE_RATE_LIMIT_PER_MINUTE,
       dailyLimit: parsed.IMAGE_DAILY_LIMIT,
       maxPromptLength: parsed.IMAGE_MAX_PROMPT_LENGTH,
-      enabledModels: [...new Set(parsed.IMAGE_ENABLED_MODELS.split(',').map(id => id.trim()).filter(Boolean))]
+      enabledModels: [...new Set(parsed.IMAGE_ENABLED_MODELS.split(',').map(id => id.trim()).filter(Boolean))],
+      promptModel: parsed.IMAGE_PROMPT_MODEL
     }
   }
 }

@@ -16,12 +16,19 @@ const PAGE = `<!doctype html>
   label { display: block; margin: 14px 0 4px; font-weight: 600; font-size: 14px; }
   textarea, input[type=text], input[type=password], select { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #bbb; border-radius: 6px; font: inherit; background: #fff; color: #1f2937; }
   .row { display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 400; margin-top: 8px; }
+  .label-row { display: flex; justify-content: space-between; align-items: center; margin: 14px 0 4px; }
+  .label-row label { margin: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   button { margin-top: 16px; padding: 10px 28px; border: 0; border-radius: 8px; background: #d97706; color: #fff; font-size: 15px; cursor: pointer; }
   button:disabled { opacity: .5; cursor: wait; }
+  button.small { margin: 0; padding: 5px 14px; font-size: 13px; background: #6b7280; }
   .hint { color: #6b7280; font-size: 12px; }
   .submit-status { margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; display: none; }
   .submit-status.error { background: #fee2e2; color: #991b1b; }
   .submit-status.info { background: #fef3c7; color: #92400e; }
+  .quota { margin-top: 10px; font-size: 13px; color: #374151; }
+  .quota b { color: #92400e; }
   .task { margin-top: 14px; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; }
   .task-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 13px; }
   .task-kind { font-size: 16px; }
@@ -29,8 +36,8 @@ const PAGE = `<!doctype html>
   .task-status { color: #6b7280; }
   .task-status.done { color: #166534; }
   .task-status.failed { color: #991b1b; }
-  .task-result { margin-top: 10px; }
-  .task-result img, .task-result video { max-width: 100%; border-radius: 8px; }
+  .task-result { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .task-result img, .task-result video { width: 100%; border-radius: 8px; }
   .task-error { color: #991b1b; font-size: 13px; margin-top: 8px; }
   .thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; margin-right: 6px; }
 </style>
@@ -43,32 +50,72 @@ const PAGE = `<!doctype html>
 <label class="row"><input type="checkbox" id="remember"> 在这台设备上记住邀请码（localStorage）</label>
 <label for="model">模型</label>
 <select id="model"></select>
-<label for="prompt">提示词</label>
-<textarea id="prompt" rows="3" placeholder="例如：一只小狗在草地上奔跑，水彩风格"></textarea>
-<div id="size-wrap">
-  <label for="size">尺寸</label>
-  <select id="size">
-    <option value="1024x1024">正方形 1024×1024</option>
-    <option value="1024x1536">竖版 1024×1536（2:3）</option>
-    <option value="1536x1024">横版 1536×1024（3:2）</option>
-  </select>
+<div class="label-row">
+  <label for="prompt">提示词</label>
+  <button type="button" class="small" id="optimize">✨ 优化提示词</button>
 </div>
-<div id="seconds-wrap" style="display:none">
-  <label for="seconds">视频分辨率</label>
-  <select id="seconds">
-    <option value="720p">720p</option>
-    <option value="1080p">1080p</option>
-  </select>
+<textarea id="prompt" rows="3" placeholder="例如：一只小狗在草地上奔跑，水彩风格"></textarea>
+<div id="image-options">
+  <div class="grid3">
+    <div>
+      <label for="aspect">比例</label>
+      <select id="aspect">
+        <option value="1:1">1:1 正方形</option>
+        <option value="2:3">2:3 竖版</option>
+        <option value="3:2">3:2 横版</option>
+      </select>
+    </div>
+    <div>
+      <label for="imagesize">尺寸</label>
+      <select id="imagesize">
+        <option value="1K">1K（快）</option>
+        <option value="2K" selected>2K（清晰）</option>
+      </select>
+    </div>
+    <div>
+      <label for="count">出图数量</label>
+      <select id="count">
+        <option value="1" selected>1 张</option>
+        <option value="2">2 张</option>
+        <option value="3">3 张</option>
+        <option value="4">4 张</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div id="video-options" style="display:none">
+  <div class="grid2">
+    <div>
+      <label for="resolution">分辨率</label>
+      <select id="resolution">
+        <option value="720p">720p</option>
+        <option value="1080p">1080p</option>
+      </select>
+    </div>
+    <div>
+      <label for="duration">时长</label>
+      <select id="duration">
+        <option value="5" selected>5 秒</option>
+        <option value="10">10 秒</option>
+      </select>
+    </div>
+  </div>
+  <label class="row"><input type="checkbox" id="audio"> 生成声音（配乐/音效，费用更高）</label>
+  <p class="hint" id="video-aspect-hint">比例说明：给了首帧图时成片比例跟随首帧；纯文生视频为方画幅。10 秒费用约为 5 秒的两倍。</p>
+</div>
+<div id="image-gemini-hint" style="display:none">
+  <p class="hint">当前 Gemini 生图模型不支持比例/尺寸参数，按模型默认出图；出图数量仍有效。</p>
 </div>
 <div id="refs-wrap">
-  <label for="refs">参考图（图片模型最多 2 张；视频模型取第 1 张作首帧图生视频；单张 ≤ 2MB，jpg/png/webp）</label>
+  <label for="refs">参考图（图片模型最多 2 张；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
   <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
   <div class="thumbs" id="thumbs"></div>
 </div>
 <button id="go">提交任务</button>
 <div class="submit-status" id="submit-status"></div>
+<div class="quota" id="quota">剩余额度：填写邀请码后显示</div>
 <div id="tasks"></div>
-<p class="hint">限额：每分钟 1 次提交、每天 5 次（邀请码错误等失败尝试同样计入）。图片约 1~3 分钟，视频约 5 分钟。</p>
+<p class="hint">限额：每分钟 1 次提交、每天 5 次（图/视频共用，邀请码错误的尝试同样计入）。图片约 1~3 分钟，视频约 1~5 分钟；提示词优化单独限额，不占用生成次数。</p>
 <script>
 var REMEMBER_KEY = 'image-playground-invite'
 var ERRORS = {
@@ -76,8 +123,11 @@ var ERRORS = {
   rate_limit_exceeded: '触发限流：每分钟 1 次提交 / 每天 5 次，请稍后再试',
   invalid_prompt: '提示词为空或超过 4000 字符',
   invalid_model: '模型未启用',
-  invalid_size: '不支持的尺寸',
+  invalid_aspect_ratio: '不支持的比例（仅 1:1 / 2:3 / 3:2）',
+  invalid_image_size: '不支持的尺寸（仅 1K / 2K）',
+  invalid_count: '出图数量仅支持 1~4',
   invalid_resolution: '不支持的视频分辨率（仅 720p/1080p）',
+  invalid_duration: '不支持的视频时长（仅 5/10 秒）',
   invalid_reference_images: '参考图最多 2 张',
   invalid_reference_image: '参考图格式不支持，只接受 jpg/png/webp',
   invalid_reference_image_size: '参考图超过 2MB',
@@ -91,13 +141,22 @@ var inviteInput = document.getElementById('invite')
 var rememberInput = document.getElementById('remember')
 var modelSelect = document.getElementById('model')
 var promptInput = document.getElementById('prompt')
-var sizeWrap = document.getElementById('size-wrap')
-var secondsWrap = document.getElementById('seconds-wrap')
+var optimizeBtn = document.getElementById('optimize')
+var imageOptions = document.getElementById('image-options')
+var imageGeminiHint = document.getElementById('image-gemini-hint')
+var videoOptions = document.getElementById('video-options')
+var aspectInput = document.getElementById('aspect')
+var imageSizeInput = document.getElementById('imagesize')
+var countInput = document.getElementById('count')
+var resolutionInput = document.getElementById('resolution')
+var durationInput = document.getElementById('duration')
+var audioInput = document.getElementById('audio')
 var refsWrap = document.getElementById('refs-wrap')
 var refsInput = document.getElementById('refs')
 var thumbsEl = document.getElementById('thumbs')
 var goBtn = document.getElementById('go')
 var submitStatus = document.getElementById('submit-status')
+var quotaEl = document.getElementById('quota')
 var tasksEl = document.getElementById('tasks')
 var MODELS = []
 var running = {}
@@ -117,9 +176,27 @@ function currentModel() {
 function renderKindFields() {
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
-  sizeWrap.style.display = isVideo ? 'none' : ''
-  secondsWrap.style.display = isVideo ? '' : 'none'
-  refsWrap.style.display = isVideo ? 'none' : ''
+  var isOpenaiImage = Boolean(model && model.kind === 'image' && model.id.indexOf('openai/') === 0)
+  var isGeminiImage = Boolean(model && model.kind === 'image' && model.id.indexOf('google/') === 0)
+  imageOptions.style.display = isVideo ? 'none' : ''
+  imageGeminiHint.style.display = isGeminiImage ? '' : 'none'
+  aspectInput.disabled = !isOpenaiImage
+  imageSizeInput.disabled = !isOpenaiImage
+  videoOptions.style.display = isVideo ? '' : 'none'
+}
+
+function refreshQuota() {
+  var invite = inviteInput.value.trim()
+  if (!invite) { quotaEl.textContent = '剩余额度：填写邀请码后显示'; return }
+  fetch('/api/images/quota', { headers: { authorization: 'Bearer ' + invite } })
+    .then(function (response) { return response.json().catch(function () { return {} }).then(function (payload) { return { ok: response.ok, payload: payload } }) })
+    .then(function (result) {
+      if (!result.ok) { quotaEl.textContent = '剩余额度：邀请码未生效'; return }
+      quotaEl.innerHTML = ''
+      var text = '剩余额度：本分钟 <b>' + result.payload.minuteRemaining + '/' + result.payload.perMinuteLimit + '</b> 次 · 今天 <b>' + result.payload.dayRemaining + '/' + result.payload.perDayLimit + '</b> 次（图/视频共用）'
+      quotaEl.innerHTML = text
+    })
+    .catch(function () { quotaEl.textContent = '剩余额度：查询失败' })
 }
 
 fetch('/api/images/models').then(function (r) { return r.json() }).then(function (payload) {
@@ -143,6 +220,8 @@ modelSelect.addEventListener('change', renderKindFields)
 
 var savedInvite = localStorage.getItem(REMEMBER_KEY)
 if (savedInvite) { inviteInput.value = savedInvite; rememberInput.checked = true }
+refreshQuota()
+inviteInput.addEventListener('change', refreshQuota)
 
 refsInput.addEventListener('change', function (event) {
   refs = []
@@ -159,6 +238,32 @@ refsInput.addEventListener('change', function (event) {
       thumbsEl.appendChild(img)
     }
     reader.readAsDataURL(file)
+  })
+})
+
+optimizeBtn.addEventListener('click', function () {
+  var invite = inviteInput.value.trim()
+  if (!invite) { showSubmit('error', '请先填写邀请码再优化'); return }
+  var prompt = promptInput.value.trim()
+  if (!prompt) { showSubmit('error', '提示词为空，先写几个关键词再优化'); return }
+  var model = currentModel()
+  var isVideo = Boolean(model && model.kind === 'video')
+  optimizeBtn.disabled = true
+  showSubmit('info', '优化中…')
+  fetch('/api/images/optimize', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + invite },
+    body: JSON.stringify({ prompt: prompt, kind: isVideo ? 'video' : 'image', hasFirstFrame: isVideo && refs.length > 0 })
+  }).then(function (response) {
+    return response.json().catch(function () { return {} }).then(function (payload) {
+      optimizeBtn.disabled = false
+      if (!response.ok) { showSubmit('error', '优化失败（HTTP ' + response.status + '）：' + (ERRORS[payload.error] || payload.error || '未知错误')); return }
+      promptInput.value = payload.prompt
+      showSubmit('info', '已优化提示词，可继续手改后提交')
+    })
+  }).catch(function (error) {
+    optimizeBtn.disabled = false
+    showSubmit('error', '优化请求失败：' + (error && error.message ? error.message : '网络错误'))
   })
 })
 
@@ -186,19 +291,20 @@ function createCard(snapshot) {
 }
 
 function renderResult(target, snapshot) {
-  var image = (snapshot.data || [])[0]
-  if (!image) return
-  if (snapshot.kind === 'video') {
-    var video = document.createElement('video')
-    video.controls = true
-    video.src = image.b64_json ? 'data:video/mp4;base64,' + image.b64_json : image.url
-    target.appendChild(video)
-  } else {
-    var img = document.createElement('img')
-    img.alt = '生成结果'
-    img.src = image.b64_json ? 'data:image/png;base64,' + image.b64_json : image.url
-    target.appendChild(img)
-  }
+  var items = snapshot.data || []
+  items.forEach(function (item) {
+    if (snapshot.kind === 'video') {
+      var video = document.createElement('video')
+      video.controls = true
+      video.src = item.b64_json ? 'data:video/mp4;base64,' + item.b64_json : item.url
+      target.appendChild(video)
+    } else {
+      var img = document.createElement('img')
+      img.alt = '生成结果'
+      img.src = item.b64_json ? 'data:image/png;base64,' + item.b64_json : item.url
+      target.appendChild(img)
+    }
+  })
 }
 
 function statusText(snapshot) {
@@ -216,12 +322,19 @@ goBtn.addEventListener('click', function () {
   if (!prompt) { showSubmit('error', '请填写提示词'); return }
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
+  var isGeminiImage = Boolean(model && model.kind === 'image' && model.id.indexOf('google/') === 0)
   var body = { prompt: prompt, model: modelSelect.value }
   if (isVideo) {
-    body.resolution = document.getElementById('seconds').value
+    body.resolution = resolutionInput.value
+    body.duration = Number(durationInput.value)
+    body.audio = audioInput.checked
     if (refs.length > 0) body.referenceImages = [refs[0]]
   } else {
-    body.size = document.getElementById('size').value
+    body.count = Number(countInput.value)
+    if (!isGeminiImage) {
+      body.aspectRatio = aspectInput.value
+      body.imageSize = imageSizeInput.value
+    }
     if (refs.length > 0) body.referenceImages = refs
   }
   goBtn.disabled = true
@@ -232,6 +345,7 @@ goBtn.addEventListener('click', function () {
   }).then(function (response) {
     return response.json().catch(function () { return {} }).then(function (payload) {
       goBtn.disabled = false
+      refreshQuota()
       if (!response.ok) {
         showSubmit('error', '提交失败（HTTP ' + response.status + '）：' + (ERRORS[payload.error] || payload.error || '未知错误'))
         return
@@ -253,6 +367,8 @@ function renderRunning(els, snapshot) {
 }
 
 setInterval(function () {
+  var hasRunning = Object.keys(running).length > 0
+  if (hasRunning) refreshQuota()
   Object.keys(running).forEach(function (id) {
     var entry = running[id]
     renderRunning(entry.els, entry.snapshot)

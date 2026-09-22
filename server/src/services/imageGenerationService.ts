@@ -15,7 +15,10 @@ export class ImageGenerationError extends Error {
 const DEFAULT_IMAGE_MODEL = 'openai/gpt-5.4-image-2'
 const SIZES = new Set(['1024x1024', '1024x1536', '1536x1024'])
 const ASPECT_RATIOS: Record<string, string> = { '1024x1024': '1:1', '1024x1536': '2:3', '1536x1024': '3:2' }
+export const IMAGE_ASPECT_RATIOS = new Set(['1:1', '2:3', '3:2'])
+export const IMAGE_IMAGE_SIZES = new Set(['1K', '2K'])
 export const VIDEO_RESOLUTIONS = new Set(['720p', '1080p'])
+export const VIDEO_DURATIONS = new Set([5, 10])
 const VIDEO_TIMEOUT_MS = 15 * 60 * 1000
 // openai 系生图模型才吃 image_config（aspect_ratio/image_size）；Gemini 系不支持该字段
 const supportsImageConfig = (model: string) => /^openai\//.test(model) && /image/.test(model)
@@ -108,17 +111,18 @@ export function createImageGenerationService(
     if (input.n !== undefined && (!Number.isInteger(input.n) || input.n !== 1)) throw new Error('invalid_n')
     const referenceImages = input.referenceImages ?? []
     validateReferenceImages(referenceImages)
-    return generateImageData({ prompt: input.prompt, model: model.id, size: input.size, referenceImages })
+    return generateImageData({ prompt: input.prompt, model: model.id, aspectRatio: input.size ? ASPECT_RATIOS[input.size] : undefined, referenceImages })
   }
 
-  /** 图片上游调用（不含鉴权/限流，任务复用） */
-  async function generateImageData(input: { prompt: string; model: string; size?: string; referenceImages?: string[] }) {
+  /** 图片上游调用（不含鉴权/限流，任务复用；比例/尺寸只对 openai 系模型生效） */
+  async function generateImageData(input: { prompt: string; model: string; aspectRatio?: string; imageSize?: string; referenceImages?: string[] }) {
     if (!config.upstreamApiKey) throw new Error('upstream_unavailable')
-    const size = input.size ?? '1024x1024'
+    const aspectRatio = input.aspectRatio ?? '1:1'
+    const imageSize = input.imageSize ?? '2K'
     const referenceImages = input.referenceImages ?? []
     const content = referenceImages.length === 0 ? input.prompt : [{ type: 'text', text: input.prompt }, ...referenceImages.map(url => ({ type: 'image_url', image_url: { url } }))]
     const upstreamBody: Record<string, unknown> = { model: input.model, messages: [{ role: 'user', content }], modalities: ['image'] }
-    if (supportsImageConfig(input.model)) upstreamBody.image_config = { aspect_ratio: ASPECT_RATIOS[size], image_size: '2K' }
+    if (supportsImageConfig(input.model)) upstreamBody.image_config = { aspect_ratio: aspectRatio, image_size: imageSize }
     let response: Response
     try {
       response = await fetcher(`${config.upstreamBaseUrl}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }, body: JSON.stringify(upstreamBody) })
@@ -144,11 +148,18 @@ export function createImageGenerationService(
   }
 
   /** 视频上游调用（中转 /videos 形状：创建→轮询→取片；首帧图可选走图生视频；不含鉴权/限流，任务复用） */
-  async function generateVideo(input: { prompt: string; model: string; resolution?: string; referenceImages?: string[] }) {
+  async function generateVideo(input: { prompt: string; model: string; resolution?: string; duration?: number; audio?: boolean; referenceImages?: string[] }) {
     if (!config.upstreamApiKey) throw new Error('upstream_unavailable')
     if (input.resolution && !VIDEO_RESOLUTIONS.has(input.resolution)) throw new Error('invalid_resolution')
+    if (input.duration !== undefined && !VIDEO_DURATIONS.has(input.duration)) throw new Error('invalid_duration')
     const auth = { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }
-    const createBody: Record<string, unknown> = { model: input.model, prompt: input.prompt, ...(input.resolution === undefined ? {} : { resolution: input.resolution }) }
+    const createBody: Record<string, unknown> = {
+      model: input.model,
+      prompt: input.prompt,
+      ...(input.resolution === undefined ? {} : { resolution: input.resolution }),
+      ...(input.duration === undefined ? {} : { duration: input.duration }),
+      ...(input.audio === undefined ? {} : { audio: input.audio })
+    }
     const firstFrame = (input.referenceImages ?? [])[0]
     if (firstFrame) createBody.frame_images = [{ type: 'image_url', image_url: { url: firstFrame }, frame_type: 'first_frame' }]
     let jobId: string | undefined
