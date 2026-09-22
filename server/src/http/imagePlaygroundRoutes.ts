@@ -44,10 +44,10 @@ const PAGE = `<!doctype html>
   .task-result { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .task-result img, .task-result video { width: 100%; border-radius: 8px; }
   .task-error { color: #991b1b; font-size: 13px; margin-top: 8px; }
-  .thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-top: 6px; padding-bottom: 4px; }
-  .thumb { position: relative; flex: 0 0 auto; }
-  .thumb img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; display: block; }
-  .thumb button { position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: #991b1b; color: #fff; font-size: 12px; line-height: 20px; padding: 0; margin: 0; cursor: pointer; }
+  .thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-top: 6px; padding: 4px; }
+  .thumb { position: relative; flex: 0 0 auto; background: #f3f4f6; border-radius: 6px; }
+  .thumb img { width: 72px; height: 72px; object-fit: contain; border-radius: 6px; display: block; }
+  .thumb button { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; border: 0; background: rgba(153, 27, 27, .85); color: #fff; font-size: 11px; line-height: 18px; padding: 0; margin: 0; cursor: pointer; }
   .drop-hint { display: none; position: fixed; inset: 0; background: rgba(217, 119, 6, .12); border: 3px dashed #d97706; z-index: 9; pointer-events: none; }
   body.dragging .drop-hint { display: block; }
 </style>
