@@ -56,7 +56,7 @@ export function createImageTaskService({ generation, minuteLimiter, imageDailyLi
 
   return {
     /** 提交任务：锁定→鉴权→校验→扣额度→后台运行（提交即返回，不等待生成） */
-    submit(input: { inviteCode: string; ip: string; prompt: string; model?: string; aspectRatio?: string; imageSize?: string; count?: number; resolution?: string; duration?: number; audio?: boolean; referenceImages?: string[] }): ImageTaskSnapshot {
+    submit(input: { inviteCode: string; ip: string; prompt: string; model?: string; aspectRatio?: string; imageSize?: string; count?: number; resolution?: string; duration?: number; audio?: boolean; frameMode?: 'first' | 'first_last'; referenceImages?: string[] }): ImageTaskSnapshot {
       // 一天内邀请码错满次数：该 IP 当天整体锁定，连正确码也拒绝
       if (failureLimiter.isLocked(input.ip)) throw new Error('invite_locked')
       try {
@@ -73,8 +73,11 @@ export function createImageTaskService({ generation, minuteLimiter, imageDailyLi
       if (input.imageSize !== undefined && (!isImageModel(model) || !IMAGE_IMAGE_SIZES.has(input.imageSize))) throw new Error('invalid_image_size')
       if (input.resolution !== undefined && (isImageModel(model) || !VIDEO_RESOLUTIONS.has(input.resolution))) throw new Error('invalid_resolution')
       if (input.duration !== undefined && (isImageModel(model) || !VIDEO_DURATIONS.has(input.duration))) throw new Error('invalid_duration')
+      if (input.frameMode !== undefined && (isImageModel(model) || (input.frameMode !== 'first' && input.frameMode !== 'first_last'))) throw new Error('invalid_frame_mode')
       const referenceImages = input.referenceImages ?? []
       validateReferenceImages(referenceImages)
+      // 首尾帧模式需要第 1、2 两张参考图
+      if (input.frameMode === 'first_last' && referenceImages.length < 2) throw new Error('invalid_frame_mode')
       // 校验全部通过才扣额度：分钟池共享一次；图片按张、视频按个走各自日额度
       if (!minuteLimiter.allow(input.ip)) throw new Error('rate_limit')
       const daily = isImageModel(model) ? imageDailyLimiter : videoDailyLimiter
@@ -97,7 +100,7 @@ export function createImageTaskService({ generation, minuteLimiter, imageDailyLi
             totalTokens += usage?.tokens ?? 0
           }
           if (model.kind === 'video') {
-            const result = await generation.generateVideo({ prompt: input.prompt, model: model.id, resolution: input.resolution, duration: input.duration, audio: input.audio, referenceImages })
+            const result = await generation.generateVideo({ prompt: input.prompt, model: model.id, resolution: input.resolution, duration: input.duration, audio: input.audio, frameMode: input.frameMode, referenceImages })
             data.push(...result.data.map(item => ({ ...item })))
             collectUsage(result.usage)
           } else {

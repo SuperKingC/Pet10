@@ -15,7 +15,7 @@ export class ImageGenerationError extends Error {
 const DEFAULT_IMAGE_MODEL = 'openai/gpt-5.4-image-2'
 const SIZES = new Set(['1024x1024', '1024x1536', '1536x1024'])
 const ASPECT_RATIOS: Record<string, string> = { '1024x1024': '1:1', '1024x1536': '2:3', '1536x1024': '3:2' }
-export const IMAGE_ASPECT_RATIOS = new Set(['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3'])
+export const IMAGE_ASPECT_RATIOS = new Set(['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '4:5', '5:4', '21:9', 'auto'])
 export const IMAGE_IMAGE_SIZES = new Set(['1K', '2K'])
 export const VIDEO_RESOLUTIONS = new Set(['720p', '1080p'])
 export const VIDEO_DURATIONS = new Set([5, 10])
@@ -134,12 +134,13 @@ export function createImageGenerationService(
   /** 图片上游调用（不含鉴权/限流，任务复用；比例/尺寸只对 openai 系模型生效；模型偶尔回文本不回图，自动重试一次） */
   async function generateImageData(input: { prompt: string; model: string; aspectRatio?: string; imageSize?: string; referenceImages?: string[] }) {
     if (!config.upstreamApiKey) throw new Error('upstream_unavailable')
-    const aspectRatio = input.aspectRatio ?? '1:1'
+    // auto=自适应：不发送 aspect_ratio，按模型默认出图
+    const aspectRatio = input.aspectRatio === 'auto' ? undefined : (input.aspectRatio ?? '1:1')
     const imageSize = input.imageSize ?? '2K'
     const referenceImages = input.referenceImages ?? []
     const content = referenceImages.length === 0 ? input.prompt : [{ type: 'text', text: input.prompt }, ...referenceImages.map(url => ({ type: 'image_url', image_url: { url } }))]
     const upstreamBody: Record<string, unknown> = { model: input.model, messages: [{ role: 'user', content }], modalities: ['image'] }
-    if (supportsImageConfig(input.model)) upstreamBody.image_config = { aspect_ratio: aspectRatio, image_size: imageSize }
+    if (supportsImageConfig(input.model)) upstreamBody.image_config = { image_size: imageSize, ...(aspectRatio === undefined ? {} : { aspect_ratio: aspectRatio }) }
     let lastError: ImageGenerationError | undefined
     for (let attempt = 0; attempt < 2; attempt++) {
       let response: Response
@@ -180,8 +181,8 @@ export function createImageGenerationService(
     throw lastError ?? new ImageGenerationError('upstream_invalid_response')
   }
 
-  /** 视频上游调用（中转 /videos 形状：创建→轮询→取片；首帧图可选走图生视频；不含鉴权/限流，任务复用） */
-  async function generateVideo(input: { prompt: string; model: string; resolution?: string; duration?: number; audio?: boolean; referenceImages?: string[] }) {
+  /** 视频上游调用（中转 /videos 形状：创建→轮询→取片；首帧/首尾帧图生视频；不含鉴权/限流，任务复用） */
+  async function generateVideo(input: { prompt: string; model: string; resolution?: string; duration?: number; audio?: boolean; frameMode?: 'first' | 'first_last'; referenceImages?: string[] }) {
     if (!config.upstreamApiKey) throw new Error('upstream_unavailable')
     if (input.resolution && !VIDEO_RESOLUTIONS.has(input.resolution)) throw new Error('invalid_resolution')
     if (input.duration !== undefined && !VIDEO_DURATIONS.has(input.duration)) throw new Error('invalid_duration')
@@ -193,8 +194,17 @@ export function createImageGenerationService(
       ...(input.duration === undefined ? {} : { duration: input.duration }),
       ...(input.audio === undefined ? {} : { audio: input.audio })
     }
-    const firstFrame = (input.referenceImages ?? [])[0]
-    if (firstFrame) createBody.frame_images = [{ type: 'image_url', image_url: { url: firstFrame }, frame_type: 'first_frame' }]
+    const referenceImages = input.referenceImages ?? []
+    const firstFrame = referenceImages[0]
+    if (firstFrame) {
+      const frameImages: Array<{ type: string; image_url: { url: string }; frame_type: string }> = [{ type: 'image_url', image_url: { url: firstFrame }, frame_type: 'first_frame' }]
+      // 首尾帧模式（实测 2026-09-22 上游支持）：第 2 张参考图作为尾帧
+      const lastFrame = referenceImages[1]
+      if (input.frameMode === 'first_last' && lastFrame) frameImages.push({ type: 'image_url', image_url: { url: lastFrame }, frame_type: 'last_frame' })
+      createBody.frame_images = frameImages
+    } else if (input.frameMode === 'first_last') {
+      throw new Error('invalid_frame_mode')
+    }
     let jobId: string | undefined
     try {
       const response = await fetcher(`${config.upstreamBaseUrl}/videos`, { method: 'POST', headers: auth, body: JSON.stringify(createBody) })

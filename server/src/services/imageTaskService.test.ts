@@ -182,6 +182,44 @@ describe('image task service', () => {
     expect(retry.status).toBe('running')
   })
 
+  it('rejects resolution/frameMode misuse and forwards first-frame references', async () => {
+    let videoInput: { resolution?: string; duration?: number; audio?: boolean; frameMode?: string; referenceImages?: string[] } | undefined
+    const { tasks } = createService({
+      generation: {
+        generateVideo: async (input) => {
+          videoInput = input
+          return { data: [{ b64_json: 'aGVsbG8=', mime: 'video/mp4' }], usage: undefined }
+        }
+      }
+    })
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', resolution: '720p' })).toThrow('invalid_resolution')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', model: 'kwaivgi/kling-v3.0-std', resolution: '4k' })).toThrow('invalid_resolution')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '测试', model: 'kwaivgi/kling-v3.0-std', duration: 7 })).toThrow('invalid_duration')
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '小狗跑', model: 'kwaivgi/kling-v3.0-std', resolution: '720p', duration: 10, audio: true, referenceImages: ['data:image/png;base64,aGVsbG8='] })
+    await flush()
+    expect(snapshot.status).toBe('running')
+    expect(videoInput).toMatchObject({ resolution: '720p', duration: 10, audio: true, referenceImages: ['data:image/png;base64,aGVsbG8='] })
+  })
+
+  it('requires two reference images for first-last mode and forwards both frames', async () => {
+    let videoInput: { frameMode?: string; referenceImages?: string[] } | undefined
+    const { tasks } = createService({
+      generation: {
+        generateVideo: async (input) => {
+          videoInput = input
+          return { data: [{ b64_json: 'aGVsbG8=', mime: 'video/mp4' }], usage: { cost: 0.63 } }
+        }
+      }
+    })
+    const png = 'data:image/png;base64,aGVsbG8='
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.2.1', prompt: '首尾帧', model: 'kwaivgi/kling-v3.0-std', frameMode: 'first_last', referenceImages: [png] })).toThrow('invalid_frame_mode')
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.2.1', prompt: '首尾帧', model: 'kwaivgi/kling-v3.0-std', frameMode: 'bogus' as 'first', referenceImages: [png, png] })).toThrow('invalid_frame_mode')
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.2.1', prompt: '首尾帧', model: 'kwaivgi/kling-v3.0-std', frameMode: 'first_last', referenceImages: [png, png] })
+    await flush()
+    expect(snapshot.status).toBe('running')
+    expect(videoInput).toMatchObject({ frameMode: 'first_last', referenceImages: [png, png] })
+  })
+
   it('rejects unauthorized polling and unknown models', async () => {
     const { tasks } = createService()
     const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.9', prompt: '测试' })

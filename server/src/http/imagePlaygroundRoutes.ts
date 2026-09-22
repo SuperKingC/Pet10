@@ -82,6 +82,7 @@ const PAGE = `<!doctype html>
       <div>
         <label for="aspect">比例</label>
         <select id="aspect">
+          <option value="auto">自适应</option>
           <option value="1:1">1:1 正方形</option>
           <option value="16:9">16:9 横版</option>
           <option value="9:16">9:16 竖版（手机）</option>
@@ -89,6 +90,9 @@ const PAGE = `<!doctype html>
           <option value="3:4">3:4 竖版</option>
           <option value="3:2">3:2 横版（相机）</option>
           <option value="2:3">2:3 竖版（海报）</option>
+          <option value="4:5">4:5 竖版（社交）</option>
+          <option value="5:4">5:4 横版</option>
+          <option value="21:9">21:9 超宽</option>
         </select>
       </div>
       <div>
@@ -112,10 +116,10 @@ const PAGE = `<!doctype html>
   <div id="video-options" style="display:none">
     <div class="grid2">
       <div>
-        <label for="resolution">分辨率</label>
-        <select id="resolution">
-          <option value="720p">720p</option>
-          <option value="1080p">1080p</option>
+        <label for="framemode">参考模式</label>
+        <select id="framemode">
+          <option value="first" selected>首帧图生视频</option>
+          <option value="first_last">首尾帧（先起幅后落幅）</option>
         </select>
       </div>
       <div>
@@ -127,16 +131,16 @@ const PAGE = `<!doctype html>
       </div>
     </div>
     <label class="row"><input type="checkbox" id="audio"> 生成声音（配乐/音效，费用更高）</label>
-    <p class="hint" id="video-aspect-hint">比例说明：给了首帧图时成片比例跟随首帧；纯文生视频为方画幅。10 秒费用约为 5 秒的两倍。</p>
+    <p class="hint">说明：成片分辨率由上游按首帧比例自动定档（方图 960×960、16:9 图约 1948×1064、纯文生视频 1920×1080），实测 480P/1080P 档位与默认无差异故不提供；比例跟随首帧图；首尾帧模式需上传 2 张参考图（第 1 张作首帧、第 2 张作尾帧）；联网搜索上游接口不支持。10 秒费用约为 5 秒的两倍。</p>
   </div>
   <div id="image-gemini-hint" style="display:none">
     <p class="hint">当前模型不接收比例/尺寸参数（仅 GPT-5.4 Image 支持），按模型默认出图；出图数量仍有效。</p>
   </div>
-<div id="refs-wrap">
-  <label for="refs">参考图（图片模型最多 5 张，可拖拽进页面或直接粘贴截图；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
-  <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
-  <div class="thumbs" id="thumbs"></div>
-</div>
+  <div id="refs-wrap">
+    <label for="refs">参考图（图片模型最多 5 张，可拖拽进页面或直接粘贴截图；视频模型最多 2 张——首帧模式取第 1 张、首尾帧模式第 1/2 张作首/尾帧，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
+    <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
 <div class="drop-hint" id="drop-hint"></div>
   <button id="go">提交任务</button>
   <div class="submit-status" id="submit-status"></div>
@@ -158,6 +162,7 @@ var ERRORS = {
   invalid_count: '出图数量仅支持 1~4',
   invalid_resolution: '不支持的视频分辨率（仅 720p/1080p）',
   invalid_duration: '不支持的视频时长（仅 5/10 秒）',
+  invalid_frame_mode: '首尾帧模式需要第 1、2 两张参考图',
   invalid_reference_images: '参考图最多 5 张',
   invalid_reference_image: '参考图格式不支持，只接受 jpg/png/webp',
   invalid_reference_image_size: '参考图超过 2MB',
@@ -176,7 +181,6 @@ var videoOptions = document.getElementById('video-options')
 var aspectInput = document.getElementById('aspect')
 var imageSizeInput = document.getElementById('imagesize')
 var countInput = document.getElementById('count')
-var resolutionInput = document.getElementById('resolution')
 var durationInput = document.getElementById('duration')
 var audioInput = document.getElementById('audio')
 var refsInput = document.getElementById('refs')
@@ -189,6 +193,11 @@ var gateError = document.getElementById('gate-error')
 var MODELS = []
 var running = {}
 var refs = []
+
+function maxRefs() {
+  var model = currentModel()
+  return model && model.kind === 'video' ? 2 : 5
+}
 
 function showSubmit(kind, text) {
   submitStatus.className = 'submit-status ' + kind
@@ -287,8 +296,6 @@ function enterWorkspace() {
 gateGo.addEventListener('click', enterWorkspace)
 gateInvite.addEventListener('keydown', function (event) { if (event.key === 'Enter') enterWorkspace() })
 
-var MAX_REFS = 5
-
 function renderThumbs() {
   thumbsEl.textContent = ''
   refs.forEach(function (src, index) {
@@ -320,10 +327,10 @@ function addRefFiles(fileList) {
     if (file.size > 2 * 1024 * 1024) { showSubmit('error', '参考图 ' + file.name + ' 超过 2MB'); return }
     var reader = new FileReader()
     reader.onload = function () {
-      if (refs.length >= MAX_REFS) { showSubmit('error', '参考图最多 ' + MAX_REFS + ' 张'); return }
+      if (refs.length >= maxRefs()) { showSubmit('error', '当前模型参考图最多 ' + maxRefs() + ' 张'); return }
       refs.push(String(reader.result))
       renderThumbs()
-      showSubmit('info', '已添加参考图 ' + refs.length + '/' + MAX_REFS)
+      showSubmit('info', '已添加参考图 ' + refs.length + '/' + maxRefs())
     }
     reader.readAsDataURL(file)
   })
@@ -468,10 +475,10 @@ goBtn.addEventListener('click', function () {
   var supportsImageParams = Boolean(model && model.kind === 'image' && /^openai\\/.+image/.test(model.id))
   var body = { prompt: prompt, model: modelSelect.value }
   if (isVideo) {
-    body.resolution = resolutionInput.value
+    body.frameMode = document.getElementById('framemode').value
     body.duration = Number(durationInput.value)
     body.audio = audioInput.checked
-    if (refs.length > 0) body.referenceImages = [refs[0]]
+    if (refs.length > 0) body.referenceImages = refs.slice(0, 2)
   } else {
     body.count = Number(countInput.value)
     if (supportsImageParams) {

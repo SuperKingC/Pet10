@@ -141,6 +141,7 @@ export function createImageRoutes(config: Pick<ServerConfig, 'image'>, fetcher: 
         resolution: typeof body.resolution === 'string' ? body.resolution : undefined,
         duration: body.duration === undefined ? undefined : Number(body.duration),
         audio: body.audio === undefined ? undefined : body.audio === true,
+        frameMode: body.frameMode === 'first_last' ? 'first_last' : body.frameMode === 'first' ? 'first' : undefined,
         referenceImages: Array.isArray(body.referenceImages) && body.referenceImages.every(image => typeof image === 'string') ? body.referenceImages : body.referenceImages === undefined ? undefined : ['']
       })
       response.status(202).json(snapshot)
