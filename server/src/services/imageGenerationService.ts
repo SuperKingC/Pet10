@@ -63,8 +63,10 @@ export function createImageGenerationService(config: { inviteCode: string; upstr
   const limiter = createImageRateLimiter({ perMinute: config.rateLimitPerMinute, perDay: config.dailyLimit })
   return {
     async generate(input: { inviteCode: string; ip: string; prompt: string; model?: string; size?: string; n?: number; referenceImages?: string[] }) {
-      if (!config.inviteCode || input.inviteCode !== config.inviteCode) throw new Error('unauthorized')
+      if (!config.inviteCode) throw new Error('unauthorized')
+      // 邀请码错误也必须消耗限流额度，否则失败尝试不占预算，邀请码可被在线爆破
       if (!limiter.allow(input.ip)) throw new Error('rate_limit')
+      if (input.inviteCode !== config.inviteCode) throw new Error('unauthorized')
       if (!input.prompt.trim() || input.prompt.length > config.maxPromptLength) throw new Error('invalid_prompt')
       if (input.model && input.model !== 'openai/gpt-5.4-image-2') throw new Error('invalid_model')
       if (input.size && !SIZES.has(input.size)) throw new Error('invalid_size')

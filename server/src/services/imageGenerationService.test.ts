@@ -127,4 +127,18 @@ describe('image generation service', () => {
     await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.5', prompt: 'test', referenceImages: [png, png, png] })).rejects.toThrow('invalid_reference_images')
     await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.6', prompt: 'test', referenceImages: ['data:image/svg+xml;base64,PHN2Zz4='] })).rejects.toThrow('invalid_reference_image')
   })
+
+  it('consumes the rate limit even when the invite code is wrong', async () => {
+    const service = createImageGenerationService({ ...config, rateLimitPerMinute: 2 }, vi.fn() as typeof fetch)
+    await expect(service.generate({ inviteCode: 'wrong-code', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('unauthorized')
+    await expect(service.generate({ inviteCode: 'wrong-code', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('unauthorized')
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('rate_limit')
+  })
+
+  it('rejects every attempt while no invite code is configured', async () => {
+    const fetcher = vi.fn(async () => new Response('{}', { status: 200 }))
+    const service = createImageGenerationService({ ...config, inviteCode: '', rateLimitPerMinute: 3 }, fetcher as typeof fetch)
+    await expect(service.generate({ inviteCode: 'anything', ip: '10.9.9.8', prompt: 'test' })).rejects.toThrow('unauthorized')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
 })

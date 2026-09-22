@@ -16,6 +16,7 @@ import { createSocialRoutes } from './http/socialRoutes.js'
 import { createDiaryRoutes } from './http/diaryRoutes.js'
 import { createUploadRoutes } from './http/uploadRoutes.js'
 import { createImageRoutes } from './http/imageRoutes.js'
+import { createImagePlaygroundRoutes } from './http/imagePlaygroundRoutes.js'
 import { createAccountService } from './services/accountService.js'
 import { createWechatAuthService } from './services/wechatAuthService.js'
 import { createFriendshipService } from './services/friendshipService.js'
@@ -59,6 +60,7 @@ export function createApp({ config, repositories, ai, uploads, emit = () => unde
   app.disable('x-powered-by')
   app.use(cors({ origin: config.appOrigin, credentials: true }))
   app.use('/api/images', express.json({ limit: '6mb' }), createImageRoutes(config))
+  app.use('/image-playground', createImagePlaygroundRoutes())
   app.use(express.json({ limit: '2mb' }))
 
   app.get('/health', (_request, response) => {

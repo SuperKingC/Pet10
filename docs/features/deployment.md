@@ -11,6 +11,13 @@
 
 生产 HTTPS 入口由 `deploy/Caddyfile` 固定为 `api.pet10kk.com`。仓库不再托管网页站点；前端只有微信小程序，塔罗图片由腾讯 COS 直接提供。
 
+## 生图接口与浏览器测试页
+
+- 对外接口：`POST /api/images/generations`（`server/src/http/imageRoutes.ts`），用 `Authorization: Bearer <生图邀请码>` 鉴权。邀请码保存在服务器环境变量 `IMAGE_INVITE_CODE`，上游固定 `openai/gpt-5.4-image-2` 中转（`server/src/services/imageGenerationService.ts`），成功响应为 OpenAI images 兼容的 `data` 数组（base64 或 url）加 `durationMs`。
+- 限额：每分钟 3 次、每天 30 次，按请求 IP 计。**邀请码错误的尝试同样消耗限额**（校验顺序：先消耗限额、再比对邀请码），防止对邀请码做在线爆破；未配置邀请码时一律拒绝。
+- 浏览器测试页：`https://api.pet10kk.com/image-playground`（`server/src/http/imagePlaygroundRoutes.ts`，页面内联在 TS 里随 `server:build` 一起产出）。可填写邀请码、提示词、尺寸和最多 2 张参考图后直接生成，带等待计时和中文错误提示。页面本身不含任何密钥，邀请码只保存在使用者浏览器的 localStorage；页面带 `noindex`。
+- 邀请码安全约定：保持足够长（建议 16 位以上随机字母数字），更换时更新服务器环境变量 `IMAGE_INVITE_CODE` 后重启 api 容器（属于 `all` 类发布的运维操作），不写进代码、仓库或日志。
+
 ## 推荐发布流程
 
 ```mermaid
