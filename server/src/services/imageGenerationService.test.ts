@@ -6,7 +6,7 @@ const config = {
   upstreamBaseUrl: 'https://example.com/v1',
   upstreamApiKey: 'upstream-secret',
   rateLimitPerMinute: 3,
-  dailyLimit: 30,
+  imageDailyLimit: 30,
   maxPromptLength: 4000
 }
 
@@ -128,11 +128,19 @@ describe('image generation service', () => {
     await expect(service.generate({ inviteCode: 'friends-only', ip: '127.0.0.6', prompt: 'test', referenceImages: ['data:image/svg+xml;base64,PHN2Zz4='] })).rejects.toThrow('invalid_reference_image')
   })
 
-  it('consumes the rate limit even when the invite code is wrong', async () => {
-    const service = createImageGenerationService({ ...config, rateLimitPerMinute: 2 }, vi.fn() as typeof fetch)
+  it('consumes minute and image daily quota only on authorized attempts', async () => {
+    const fetcher: typeof fetch = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+    }), { status: 200 }))
+    const service = createImageGenerationService({ ...config, rateLimitPerMinute: 1, imageDailyLimit: 2 }, fetcher)
+    // 错误邀请码不消耗生成额度
     await expect(service.generate({ inviteCode: 'wrong-code', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('unauthorized')
-    await expect(service.generate({ inviteCode: 'wrong-code', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('unauthorized')
+    await service.generate({ inviteCode: 'friends-only', ip: '10.9.9.9', prompt: 'test' })
+    // 分钟池已满
     await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.9.9', prompt: 'test' })).rejects.toThrow('rate_limit')
+    // 日池独立 IP 不受影响，2 张后打满
+    await service.generate({ inviteCode: 'friends-only', ip: '10.9.9.8', prompt: 'test' })
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.9.8', prompt: 'test' })).rejects.toThrow('rate_limit')
   })
 
   it('routes enabled models into the upstream request and rejects disabled ones', async () => {

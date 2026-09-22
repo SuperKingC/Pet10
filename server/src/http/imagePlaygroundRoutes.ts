@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
-// 浏览器可直接打开的生图/生视频测试页（/image-playground）。页面本身不含任何密钥，
-// 邀请码由使用者自行填写，仅保存在浏览器 localStorage；API 调用与本站同源。
+// 浏览器可直接打开的 Pet10 工作台（/image-playground）。页面本身不含任何密钥：
+// 先进邀请码门禁页（错满 3 次/天当天锁定），验证通过后进入工作台；邀请码只存在页面内存里。
 // 提交走 /api/images/tasks（提交即返回，任务在后台并行跑，页面轮询进度）。
 const PAGE = `<!doctype html>
 <html lang="zh-CN">
@@ -9,7 +9,7 @@ const PAGE = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Pet10 生图测试台</title>
+<title>Pet10 工作台</title>
 <style>
   body { font-family: system-ui, -apple-system, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; line-height: 1.6; color: #1f2937; }
   h1 { font-size: 20px; }
@@ -29,6 +29,11 @@ const PAGE = `<!doctype html>
   .submit-status.info { background: #fef3c7; color: #92400e; }
   .quota { margin-top: 10px; font-size: 13px; color: #374151; }
   .quota b { color: #92400e; }
+  #gate { max-width: 380px; margin: 12vh auto 0; border: 1px solid #e5e7eb; border-radius: 12px; padding: 28px 26px; }
+  #gate h1 { margin: 0 0 6px; font-size: 22px; }
+  #gate .hint { margin: 0 0 12px; }
+  #gate button { width: 100%; margin-top: 14px; }
+  #gate-error { color: #991b1b; font-size: 13px; margin: 10px 0 0; display: none; }
   .task { margin-top: 14px; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; }
   .task-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 13px; }
   .task-kind { font-size: 16px; }
@@ -43,84 +48,92 @@ const PAGE = `<!doctype html>
 </style>
 </head>
 <body>
-<h1>Pet10 生图测试台</h1>
-<p class="hint">提交后任务在后台并行生成，可以一次挂多个任务；模型在本站 <code>/api/images/models</code> 里选择。邀请码只保存在你自己的浏览器里。</p>
-<label for="invite">邀请码</label>
-<input type="password" id="invite" autocomplete="off" placeholder="IMAGE_INVITE_CODE">
-<label class="row"><input type="checkbox" id="remember"> 在这台设备上记住邀请码（localStorage）</label>
-<label for="model">模型</label>
-<select id="model"></select>
-<div class="label-row">
-  <label for="prompt">提示词</label>
-  <button type="button" class="small" id="optimize">✨ 优化提示词</button>
+<div id="gate">
+  <h1>Pet10 工作台</h1>
+  <p class="hint">生图 / 生视频内部工作台，请输入邀请码进入（一天内错误 3 次将锁定到明天）。</p>
+  <label for="gate-invite">邀请码</label>
+  <input type="password" id="gate-invite" autocomplete="off" placeholder="IMAGE_INVITE_CODE">
+  <button id="gate-go">进入</button>
+  <p id="gate-error"></p>
 </div>
-<textarea id="prompt" rows="3" placeholder="例如：一只小狗在草地上奔跑，水彩风格"></textarea>
-<div id="image-options">
-  <div class="grid3">
-    <div>
-      <label for="aspect">比例</label>
-      <select id="aspect">
-        <option value="1:1">1:1 正方形</option>
-        <option value="2:3">2:3 竖版</option>
-        <option value="3:2">3:2 横版</option>
-      </select>
-    </div>
-    <div>
-      <label for="imagesize">尺寸</label>
-      <select id="imagesize">
-        <option value="1K">1K（快）</option>
-        <option value="2K" selected>2K（清晰）</option>
-      </select>
-    </div>
-    <div>
-      <label for="count">出图数量</label>
-      <select id="count">
-        <option value="1" selected>1 张</option>
-        <option value="2">2 张</option>
-        <option value="3">3 张</option>
-        <option value="4">4 张</option>
-      </select>
+<div id="app" style="display:none">
+  <h1>Pet10 工作台</h1>
+  <p class="hint">提交后任务在后台并行生成，可以一次挂多个任务；模型在本站 <code>/api/images/models</code> 里选择。</p>
+  <label for="model">模型</label>
+  <select id="model"></select>
+  <div class="label-row">
+    <label for="prompt">提示词</label>
+    <button type="button" class="small" id="optimize">✨ 优化提示词</button>
+  </div>
+  <textarea id="prompt" rows="3" placeholder="例如：一只小狗在草地上奔跑，水彩风格"></textarea>
+  <div id="image-options">
+    <div class="grid3">
+      <div>
+        <label for="aspect">比例</label>
+        <select id="aspect">
+          <option value="1:1">1:1 正方形</option>
+          <option value="2:3">2:3 竖版</option>
+          <option value="3:2">3:2 横版</option>
+        </select>
+      </div>
+      <div>
+        <label for="imagesize">尺寸</label>
+        <select id="imagesize">
+          <option value="1K">1K（快）</option>
+          <option value="2K" selected>2K（清晰）</option>
+        </select>
+      </div>
+      <div>
+        <label for="count">出图数量</label>
+        <select id="count">
+          <option value="1" selected>1 张</option>
+          <option value="2">2 张</option>
+          <option value="3">3 张</option>
+          <option value="4">4 张</option>
+        </select>
+      </div>
     </div>
   </div>
-</div>
-<div id="video-options" style="display:none">
-  <div class="grid2">
-    <div>
-      <label for="resolution">分辨率</label>
-      <select id="resolution">
-        <option value="720p">720p</option>
-        <option value="1080p">1080p</option>
-      </select>
+  <div id="video-options" style="display:none">
+    <div class="grid2">
+      <div>
+        <label for="resolution">分辨率</label>
+        <select id="resolution">
+          <option value="720p">720p</option>
+          <option value="1080p">1080p</option>
+        </select>
+      </div>
+      <div>
+        <label for="duration">时长</label>
+        <select id="duration">
+          <option value="5" selected>5 秒</option>
+          <option value="10">10 秒</option>
+        </select>
+      </div>
     </div>
-    <div>
-      <label for="duration">时长</label>
-      <select id="duration">
-        <option value="5" selected>5 秒</option>
-        <option value="10">10 秒</option>
-      </select>
-    </div>
+    <label class="row"><input type="checkbox" id="audio"> 生成声音（配乐/音效，费用更高）</label>
+    <p class="hint" id="video-aspect-hint">比例说明：给了首帧图时成片比例跟随首帧；纯文生视频为方画幅。10 秒费用约为 5 秒的两倍。</p>
   </div>
-  <label class="row"><input type="checkbox" id="audio"> 生成声音（配乐/音效，费用更高）</label>
-  <p class="hint" id="video-aspect-hint">比例说明：给了首帧图时成片比例跟随首帧；纯文生视频为方画幅。10 秒费用约为 5 秒的两倍。</p>
+  <div id="image-gemini-hint" style="display:none">
+    <p class="hint">当前 Gemini 生图模型不支持比例/尺寸参数，按模型默认出图；出图数量仍有效。</p>
+  </div>
+  <div id="refs-wrap">
+    <label for="refs">参考图（图片模型最多 2 张；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
+    <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+  <button id="go">提交任务</button>
+  <div class="submit-status" id="submit-status"></div>
+  <div class="quota" id="quota"></div>
+  <div id="tasks"></div>
+  <p class="hint">限额：每分钟 3 次提交；图片每天 100 张、视频每天 30 个（按张/个计，出图数量按张扣）。任务成功后会在卡片上显示消耗的金额与 Token。</p>
 </div>
-<div id="image-gemini-hint" style="display:none">
-  <p class="hint">当前 Gemini 生图模型不支持比例/尺寸参数，按模型默认出图；出图数量仍有效。</p>
-</div>
-<div id="refs-wrap">
-  <label for="refs">参考图（图片模型最多 2 张；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
-  <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
-  <div class="thumbs" id="thumbs"></div>
-</div>
-<button id="go">提交任务</button>
-<div class="submit-status" id="submit-status"></div>
-<div class="quota" id="quota">剩余额度：填写邀请码后显示</div>
-<div id="tasks"></div>
-<p class="hint">限额：每分钟 1 次提交、每天 5 次（图/视频共用，邀请码错误的尝试同样计入）。图片约 1~3 分钟，视频约 1~5 分钟；提示词优化单独限额，不占用生成次数。</p>
 <script>
-var REMEMBER_KEY = 'image-playground-invite'
+var INVITE = ''
 var ERRORS = {
-  invalid_invite_code: '邀请码不正确（失败尝试同样计入限额）',
-  rate_limit_exceeded: '触发限流：每分钟 1 次提交 / 每天 5 次，请稍后再试',
+  invalid_invite_code: '邀请码不正确',
+  invite_locked: '邀请码错误次数过多，今日已锁定，请明天再试',
+  rate_limit_exceeded: '触发限流，请稍后再试',
   invalid_prompt: '提示词为空或超过 4000 字符',
   invalid_model: '模型未启用',
   invalid_aspect_ratio: '不支持的比例（仅 1:1 / 2:3 / 3:2）',
@@ -137,8 +150,6 @@ var ERRORS = {
   upstream_unavailable: '上游暂不可用',
   upstream_invalid_response: '上游响应异常'
 }
-var inviteInput = document.getElementById('invite')
-var rememberInput = document.getElementById('remember')
 var modelSelect = document.getElementById('model')
 var promptInput = document.getElementById('prompt')
 var optimizeBtn = document.getElementById('optimize')
@@ -151,13 +162,13 @@ var countInput = document.getElementById('count')
 var resolutionInput = document.getElementById('resolution')
 var durationInput = document.getElementById('duration')
 var audioInput = document.getElementById('audio')
-var refsWrap = document.getElementById('refs-wrap')
 var refsInput = document.getElementById('refs')
 var thumbsEl = document.getElementById('thumbs')
 var goBtn = document.getElementById('go')
 var submitStatus = document.getElementById('submit-status')
 var quotaEl = document.getElementById('quota')
 var tasksEl = document.getElementById('tasks')
+var gateError = document.getElementById('gate-error')
 var MODELS = []
 var running = {}
 var refs = []
@@ -186,15 +197,13 @@ function renderKindFields() {
 }
 
 function refreshQuota() {
-  var invite = inviteInput.value.trim()
-  if (!invite) { quotaEl.textContent = '剩余额度：填写邀请码后显示'; return }
-  fetch('/api/images/quota', { headers: { authorization: 'Bearer ' + invite } })
-    .then(function (response) { return response.json().catch(function () { return {} }).then(function (payload) { return { ok: response.ok, payload: payload } }) })
+  if (!INVITE) return
+  fetch('/api/images/quota', { headers: { authorization: 'Bearer ' + INVITE } })
+    .then(function (response) { return response.json().catch(function () { return {} }).then(function (payload) { return { ok: response.ok, status: response.status, payload: payload } }) })
     .then(function (result) {
+      if (result.status === 403 || result.payload.error === 'invite_locked') { quotaEl.textContent = '今日已锁定（邀请码错误次数过多），请明天再试'; return }
       if (!result.ok) { quotaEl.textContent = '剩余额度：邀请码未生效'; return }
-      quotaEl.innerHTML = ''
-      var text = '剩余额度：本分钟 <b>' + result.payload.minuteRemaining + '/' + result.payload.perMinuteLimit + '</b> 次 · 今天 <b>' + result.payload.dayRemaining + '/' + result.payload.perDayLimit + '</b> 次（图/视频共用）'
-      quotaEl.innerHTML = text
+      quotaEl.innerHTML = '剩余额度：本分钟 <b>' + result.payload.minuteRemaining + '/' + result.payload.perMinuteLimit + '</b> 次 · 图片 <b>' + result.payload.imageRemaining + '/' + result.payload.imageDailyLimit + '</b> 张 · 视频 <b>' + result.payload.videoRemaining + '/' + result.payload.videoDailyLimit + '</b> 个'
     })
     .catch(function () { quotaEl.textContent = '剩余额度：查询失败' })
 }
@@ -218,10 +227,48 @@ fetch('/api/images/models').then(function (r) { return r.json() }).then(function
 
 modelSelect.addEventListener('change', renderKindFields)
 
-var savedInvite = localStorage.getItem(REMEMBER_KEY)
-if (savedInvite) { inviteInput.value = savedInvite; rememberInput.checked = true }
-refreshQuota()
-inviteInput.addEventListener('change', refreshQuota)
+// ---------- 门禁 ----------
+var gateGo = document.getElementById('gate-go')
+var gateInvite = document.getElementById('gate-invite')
+
+function enterWorkspace() {
+  var code = gateInvite.value.trim()
+  if (!code) {
+    gateError.textContent = '请输入邀请码'
+    gateError.style.display = 'block'
+    return
+  }
+  gateGo.disabled = true
+  gateError.style.display = 'none'
+  fetch('/api/images/quota', { headers: { authorization: 'Bearer ' + code } })
+    .then(function (response) { return response.json().catch(function () { return {} }).then(function (payload) { return { ok: response.ok, status: response.status, payload: payload } }) })
+    .then(function (result) {
+      gateGo.disabled = false
+      if (result.status === 403 || result.payload.error === 'invite_locked') {
+        gateError.textContent = '邀请码错误次数过多，今日已锁定，请明天再试'
+        gateError.style.display = 'block'
+        return
+      }
+      if (!result.ok) {
+        var left = result.payload.attemptsRemaining
+        gateError.textContent = '邀请码不正确' + (left !== undefined ? '，今天还可尝试 ' + left + ' 次' : '')
+        gateError.style.display = 'block'
+        return
+      }
+      INVITE = code
+      document.getElementById('gate').style.display = 'none'
+      document.getElementById('app').style.display = ''
+      refreshQuota()
+    })
+    .catch(function () {
+      gateGo.disabled = false
+      gateError.textContent = '验证请求失败，请重试'
+      gateError.style.display = 'block'
+    })
+}
+
+gateGo.addEventListener('click', enterWorkspace)
+gateInvite.addEventListener('keydown', function (event) { if (event.key === 'Enter') enterWorkspace() })
 
 refsInput.addEventListener('change', function (event) {
   refs = []
@@ -242,8 +289,6 @@ refsInput.addEventListener('change', function (event) {
 })
 
 optimizeBtn.addEventListener('click', function () {
-  var invite = inviteInput.value.trim()
-  if (!invite) { showSubmit('error', '请先填写邀请码再优化'); return }
   var prompt = promptInput.value.trim()
   if (!prompt) { showSubmit('error', '提示词为空，先写几个关键词再优化'); return }
   var model = currentModel()
@@ -252,7 +297,7 @@ optimizeBtn.addEventListener('click', function () {
   showSubmit('info', '优化中…')
   fetch('/api/images/optimize', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + invite },
+    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + INVITE },
     body: JSON.stringify({ prompt: prompt, kind: isVideo ? 'video' : 'image', hasFirstFrame: isVideo && refs.length > 0 })
   }).then(function (response) {
     return response.json().catch(function () { return {} }).then(function (payload) {
@@ -308,17 +353,21 @@ function renderResult(target, snapshot) {
 }
 
 function statusText(snapshot) {
-  if (snapshot.status === 'succeeded') return '完成，耗时 ' + Math.round((snapshot.durationMs || 0) / 1000) + ' 秒'
+  if (snapshot.status === 'succeeded') {
+    var text = '完成，耗时 ' + Math.round((snapshot.durationMs || 0) / 1000) + ' 秒'
+    var usage = snapshot.usage
+    if (usage) {
+      if (usage.cost !== undefined) text += ' · 消耗 $' + usage.cost.toFixed(2)
+      if (usage.tokens !== undefined) text += ' · ' + usage.tokens + ' tokens'
+    }
+    return text
+  }
   if (snapshot.status === 'failed') return '失败（' + (ERRORS[snapshot.error] || snapshot.error || '未知错误') + '）'
   return '生成中… 已等待 ' + Math.round((Date.now() - new Date(snapshot.createdAt).getTime()) / 1000) + ' 秒'
 }
 
 goBtn.addEventListener('click', function () {
-  var invite = inviteInput.value.trim()
   var prompt = promptInput.value.trim()
-  if (rememberInput.checked) localStorage.setItem(REMEMBER_KEY, invite)
-  else localStorage.removeItem(REMEMBER_KEY)
-  if (!invite) { showSubmit('error', '请填写邀请码'); return }
   if (!prompt) { showSubmit('error', '请填写提示词'); return }
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
@@ -340,7 +389,7 @@ goBtn.addEventListener('click', function () {
   goBtn.disabled = true
   fetch('/api/images/tasks', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + invite },
+    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + INVITE },
     body: JSON.stringify(body)
   }).then(function (response) {
     return response.json().catch(function () { return {} }).then(function (payload) {
@@ -352,7 +401,7 @@ goBtn.addEventListener('click', function () {
       }
       showSubmit('info', '已提交，任务在后台生成；可以继续提交其他任务')
       var els = createCard(payload)
-      running[payload.id] = { els: els, snapshot: payload, invite: invite }
+      running[payload.id] = { els: els, snapshot: payload }
       renderRunning(els, payload)
     })
   }).catch(function (error) {
@@ -368,11 +417,11 @@ function renderRunning(els, snapshot) {
 
 setInterval(function () {
   var hasRunning = Object.keys(running).length > 0
-  if (hasRunning) refreshQuota()
+  if (hasRunning && INVITE) refreshQuota()
   Object.keys(running).forEach(function (id) {
     var entry = running[id]
     renderRunning(entry.els, entry.snapshot)
-    fetch('/api/images/tasks/' + id, { headers: { authorization: 'Bearer ' + entry.invite } })
+    fetch('/api/images/tasks/' + id, { headers: { authorization: 'Bearer ' + INVITE } })
       .then(function (response) {
         return response.json().catch(function () { return {} }).then(function (payload) {
           if (!response.ok) {

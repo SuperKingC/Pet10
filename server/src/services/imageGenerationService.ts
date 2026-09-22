@@ -50,6 +50,22 @@ function normalizeImageResponse(payload: unknown) {
   return dataUrl ? { data: [{ b64_json: dataUrl[1] }] } : { data: [{ url: imageUrl }] }
 }
 
+const USAGE_FIELDS = ['cost', 'total_tokens', 'prompt_tokens', 'completion_tokens'] as const
+
+/** 从上游 usage 里只挑计费相关数字段（金额/Token），杜绝透传其他内部字段 */
+function sanitizeUsage(usage: unknown): { cost?: number; tokens?: number } | undefined {
+  if (typeof usage !== 'object' || usage === null) return undefined
+  const root = usage as Record<string, unknown>
+  const picked: { cost?: number; tokens?: number } = {}
+  for (const field of USAGE_FIELDS) {
+    const value = root[field]
+    if (typeof value !== 'number' || !Number.isFinite(value)) continue
+    if (field === 'cost') picked.cost = value
+    else picked.tokens = (picked.tokens ?? 0) + value
+  }
+  return picked.cost === undefined && picked.tokens === undefined ? undefined : picked
+}
+
 function upstreamDiagnostics(payload: unknown, fallbackCode?: number) {
   const root = payload as {
     error?: { code?: number | string; request_id?: string; requestId?: string; message?: string }
@@ -84,12 +100,14 @@ export interface ImageModelChoice {
 }
 
 export function createImageGenerationService(
-  config: { inviteCode: string; upstreamBaseUrl: string; upstreamApiKey?: string; rateLimitPerMinute: number; dailyLimit: number; maxPromptLength: number; enabledModels?: string[]; videoPollIntervalMs?: number },
+  config: { inviteCode: string; upstreamBaseUrl: string; upstreamApiKey?: string; rateLimitPerMinute: number; imageDailyLimit: number; maxPromptLength: number; enabledModels?: string[]; videoPollIntervalMs?: number },
   fetcher: typeof fetch = fetch,
-  limiter: ImageRateLimiter = createImageRateLimiter({ perMinute: config.rateLimitPerMinute, perDay: config.dailyLimit })
+  quotas?: { minute: ImageRateLimiter; imageDaily: ImageRateLimiter }
 ) {
   const enabledModels = resolveEnabledImageModels(config.enabledModels ?? [DEFAULT_IMAGE_MODEL])
   const videoPollIntervalMs = config.videoPollIntervalMs ?? 5000
+  const minuteLimiter = quotas?.minute ?? createImageRateLimiter({ perMinute: config.rateLimitPerMinute, perDay: 1_000_000 })
+  const imageDailyLimiter = quotas?.imageDaily ?? createImageRateLimiter({ perMinute: 1_000_000, perDay: config.imageDailyLimit })
 
   function resolveModel(modelId?: string): ImageModelDef {
     const requested = modelId ?? enabledModels[0]?.id
@@ -98,11 +116,8 @@ export function createImageGenerationService(
     return def
   }
 
-  /** 同步接口的完整入口：鉴权→消耗限流→校验→调用上游（仅图片模型，视频一律走任务接口） */
+  /** 同步接口的完整入口：鉴权→校验→扣额度→调用上游（仅图片模型，视频一律走任务接口） */
   async function generate(input: { inviteCode: string; ip: string; prompt: string; model?: string; size?: string; n?: number; referenceImages?: string[] }) {
-    if (!config.inviteCode) throw new Error('unauthorized')
-    // 邀请码错误也必须消耗限流额度，否则失败尝试不占预算，邀请码可被在线爆破
-    if (!limiter.allow(input.ip)) throw new Error('rate_limit')
     authorize(input.inviteCode)
     validatePrompt(input.prompt, config.maxPromptLength)
     const model = resolveModel(input.model)
@@ -111,6 +126,8 @@ export function createImageGenerationService(
     if (input.n !== undefined && (!Number.isInteger(input.n) || input.n !== 1)) throw new Error('invalid_n')
     const referenceImages = input.referenceImages ?? []
     validateReferenceImages(referenceImages)
+    if (!minuteLimiter.allow(input.ip)) throw new Error('rate_limit')
+    if (!imageDailyLimiter.allowN(input.ip, 1)) throw new Error('rate_limit')
     return generateImageData({ prompt: input.prompt, model: model.id, aspectRatio: input.size ? ASPECT_RATIOS[input.size] : undefined, referenceImages })
   }
 
@@ -141,7 +158,7 @@ export function createImageGenerationService(
     }
     if (!response.ok) throw new ImageGenerationError(response.status >= 500 ? 'upstream_unavailable' : 'upstream_rejected', response.status)
     try {
-      return normalizeImageResponse(payload)
+      return { ...normalizeImageResponse(payload), usage: sanitizeUsage((payload as { usage?: unknown }).usage) }
     } catch {
       throw new ImageGenerationError('upstream_invalid_response', response.status)
     }
@@ -188,7 +205,9 @@ export function createImageGenerationService(
       const status = payload.status ?? payload.state ?? payload.data?.status
       if (status === 'completed') {
         const directUrl = (payload.unsigned_urls ?? [])[0] ?? payload.url
-        return await downloadVideo(jobId, typeof directUrl === 'string' ? directUrl : undefined)
+        const usage = sanitizeUsage((payload as { usage?: unknown }).usage)
+        const result = await downloadVideo(jobId, typeof directUrl === 'string' ? directUrl : undefined)
+        return { ...result, usage }
       }
       if (status === 'failed' || status === 'cancelled') throw new ImageGenerationError('upstream_rejected')
     }

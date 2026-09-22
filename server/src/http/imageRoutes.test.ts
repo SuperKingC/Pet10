@@ -9,7 +9,9 @@ const config = {
     upstreamBaseUrl: 'https://example.com/v1',
     upstreamApiKey: 'upstream-secret',
     rateLimitPerMinute: 3,
-    dailyLimit: 30,
+    imageDailyLimit: 30,
+    videoDailyLimit: 10,
+    inviteMaxFailuresPerDay: 3,
     maxPromptLength: 4000,
     enabledModels: ['openai/gpt-5.4-image-2', 'openai/gpt-5.5'],
     promptModel: 'text-model'
@@ -130,18 +132,54 @@ describe('image generation routes', () => {
     expect(missing.body.error).toBe('task_not_found')
   })
 
-  it('reports remaining quota without consuming it', async () => {
+  it('reports per-kind remaining quota and invite attempts without consuming them', async () => {
     const app = createApp(vi.fn() as typeof fetch)
 
     const before = await request(app).get('/api/images/quota').set('authorization', 'Bearer friends-only')
     expect(before.status).toBe(200)
-    expect(before.body).toEqual({ perMinuteLimit: 3, perDayLimit: 30, minuteRemaining: 3, dayRemaining: 30 })
+    expect(before.body).toEqual({
+      perMinuteLimit: 3,
+      imageDailyLimit: 30,
+      videoDailyLimit: 10,
+      minuteRemaining: 3,
+      imageRemaining: 30,
+      videoRemaining: 10,
+      attemptsRemaining: 3
+    })
 
     const unauthorized = await request(app).get('/api/images/quota').set('authorization', 'Bearer wrong-code')
     expect(unauthorized.status).toBe(401)
+    expect(unauthorized.body.error).toBe('invalid_invite_code')
+    expect(unauthorized.body.attemptsRemaining).toBe(2)
 
     const after = await request(app).get('/api/images/quota').set('authorization', 'Bearer friends-only')
-    expect(after.body).toEqual({ perMinuteLimit: 3, perDayLimit: 30, minuteRemaining: 3, dayRemaining: 30 })
+    expect(after.body).toEqual({
+      perMinuteLimit: 3,
+      imageDailyLimit: 30,
+      videoDailyLimit: 10,
+      minuteRemaining: 3,
+      imageRemaining: 30,
+      videoRemaining: 10,
+      attemptsRemaining: 2
+    })
+  })
+
+  it('locks the ip for the rest of the day after the third invite failure', async () => {
+    const app = createApp(vi.fn() as typeof fetch)
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const denied = await request(app).get('/api/images/quota').set('authorization', 'Bearer wrong-code')
+      expect(denied.status).toBe(401)
+    }
+    const locked = await request(app).get('/api/images/quota').set('authorization', 'Bearer friends-only')
+    expect(locked.status).toBe(403)
+    expect(locked.body.error).toBe('invite_locked')
+
+    const lockedTask = await request(app)
+      .post('/api/images/tasks')
+      .set('authorization', 'Bearer friends-only')
+      .send({ prompt: '一只猫' })
+    expect(lockedTask.status).toBe(403)
+    expect(lockedTask.body.error).toBe('invite_locked')
   })
 
   it('optimizes prompts behind a separate rate limit', async () => {

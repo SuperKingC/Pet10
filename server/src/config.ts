@@ -37,8 +37,10 @@ const environmentSchema = z.object({
   IMAGE_INVITE_CODE: z.string().default('change-me'),
   IMAGE_UPSTREAM_BASE_URL: z.string().url().default('https://apirouter.zhiqiteai.cn/ApiRouterServ/v1'),
   IMAGE_UPSTREAM_API_KEY: z.string().optional(),
-  IMAGE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(1),
-  IMAGE_DAILY_LIMIT: z.coerce.number().int().positive().default(5),
+  IMAGE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(3),
+  IMAGE_IMAGE_DAILY_LIMIT: z.coerce.number().int().positive().default(100),
+  IMAGE_VIDEO_DAILY_LIMIT: z.coerce.number().int().positive().default(30),
+  IMAGE_INVITE_MAX_FAILURES_PER_DAY: z.coerce.number().int().positive().default(3),
   IMAGE_MAX_PROMPT_LENGTH: z.coerce.number().int().positive().default(4000),
   IMAGE_ENABLED_MODELS: z.string().default('openai/gpt-5.4-image-2,openai/gpt-5.5'),
   IMAGE_PROMPT_MODEL: z.string().default('openai/gpt-5.4-mini')
@@ -97,7 +99,9 @@ export interface ServerConfig {
     upstreamBaseUrl: string
     upstreamApiKey?: string
     rateLimitPerMinute: number
-    dailyLimit: number
+    imageDailyLimit: number
+    videoDailyLimit: number
+    inviteMaxFailuresPerDay: number
     maxPromptLength: number
     enabledModels: string[]
     promptModel: string
@@ -170,7 +174,9 @@ export function parseConfig(environment: NodeJS.ProcessEnv | Record<string, stri
       upstreamBaseUrl: parsed.IMAGE_UPSTREAM_BASE_URL.replace(/\/$/, ''),
       upstreamApiKey: parsed.IMAGE_UPSTREAM_API_KEY,
       rateLimitPerMinute: parsed.IMAGE_RATE_LIMIT_PER_MINUTE,
-      dailyLimit: parsed.IMAGE_DAILY_LIMIT,
+      imageDailyLimit: parsed.IMAGE_IMAGE_DAILY_LIMIT,
+      videoDailyLimit: parsed.IMAGE_VIDEO_DAILY_LIMIT,
+      inviteMaxFailuresPerDay: parsed.IMAGE_INVITE_MAX_FAILURES_PER_DAY,
       maxPromptLength: parsed.IMAGE_MAX_PROMPT_LENGTH,
       enabledModels: [...new Set(parsed.IMAGE_ENABLED_MODELS.split(',').map(id => id.trim()).filter(Boolean))],
       promptModel: parsed.IMAGE_PROMPT_MODEL
