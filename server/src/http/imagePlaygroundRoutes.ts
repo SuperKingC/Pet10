@@ -43,9 +43,12 @@ const PAGE = `<!doctype html>
   .task-status.failed { color: #991b1b; }
   .task-result { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .task-result img, .task-result video { width: 100%; border-radius: 8px; }
+  .result-item img { cursor: zoom-in; }
   .result-item { display: flex; flex-direction: column; gap: 4px; }
   .result-item .download { text-align: center; font-size: 12px; color: #92400e; background: #fef3c7; border-radius: 6px; padding: 4px 6px; text-decoration: none; }
   .result-item .download:hover { background: #fde68a; }
+  .lightbox { position: fixed; inset: 0; background: rgba(0, 0, 0, .82); display: none; align-items: center; justify-content: center; z-index: 99; cursor: zoom-out; padding: 20px; }
+  .lightbox img { max-width: 96vw; max-height: 92vh; object-fit: contain; border-radius: 8px; }
   .task-error { color: #991b1b; font-size: 13px; margin-top: 8px; }
   .thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-top: 6px; padding: 4px; }
   .thumb { position: relative; flex: 0 0 auto; background: #f3f4f6; border-radius: 6px; }
@@ -127,7 +130,7 @@ const PAGE = `<!doctype html>
     <p class="hint" id="video-aspect-hint">比例说明：给了首帧图时成片比例跟随首帧；纯文生视频为方画幅。10 秒费用约为 5 秒的两倍。</p>
   </div>
   <div id="image-gemini-hint" style="display:none">
-    <p class="hint">当前 Gemini 生图模型不支持比例/尺寸参数，按模型默认出图；出图数量仍有效。</p>
+    <p class="hint">当前模型不接收比例/尺寸参数（仅 GPT-5.4 Image 支持），按模型默认出图；出图数量仍有效。</p>
   </div>
 <div id="refs-wrap">
   <label for="refs">参考图（图片模型最多 5 张，可拖拽进页面或直接粘贴截图；视频模型取第 1 张作首帧图生视频，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
@@ -139,8 +142,9 @@ const PAGE = `<!doctype html>
   <div class="submit-status" id="submit-status"></div>
   <div class="quota" id="quota"></div>
   <div id="tasks"></div>
-  <p class="hint">限额：每分钟 3 次提交；图片每天 100 张、视频每天 30 个（按张/个计，出图数量按张扣）。任务成功后会在卡片上显示消耗的金额与 Token。</p>
+  <p class="hint">限额：每分钟 3 次提交；图片每天 100 张、视频每天 30 个（按张/个计，出图数量按张扣）。任务成功后会在卡片上显示消耗的金额与 Token。点击结果图可放大预览，结果只保留 30 分钟请尽快下载。</p>
 </div>
+<div class="lightbox" id="lightbox"><img id="lightbox-img" alt="预览"></div>
 <script>
 var INVITE = ''
 var ERRORS = {
@@ -200,12 +204,12 @@ function currentModel() {
 function renderKindFields() {
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
-  var isOpenaiImage = Boolean(model && model.kind === 'image' && model.id.indexOf('openai/') === 0)
-  var isGeminiImage = Boolean(model && model.kind === 'image' && model.id.indexOf('google/') === 0)
+  // 只有 openai 系生图模型（id 含 image）才吃 image_config 比例/尺寸参数；gpt-5.5 与 Gemini 系均不生效
+  var supportsImageParams = Boolean(model && model.kind === 'image' && /^openai\\/.+image/.test(model.id))
   imageOptions.style.display = isVideo ? 'none' : ''
-  imageGeminiHint.style.display = isGeminiImage ? '' : 'none'
-  aspectInput.disabled = !isOpenaiImage
-  imageSizeInput.disabled = !isOpenaiImage
+  imageGeminiHint.style.display = (isVideo || supportsImageParams) ? 'none' : ''
+  aspectInput.disabled = !supportsImageParams
+  imageSizeInput.disabled = !supportsImageParams
   videoOptions.style.display = isVideo ? '' : 'none'
 }
 
@@ -379,6 +383,12 @@ optimizeBtn.addEventListener('click', function () {
   })
 })
 
+var lightbox = document.getElementById('lightbox')
+var lightboxImg = document.getElementById('lightbox-img')
+lightbox.addEventListener('click', function () {
+  lightbox.style.display = 'none'
+})
+
 function createCard(snapshot) {
   var card = document.createElement('div')
   card.className = 'task'
@@ -419,6 +429,11 @@ function renderResult(target, snapshot) {
       var img = document.createElement('img')
       img.alt = '生成结果'
       img.src = src
+      img.title = '点击放大预览'
+      img.addEventListener('click', function () {
+        lightboxImg.src = src
+        lightbox.style.display = 'flex'
+      })
       cell.appendChild(img)
     }
     var download = document.createElement('a')
@@ -450,7 +465,7 @@ goBtn.addEventListener('click', function () {
   if (!prompt) { showSubmit('error', '请填写提示词'); return }
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
-  var isGeminiImage = Boolean(model && model.kind === 'image' && model.id.indexOf('google/') === 0)
+  var supportsImageParams = Boolean(model && model.kind === 'image' && /^openai\\/.+image/.test(model.id))
   var body = { prompt: prompt, model: modelSelect.value }
   if (isVideo) {
     body.resolution = resolutionInput.value
@@ -459,7 +474,7 @@ goBtn.addEventListener('click', function () {
     if (refs.length > 0) body.referenceImages = [refs[0]]
   } else {
     body.count = Number(countInput.value)
-    if (!isGeminiImage) {
+    if (supportsImageParams) {
       body.aspectRatio = aspectInput.value
       body.imageSize = imageSizeInput.value
     }
