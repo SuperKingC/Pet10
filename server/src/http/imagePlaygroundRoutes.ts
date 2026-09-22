@@ -43,6 +43,9 @@ const PAGE = `<!doctype html>
   .task-status.failed { color: #991b1b; }
   .task-result { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .task-result img, .task-result video { width: 100%; border-radius: 8px; }
+  .result-item { display: flex; flex-direction: column; gap: 4px; }
+  .result-item .download { text-align: center; font-size: 12px; color: #92400e; background: #fef3c7; border-radius: 6px; padding: 4px 6px; text-decoration: none; }
+  .result-item .download:hover { background: #fde68a; }
   .task-error { color: #991b1b; font-size: 13px; margin-top: 8px; }
   .thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-top: 6px; padding: 4px; }
   .thumb { position: relative; flex: 0 0 auto; background: #f3f4f6; border-radius: 6px; }
@@ -401,18 +404,30 @@ function createCard(snapshot) {
 
 function renderResult(target, snapshot) {
   var items = snapshot.data || []
-  items.forEach(function (item) {
+  items.forEach(function (item, index) {
+    var src = snapshot.kind === 'video'
+      ? (item.b64_json ? 'data:video/mp4;base64,' + item.b64_json : item.url)
+      : (item.b64_json ? 'data:image/png;base64,' + item.b64_json : item.url)
+    var cell = document.createElement('div')
+    cell.className = 'result-item'
     if (snapshot.kind === 'video') {
       var video = document.createElement('video')
       video.controls = true
-      video.src = item.b64_json ? 'data:video/mp4;base64,' + item.b64_json : item.url
-      target.appendChild(video)
+      video.src = src
+      cell.appendChild(video)
     } else {
       var img = document.createElement('img')
       img.alt = '生成结果'
-      img.src = item.b64_json ? 'data:image/png;base64,' + item.b64_json : item.url
-      target.appendChild(img)
+      img.src = src
+      cell.appendChild(img)
     }
+    var download = document.createElement('a')
+    download.className = 'download'
+    download.textContent = '⬇ 下载'
+    download.href = src
+    download.download = 'pet10-' + snapshot.kind + '-' + snapshot.id.slice(0, 8) + '-' + (index + 1) + (snapshot.kind === 'video' ? '.mp4' : '.png')
+    cell.appendChild(download)
+    target.appendChild(cell)
   })
 }
 
