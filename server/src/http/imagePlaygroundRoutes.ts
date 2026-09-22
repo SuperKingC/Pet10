@@ -53,6 +53,7 @@ const PAGE = `<!doctype html>
   .thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-top: 6px; padding: 4px; }
   .thumb { position: relative; flex: 0 0 auto; background: #f3f4f6; border-radius: 6px; }
   .thumb img { width: 72px; height: 72px; object-fit: contain; border-radius: 6px; display: block; }
+  .thumb-role { font-size: 11px; color: #92400e; margin-top: 2px; }
   .thumb button { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; border: 0; background: rgba(153, 27, 27, .85); color: #fff; font-size: 11px; line-height: 18px; padding: 0; margin: 0; cursor: pointer; }
   .drop-hint { display: none; position: fixed; inset: 0; background: rgba(217, 119, 6, .12); border: 3px dashed #d97706; z-index: 9; pointer-events: none; }
   body.dragging .drop-hint { display: block; }
@@ -137,7 +138,7 @@ const PAGE = `<!doctype html>
     <p class="hint">当前模型不接收比例/尺寸参数（仅 GPT-5.4 Image 支持），按模型默认出图；出图数量仍有效。</p>
   </div>
   <div id="refs-wrap">
-    <label for="refs">参考图（图片模型最多 5 张，可拖拽进页面或直接粘贴截图；视频模型最多 2 张——首帧模式取第 1 张、首尾帧模式第 1/2 张作首/尾帧，建议 ≥720px；单张 ≤ 2MB，jpg/png/webp）</label>
+    <label for="refs" id="refs-label">参考图</label>
     <input type="file" id="refs" accept="image/jpeg,image/png,image/webp" multiple>
     <div class="thumbs" id="thumbs"></div>
   </div>
@@ -220,6 +221,27 @@ function renderKindFields() {
   aspectInput.disabled = !supportsImageParams
   imageSizeInput.disabled = !supportsImageParams
   videoOptions.style.display = isVideo ? '' : 'none'
+  // 视频参考图最多 2 张（首帧 1 张 / 首尾帧 2 张），切到视频时裁掉多余的
+  if (isVideo && refs.length > 2) {
+    refs = refs.slice(0, 2)
+    renderThumbs()
+    showSubmit('info', '已切到视频模型：参考图最多 2 张，多余的已移除')
+  }
+  renderRefsLabel()
+}
+
+function renderRefsLabel() {
+  var model = currentModel()
+  var isVideo = Boolean(model && model.kind === 'video')
+  var refsLabel = document.getElementById('refs-label')
+  if (!isVideo) {
+    refsLabel.textContent = '参考图（图片模型最多 5 张，可拖拽进页面或直接粘贴截图；单张 ≤ 2MB，jpg/png/webp）'
+    return
+  }
+  var isLast = document.getElementById('framemode').value === 'first_last'
+  refsLabel.textContent = isLast
+    ? '首尾帧模式：需 2 张参考图——第 1 张作首帧（画面从这开始），第 2 张作尾帧（画面落到这结束）；建议 ≥720px，单张 ≤ 2MB'
+    : '首帧模式：上传 1 张作首帧（视频从这个画面开始动）；建议 ≥720px，单张 ≤ 2MB，jpg/png/webp'
 }
 
 function refreshQuota() {
@@ -252,6 +274,7 @@ fetch('/api/images/models').then(function (r) { return r.json() }).then(function
 })
 
 modelSelect.addEventListener('change', renderKindFields)
+document.getElementById('framemode').addEventListener('change', renderRefsLabel)
 
 // ---------- 门禁 ----------
 var gateGo = document.getElementById('gate-go')
@@ -296,6 +319,13 @@ function enterWorkspace() {
 gateGo.addEventListener('click', enterWorkspace)
 gateInvite.addEventListener('keydown', function (event) { if (event.key === 'Enter') enterWorkspace() })
 
+function roleName(index) {
+  var model = currentModel()
+  if (!model || model.kind !== 'video') return '参考图' + (index + 1)
+  if (document.getElementById('framemode').value === 'first_last') return index === 0 ? '首帧' : '尾帧'
+  return '首帧'
+}
+
 function renderThumbs() {
   thumbsEl.textContent = ''
   refs.forEach(function (src, index) {
@@ -303,7 +333,7 @@ function renderThumbs() {
     wrap.className = 'thumb'
     var img = document.createElement('img')
     img.src = src
-    img.alt = '参考图' + (index + 1)
+    img.alt = roleName(index)
     var remove = document.createElement('button')
     remove.type = 'button'
     remove.textContent = '×'
@@ -314,6 +344,10 @@ function renderThumbs() {
     })
     wrap.appendChild(img)
     wrap.appendChild(remove)
+    var role = document.createElement('span')
+    role.className = 'thumb-role'
+    role.textContent = roleName(index)
+    wrap.appendChild(role)
     thumbsEl.appendChild(wrap)
   })
 }
@@ -472,6 +506,10 @@ goBtn.addEventListener('click', function () {
   if (!prompt) { showSubmit('error', '请填写提示词'); return }
   var model = currentModel()
   var isVideo = Boolean(model && model.kind === 'video')
+  if (isVideo && document.getElementById('framemode').value === 'first_last' && refs.length < 2) {
+    showSubmit('error', '首尾帧模式需要 2 张参考图（第 1 张首帧、第 2 张尾帧）')
+    return
+  }
   var supportsImageParams = Boolean(model && model.kind === 'image' && /^openai\\/.+image/.test(model.id))
   var body = { prompt: prompt, model: modelSelect.value }
   if (isVideo) {
