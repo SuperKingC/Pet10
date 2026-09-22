@@ -37,6 +37,14 @@ export function createImageRateLimiter(config: { perMinute: number; perDay: numb
       buckets.set(ip, bucket)
       return true
     },
+    /** 返还 n 个额度（生成失败时退回，不占当日预算） */
+    release(ip: string, n: number) {
+      if (!Number.isInteger(n) || n < 1) return
+      const existing = buckets.get(ip)
+      if (!existing) return
+      existing.minuteCount = Math.max(0, existing.minuteCount - n)
+      existing.dayCount = Math.max(0, existing.dayCount - n)
+    },
     /** 查询剩余额度（不消耗额度，供额度展示接口使用） */
     peek(ip: string) {
       const timestamp = now()

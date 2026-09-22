@@ -26,21 +26,30 @@ function fakeGeneration(overrides: Partial<ImageGenerationCore> = {}): ImageGene
 }
 
 function createService(overrides: { minutePerMinute?: number; imagePerDay?: number; videoPerDay?: number; maxFailures?: number; maxTasks?: number; ttlMs?: number; generation?: Partial<ImageGenerationCore> } = {}) {
-  return createImageTaskService({
+  const minuteLimiter = createImageRateLimiter({ perMinute: overrides.minutePerMinute ?? 10, perDay: 1_000_000 })
+  const imageDailyLimiter = createImageRateLimiter({ perMinute: 1_000_000, perDay: overrides.imagePerDay ?? 100 })
+  const videoDailyLimiter = createImageRateLimiter({ perMinute: 1_000_000, perDay: overrides.videoPerDay ?? 30 })
+  const failureLimiter = createInviteFailureLimiter({ maxPerDay: overrides.maxFailures ?? 3 })
+  const tasks = createImageTaskService({
     generation: overrides.generation ? fakeGeneration(overrides.generation) : fakeGeneration(),
-    minuteLimiter: createImageRateLimiter({ perMinute: overrides.minutePerMinute ?? 10, perDay: 1_000_000 }),
-    imageDailyLimiter: createImageRateLimiter({ perMinute: 1_000_000, perDay: overrides.imagePerDay ?? 100 }),
-    videoDailyLimiter: createImageRateLimiter({ perMinute: 1_000_000, perDay: overrides.videoPerDay ?? 30 }),
-    failureLimiter: createInviteFailureLimiter({ maxPerDay: overrides.maxFailures ?? 3 }),
+    minuteLimiter,
+    imageDailyLimiter,
+    videoDailyLimiter,
+    failureLimiter,
     maxPromptLength: 4000,
     maxTasks: overrides.maxTasks,
     ttlMs: overrides.ttlMs
   })
+  return {
+    tasks,
+    imageRemaining: (ip: string) => imageDailyLimiter.peek(ip).dayRemaining,
+    videoRemaining: (ip: string) => videoDailyLimiter.peek(ip).dayRemaining
+  }
 }
 
 describe('image task service', () => {
   it('runs an image task to completion with aggregated usage', async () => {
-    const tasks = createService()
+    const { tasks } = createService()
     const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.1', prompt: '一只猫' })
     expect(snapshot).toMatchObject({ model: 'openai/gpt-5.4-image-2', kind: 'image', status: 'running' })
     await flush()
@@ -54,7 +63,7 @@ describe('image task service', () => {
     let maxObserved = 0
     let release!: () => void
     const gate = new Promise<void>((resolve) => { release = resolve })
-    const tasks = createService({
+    const { tasks } = createService({
       generation: {
         generateVideo: async () => {
           runningCount++
@@ -78,7 +87,7 @@ describe('image task service', () => {
   })
 
   it('locks the ip for the day after the configured invite failures, correct code included', () => {
-    const tasks = createService({ maxFailures: 3 })
+    const { tasks } = createService({ maxFailures: 3 })
     for (let attempt = 0; attempt < 3; attempt++) {
       expect(() => tasks.submit({ inviteCode: 'wrong-code', ip: '10.0.0.4', prompt: '第' + attempt + '次' })).toThrow('unauthorized')
     }
@@ -88,31 +97,93 @@ describe('image task service', () => {
   })
 
   it('does not consume generation quotas on wrong-code attempts', async () => {
-    const tasks = createService({ minutePerMinute: 1, imagePerDay: 1 })
+    const { tasks } = createService({ minutePerMinute: 1, imagePerDay: 1 })
     expect(() => tasks.submit({ inviteCode: 'wrong-code', ip: '10.0.0.6', prompt: '测试' })).toThrow('unauthorized')
     const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.6', prompt: '测试' })
     expect(snapshot.status).toBe('running')
   })
 
-  it('counts image quota per image and keeps video quota in its own pool', async () => {
-    const tasks = createService({ imagePerDay: 3, videoPerDay: 3 })
+  it('counts image quota per image and keeps video quota in its own pool', () => {
+    const { tasks, imageRemaining, videoRemaining } = createService({ imagePerDay: 3, videoPerDay: 3 })
     tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.7', prompt: '两张', count: 2 })
+    expect(imageRemaining('10.0.0.7')).toBe(1)
     expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.7', prompt: '再要两张超了', count: 2 })).toThrow('rate_limit')
     // 图片池只剩 1 张：单张仍可提交
     expect(tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.7', prompt: '最后一张' }).status).toBe('running')
+    expect(imageRemaining('10.0.0.7')).toBe(0)
     // 视频池独立：不受图片池影响
     const video = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.7', prompt: '视频', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
     expect(video.status).toBe('running')
-    // 视频按个计：3 个池子，提交 3 个后第 4 个被拒
-    const videoIp = '10.0.0.8'
-    for (let index = 0; index < 3; index++) {
-      tasks.submit({ inviteCode: 'friends-only', ip: videoIp, prompt: '视频' + index, model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
+    expect(videoRemaining('10.0.0.7')).toBe(2)
+    // 视频按个计：3 个池子用满后第 4 个被拒
+    for (let index = 0; index < 2; index++) {
+      tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '视频' + index, model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
     }
-    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: videoIp, prompt: '第4个', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })).toThrow('rate_limit')
+    tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '第3个', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
+    expect(videoRemaining('10.0.0.8')).toBe(0)
+    expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.8', prompt: '第4个', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })).toThrow('rate_limit')
+  })
+
+  it('refunds daily and minute quota when the whole task fails', async () => {
+    let release!: () => void
+    const gate = new Promise<void>(resolve => { release = resolve })
+    const { tasks, imageRemaining } = createService({
+      minutePerMinute: 1,
+      imagePerDay: 1,
+      generation: { generateImageData: async () => { await gate; throw new Error('upstream_rejected') } }
+    })
+    const snapshot = tasks.submit({
+      inviteCode: 'friends-only', ip: '10.0.1.3', prompt: '会失败',
+    })
+    await flush()
+    // 生成中：额度已扣
+    expect(imageRemaining('10.0.1.3')).toBe(0)
+    release()
+    await flush()
+    expect(tasks.get(snapshot.id, 'friends-only', '10.0.1.3')?.status).toBe('failed')
+    // 失败全退：同 IP 同一分钟内立刻重提也能成功
+    expect(imageRemaining('10.0.1.3')).toBe(1)
+    const retry = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.3', prompt: '重试' })
+    expect(retry.status).toBe('running')
+  })
+
+  it('refunds the failed generation, not the successful ones', async () => {
+    let imageCalls = 0
+    const { tasks, imageRemaining } = createService({
+      imagePerDay: 3,
+      generation: {
+        generateImageData: async () => {
+          imageCalls++
+          if (imageCalls === 2) throw new Error('upstream_rejected')
+          return { data: [{ b64_json: 'aGVsbG8=' + imageCalls }], usage: { cost: 0.1 } }
+        }
+      }
+    })
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.5', prompt: '三张出两张', count: 3 })
+    await flush()
+    const done = tasks.get(snapshot.id, 'friends-only', '10.0.1.5')
+    expect(done?.status).toBe('succeeded')
+    expect(done?.data).toHaveLength(2)
+    // 扣 3 张、退回失败那 1 张 → 剩 1
+    expect(imageRemaining('10.0.1.5')).toBe(1)
+  })
+
+  it('video failure refunds the video pool only', async () => {
+    const { tasks, videoRemaining, imageRemaining } = createService({
+      videoPerDay: 1,
+      generation: { generateVideo: async () => { throw new Error('upstream_rejected') } }
+    })
+    tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.6', prompt: '失败视频', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
+    await flush()
+    // 视频池退回后仍可提交；图片池不受视频影响
+    expect(videoRemaining('10.0.1.6')).toBe(1)
+    expect(imageRemaining('10.0.1.6')).toBe(100)
+    const retry = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.6', prompt: '再来一次', model: 'kwaivgi/kling-v3.0-std', resolution: '720p' })
+    expect(retry.status).toBe('running')
   })
 
   it('rejects unauthorized polling and unknown models', async () => {
-    const tasks = createService()
+    const { tasks } = createService()
     const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.9', prompt: '测试' })
     expect(() => tasks.get(snapshot.id, 'wrong-code', '10.0.0.9')).toThrow('unauthorized')
     expect(() => tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.10', prompt: '测试', model: 'not-enabled' })).toThrow('invalid_model')
@@ -120,7 +191,7 @@ describe('image task service', () => {
   })
 
   it('records failures on the task instead of throwing to the submitter', async () => {
-    const tasks = createService({
+    const { tasks } = createService({
       generation: { generateImageData: async () => { throw new Error('upstream_unavailable') } }
     })
     const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.0.11', prompt: '会失败的任务' })
@@ -130,7 +201,7 @@ describe('image task service', () => {
 
   it('fans out the requested image count in one submit and merges partial results', async () => {
     let imageCalls = 0
-    const tasks = createService({
+    const { tasks } = createService({
       generation: {
         generateImageData: async () => {
           imageCalls++
@@ -149,19 +220,19 @@ describe('image task service', () => {
   })
 
   it('evicts the oldest finished task beyond the capacity cap', async () => {
-    const tasks = createService({ maxTasks: 1 })
-    const first = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.3', prompt: '第一张' })
+    const { tasks } = createService({ maxTasks: 1 })
+    const first = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.7', prompt: '第一张' })
     await flush()
-    tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.4', prompt: '第二张' })
-    expect(tasks.get(first.id, 'friends-only', '10.0.1.3')).toBeUndefined()
+    tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.8', prompt: '第二张' })
+    expect(tasks.get(first.id, 'friends-only', '10.0.1.7')).toBeUndefined()
   })
 
   it('expires task results after the ttl', async () => {
-    const tasks = createService({ ttlMs: 30 })
-    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.5', prompt: '过期任务' })
+    const { tasks } = createService({ ttlMs: 30 })
+    const snapshot = tasks.submit({ inviteCode: 'friends-only', ip: '10.0.1.9', prompt: '过期任务' })
     await flush()
-    expect(tasks.get(snapshot.id, 'friends-only', '10.0.1.5')).toBeDefined()
+    expect(tasks.get(snapshot.id, 'friends-only', '10.0.1.9')).toBeDefined()
     await new Promise(resolve => setTimeout(resolve, 60))
-    expect(tasks.get(snapshot.id, 'friends-only', '10.0.1.5')).toBeUndefined()
+    expect(tasks.get(snapshot.id, 'friends-only', '10.0.1.9')).toBeUndefined()
   })
 })

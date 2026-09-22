@@ -15,7 +15,7 @@ export class ImageGenerationError extends Error {
 const DEFAULT_IMAGE_MODEL = 'openai/gpt-5.4-image-2'
 const SIZES = new Set(['1024x1024', '1024x1536', '1536x1024'])
 const ASPECT_RATIOS: Record<string, string> = { '1024x1024': '1:1', '1024x1536': '2:3', '1536x1024': '3:2' }
-export const IMAGE_ASPECT_RATIOS = new Set(['1:1', '2:3', '3:2'])
+export const IMAGE_ASPECT_RATIOS = new Set(['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3'])
 export const IMAGE_IMAGE_SIZES = new Set(['1K', '2K'])
 export const VIDEO_RESOLUTIONS = new Set(['720p', '1080p'])
 export const VIDEO_DURATIONS = new Set([5, 10])
@@ -131,7 +131,7 @@ export function createImageGenerationService(
     return generateImageData({ prompt: input.prompt, model: model.id, aspectRatio: input.size ? ASPECT_RATIOS[input.size] : undefined, referenceImages })
   }
 
-  /** 图片上游调用（不含鉴权/限流，任务复用；比例/尺寸只对 openai 系模型生效） */
+  /** 图片上游调用（不含鉴权/限流，任务复用；比例/尺寸只对 openai 系模型生效；模型偶尔回文本不回图，自动重试一次） */
   async function generateImageData(input: { prompt: string; model: string; aspectRatio?: string; imageSize?: string; referenceImages?: string[] }) {
     if (!config.upstreamApiKey) throw new Error('upstream_unavailable')
     const aspectRatio = input.aspectRatio ?? '1:1'
@@ -140,28 +140,44 @@ export function createImageGenerationService(
     const content = referenceImages.length === 0 ? input.prompt : [{ type: 'text', text: input.prompt }, ...referenceImages.map(url => ({ type: 'image_url', image_url: { url } }))]
     const upstreamBody: Record<string, unknown> = { model: input.model, messages: [{ role: 'user', content }], modalities: ['image'] }
     if (supportsImageConfig(input.model)) upstreamBody.image_config = { aspect_ratio: aspectRatio, image_size: imageSize }
-    let response: Response
-    try {
-      response = await fetcher(`${config.upstreamBaseUrl}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }, body: JSON.stringify(upstreamBody) })
-    } catch {
-      throw new ImageGenerationError('upstream_unavailable')
+    let lastError: ImageGenerationError | undefined
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let response: Response
+      try {
+        response = await fetcher(`${config.upstreamBaseUrl}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${config.upstreamApiKey}` }, body: JSON.stringify(upstreamBody) })
+      } catch {
+        throw new ImageGenerationError('upstream_unavailable')
+      }
+      let payload: unknown
+      try {
+        payload = await response.json()
+      } catch {
+        throw new ImageGenerationError('upstream_invalid_response', response.status)
+      }
+      const diagnostics = upstreamDiagnostics(payload, response.status)
+      if (diagnostics) {
+        throw new ImageGenerationError(response.status >= 500 || (diagnostics.upstreamCode ?? 0) >= 500 ? 'upstream_unavailable' : 'upstream_rejected', diagnostics.upstreamCode, diagnostics.requestId)
+      }
+      if (!response.ok) throw new ImageGenerationError(response.status >= 500 ? 'upstream_unavailable' : 'upstream_rejected', response.status)
+      try {
+        return { ...normalizeImageResponse(payload), usage: sanitizeUsage((payload as { usage?: unknown }).usage) }
+      } catch {
+        // 模型回了 200 但没带图（常见于偶发的文本回复）：记一条脱敏日志后自动重试一次
+        const message = (payload as { choices?: Array<{ message?: Record<string, unknown> }> })?.choices?.[0]?.message
+        lastError = new ImageGenerationError('upstream_invalid_response', response.status)
+        if (attempt === 0) {
+          console.error(JSON.stringify({
+            event: 'image_upstream_no_image',
+            status: response.status,
+            attempt: attempt + 1,
+            messageKeys: message ? Object.keys(message).join(',') : '(无 message)',
+            contentLength: typeof message?.content === 'string' ? (message.content as string).length : undefined,
+            hasImagesField: Boolean(message?.images)
+          }))
+        }
+      }
     }
-    let payload: unknown
-    try {
-      payload = await response.json()
-    } catch {
-      throw new ImageGenerationError('upstream_invalid_response', response.status)
-    }
-    const diagnostics = upstreamDiagnostics(payload, response.status)
-    if (diagnostics) {
-      throw new ImageGenerationError(response.status >= 500 || (diagnostics.upstreamCode ?? 0) >= 500 ? 'upstream_unavailable' : 'upstream_rejected', diagnostics.upstreamCode, diagnostics.requestId)
-    }
-    if (!response.ok) throw new ImageGenerationError(response.status >= 500 ? 'upstream_unavailable' : 'upstream_rejected', response.status)
-    try {
-      return { ...normalizeImageResponse(payload), usage: sanitizeUsage((payload as { usage?: unknown }).usage) }
-    } catch {
-      throw new ImageGenerationError('upstream_invalid_response', response.status)
-    }
+    throw lastError ?? new ImageGenerationError('upstream_invalid_response')
   }
 
   /** 视频上游调用（中转 /videos 形状：创建→轮询→取片；首帧图可选走图生视频；不含鉴权/限流，任务复用） */

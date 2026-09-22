@@ -77,15 +77,19 @@ const PAGE = `<!doctype html>
         <label for="aspect">比例</label>
         <select id="aspect">
           <option value="1:1">1:1 正方形</option>
-          <option value="2:3">2:3 竖版</option>
-          <option value="3:2">3:2 横版</option>
+          <option value="16:9">16:9 横版</option>
+          <option value="9:16">9:16 竖版（手机）</option>
+          <option value="4:3">4:3 横版</option>
+          <option value="3:4">3:4 竖版</option>
+          <option value="3:2">3:2 横版（相机）</option>
+          <option value="2:3">2:3 竖版（海报）</option>
         </select>
       </div>
       <div>
         <label for="imagesize">尺寸</label>
         <select id="imagesize">
-          <option value="1K">1K（快）</option>
-          <option value="2K" selected>2K（清晰）</option>
+          <option value="1K" selected>1K（快）</option>
+          <option value="2K">2K（清晰）</option>
         </select>
       </div>
       <div>
@@ -142,7 +146,7 @@ var ERRORS = {
   rate_limit_exceeded: '触发限流，请稍后再试',
   invalid_prompt: '提示词为空或超过 4000 字符',
   invalid_model: '模型未启用',
-  invalid_aspect_ratio: '不支持的比例（仅 1:1 / 2:3 / 3:2）',
+  invalid_aspect_ratio: '不支持的比例（1:1 / 16:9 / 9:16 / 4:3 / 3:4 / 3:2 / 2:3）',
   invalid_image_size: '不支持的尺寸（仅 1K / 2K）',
   invalid_count: '出图数量仅支持 1~4',
   invalid_resolution: '不支持的视频分辨率（仅 720p/1080p）',

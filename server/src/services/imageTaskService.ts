@@ -45,6 +45,15 @@ export function createImageTaskService({ generation, minuteLimiter, imageDailyLi
     if (task) task.expiry = expiry
   }
 
+  /** 生出来才扣额度：失败的部分退回日额度，全部未出时连分钟额度一起退 */
+  function refundOnFailure(kind: ImageModelKind, ip: string, requested: number, succeeded: number) {
+    const refund = Math.max(0, requested - succeeded)
+    if (refund === 0) return
+    const daily = kind === 'video' ? videoDailyLimiter : imageDailyLimiter
+    daily.release(ip, refund)
+    if (succeeded === 0) minuteLimiter.release(ip, 1)
+  }
+
   return {
     /** 提交任务：锁定→鉴权→校验→扣额度→后台运行（提交即返回，不等待生成） */
     submit(input: { inviteCode: string; ip: string; prompt: string; model?: string; aspectRatio?: string; imageSize?: string; count?: number; resolution?: string; duration?: number; audio?: boolean; referenceImages?: string[] }): ImageTaskSnapshot {
@@ -105,8 +114,11 @@ export function createImageTaskService({ generation, minuteLimiter, imageDailyLi
             if (data.length === 0) throw settled.find((entry): entry is PromiseRejectedResult => entry.status === 'rejected')?.reason ?? new Error('upstream_unavailable')
           }
           const usage: ImageTaskSnapshot['usage'] = totalCost > 0 || totalTokens > 0 ? { cost: totalCost > 0 ? totalCost : undefined, tokens: totalTokens > 0 ? totalTokens : undefined } : undefined
+          refundOnFailure(model.kind, input.ip, model.kind === 'video' ? 1 : count, data.length)
           task.snapshot = { ...task.snapshot, status: 'succeeded', durationMs: Date.now() - startedAt, ...(usage ? { usage } : {}), data }
         } catch (error) {
+          // 生出来才扣额度：全部未出，分钟与日额度全退
+          refundOnFailure(model.kind, input.ip, model.kind === 'video' ? 1 : count, 0)
           task.snapshot = { ...task.snapshot, status: 'failed', durationMs: Date.now() - startedAt, error: error instanceof Error ? error.message : 'internal' }
         }
       })()

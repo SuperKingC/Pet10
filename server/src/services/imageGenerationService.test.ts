@@ -244,6 +244,39 @@ describe('image generation service', () => {
     expect(JSON.stringify(error)).not.toContain('sensitive account details')
   })
 
+  it('retries once automatically when the model answers with text instead of an image', async () => {
+    let fetchCalls = 0
+    let logged = ''
+    const logger = vi.spyOn(console, 'error').mockImplementation((line) => { logged = String(line) })
+    const noImage = new Response(JSON.stringify({ choices: [{ message: { content: '这是一段文字说明而不是图片' } }] }), { status: 200 })
+    const withImage = new Response(JSON.stringify({
+      choices: [{ message: { images: [{ image_url: { url: 'https://cdn.example.com/result.png' } }] } }]
+    }), { status: 200 })
+    const fetcher: typeof fetch = vi.fn(async () => {
+      fetchCalls++
+      return fetchCalls === 1 ? noImage : withImage
+    })
+    const service = createImageGenerationService(config, fetcher)
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.7.1', prompt: 'test' })).resolves.toEqual({ data: [{ url: 'https://cdn.example.com/result.png' }] })
+    expect(fetchCalls).toBe(2)
+    expect(logged).toContain('image_upstream_no_image')
+    expect(logged).not.toContain('这是一段文字说明')
+    logger.mockRestore()
+  })
+
+  it('fails with upstream_invalid_response after the retry still returns no image', async () => {
+    let fetchCalls = 0
+    const logger = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const fetcher: typeof fetch = vi.fn(async () => {
+      fetchCalls++
+      return new Response(JSON.stringify({ choices: [{ message: { content: 'still no image' } }] }), { status: 200 })
+    })
+    const service = createImageGenerationService(config, fetcher)
+    await expect(service.generate({ inviteCode: 'friends-only', ip: '10.9.7.2', prompt: 'test' })).rejects.toThrow('upstream_invalid_response')
+    expect(fetchCalls).toBe(2)
+    logger.mockRestore()
+  })
+
   it('rejects every attempt while no invite code is configured', async () => {
     const fetcher = vi.fn(async () => new Response('{}', { status: 200 }))
     const service = createImageGenerationService({ ...config, inviteCode: '', rateLimitPerMinute: 3 }, fetcher as typeof fetch)
