@@ -172,9 +172,9 @@ export function createWardrobeService(repositories: RepositoryBundle, options?: 
       const pieces: WardrobeOutfitPieces = outfit
         ? {
             body: (outfit.body ?? 'default') as WardrobeSuitKey,
-            hat: outfit.hat ?? null,
-            scarf: outfit.scarf ?? null,
-            bag: outfit.bag ?? null
+            hat: (outfit.hat ?? null) as WardrobeSuitKey | null,
+            scarf: (outfit.scarf ?? null) as WardrobeSuitKey | null,
+            bag: (outfit.bag ?? null) as WardrobeSuitKey | null
           }
         : { body: (saveInput.itemKey ?? 'default') as WardrobeSuitKey, hat: null, scarf: null, bag: null }
       const slots: Array<[string, WardrobeSuitKey | null]> = [

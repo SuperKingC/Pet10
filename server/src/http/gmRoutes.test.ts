@@ -28,7 +28,9 @@ describe('gm routes', () => {
           displayName: `测试好友${index + 1}`
         }))
       }),
-      removeFriends: async () => ({ removed: [] })
+      removeFriends: async () => ({ removed: [] }),
+      addNestItems: async () => ({ rooms: 0, grantedPerItem: 0 }),
+      setWardrobeUnlockAll: async () => ({ rooms: 0, gmUnlockAll: false })
     })
 
     const response = await request(app).post('/friends').send({ count: 2 })
@@ -39,7 +41,12 @@ describe('gm routes', () => {
   })
 
   it('rejects invalid count with 400', async () => {
-    const app = buildApp({ addFriends: async () => ({ added: [] }), removeFriends: async () => ({ removed: [] }) })
+    const app = buildApp({
+      addFriends: async () => ({ added: [] }),
+      removeFriends: async () => ({ removed: [] }),
+      addNestItems: async () => ({ rooms: 0, grantedPerItem: 0 }),
+      setWardrobeUnlockAll: async () => ({ rooms: 0, gmUnlockAll: false })
+    })
 
     const response = await request(app).post('/friends').send({ count: 99 })
 
@@ -51,7 +58,12 @@ describe('gm routes', () => {
     const removeFriends = async (userId: string) => ({
       removed: [{ userId: `${userId}-friend-0`, displayName: '测试好友1' }]
     })
-    const app = buildApp({ addFriends: async () => ({ added: [] }), removeFriends })
+    const app = buildApp({
+      addFriends: async () => ({ added: [] }),
+      removeFriends,
+      addNestItems: async () => ({ rooms: 0, grantedPerItem: 0 }),
+      setWardrobeUnlockAll: async () => ({ rooms: 0, gmUnlockAll: false })
+    })
 
     const response = await request(app).delete('/friends')
 

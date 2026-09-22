@@ -84,7 +84,7 @@ export function parseEquippedPieces(value: string | null | undefined): WardrobeO
     const suit = findWardrobeSuit(value)
     if (suit) {
       if (suit.category === 'body') pieces.body = suit.key
-      else if (suit.category !== 'body') pieces[suit.category] = suit.key
+      else pieces[suit.category] = suit.key
     }
     return pieces
   }

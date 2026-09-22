@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { WardrobeSuitKey } from '../domain/wardrobeCatalog.js'
 import { createMemoryRepositories } from '../repositories/memoryRepositories.js'
 import { createFriendshipService } from './friendshipService.js'
 import { createWardrobeService, type MatchSettledEvent } from './wardrobeService.js'
@@ -40,7 +41,7 @@ describe('wardrobe service', () => {
     const { repositories, user, room } = await createPairRoom()
     const service = createService(repositories)
     await expect(service.setEquipped(room.id, user.id, 'overalls')).rejects.toThrow('wardrobe_locked')
-    await expect(service.setEquipped(room.id, user.id, 'nonexistent')).rejects.toThrow('invalid_suit')
+    await expect(service.setEquipped(room.id, user.id, 'nonexistent' as WardrobeSuitKey)).rejects.toThrow('invalid_suit')
     // 五次领奖事件 → 背带裤解锁
     const pet = await repositories.pets.findByRoomId(room.id)
     for (let index = 0; index < 5; index += 1) {
