@@ -2,3 +2,10 @@ api.pet10kk.com {
     encode zstd gzip
     reverse_proxy api:8787
 }
+
+# PtKing 测试站（/opt/ptking 栈，2026-09-04 接入）：静态 dist + 码解锁 API 同域
+pet10kk.com {
+    encode zstd gzip
+    reverse_proxy /api/* ptking-api:8788
+    reverse_proxy ptking-web:80
+}
